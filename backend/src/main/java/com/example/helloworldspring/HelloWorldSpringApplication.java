@@ -19,6 +19,6 @@ public class HelloWorldSpringApplication {
 class HelloController {
     @GetMapping("/")
     public String hello() {
-        return "Hello World!";
+        return "Hello World! From docker";
     }
 }
