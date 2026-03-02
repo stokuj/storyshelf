@@ -3,6 +3,7 @@ package com.stokuj.books.security;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -10,14 +11,13 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // klucz do podpisywania tokenów — minimum 32 znaki
-    private static final String SECRET = "tajny-klucz-minimum-32-znaki-xyz123";
+    @Value("${jwt.secret}")
+    private String secret;
 
-    // token ważny 24 godziny
     private static final long EXPIRATION = 1000 * 60 * 60 * 24;
 
     private SecretKey getKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     // generuje token na podstawie emaila użytkownika
