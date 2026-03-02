@@ -23,6 +23,18 @@
 hs_err_pid*
 replay_pid*
 .env
-src/main/resources/application-local.properties
+backend/src/main/resources/application-local.properties
 target/
+backend/target/
 frontend/node_modules/
+
+# IDE files
+.idea/
+*.iml
+backend/.project
+backend/.classpath
+backend/.factorypath
+backend/.settings/
+
+# Frontend build artifacts
+frontend/assets/css/styles.css
