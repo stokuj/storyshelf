@@ -1,1 +1,7 @@
-/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/example/helloworldspring/HelloWorldSpringApplication.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/SpringShelfApplication.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/controller/BookController.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/dto/BookRequest.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/exception/GlobalExceptionHandler.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/model/Book.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/repository/BookRepository.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/service/BookService.java
