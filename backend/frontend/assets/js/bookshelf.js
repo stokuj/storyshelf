@@ -1,4 +1,4 @@
-import { apiFetch } from "./api.js";
+import { apiFetch, clearToken } from "./api.js";
 
 function hide(el) {
     el?.classList.add("hidden");
@@ -23,19 +23,19 @@ function createBookCard(book) {
     return article;
 }
 
-async function loadBooks() {
-    const loadingEl = document.getElementById("loading");
-    const errorEl = document.getElementById("error");
-    const emptyEl = document.getElementById("empty");
-    const booksGridEl = document.getElementById("books-grid");
+export async function initBookshelf() {
+    const loadingEl = document.getElementById("bookshelf-loading");
+    const errorEl = document.getElementById("bookshelf-error");
+    const emptyEl = document.getElementById("bookshelf-empty");
+    const gridEl = document.getElementById("bookshelf-grid");
 
     show(loadingEl);
     hide(errorEl);
     hide(emptyEl);
 
     try {
-        const books = await apiFetch("/api/books");
-        booksGridEl.innerHTML = "";
+        const books = await apiFetch("/api/me/books");
+        gridEl.innerHTML = "";
 
         if (!Array.isArray(books) || books.length === 0) {
             show(emptyEl);
@@ -43,15 +43,16 @@ async function loadBooks() {
         }
 
         books.forEach((book) => {
-            booksGridEl.appendChild(createBookCard(book));
+            gridEl.appendChild(createBookCard(book));
         });
     } catch (error) {
+        if (error.status === 401) {
+            clearToken();
+            window.location.href = "login.html";
+            return;
+        }
         show(errorEl);
     } finally {
         hide(loadingEl);
     }
-}
-
-export async function initHome() {
-    await loadBooks();
 }

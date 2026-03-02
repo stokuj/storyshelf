@@ -1,0 +1,20 @@
+<section>
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold">Lista ksiazek</h1>
+        <p class="text-base-content/70">Publiczny katalog - widoczny takze bez logowania.</p>
+    </div>
+
+    <div id="loading" class="alert mb-4">
+        <span>Ladowanie ksiazek...</span>
+    </div>
+
+    <div id="error" class="alert alert-error mb-4 hidden">
+        <span>Nie udalo sie pobrac listy ksiazek.</span>
+    </div>
+
+    <div id="empty" class="alert hidden">
+        <span>Brak ksiazek w bazie.</span>
+    </div>
+
+    <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</section>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpringShelf</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-base-200">
+<nav class="navbar bg-base-100 border-b border-base-300 px-4 md:px-8">
+    <div class="flex-1">
+        <a href="?page=home" class="text-xl font-bold">SpringShelf</a>
+    </div>
+    <div class="flex-none gap-2" id="nav-links">
+        <a href="?page=home" class="btn btn-ghost btn-sm">Home</a>
+    </div>
+</nav>
+
+<main id="page-content" class="max-w-5xl mx-auto p-4 md:p-8"></main>
+
+<script type="module" src="assets/js/base.js"></script>
+</body>
+</html>
