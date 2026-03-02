@@ -24,3 +24,5 @@ hs_err_pid*
 replay_pid*
 .env
 src/main/resources/application-local.properties
+target/
+frontend/node_modules/
