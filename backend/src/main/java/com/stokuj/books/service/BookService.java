@@ -1,6 +1,7 @@
 package com.stokuj.books.service;
 
 import com.stokuj.books.dto.BookRequest;
+import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.model.Book;
 import com.stokuj.books.repository.BookRepository;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class BookService {
 
     public Book getById(Long id) {
         return bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
     }
 
     public Book create(BookRequest request) {
