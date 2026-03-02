@@ -1,73 +1,26 @@
-"""Minimal NLP app using spaCy with file input support.
+"""CLI entrypoint for character extraction with spaCy.
 
 Run:
-    python src/main.py
-    python src/main.py --input ./book.txt
-    python src/main.py --input ./book.epub
-    python src/main.py --input ./book.pdf
+    python -m src.main
+    python -m src.main --input ./book.txt
+    python -m src.main --input ./book.epub
+    python -m src.main --input ./book.pdf
 """
 
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
+if __package__ in {None, ""}:
+    script_dir = Path(__file__).resolve().parent
+    root_dir = script_dir.parent
+    if str(script_dir) in sys.path:
+        sys.path.remove(str(script_dir))
+    sys.path.insert(0, str(root_dir))
 
-def read_txt_file(file_path: Path) -> str:
-    """Read plain text file with UTF-8 fallback handling."""
-    try:
-        return file_path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        return file_path.read_text(encoding="utf-8-sig")
-
-
-def read_epub_file(file_path: Path) -> str:
-    """Extract visible text from an EPUB file."""
-    from bs4 import BeautifulSoup
-    from ebooklib import ITEM_DOCUMENT, epub
-
-    book = epub.read_epub(str(file_path))
-    parts: list[str] = []
-
-    for item in book.get_items_of_type(ITEM_DOCUMENT):
-        soup = BeautifulSoup(item.get_content(), "html.parser")
-        text = soup.get_text(" ", strip=True)
-        if text:
-            parts.append(text)
-
-    return "\n".join(parts)
-
-
-def read_pdf_file(file_path: Path) -> str:
-    """Extract text from a PDF file."""
-    from pypdf import PdfReader
-
-    reader = PdfReader(str(file_path))
-    parts: list[str] = []
-
-    for page in reader.pages:
-        text = page.extract_text() or ""
-        if text.strip():
-            parts.append(text)
-
-    return "\n".join(parts)
-
-
-def load_text_from_file(file_path: str) -> str:
-    """Load raw book text from supported file formats."""
-    path = Path(file_path)
-    if not path.exists():
-        raise FileNotFoundError(f"File not found: {path}")
-
-    suffix = path.suffix.lower()
-    if suffix in {".txt", ".md"}:
-        return read_txt_file(path)
-    if suffix == ".epub":
-        return read_epub_file(path)
-    if suffix == ".pdf":
-        return read_pdf_file(path)
-
-    raise ValueError("Unsupported format. Use: .txt, .md, .epub, .pdf")
+from src.spacy import extract_characters, load_text_from_file
 
 
 def parse_args() -> argparse.Namespace:
@@ -76,20 +29,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", help="Path to input file: .txt, .md, .epub, .pdf")
     parser.add_argument("--model", default="en_core_web_trf", help="spaCy model name")
     return parser.parse_args()
-
-
-def extract_characters(text: str, model_name: str = "en_core_web_sm") -> list[str]:
-    """Return a unique list of characters detected as PERSON entities."""
-    import spacy
-
-    nlp = spacy.load(model_name)
-    doc = nlp(text)
-    characters = {
-        ent.text.strip()
-        for ent in doc.ents
-        if ent.label_ == "persName" or ent.label_ == "PERSON"
-    }
-    return sorted(name for name in characters if name)
 
 
 def main() -> None:
