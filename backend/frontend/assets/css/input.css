@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --bg: #f4f2ec;
+    --text: #1f1f1f;
+    --panel: #ffffff;
+    --line: #d8d3c6;
+    --accent: #1f5f8b;
+    --danger: #9e2a2b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(180deg, #f8f6f0 0%, var(--bg) 100%);
+    color: var(--text);
+}
+
+.container {
+    width: min(960px, 92vw);
+    margin: 2rem auto;
+}
+
+.narrow {
+    width: min(440px, 92vw);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.between {
+    justify-content: space-between;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.grid-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+
+label {
+    display: grid;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+}
+
+input,
+button {
+    font: inherit;
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--line);
+}
+
+button {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    cursor: pointer;
+}
+
+button.secondary {
+    background: #fff;
+    color: var(--accent);
+}
+
+button.danger {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    padding: 0.55rem 0.4rem;
+}
+
+.message {
+    min-height: 1.4rem;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.center {
+    text-align: center;
+}
+
+.oauth-link {
+    display: block;
+    text-align: center;
+    background: #1f1f1f;
+    color: #fff;
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    margin-bottom: 0.8rem;
+}

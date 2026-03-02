@@ -3,6 +3,7 @@ import { apiFetch, setToken, clearToken } from "./api.js";
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
 const messageEl = document.getElementById("message");
+const githubLoginLink = document.getElementById("github-login-link");
 
 function showMessage(text) {
     if (messageEl) {
@@ -52,4 +53,8 @@ if (loginForm) {
 
 if (registerForm) {
     registerForm.addEventListener("submit", (event) => handleAuthSubmit(event, "/api/auth/register"));
+}
+
+if (githubLoginLink) {
+    githubLoginLink.href = "http://localhost:8080/oauth2/authorization/github";
 }

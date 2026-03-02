@@ -15,6 +15,7 @@
 /home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/repository/UserRepository.java
 /home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/security/JwtFilter.java
 /home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/security/JwtService.java
+/home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/security/OAuth2SuccessHandler.java
 /home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/security/SecurityConfig.java
 /home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/service/AuthService.java
 /home/dv6/Dokumenty/GitHub/springshelf/src/main/java/com/stokuj/books/service/BookService.java
