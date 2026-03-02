@@ -1,29 +1,28 @@
-import { apiFetch, setToken, clearToken } from "./api.js";
+import { apiFetch, clearToken, setToken } from "./api.js";
 
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
 const messageEl = document.getElementById("message");
-const githubLoginLink = document.getElementById("github-login-link");
 
-function showMessage(text) {
-    if (messageEl) {
-        messageEl.textContent = text;
+function showMessage(text, isError = false) {
+    if (!messageEl) {
+        return;
     }
+    messageEl.textContent = text;
+    messageEl.className = isError ? "mt-4 text-sm text-error" : "mt-4 text-sm text-success";
 }
 
 function extractErrorMessage(error) {
     if (!error || !error.body) {
-        return "Brak polaczenia z API (sprawdz czy backend dziala i CORS).";
+        return "Brak polaczenia z API.";
     }
-
     if (error.body.validationErrors) {
         return Object.values(error.body.validationErrors).join("; ");
     }
-
     return error.body.message || "Blad autoryzacji";
 }
 
-async function handleAuthSubmit(event, endpoint) {
+async function handleSubmit(event, endpoint) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const payload = {
@@ -37,24 +36,20 @@ async function handleAuthSubmit(event, endpoint) {
             body: JSON.stringify(payload)
         });
         setToken(data.token);
-        showMessage("Zalogowano pomyslnie. Przekierowuje...");
+        showMessage("Sukces. Przekierowuje...");
         window.setTimeout(() => {
-            window.location.href = "books.html";
-        }, 500);
+            window.location.href = "base.html?page=home";
+        }, 400);
     } catch (error) {
         clearToken();
-        showMessage(extractErrorMessage(error));
+        showMessage(extractErrorMessage(error), true);
     }
 }
 
 if (loginForm) {
-    loginForm.addEventListener("submit", (event) => handleAuthSubmit(event, "/api/auth/login"));
+    loginForm.addEventListener("submit", (event) => handleSubmit(event, "/api/auth/login"));
 }
 
 if (registerForm) {
-    registerForm.addEventListener("submit", (event) => handleAuthSubmit(event, "/api/auth/register"));
-}
-
-if (githubLoginLink) {
-    githubLoginLink.href = "http://localhost:8080/oauth2/authorization/github";
+    registerForm.addEventListener("submit", (event) => handleSubmit(event, "/api/auth/register"));
 }

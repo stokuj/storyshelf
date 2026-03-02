@@ -4,27 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logowanie - SpringShelf</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body>
-<main class="container narrow">
-    <h1>Logowanie</h1>
-    <form id="login-form" class="panel">
-        <label>
-            Email
-            <input type="email" name="email" required>
-        </label>
-        <label>
-            Haslo
-            <input type="password" name="password" required>
-        </label>
-        <button type="submit">Zaloguj</button>
+<body class="min-h-screen bg-base-200">
+<nav class="navbar bg-base-100 border-b border-base-300 px-4 md:px-8">
+    <div class="flex-1">
+        <a href="base.html?page=home" class="text-xl font-bold">SpringShelf</a>
+    </div>
+</nav>
+
+<main class="max-w-md mx-auto p-4 md:p-8">
+    <h1 class="text-3xl font-bold mb-6">Logowanie</h1>
+
+    <form id="login-form" class="card bg-base-100 shadow-sm border border-base-300">
+        <div class="card-body gap-4">
+            <label class="form-control w-full">
+                <span class="label-text mb-1">Email</span>
+                <input type="email" name="email" class="input input-bordered w-full" required>
+            </label>
+
+            <label class="form-control w-full">
+                <span class="label-text mb-1">Haslo</span>
+                <input type="password" name="password" class="input input-bordered w-full" required>
+            </label>
+
+            <button type="submit" class="btn btn-primary w-full">Zaloguj</button>
+        </div>
     </form>
-    <p class="center">lub</p>
-    <a id="github-login-link" class="oauth-link" href="#">Zaloguj przez GitHub</a>
-    <p id="message" class="message"></p>
-    <p>Nie masz konta? <a href="register.html">Zarejestruj sie</a></p>
+
+    <p id="message" class="mt-4 text-sm"></p>
+    <p class="mt-4 text-sm">Nie masz konta? <a href="register.html" class="link link-primary">Zarejestruj sie</a></p>
 </main>
+
 <script type="module" src="assets/js/auth.js"></script>
 </body>
 </html>
