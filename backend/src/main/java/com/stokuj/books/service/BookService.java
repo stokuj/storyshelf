@@ -34,7 +34,7 @@ public class BookService {
     }
 
 
-    public Book update(Long id, Book updated) {
+    public Book update(Long id, BookRequest updated) {
         Book existing = getById(id);
         existing.setTitle(updated.getTitle());
         existing.setAuthor(updated.getAuthor());

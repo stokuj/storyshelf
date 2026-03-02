@@ -3,6 +3,7 @@ package com.stokuj.books.controller;
 import com.stokuj.books.dto.BookRequest;
 import com.stokuj.books.model.Book;
 import com.stokuj.books.service.BookService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,14 +29,13 @@ public class BookController {
     }
 
     @PostMapping
-    public Book create(@RequestBody BookRequest request) {
-        // @RequestBody mówi Springowi: "weź JSON z requesta i zamień na obiekt BookRequest"
+    public Book create(@Valid @RequestBody BookRequest request) {
         return bookService.create(request);
     }
 
     @PutMapping("/{id}")
-    public Book update(@PathVariable Long id, @RequestBody Book book) {
-        return bookService.update(id, book);
+    public Book update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
+        return bookService.update(id, request);
     }
 
     @DeleteMapping("/{id}")
