@@ -3,18 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpringShelf</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <title>SpringShelf - Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body>
-<main class="container">
-    <h1>SpringShelf</h1>
-    <p>Multi-Page App na czystym HTML + REST API (JWT Bearer).</p>
-    <nav class="nav-links">
-        <a href="books.html">Ksiazki</a>
-        <a href="login.html">Logowanie</a>
-        <a href="register.html">Rejestracja</a>
-    </nav>
+<body class="min-h-screen bg-base-200">
+<nav class="navbar bg-base-100 border-b border-base-300 px-4 md:px-8">
+    <div class="flex-1">
+        <a class="text-xl font-bold">SpringShelf</a>
+    </div>
+    <div class="flex-none">
+        <a class="btn btn-ghost btn-sm">Home</a>
+    </div>
+</nav>
+
+<main class="max-w-5xl mx-auto p-4 md:p-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold">Lista ksiazek</h1>
+        <p class="text-base-content/70">Publiczny katalog - widoczny takze bez logowania.</p>
+    </div>
+
+    <div id="loading" class="alert mb-4">
+        <span>Ladowanie ksiazek...</span>
+    </div>
+
+    <div id="error" class="alert alert-error mb-4 hidden">
+        <span>Nie udalo sie pobrac listy ksiazek.</span>
+    </div>
+
+    <div id="empty" class="alert hidden">
+        <span>Brak ksiazek w bazie.</span>
+    </div>
+
+    <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 </main>
+
+<script type="module" src="assets/js/home.js"></script>
 </body>
 </html>
