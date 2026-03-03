@@ -11,6 +11,9 @@ class Book:
     source_path: str = ""
     chapters: list[str] = field(default_factory=list)
 
+    # NER results: {chapter_number: {character_name: count}}
+    chapters_characters: dict[int, dict[str, int]] = field(default_factory=dict)
+
     # Count part
     character_count: int = 0
     word_count: int = 0

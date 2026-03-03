@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from itertools import combinations
 from pathlib import Path
 import re
 
@@ -69,3 +70,34 @@ class BookService:
         book.average_chapter_words = avg_chapter_words
         book.average_word_length = avg_word_length
         return book
+
+    def find_pair_sentences(
+        self, book: Book, chapter_number: int, characters: list[str]
+    ) -> dict[tuple[str, str], list[str]]:
+        """Return sentences containing each character pair from the given chapter.
+
+        Args:
+            book: Book with chapters already loaded.
+            chapter_number: 1-based chapter index.
+            characters: List of character names to generate pairs from.
+
+        Returns:
+            Dict mapping (person_a, person_b) to list of sentences
+            where both appear in the chapter.
+        """
+        chapter_text = book.chapters[chapter_number - 1]
+        sentences = [
+            part for part in re.split(r"(?<=[.!?])\s+", chapter_text.strip()) if part
+        ]
+
+        result: dict[tuple[str, str], list[str]] = {}
+        for person_a, person_b in combinations(characters, 2):
+            pattern_a = re.compile(re.escape(person_a), re.IGNORECASE)
+            pattern_b = re.compile(re.escape(person_b), re.IGNORECASE)
+            matching = [
+                s for s in sentences if pattern_a.search(s) and pattern_b.search(s)
+            ]
+            if matching:
+                result[(person_a, person_b)] = matching
+
+        return result

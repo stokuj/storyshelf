@@ -33,8 +33,12 @@ class StoryWeaveApplication:
 
         # spacy_analysis(self._book, chapter_numbers, "en_core_web_sm")
         # spacy_analysis(self._book, chapter_numbers, "en_core_web_trf")
-        transformers_analysis(self._book, chapter_numbers, "dslim/bert-base-NER")
+        # transformers_analysis(self._book, chapter_numbers, "dslim/bert-base-NER")
         # transformers_analysis(self._book,chapter_numbers,"dbmdz/bert-large-cased-finetuned-conll03-english",)
+
+        # Pair sentences extraction
+        pair_sentences = self._book_service.find_pair_sentences(self._book, 1, ["Gandalf", "Bilbo"])
+        logging.info("Pair sentences: %s", pair_sentences)
 
 
 if __name__ == "__main__":
