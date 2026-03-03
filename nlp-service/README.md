@@ -61,6 +61,7 @@ Benchmarked 4 NER models on Chapter 1 of *The Hobbit*:
 
 **Conclusion:**  
 `en_core_web_trf` and `dslim/bert-base-NER` are comparable in quality (~12s). `trf` selected for cleaner output.
+
 ---
 
 ### [0.1.0] — 2026-03-03
