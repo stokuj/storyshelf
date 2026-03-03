@@ -15,7 +15,7 @@ from .book import Book
 logger = logging.getLogger(__name__)
 
 
-def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: str = "dslim/bert-base-NER",) -> list[dict[str, Any]]:
+def extract_chars(book: Book, chapter_numbers: list[int], model: str) -> list:
     """Extract person entities from one or many chapters with a transformers NER model."""
 
     chapters = book.chapters or ([book.text.strip()] if book.text.strip() else [])
