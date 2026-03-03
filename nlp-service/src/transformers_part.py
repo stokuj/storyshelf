@@ -1,4 +1,4 @@
-"""spaCy helpers for character extraction."""
+"""Transformers helpers for character extraction."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import logging
 import time
 from typing import Any
 
-import spacy
+from transformers import pipeline
 
 from .book import Book
 
@@ -15,15 +15,11 @@ from .book import Book
 logger = logging.getLogger(__name__)
 
 
-def _normalize_chapter_numbers(chapter_numbers: list[int]) -> list[int]:
-    """Normalize chapter input to a list of unique chapter numbers."""
-    return list(dict.fromkeys(chapter_numbers))
+def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: str = "dslim/bert-base-NER",) -> list[dict[str, Any]]:
+    """Extract person entities from one or many chapters with a transformers NER model."""
 
-
-def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: str = "en_core_web_sm") -> list[dict[str, Any]]:
-    """Extract PERSON entities from one or many chapters and count occurrences."""
     chapters = book.chapters or ([book.text.strip()] if book.text.strip() else [])
-    requested = _normalize_chapter_numbers(chapter_numbers or [1])
+    requested = list(dict.fromkeys(chapter_numbers or [1]))
 
     if not requested:
         return []
@@ -31,7 +27,7 @@ def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: s
     if not chapters:
         return [
             {
-                "engine": "spacy",
+                "engine": "transformers",
                 "model_name": model,
                 "chapter_number": number,
                 "execution_time_seconds": 0.0,
@@ -45,20 +41,24 @@ def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: s
         raise ValueError(f"Chapter numbers must be in range 1..{len(chapters)} (got {invalid}).")
 
     try:
-        nlp = spacy.load(model)
-    except OSError as error:
-        raise RuntimeError(f"spaCy model '{model}' is not installed. Install project dependencies (including models) with `uv sync`.") from error
+        ner = pipeline(task="token-classification", model=model, aggregation_strategy="simple")
+    except Exception as error:
+        raise RuntimeError(f"Transformers model '{model}' is not available. Install dependencies with `uv sync` and verify model name.") from error
 
     results: list[dict[str, Any]] = []
     for chapter_number in requested:
         chapter_text = chapters[chapter_number - 1]
         start_time = time.perf_counter()
-        doc = nlp(chapter_text)
-        people = [ent.text.strip() for ent in doc.ents if ent.label_ == "PERSON"]
-        counts = Counter(name for name in people if name)
+        entities = ner(chapter_text)
+        persons = [
+            entity["word"].strip()
+            for entity in entities
+            if entity.get("entity_group") in {"PER", "PERSON"} and entity.get("word")
+        ]
+        counts = Counter(name for name in persons if name)
         elapsed_seconds = time.perf_counter() - start_time
         logger.info(
-            "Model %s chapter %d execution time: %.3f s",
+            "Transformers model %s chapter %d execution time: %.3f s",
             model,
             chapter_number,
             elapsed_seconds,
@@ -67,7 +67,7 @@ def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: s
 
         results.append(
             {
-                "engine": "spacy",
+                "engine": "transformers",
                 "model_name": model,
                 "chapter_number": chapter_number,
                 "execution_time_seconds": round(elapsed_seconds, 3),
