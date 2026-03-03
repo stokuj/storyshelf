@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections import Counter
+import json
 import logging
+from pathlib import Path
 import time
-from typing import Any
 
 import spacy
 
@@ -14,42 +15,33 @@ from .book import Book
 
 logger = logging.getLogger(__name__)
 
-
-def _normalize_chapter_numbers(chapter_numbers: list[int]) -> list[int]:
-    """Normalize chapter input to a list of unique chapter numbers."""
-    return list(dict.fromkeys(chapter_numbers))
+RESULTS_DIR = Path("results")
 
 
-def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: str = "en_core_web_sm") -> list[dict[str, Any]]:
-    """Extract PERSON entities from one or many chapters and count occurrences."""
+def extract_characters_from_chapter(book: Book, chapter_numbers: list[int], model: str) -> None:
+    """Extract PERSON entities from chapters, count occurrences, and save results."""
+
     chapters = book.chapters or ([book.text.strip()] if book.text.strip() else [])
-    requested = _normalize_chapter_numbers(chapter_numbers or [1])
+    requested = list(dict.fromkeys(chapter_numbers or [1]))
 
-    if not requested:
-        return []
-
-    if not chapters:
-        return [
-            {
-                "engine": "spacy",
-                "model_name": model,
-                "chapter_number": number,
-                "execution_time_seconds": 0.0,
-                "characters": {},
-            }
-            for number in requested
-        ]
+    if not requested or not chapters:
+        return
 
     invalid = [number for number in requested if number < 1 or number > len(chapters)]
     if invalid:
-        raise ValueError(f"Chapter numbers must be in range 1..{len(chapters)} (got {invalid}).")
+        logger.warning(
+            "Chapter numbers out of range 1..%d (got %s), skipping.",
+            len(chapters),
+            invalid,
+        )
+        return
 
     try:
         nlp = spacy.load(model)
-    except OSError as error:
-        raise RuntimeError(f"spaCy model '{model}' is not installed. Install project dependencies (including models) with `uv sync`.") from error
+    except OSError:
+        logger.warning("spaCy model '%s' is not installed. Skipping.", model)
+        return
 
-    results: list[dict[str, Any]] = []
     for chapter_number in requested:
         chapter_text = chapters[chapter_number - 1]
         start_time = time.perf_counter()
@@ -63,18 +55,22 @@ def extract_chars(book: Book, chapter_numbers: list[int] | None = None, model: s
             chapter_number,
             elapsed_seconds,
         )
-        sorted_counts = dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
-
-        results.append(
-            {
-                "engine": "spacy",
-                "model_name": model,
-                "chapter_number": chapter_number,
-                "execution_time_seconds": round(elapsed_seconds, 3),
-                "characters": sorted_counts,
-            }
+        sorted_counts = dict(
+            sorted(counts.items(), key=lambda item: (-item[1], item[0]))
         )
-    return results
 
+        result = {
+            "engine": "spacy",
+            "model_name": model,
+            "chapter_number": chapter_number,
+            "execution_time_seconds": round(elapsed_seconds, 3),
+            "characters": sorted_counts,
+        }
 
-extract_characters_from_chapter = extract_chars
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        file_name = f"chapter_{chapter_number}_spacy_{model.replace('/', '_')}.json"
+        output_path = RESULTS_DIR / file_name
+        output_path.write_text(
+            json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        logger.info("Saved result: %s", output_path)

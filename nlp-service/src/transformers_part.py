@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections import Counter
+import json
 import logging
+from pathlib import Path
 import time
-from typing import Any
 
 from transformers import pipeline
 
@@ -14,38 +15,35 @@ from .book import Book
 
 logger = logging.getLogger(__name__)
 
+RESULTS_DIR = Path("results")
 
-def extract_chars(book: Book, chapter_numbers: list[int], model: str) -> list:
-    """Extract person entities from one or many chapters with a transformers NER model."""
+
+def extract_characters_from_chapter(book: Book, chapter_numbers: list[int], model: str) -> None:
+    """Extract PERSON entities from chapters with a transformers NER model and save results."""
 
     chapters = book.chapters or ([book.text.strip()] if book.text.strip() else [])
     requested = list(dict.fromkeys(chapter_numbers or [1]))
 
-    if not requested:
-        return []
-
-    if not chapters:
-        return [
-            {
-                "engine": "transformers",
-                "model_name": model,
-                "chapter_number": number,
-                "execution_time_seconds": 0.0,
-                "characters": {},
-            }
-            for number in requested
-        ]
+    if not requested or not chapters:
+        return
 
     invalid = [number for number in requested if number < 1 or number > len(chapters)]
     if invalid:
-        raise ValueError(f"Chapter numbers must be in range 1..{len(chapters)} (got {invalid}).")
+        logger.warning(
+            "Chapter numbers out of range 1..%d (got %s), skipping.",
+            len(chapters),
+            invalid,
+        )
+        return
 
     try:
-        ner = pipeline(task="token-classification", model=model, aggregation_strategy="simple")
-    except Exception as error:
-        raise RuntimeError(f"Transformers model '{model}' is not available. Install dependencies with `uv sync` and verify model name.") from error
+        ner = pipeline(
+            task="token-classification", model=model, aggregation_strategy="simple"
+        )
+    except Exception:
+        logger.warning("Transformers model '%s' is not available. Skipping.", model)
+        return
 
-    results: list[dict[str, Any]] = []
     for chapter_number in requested:
         chapter_text = chapters[chapter_number - 1]
         start_time = time.perf_counter()
@@ -63,18 +61,24 @@ def extract_chars(book: Book, chapter_numbers: list[int], model: str) -> list:
             chapter_number,
             elapsed_seconds,
         )
-        sorted_counts = dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
-
-        results.append(
-            {
-                "engine": "transformers",
-                "model_name": model,
-                "chapter_number": chapter_number,
-                "execution_time_seconds": round(elapsed_seconds, 3),
-                "characters": sorted_counts,
-            }
+        sorted_counts = dict(
+            sorted(counts.items(), key=lambda item: (-item[1], item[0]))
         )
-    return results
 
+        result = {
+            "engine": "transformers",
+            "model_name": model,
+            "chapter_number": chapter_number,
+            "execution_time_seconds": round(elapsed_seconds, 3),
+            "characters": sorted_counts,
+        }
 
-extract_characters_from_chapter = extract_chars
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        file_name = (
+            f"chapter_{chapter_number}_transformers_{model.replace('/', '_')}.json"
+        )
+        output_path = RESULTS_DIR / file_name
+        output_path.write_text(
+            json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        logger.info("Saved result: %s", output_path)

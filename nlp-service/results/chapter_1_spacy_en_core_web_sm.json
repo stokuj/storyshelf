@@ -2,7 +2,7 @@
   "engine": "spacy",
   "model_name": "en_core_web_sm",
   "chapter_number": 1,
-  "execution_time_seconds": 1.221,
+  "execution_time_seconds": 1.354,
   "characters": {
     "Bilbo": 16,
     "Baggins": 13,
