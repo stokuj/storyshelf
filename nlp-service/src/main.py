@@ -29,9 +29,10 @@ class StoryWeaveApplication:
 
         # Model Part
         chapter_numbers = [1]
-        # spacy_analysis(self._book, chapter_numbers, "en_core_web_sm")
-        # spacy_analysis(self._book, chapter_numbers, "en_core_web_trf")
-        transformers_analysis(self._book, chapter_numbers, "dslim/bert-base-NER")
+        spacy_analysis(self._book, chapter_numbers, "en_core_web_sm")
+        spacy_analysis(self._book, chapter_numbers, "en_core_web_trf")
+        # transformers_analysis(self._book, chapter_numbers, "dslim/bert-base-NER")
+        # transformers_analysis(self._book,chapter_numbers,"dbmdz/bert-large-cased-finetuned-conll03-english",)
 
 
 if __name__ == "__main__":

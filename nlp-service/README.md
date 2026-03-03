@@ -2,8 +2,25 @@
 Educational project for AI-powered person relationship analysis for books and narratives. Extract entities, map connections, and explore the social graph of any story.
 
 ---
-
 ## Changelog
+
+### [0.2.0] — 2026-03-03
+Benchmarked 4 NER models on Chapter 1 of *The Hobbit*:
+
+- **dslim/bert-base-NER (Transformers)** — 12.24s  
+  → Good coverage (Gandalf, Bilbo, Thorin detected). Minor false positives (`At`, `Bull`, `Mr`).
+
+- **dbmdz/bert-large-cased-finetuned-conll03-english (Transformers)** — 33.48s  
+  → Worst time/quality ratio. Token splitting issues (`So Thorin`, `Thr`, `roarer`). Discarded.
+
+- **en_core_web_sm (spaCy)** — 1.39s  
+  → Fastest but misses key characters (Gandalf, Thorin absent). Many false positives. Discarded as primary.
+
+- **en_core_web_trf (spaCy Transformer)** — 12.11s  
+  → Best quality. Full cast detected, fewest false positives. Selected as production model.
+
+**Conclusion:**  
+`en_core_web_trf` and `dslim/bert-base-NER` are comparable in quality (~12s). `trf` selected for cleaner output.
 
 ### [0.1.0] — 2026-03-03
 

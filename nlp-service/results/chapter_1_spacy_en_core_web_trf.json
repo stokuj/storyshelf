@@ -2,7 +2,7 @@
   "engine": "spacy",
   "model_name": "en_core_web_trf",
   "chapter_number": 1,
-  "execution_time_seconds": 10.588,
+  "execution_time_seconds": 12.112,
   "characters": {
     "Gandalf": 34,
     "Bilbo": 30,
