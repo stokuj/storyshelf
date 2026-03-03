@@ -2,6 +2,42 @@
 Educational project for AI-powered person relationship analysis for books and narratives. Extract entities, map connections, and explore the social graph of any story.
 
 ---
+
+## Architecture Plan
+```
+Book (PDF / Text)
+        ↓
+Text Extraction
+        ↓
+Chunking (token-based, overlap enabled)
+        ↓
+────────────────────────────
+│ 1. NER Model              │
+│    → Extract Characters   │
+────────────────────────────
+        ↓
+Character List
+        ↓
+────────────────────────────────────────
+│ 2. LLM Attribute Extraction          │
+│    → Age                             │
+│    → Gender                          │
+│    → Other facts                     │
+────────────────────────────────────────
+        ↓
+────────────────────────────────────────
+│ 3. LLM Relation Extraction            │
+│    → Relation triples                 │
+│    (source, relation, target)         │
+────────────────────────────────────────
+        ↓
+Graph Database (Neo4j)
+        ↓
+Structured Knowledge Graph
+```
+
+---
+
 ## Changelog
 
 ### [0.2.0] — 2026-03-03
@@ -21,6 +57,7 @@ Benchmarked 4 NER models on Chapter 1 of *The Hobbit*:
 
 **Conclusion:**  
 `en_core_web_trf` and `dslim/bert-base-NER` are comparable in quality (~12s). `trf` selected for cleaner output.
+---
 
 ### [0.1.0] — 2026-03-03
 
