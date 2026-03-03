@@ -37,13 +37,13 @@ def extract_characters_from_chapter(book: Book, chapter_numbers: list[int], mode
         return
 
     try:
-        ner = pipeline(
-            task="token-classification", model=model, aggregation_strategy="simple"
-        )
+        ner = pipeline(task="token-classification", model=model, aggregation_strategy="simple")
     except Exception:
         logger.warning("Transformers model '%s' is not available. Skipping.", model)
         return
 
+
+    # MAIN LOOP
     for chapter_number in requested:
         chapter_text = chapters[chapter_number - 1]
         start_time = time.perf_counter()
@@ -73,7 +73,6 @@ def extract_characters_from_chapter(book: Book, chapter_numbers: list[int], mode
             "characters": sorted_counts,
         }
 
-        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
         file_name = (
             f"chapter_{chapter_number}_transformers_{model.replace('/', '_')}.json"
         )

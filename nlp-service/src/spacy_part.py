@@ -42,6 +42,8 @@ def extract_characters_from_chapter(book: Book, chapter_numbers: list[int], mode
         logger.warning("spaCy model '%s' is not installed. Skipping.", model)
         return
 
+
+    #MAIN LOOP
     for chapter_number in requested:
         chapter_text = chapters[chapter_number - 1]
         start_time = time.perf_counter()

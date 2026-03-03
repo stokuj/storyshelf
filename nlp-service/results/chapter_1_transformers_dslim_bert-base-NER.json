@@ -2,7 +2,7 @@
   "engine": "transformers",
   "model_name": "dslim/bert-base-NER",
   "chapter_number": 1,
-  "execution_time_seconds": 0.49,
+  "execution_time_seconds": 0.927,
   "characters": {
     "Ba": 4
   }
