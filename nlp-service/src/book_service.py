@@ -13,12 +13,14 @@ class BookService:
 
     def load_txt(self, file_name: str) -> Book:
         """Load a TXT file and return a Book object."""
+
         file_path = Path(file_name)
         with file_path.open("r", encoding="utf-8") as file:
             return Book(text=file.read(), source_path=str(file_path))
 
     def chapter_texts(self, book: Book) -> list[str]:
         """Split book text into chapters using chapter headings."""
+
         pattern = re.compile(r"(?im)^\s*(chapter|rozdzia[łl])\b.*$")
         matches = list(pattern.finditer(book.text))
 
@@ -41,20 +43,29 @@ class BookService:
 
     def analyze(self, book: Book) -> Book:
         """Calculate stats and save them on the Book fields."""
+
+        # Words
         words = re.findall(r"\b\w+\b", book.text, flags=re.UNICODE)
         non_digit_words = [word for word in words if not word.isdigit()]
+
+        # Sentences
         sentences = [
             part for part in re.split(r"(?<=[.!?])\s+", book.text.strip()) if part
         ]
+
+        # Chapters
         chapters = self.chapter_texts(book)
         chapter_lengths = [
             len(re.findall(r"\b\w+\b", chapter, flags=re.UNICODE))
             for chapter in chapters
         ]
 
+        # Average of chapter worlds
         avg_chapter_words = (
             sum(chapter_lengths) / len(chapter_lengths) if chapter_lengths else 0.0
         )
+
+        # Average of words length
         avg_word_length = (
             sum(len(word) for word in non_digit_words) / len(non_digit_words)
             if non_digit_words
