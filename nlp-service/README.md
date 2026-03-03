@@ -3,7 +3,7 @@ Educational project for AI-powered person relationship analysis for books and na
 
 ---
 
-## Architecture Plan
+## Data flow plan
 ```
 Book (PDF / Text)
         ↓
@@ -79,3 +79,8 @@ Benchmarked 3 NER models on Chapter 1 of *The Hobbit*:
 
 **Conclusion:**  
 Best quality so far has `en_core_web_trf` model.
+
+---
+
+## Decisions:
+I decided not to use Spacy at this point because the transformers model is doing a good job of finding characters.
