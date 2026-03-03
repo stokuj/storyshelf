@@ -17,7 +17,9 @@ class BookService:
         file_path = Path(file_name)
         with file_path.open("r", encoding="utf-8") as file:
             text = file.read()
-        return Book(text=text, source_path=str(file_path), chapters=self._split_chapters(text))
+        return Book(
+            text=text, source_path=str(file_path), chapters=self._split_chapters(text)
+        )
 
     def _split_chapters(self, text: str) -> list[str]:
         """Split text into chapter blocks using chapter headings."""
@@ -36,13 +38,6 @@ class BookService:
                 chapters.append(content)
         return chapters
 
-    def chapter_texts(self, book: Book) -> list[str]:
-        """Return chapter list stored on the Book model."""
-
-        if not book.chapters:
-            book.chapters = self._split_chapters(book.text)
-        return book.chapters
-
     def analyze(self, book: Book) -> Book:
         """Calculate stats and save them on the Book fields."""
 
@@ -52,12 +47,14 @@ class BookService:
             part for part in re.split(r"(?<=[.!?])\s+", book.text.strip()) if part
         ]
 
-        chapters = self.chapter_texts(book)
+        chapters = book.chapters
         chapter_lengths = [
             len(re.findall(r"\b\w+\b", chapter, flags=re.UNICODE))
             for chapter in chapters
         ]
-        avg_chapter_words = (sum(chapter_lengths) / len(chapter_lengths) if chapter_lengths else 0.0)
+        avg_chapter_words = (
+            sum(chapter_lengths) / len(chapter_lengths) if chapter_lengths else 0.0
+        )
 
         avg_word_length = (
             sum(len(word) for word in non_digit_words) / len(non_digit_words)

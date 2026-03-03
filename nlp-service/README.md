@@ -11,25 +11,29 @@ Text Extraction
         ↓
 Chunking (token-based, overlap enabled)
         ↓
-────────────────────────────
-│ 1. NER Model              │
-│    → Extract Characters   │
-────────────────────────────
+───────────────────────────────────────
+│ 1. NER Model                         │
+│    → Extract Characters              │
+───────────────────────────────────────
         ↓
-Character List
+Person List (JSON)
         ↓
-────────────────────────────────────────
+Generate Person Pairs
+        ↓
+Extract Sentences Containing Person Pairs
+        ↓
+───────────────────────────────────────
 │ 2. LLM Attribute Extraction          │
 │    → Age                             │
 │    → Gender                          │
 │    → Other facts                     │
-────────────────────────────────────────
+───────────────────────────────────────
         ↓
-────────────────────────────────────────
-│ 3. LLM Relation Extraction            │
-│    → Relation triples                 │
-│    (source, relation, target)         │
-────────────────────────────────────────
+───────────────────────────────────────
+│ 3. LLM Relation Extraction           │
+│    → Relation triples                │
+│    (source, relation, target)        │
+───────────────────────────────────────
         ↓
 Graph Database (Neo4j)
         ↓

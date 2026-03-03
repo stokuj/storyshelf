@@ -9,6 +9,7 @@ dependencies = [
     "ebooklib>=0.20",
     "en-core-web-sm",
     "en-core-web-trf",
+    "openai>=1.0.0",
     "pypdf>=6.7.1",
     "spacy>=3.8.11",
     "transformers>=4.57.0",
