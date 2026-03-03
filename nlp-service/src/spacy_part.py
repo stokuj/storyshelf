@@ -4,42 +4,25 @@ from __future__ import annotations
 
 from collections import Counter
 import logging
-import re
 import time
+from typing import Any
 
 import spacy
+
+from .book import Book
 
 
 logger = logging.getLogger(__name__)
 
 
-def chapter_texts(book_text: str) -> list[str]:
-    """Split book text into chapters using chapter headings."""
-    pattern = re.compile(r"(?im)^\s*(chapter|rozdzia[łl])\b.*$")
-    matches = list(pattern.finditer(book_text))
-
-    if not matches:
-        return [book_text.strip()] if book_text.strip() else []
-
-    chapters: list[str] = []
-    for index, match in enumerate(matches):
-        start = match.end()
-        end = matches[index + 1].start() if index + 1 < len(matches) else len(book_text)
-        content = book_text[start:end].strip()
-        if content:
-            chapters.append(content)
-
-    return chapters
-
-
 def extract_characters_from_chapter(
-    book_text: str,
+    book: Book,
     chapter_number: int = 1,
     model_name: str = "en_core_web_sm",
-) -> dict[str, int]:
+) -> dict[str, Any]:
     """Extract PERSON entities from a single chapter and count occurrences."""
 
-    chapters = chapter_texts(book_text)
+    chapters = book.chapters or ([book.text.strip()] if book.text.strip() else [])
     if not chapters:
         return {}
 
@@ -68,4 +51,11 @@ def extract_characters_from_chapter(
         chapter_number,
         elapsed_seconds,
     )
-    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+
+    sorted_counts = dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
+    return {
+        "model_name": model_name,
+        "chapter_number": chapter_number,
+        "execution_time_seconds": round(elapsed_seconds, 3),
+        "characters": sorted_counts,
+    }

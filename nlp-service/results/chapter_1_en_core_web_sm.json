@@ -1,0 +1,31 @@
+{
+  "model_name": "en_core_web_sm",
+  "chapter_number": 1,
+  "execution_time_seconds": 1.429,
+  "characters": {
+    "Bilbo": 16,
+    "Baggins": 13,
+    "Bilbo Baggins": 7,
+    "Balin": 5,
+    "Fili": 4,
+    "Kili": 3,
+    "Bifur": 2,
+    "Took": 2,
+    "Belladonna": 1,
+    "Belladonna Took": 1,
+    "Belladonna Took's": 1,
+    "Bullroarer": 1,
+    "Bullroarer Took": 1,
+    "Confusticate": 1,
+    "Golfimbul": 1,
+    "King": 1,
+    "Lo": 1,
+    "Nasty": 1,
+    "Old Smaug": 1,
+    "Tablet": 1,
+    "Thror": 1,
+    "Tookishly": 1,
+    "Tookishness": 1,
+    "wardrobes": 1
+  }
+}
