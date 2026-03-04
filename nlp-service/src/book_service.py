@@ -71,23 +71,11 @@ class BookService:
         book.average_word_length = avg_word_length
         return book
 
-    def find_pair_sentences(
-        self, book: Book, chapter_number: int, characters: list[str]
-    ) -> dict[tuple[str, str], list[str]]:
-        """Return sentences containing each character pair from the given chapter.
+    def find_pair_sentences(self, book: Book, characters: list[str]) -> dict[tuple[str, str], list[str]]:
+        """Return sentences containing each character pair from the entire book."""
 
-        Args:
-            book: Book with chapters already loaded.
-            chapter_number: 1-based chapter index.
-            characters: List of character names to generate pairs from.
-
-        Returns:
-            Dict mapping (person_a, person_b) to list of sentences
-            where both appear in the chapter.
-        """
-        chapter_text = book.chapters[chapter_number - 1]
         sentences = [
-            part for part in re.split(r"(?<=[.!?])\s+", chapter_text.strip()) if part
+            part for part in re.split(r"(?<=[.!?])\s+", book.text.strip()) if part
         ]
 
         result: dict[tuple[str, str], list[str]] = {}

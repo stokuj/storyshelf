@@ -37,7 +37,7 @@ class StoryWeaveApplication:
         # transformers_analysis(self._book,chapter_numbers,"dbmdz/bert-large-cased-finetuned-conll03-english",)
 
         # Pair sentences extraction
-        pair_sentences = self._book_service.find_pair_sentences(self._book, 1, ["Gandalf", "Bilbo"])
+        pair_sentences = self._book_service.find_pair_sentences(self._book, ["Gandalf", "Bilbo"])
         logging.info("Pair sentences: %s", pair_sentences)
 
 
