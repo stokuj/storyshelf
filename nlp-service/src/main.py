@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .book import Book
 from .book_service import BookService
+from .llm import LLMService
 from .spacy_part import extract_characters_from_chapter as spacy_analysis
 from .transformers_part import extract_characters_from_chapter as transformers_analysis
 
@@ -19,6 +20,7 @@ class StoryWeaveApplication:
         """Prepare app dependencies and state."""
         self._book = Book()
         self._book_service = BookService()
+        self._llm_service = LLMService()
 
     def run(self) -> None:
         """Start the app flow."""
@@ -37,8 +39,14 @@ class StoryWeaveApplication:
         # transformers_analysis(self._book,chapter_numbers,"dbmdz/bert-large-cased-finetuned-conll03-english",)
 
         # Pair sentences extraction
-        pair_sentences = self._book_service.find_pair_sentences(self._book, ["Gandalf", "Bilbo"])
-        logging.info("Pair sentences: %s", pair_sentences)
+        pairs_data = self._book_service.find_pair_sentences(self._book, ["Gandalf", "Bilbo", "Thorin"])
+        # print(pairs_data)
+
+        # LLM relation extraction — one call per character pair
+        for entry in pairs_data:
+            print(entry)
+            relations = self._llm_service.extract_relations(entry["pair"], entry["sentences"])
+            logging.info("Relations for %s: %s", entry["pair"], relations)
 
 
 if __name__ == "__main__":
