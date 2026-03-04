@@ -38,3 +38,4 @@ backend/.settings/
 
 # Frontend build artifacts
 frontend/assets/css/styles.css
+src/main/resources/application-local.properties
