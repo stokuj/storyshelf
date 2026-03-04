@@ -10,6 +10,27 @@ Features will include user authentication via OAuth2, book ratings and reviews, 
 
 ## Changelog
 
+### [0.2.1] - 2026-03-04
+
+Rozbudowa modelu książki i porządki.
+
+#### Added
+
+- Nowe pola w modelu `Book`: `isbn`, `description`, `pageCount`, `genres`, `tags`, `rating`, `ratingsCount`, `createdAt`, `updatedAt`.
+- Tabele `book_genres` i `book_tags` do filtrowania książek po gatunkach i tagach.
+
+#### Changed
+
+- Refaktoryzacja `BookService` — mapowanie DTO na encję wydzielone do osobnej metody `mapRequestToBook()`.
+- Usunięto pole `category` z modelu (zastąpione przez `genres`).
+- Usunięto `rating` i `ratingsCount` z `BookRequest` — klient nie może już ustawiać ocen ręcznie.
+
+#### Fixed
+
+- Naprawiono duplikaty wpisów w `.gitignore`.
+- Usunięto `styles.css` z trackingu gita.
+- Poprawiono nazwę parametru w setterze `setIsbn()`.
+
 ### [0.2.0] - 2026-03-03
 
 Działający prototyp z frontendem.

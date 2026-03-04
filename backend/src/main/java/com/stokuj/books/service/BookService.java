@@ -28,22 +28,28 @@ public class BookService {
 
     public Book create(BookRequest request) {
         Book book = new Book();
-        book.setTitle(request.getTitle());
-        book.setAuthor(request.getAuthor());
-        book.setYear(request.getYear());
+        mapRequestToBook(request, book);
         return bookRepository.save(book);
     }
 
-
-    public Book update(Long id, BookRequest updated) {
+    public Book update(Long id, BookRequest request) {
         Book existing = getById(id);
-        existing.setTitle(updated.getTitle());
-        existing.setAuthor(updated.getAuthor());
-        existing.setYear(updated.getYear());
+        mapRequestToBook(request, existing);
         return bookRepository.save(existing);
     }
 
     public void delete(Long id) {
         bookRepository.deleteById(id);
+    }
+
+    private void mapRequestToBook(BookRequest request, Book book) {
+        book.setTitle(request.getTitle());
+        book.setAuthor(request.getAuthor());
+        book.setYear(request.getYear());
+        book.setIsbn(request.getIsbn());
+        book.setDescription(request.getDescription());
+        book.setPageCount(request.getPageCount());
+        book.setGenres(request.getGenres());
+        book.setTags(request.getTags());
     }
 }
