@@ -12,6 +12,8 @@ client = OpenAI(
 names = ["Gandalf", "Bilbo"]
 sentences = ['By some curious chance one morning long ago in the quiet of the world, when there was less noise and more green, and the hobbits were still numerous and prosperous, and Bilbo Baggins was standing at his door after breakfast smoking an enormous long wooden pipe that reached nearly down to his wooly toes (neatly brushed) - Gandalf came by.', 'Gandalf sat at the head of the party with the thirteen dwarves all around: and Bilbo sat on a stool at the fire-side, nibbling at a biscuit (his appetite was quite taken away), and trying to look as if this was all perfectly ordinary and not in the least an adventure.']
 
+sentences_text = " ".join(sentences)
+names_text = ", ".join(names)
 
 RELATION_SCHEMA = {
     "family":       ["parent_of", "sibling_of", "spouse_of", "ancestor_of"],
@@ -22,21 +24,24 @@ RELATION_SCHEMA = {
     "scifi_fantasy": ["creator_of", "clone_of"]
 }
 
-ALL_RELATIONS = [r for rels in RELATION_SCHEMA.values() for r in rels]  # flat lista 24 typów
+ALL_RELATIONS_STR = "\n".join(
+    f"  [{cat}]: {', '.join(rels)}"
+    for cat, rels in RELATION_SCHEMA.items()
+)
 
-prompt = f"""Jesteś ekspertem analizy literackiej fantasy i science-fiction.
+prompt = f"""You are an expert in literary analysis of fantasy and science-fiction.
 
-POSTACIE W TEKŚCIE:
-{names}
+CHARACTERS:
+{names_text}
 
-FRAGMENT TEKSTU:
-{sentences}
+TEXT FRAGMENT:
+{sentences_text}
 
-TWOJE ZADANIE:
-Wyciągnij wszystkie relacje między postaciami z powyższej listy.
+TASK:
+Extract all relationships between the characters listed above.
 
-DOZWOLONE TYPY RELACJI (użyj TYLKO tych):
-{ALL_RELATIONS}
+ALLOWED RELATION TYPES (use ONLY these):
+{ALL_RELATIONS_STR}
 
 RULES:
 - Use only relation types from the list above
@@ -61,12 +66,18 @@ RETURN ONLY JSON, no text before or after:
   ]
 }}"""
 
+# response = client.chat.completions.create(
+#     model="meta-llama/llama-3.1-8b-instruct",
+#     messages=[
+#         {"role": "system", "content": "Ekstrakcja relacji."},
+#         {"role": "user", "content": prompt}
+#     ],
+# )
 response = client.chat.completions.create(
-    model="meta-llama/llama-3.1-8b-instruct",
+    model="anthropic/claude-sonnet-4-6" ,
     messages=[
         {"role": "system", "content": "Ekstrakcja relacji."},
         {"role": "user", "content": prompt}
     ],
 )
-
 print(response.choices[0].message.content)
