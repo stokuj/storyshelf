@@ -42,6 +42,59 @@ Structured Knowledge Graph
 
 ---
 
+## Example relation extraction
+### Input
+
+```python
+names = ["Gandalf", "Bilbo"]
+sentences = ['By some curious chance one morning long ago in the quiet of the world, when there was less noise and more green, and the hobbits were still numerous and prosperous, and Bilbo Baggins was standing at his door after breakfast smoking an enormous long wooden pipe that reached nearly down to his wooly toes (neatly brushed) - Gandalf came by.', 'Gandalf sat at the head of the party with the thirteen dwarves all around: and Bilbo sat on a stool at the fire-side, nibbling at a biscuit (his appetite was quite taken away), and trying to look as if this was all perfectly ordinary and not in the least an adventure.']
+```
+### Llama-3.1-8b
+```json
+{
+  "relations": [
+    {
+      "source": "Gandalf",
+      "relation": "mentor_of",
+      "target": "Bilbo",
+      "evidence": "Gandalf came by"
+    },
+    {
+      "source": "Gandalf",
+      "relation": "commands",
+      "target": "dwarves",
+      "evidence": "Gandalf sat at the head of the party"
+    },
+    {
+      "source": "Gilraen",
+      "relation": "admires",
+      "target": "Bilbo",
+      "evidence": "his appetite was quite taken away"
+    },
+    {
+      "source": "Bilbo",
+      "relation": "friend_of",
+      "target": "dwarves",
+      "evidence": "he was trying to look as if this was all perfectly ordinary and not in the least an adventure."
+    }
+  ]
+}
+```
+
+### Claude Sonnet 4.6
+```json
+{
+  "relations": [
+    {
+      "source": "Gandalf",
+      "relation": "commands",
+      "target": "Bilbo",
+      "evidence": "Gandalf sat at the head of the party with the thirteen dwarves all around: and Bilbo sat on a stool at the fire-side, nibbling at a biscuit (his appetite was quite taken away), and trying to look as if this was all perfectly ordinary and not in the least an adventure."
+    }
+  ]
+}
+```
+
 ## Changelog
 
 ### [0.2.0] — 2026-03-03
