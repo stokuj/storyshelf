@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from itertools import combinations
 from pathlib import Path
 import re
@@ -71,14 +72,14 @@ class BookService:
         book.average_word_length = avg_word_length
         return book
 
-    def find_pair_sentences(self, book: Book, characters: list[str]) -> dict[tuple[str, str], list[str]]:
-        """Return sentences containing each character pair from the entire book."""
+    def find_pair_sentences(self, book: Book, characters: list[str]) -> str:
+        """Return JSON string with sentences containing each character pair from the entire book."""
 
         sentences = [
             part for part in re.split(r"(?<=[.!?])\s+", book.text.strip()) if part
         ]
 
-        result: dict[tuple[str, str], list[str]] = {}
+        result: list[dict] = []
         for person_a, person_b in combinations(characters, 2):
             pattern_a = re.compile(re.escape(person_a), re.IGNORECASE)
             pattern_b = re.compile(re.escape(person_b), re.IGNORECASE)
@@ -86,6 +87,6 @@ class BookService:
                 s for s in sentences if pattern_a.search(s) and pattern_b.search(s)
             ]
             if matching:
-                result[(person_a, person_b)] = matching
+                result.append({"pair": [person_a, person_b], "sentences": matching})
 
-        return result
+        return json.dumps(result, ensure_ascii=False, indent=2)
