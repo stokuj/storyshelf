@@ -29,7 +29,7 @@ ALL_RELATIONS_STR = "\n".join(
 class LLMService:
     """Extract character relationships from text using an LLM via OpenRouter."""
 
-    def __init__(self, model: str = "qwen/qwen3.5-flash-02-23") -> None:
+    def __init__(self, model: str = "qwen/qwen3.5-35b-a3b") -> None:
         """Initialise the OpenRouter client.
 
         Args:
@@ -105,5 +105,8 @@ RETURN ONLY JSON, no text before or after:
                 },
                 {"role": "user", "content": prompt},
             ],
+            extra_body={
+                "reasoning": {"enabled": False}
+            }
         )
         return response.choices[0].message.content

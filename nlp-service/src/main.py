@@ -40,11 +40,11 @@ class StoryWeaveApplication:
 
         # Pair sentences extraction
         pairs_data = self._book_service.find_pair_sentences(self._book, ["Gandalf", "Bilbo", "Thorin"])
-        # print(pairs_data)
+
 
         # LLM relation extraction — one call per character pair
         for entry in pairs_data:
-            print(entry)
+
             relations = self._llm_service.extract_relations(entry["pair"], entry["sentences"])
             logging.info("Relations for %s: %s", entry["pair"], relations)
 
