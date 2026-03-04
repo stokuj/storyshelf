@@ -1,5 +1,5 @@
 # storyweave
-Educational project for AI-powered person relationship analysis for books and narratives. Extract entities, map connections, and explore the social graph of any story.
+An educational project for AI-powered character relationship analysis in books and narratives. Extract entities, map connections, and explore the social graph of any story.
 
 ---
 
@@ -79,9 +79,14 @@ Benchmarked 3 NER models on Chapter 1 of *The Hobbit*:
   → Selected as the production model despite higher computational cost.
 
 **Conclusion:**  
-Best quality so far has `en_core_web_trf` model.
+`en_core_web_trf` has the best quality so far.
 
 ---
 
-## Decisions:
-I decided not to use Spacy at this point because the transformers model is doing a good job of finding characters.
+## Decisions
+
+I decided not to use spaCy at this point because the Transformers model is doing a good job of finding characters.
+
+Writing a good prompt is hard; it will take a lot of time to fine-tune things.
+At this point I can already tell that I need more relation types, or I need better accuracy with the existing ones.
+I will also need to include sentence positions to track the progression of character relationship development.

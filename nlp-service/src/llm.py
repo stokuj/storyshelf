@@ -45,7 +45,9 @@ ALLOWED RELATION TYPES (use ONLY these):
 
 RULES:
 - Use only relation types from the list above
-- Every relation must be explicitly supported by the text — do not infer or assume
+- Relations must be supported by the text — either stated directly OR strongly implied by characters' actions and interactions
+- Acceptable inference: characters sharing a meal, traveling together, or one giving orders to another
+- Not acceptable: assuming relationship based on race, species, or role (e.g. "wizard therefore mentor")
 - Direction: source → relation → target (e.g. "Gandalf mentor_of Frodo")
 - Symmetric relations (friend_of, sibling_of, spouse_of, rival_of) — write once
 - Directional relations (betrays, commands, protects, etc.) — source is the one performing the action
@@ -76,7 +78,7 @@ RETURN ONLY JSON, no text before or after:
 response = client.chat.completions.create(
     model="anthropic/claude-sonnet-4-6" ,
     messages=[
-        {"role": "system", "content": "Ekstrakcja relacji."},
+        {"role": "system", "content": "You are a literary analysis expert. Return only valid JSON."},
         {"role": "user", "content": prompt}
     ],
 )
