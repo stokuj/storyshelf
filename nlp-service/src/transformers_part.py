@@ -17,9 +17,7 @@ logger = logging.getLogger(__name__)
 RESULTS_DIR = Path("results")
 
 
-def extract_characters_from_chapter(
-    book: Book, chapter_numbers: list[int], model: str
-) -> None:
+def extract_characters_from_chapter(book: Book, chapter_numbers: list[int], model: str) -> None:
     """Extract PERSON entities from chapters with a transformers NER model and save results."""
 
     chapters = book.chapters or ([book.text.strip()] if book.text.strip() else [])
