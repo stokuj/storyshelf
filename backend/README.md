@@ -5,10 +5,36 @@ Features will include user authentication via OAuth2, book ratings and reviews, 
 
 ## Struktura projektu
 
-- `backend/` - aplikacja Spring Boot (REST API, JWT, OAuth2)
-- `frontend/` - statyczny frontend (HTML + JS, daisyUI)
+- `src/main/java/` - backend Spring Boot (REST API + kontrolery stron)
+- `src/main/resources/templates/` - frontend serwowany przez Thymeleaf
+- `src/main/resources/application.properties` - konfiguracja aplikacji i OAuth2
 
 ## Changelog
+
+### [0.3.0] - 2026-03-05
+
+Migracja frontendu do Thymeleaf i uporządkowanie autoryzacji web/API.
+
+#### Added
+
+- Dodano widoki Thymeleaf: `home`, `book`, `bookshelf`, `login`, `register`, `settings`, `error` oraz layout bazowy.
+- Dodano `PageController` do obsługi stron, logowania/rejestracji i akcji półki przez formularze HTML.
+- Dodano `UserDetailsServiceImpl` pod logowanie sesyjne (form login).
+
+#### Changed
+
+- Usunięto stary frontend SPA (`frontend/`) oparty o statyczne HTML + JS i token w `localStorage`.
+- Rozdzielono security na dwa łańcuchy:
+  - `/api/**` — JWT + stateless,
+  - web (`/**`) — sesja + form login + OAuth2.
+- OAuth2 success flow loguje użytkownika do sesji i przekierowuje na `/`.
+- Zmieniono `GlobalExceptionHandler`, aby dla `/api/**` zwracał JSON, a dla stron webowych renderował `error.html`.
+
+#### Fixed
+
+- Poprawiono renderowanie elementów zależnych od logowania w szablonach (`sec:authorize`).
+- Naprawiono przypadek błędnej identyfikacji anonimowego użytkownika w `PageController`.
+- Na stronie głównej (`/`) osoba niezalogowana nie widzi już akcji `+ Dodaj`.
 
 ### [0.2.1] - 2026-03-04
 

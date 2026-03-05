@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserBookService {
@@ -36,6 +37,11 @@ public class UserBookService {
                 .stream()
                 .map(ub -> new UserBookResponse(ub.getBook(), ub.getStatus(), ub.getCreatedAt()))
                 .toList();
+    }
+
+    public Optional<UserBookResponse> findByUserAndBook(String email, Long bookId) {
+        return userBookRepository.findByUserEmailAndBookId(email, bookId)
+                .map(ub -> new UserBookResponse(ub.getBook(), ub.getStatus(), ub.getCreatedAt()));
     }
 
     @Transactional

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<th:block th:replace="~{layout/base :: layout('Ustawienia', ~{::content})}">
+    <th:block th:ref="content">
+
+        <div class="max-w-lg mx-auto">
+            <h1 class="text-2xl font-bold mb-6">Ustawienia konta</h1>
+
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+                    <h2 class="card-title text-base">Konto</h2>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Email</span></label>
+                        <input type="text" class="input input-bordered" disabled
+                               th:value="${#authentication.name}"/>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h2 class="card-title text-base">Wyloguj się</h2>
+                    <p class="text-sm text-base-content/60 mb-3">Zakończ bieżącą sesję.</p>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn btn-outline btn-error btn-sm">Wyloguj</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </th:block>
+</th:block>
+
+</body>
+</html>
