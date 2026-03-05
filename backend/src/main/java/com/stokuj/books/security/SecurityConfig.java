@@ -2,6 +2,7 @@ package com.stokuj.books.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -30,12 +31,58 @@ public class SecurityConfig {
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
+    // -------------------------------------------------------------------------
+    // Łańcuch 1: REST API (/api/**) — JWT, STATELESS
+    // -------------------------------------------------------------------------
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
+                .securityMatcher("/api/**")
+
                 .csrf(csrf -> csrf.disable())
 
                 .cors(Customizer.withDefaults())
+
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.getWriter().write(
+                                    "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Brak lub niepoprawny token\",\"path\":\""
+                                            + request.getRequestURI() + "\"}");
+                        })
+                )
+
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    // -------------------------------------------------------------------------
+    // Łańcuch 2: Web (/**, strony Thymeleaf) — sesja, formLogin, OAuth2
+    // -------------------------------------------------------------------------
+    @Bean
+    @Order(2)
+    public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(Customizer.withDefaults())
+
+                // Wyłącz HSTS — w dev pracujemy na HTTP
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts -> hsts.disable())
+                )
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -45,24 +92,37 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        .requestMatchers("/login", "/register", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/home", "/book/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                        .failureUrl("/login?error")
+                        .permitAll()
+                )
+
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+
                 .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
                         .successHandler(oAuth2SuccessHandler)
                 )
 
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Brak lub niepoprawny token\",\"path\":\"" + request.getRequestURI() + "\"}");
+                            response.sendRedirect("/login");
                         })
-                )
-
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                        .accessDeniedPage("/error?status=403")
+                );
 
         return http.build();
     }

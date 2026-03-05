@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(pageTitle, content)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${pageTitle} + ' — SpringShelf'">SpringShelf</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-base-200 min-h-screen">
+
+<!-- Navbar -->
+<nav class="navbar bg-base-100 shadow-sm px-4">
+    <div class="navbar-start">
+        <a href="/" class="btn btn-ghost text-xl font-bold">SpringShelf</a>
+    </div>
+    <div class="navbar-center hidden md:flex">
+        <a href="/" class="btn btn-ghost btn-sm">Katalog</a>
+    </div>
+    <div class="navbar-end gap-2">
+
+        <!-- Niezalogowany -->
+        <th:block sec:authorize="isAnonymous()">
+            <a href="/login" class="btn btn-ghost btn-sm">Zaloguj</a>
+            <a href="/register" class="btn btn-primary btn-sm">Zarejestruj</a>
+        </th:block>
+
+        <!-- Zalogowany -->
+        <th:block sec:authorize="isAuthenticated()">
+            <a href="/bookshelf" class="btn btn-ghost btn-sm">Moja półka</a>
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+                    <div class="bg-neutral text-neutral-content w-8 rounded-full">
+                        <span class="text-xs"
+                              th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</span>
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
+                    <li><a href="/settings">Ustawienia</a></li>
+                    <li>
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="w-full text-left">Wyloguj</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </th:block>
+    </div>
+</nav>
+
+<!-- Zawartość strony -->
+<main class="container mx-auto px-4 py-8 max-w-7xl">
+    <th:block th:insert="${content}"></th:block>
+</main>
+
+</body>
+</html>

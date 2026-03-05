@@ -5,28 +5,24 @@ import com.stokuj.books.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Component
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
-    private final JwtService jwtService;
 
-    @Value("${app.frontend.base-url:http://localhost:5500}")
-    private String frontendBaseUrl;
-
-    public OAuth2SuccessHandler(UserRepository userRepository, JwtService jwtService) {
+    public OAuth2SuccessHandler(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.jwtService = jwtService;
     }
 
     @Override
@@ -43,7 +39,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         }
 
         final String finalEmail = email;
-        userRepository.findByEmail(finalEmail).orElseGet(() -> {
+        User user = userRepository.findByEmail(finalEmail).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(finalEmail);
             newUser.setPassword("OAUTH2_ACCOUNT");
@@ -51,8 +47,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             return userRepository.save(newUser);
         });
 
-        String token = jwtService.generateToken(finalEmail);
-        String redirectUrl = frontendBaseUrl + "/oauth-callback.html?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
-        response.sendRedirect(redirectUrl);
+        // Ustaw sesję Spring Security (zaloguj użytkownika przez sesję webową)
+        org.springframework.security.authentication.UsernamePasswordAuthenticationToken sessionAuth =
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        user.getEmail(),
+                        null,
+                        List.of(new SimpleGrantedAuthority(user.getRole()))
+                );
+        SecurityContextHolder.getContext().setAuthentication(sessionAuth);
+        new HttpSessionSecurityContextRepository().saveContext(SecurityContextHolder.getContext(), request, response);
+
+        response.sendRedirect("/");
     }
 }
