@@ -3,6 +3,18 @@ import { apiFetch, getToken } from "./api.js";
 function show(el) { el?.classList.remove("hidden"); }
 function hide(el) { el?.classList.add("hidden"); }
 
+const STATUS_LABELS = {
+    WANT_TO_READ: "Want to Read",
+    READING: "Reading",
+    READ: "Read"
+};
+
+const STATUS_BADGE = {
+    WANT_TO_READ: "badge-info",
+    READING: "badge-warning",
+    READ: "badge-success"
+};
+
 function renderStars(rating) {
     const starsEl = document.getElementById("book-stars");
     if (!starsEl) return;
@@ -73,57 +85,98 @@ function renderBook(book) {
     }
 }
 
-async function isOnShelf(bookId) {
+async function getShelfEntry(bookId) {
     try {
-        const books = await apiFetch("/api/me/books");
-        return Array.isArray(books) && books.some(b => b.id === bookId);
+        const entries = await apiFetch("/api/me/books");
+        if (!Array.isArray(entries)) return null;
+        return entries.find(e => e.book.id === bookId) || null;
     } catch {
-        return false;
+        return null;
     }
 }
 
-async function setupShelfButton(bookId) {
-    const btn = document.getElementById("btn-shelf");
-    if (!btn) return;
+async function setupShelfControls(bookId) {
+    const actionsEl = document.getElementById("book-actions");
+    if (!actionsEl) return;
 
-    const onShelf = await isOnShelf(bookId);
+    let entry = await getShelfEntry(bookId);
 
-    function setShelfState(added) {
-        if (added) {
-            btn.textContent = "Usuń z półki";
-            btn.className = "btn btn-outline btn-sm";
+    function renderControls() {
+        // Usuń poprzednie kontrolki półki (zachowaj link "Wróć")
+        actionsEl.querySelectorAll(".shelf-control").forEach(el => el.remove());
+
+        if (entry) {
+            // Select statusu
+            const select = document.createElement("select");
+            select.className = "shelf-control select select-bordered select-sm";
+            select.innerHTML = Object.entries(STATUS_LABELS)
+                .map(([val, label]) =>
+                    `<option value="${val}" ${entry.status === val ? "selected" : ""}>${label}</option>`)
+                .join("");
+
+            select.addEventListener("change", async () => {
+                select.disabled = true;
+                try {
+                    entry = await apiFetch(`/api/me/books/${bookId}`, {
+                        method: "PUT",
+                        body: JSON.stringify({ status: select.value })
+                    });
+                } catch {
+                    // Przywróć poprzednią wartość przy błędzie
+                    select.value = entry.status;
+                } finally {
+                    select.disabled = false;
+                }
+            });
+
+            // Przycisk usuń
+            const removeBtn = document.createElement("button");
+            removeBtn.className = "shelf-control btn btn-outline btn-error btn-sm";
+            removeBtn.textContent = "Usuń z półki";
+
+            removeBtn.addEventListener("click", async () => {
+                removeBtn.disabled = true;
+                try {
+                    await apiFetch(`/api/me/books/${bookId}`, { method: "DELETE" });
+                    entry = null;
+                    renderControls();
+                } catch {
+                    removeBtn.disabled = false;
+                }
+            });
+
+            actionsEl.appendChild(select);
+            actionsEl.appendChild(removeBtn);
         } else {
-            btn.textContent = "Dodaj do półki";
-            btn.className = "btn btn-primary btn-sm";
+            // Przycisk dodaj
+            const addBtn = document.createElement("button");
+            addBtn.className = "shelf-control btn btn-primary btn-sm";
+            addBtn.textContent = "Dodaj do półki";
+
+            addBtn.addEventListener("click", async () => {
+                addBtn.disabled = true;
+                try {
+                    entry = await apiFetch(`/api/me/books/${bookId}`, {
+                        method: "POST",
+                        body: JSON.stringify({ status: "WANT_TO_READ" })
+                    });
+                    renderControls();
+                } catch (err) {
+                    if (err.status === 409) {
+                        // Już jest — odśwież stan
+                        entry = await getShelfEntry(bookId);
+                        renderControls();
+                    } else {
+                        addBtn.disabled = false;
+                    }
+                }
+            });
+
+            actionsEl.appendChild(addBtn);
         }
     }
 
-    setShelfState(onShelf);
-    show(btn);
-
-    let currentState = onShelf;
-
-    btn.addEventListener("click", async () => {
-        btn.disabled = true;
-        try {
-            if (currentState) {
-                await apiFetch(`/api/me/books/${bookId}`, { method: "DELETE" });
-                currentState = false;
-            } else {
-                await apiFetch(`/api/me/books/${bookId}`, { method: "POST" });
-                currentState = true;
-            }
-            setShelfState(currentState);
-        } catch (err) {
-            // Jeśli conflict (409) — książka już jest, odśwież stan
-            if (err.status === 409) {
-                currentState = true;
-                setShelfState(true);
-            }
-        } finally {
-            btn.disabled = false;
-        }
-    });
+    renderControls();
 }
 
 export async function initBook(session) {
@@ -146,9 +199,8 @@ export async function initBook(session) {
         const book = await apiFetch(`/api/books/${id}`);
         renderBook(book);
 
-        // Pokaż przycisk półki tylko zalogowanym
         if (session.loggedIn) {
-            await setupShelfButton(book.id);
+            await setupShelfControls(book.id);
         }
 
         hide(loadingEl);

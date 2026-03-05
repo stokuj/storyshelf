@@ -1,8 +1,11 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.dto.UserBookRequest;
+import com.stokuj.books.dto.UserBookResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.model.Book;
+import com.stokuj.books.model.ReadingStatus;
 import com.stokuj.books.model.User;
 import com.stokuj.books.model.UserBook;
 import com.stokuj.books.repository.BookRepository;
@@ -28,17 +31,17 @@ public class UserBookService {
         this.bookRepository = bookRepository;
     }
 
-    public List<Book> getMyReadBooks(String email) {
+    public List<UserBookResponse> getMyBooks(String email) {
         return userBookRepository.findAllByUserEmailOrderByCreatedAtDesc(email)
                 .stream()
-                .map(UserBook::getBook)
+                .map(ub -> new UserBookResponse(ub.getBook(), ub.getStatus(), ub.getCreatedAt()))
                 .toList();
     }
 
     @Transactional
-    public Book markAsRead(String email, Long bookId) {
+    public UserBookResponse addToShelf(String email, Long bookId, UserBookRequest request) {
         if (userBookRepository.findByUserEmailAndBookId(email, bookId).isPresent()) {
-            throw new ConflictException("Ta ksiazka jest juz na liscie przeczytanych");
+            throw new ConflictException("Ta ksiazka jest juz na polce");
         }
 
         User user = userRepository.findByEmail(email)
@@ -47,18 +50,38 @@ public class UserBookService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
 
+        ReadingStatus status = (request != null && request.getStatus() != null)
+                ? request.getStatus()
+                : ReadingStatus.WANT_TO_READ;
+
         UserBook userBook = new UserBook();
         userBook.setUser(user);
         userBook.setBook(book);
+        userBook.setStatus(status);
         userBookRepository.save(userBook);
 
-        return book;
+        return new UserBookResponse(book, userBook.getStatus(), userBook.getCreatedAt());
     }
 
     @Transactional
-    public void unmarkAsRead(String email, Long bookId) {
+    public UserBookResponse updateStatus(String email, Long bookId, UserBookRequest request) {
         UserBook userBook = userBookRepository.findByUserEmailAndBookId(email, bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book is not on your read list"));
+                .orElseThrow(() -> new ResourceNotFoundException("Book is not on your shelf"));
+
+        if (request == null || request.getStatus() == null) {
+            throw new ResourceNotFoundException("Status is required");
+        }
+
+        userBook.setStatus(request.getStatus());
+        userBookRepository.save(userBook);
+
+        return new UserBookResponse(userBook.getBook(), userBook.getStatus(), userBook.getCreatedAt());
+    }
+
+    @Transactional
+    public void removeFromShelf(String email, Long bookId) {
+        UserBook userBook = userBookRepository.findByUserEmailAndBookId(email, bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book is not on your shelf"));
         userBookRepository.delete(userBook);
     }
 }

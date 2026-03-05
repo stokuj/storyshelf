@@ -1,12 +1,15 @@
 package com.stokuj.books.controller;
 
-import com.stokuj.books.model.Book;
+import com.stokuj.books.dto.UserBookRequest;
+import com.stokuj.books.dto.UserBookResponse;
 import com.stokuj.books.service.UserBookService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,17 +26,28 @@ public class UserBookController {
     }
 
     @GetMapping
-    public List<Book> getMyReadBooks(Authentication authentication) {
-        return userBookService.getMyReadBooks(authentication.getName());
+    public List<UserBookResponse> getMyBooks(Authentication authentication) {
+        return userBookService.getMyBooks(authentication.getName());
     }
 
     @PostMapping("/{bookId}")
-    public Book markAsRead(@PathVariable Long bookId, Authentication authentication) {
-        return userBookService.markAsRead(authentication.getName(), bookId);
+    public UserBookResponse addToShelf(
+            @PathVariable Long bookId,
+            @RequestBody(required = false) UserBookRequest request,
+            Authentication authentication) {
+        return userBookService.addToShelf(authentication.getName(), bookId, request);
+    }
+
+    @PutMapping("/{bookId}")
+    public UserBookResponse updateStatus(
+            @PathVariable Long bookId,
+            @RequestBody UserBookRequest request,
+            Authentication authentication) {
+        return userBookService.updateStatus(authentication.getName(), bookId, request);
     }
 
     @DeleteMapping("/{bookId}")
-    public void unmarkAsRead(@PathVariable Long bookId, Authentication authentication) {
-        userBookService.unmarkAsRead(authentication.getName(), bookId);
+    public void removeFromShelf(@PathVariable Long bookId, Authentication authentication) {
+        userBookService.removeFromShelf(authentication.getName(), bookId);
     }
 }
