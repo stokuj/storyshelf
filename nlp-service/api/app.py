@@ -1,10 +1,17 @@
 # app.py
 
-from fastapi import FastAPI
+import json
+import logging
 
-from api.models.model import BookChapter, Book
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from api.db.database import get_db
+
+from api.models.model import BookChapter, RelationRequest
 from api.services.transformers import extract_characters_from_chapter
 from api.services.book_service import find_pair_sentences
+from api.services.llm import LLMService
+
 app = FastAPI()
 
 
@@ -55,18 +62,35 @@ async def analyse_chapter_bert_large_conll03(chapter: BookChapter):
         "dbmdz/bert-large-cased-finetuned-conll03-english",
     )
 
-@app.get("/analyse/find_pair_sentences/")
-async def get_analyse_find_pair_sentences(book: Book, names: list[str]):
-    """
-    Funkcja szuka zdań w książce które posiadają 2 podane imiona.
-    """
 
-    return find_pair_sentences(book, ["Gandalf", "Bilbo", "Thorin"])
+@app.post("/analyse/find_pair_sentences/")
+async def get_analyse_find_pair_sentences(
+    book_id: int, names: list[str], db: Session = Depends(get_db)
+):
+    """
+    Funkcja szuka zdań w książce które posiadają liste imion.
+    """
+    return find_pair_sentences(db, book_id, ["Gandalf", "Bilbo", "Thorin"])
 
-@app.get("/analyse/relations/")
-async def get_analyse_relations():
+
+@app.post("/analyse/relations/")
+async def get_analyse_relations(payload: RelationRequest):
     """
-    Otrzymuje liste postaci oraz zdania w których występują.
-    Zwraca relacje wykryte dla par postaci.
+    Funkcja przyjmuje pare postaci i liste zdan,
+    a nastepnie wykrywa relacje pomiedzy tymi postaciami.
     """
-    return {"message": "This is an example 2"}
+    llm = LLMService()
+
+    relations_raw = llm.extract_relations(payload.pair, payload.sentences)
+
+    try:
+        relations_data = json.loads(relations_raw)
+    except (json.JSONDecodeError, TypeError):
+        relations_data = {"raw": relations_raw}
+
+    logging.info("Relations for %s: %s", payload.pair, relations_data)
+    return {
+        "pair": payload.pair,
+        "sentences_count": len(payload.sentences),
+        "relations": relations_data,
+    }
