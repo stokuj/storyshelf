@@ -10,7 +10,7 @@ function show(el) {
 
 function createBookCard(book) {
     const article = document.createElement("article");
-    article.className = "card bg-base-100 shadow-sm border border-base-300";
+    article.className = "card bg-base-100 shadow-sm border border-base-300 cursor-pointer hover:shadow-md hover:border-base-content/20 transition-all";
     article.innerHTML = `
         <div class="card-body">
             <h2 class="card-title">${book.title}</h2>
@@ -20,6 +20,9 @@ function createBookCard(book) {
             </div>
         </div>
     `;
+    article.addEventListener("click", () => {
+        window.location.href = `?page=book&id=${book.id}`;
+    });
     return article;
 }
 

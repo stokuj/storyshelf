@@ -2,6 +2,7 @@ import { initHome } from "./home.js";
 import { apiFetch, clearToken, getToken } from "./api.js";
 import { initBookshelf } from "./bookshelf.js";
 import { initSettings } from "./settings.js";
+import { initBook } from "./book.js";
 
 const pageContentEl = document.getElementById("page-content");
 const navLinksEl = document.getElementById("nav-links");
@@ -11,6 +12,11 @@ const pages = {
         file: "home.html",
         protected: false,
         init: async () => initHome()
+    },
+    book: {
+        file: "book.html",
+        protected: false,
+        init: async (session) => initBook(session)
     },
     settings: {
         file: "settings.html",

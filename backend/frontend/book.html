@@ -1,0 +1,73 @@
+<section class="max-w-4xl mx-auto p-4">
+
+    <!-- Stan: ładowanie -->
+    <div id="book-loading" class="flex justify-center items-center py-20">
+        <span class="loading loading-spinner loading-lg"></span>
+    </div>
+
+    <!-- Stan: błąd -->
+    <div id="book-error" class="hidden alert alert-error my-8">
+        <span id="book-error-msg">Nie udało się załadować książki.</span>
+    </div>
+
+    <!-- Treść -->
+    <div id="book-content" class="hidden">
+
+        <!-- Hero section: poziomy pasek z metadanymi -->
+        <div class="card bg-base-100 shadow-sm border border-base-300 mb-6">
+            <div class="card-body">
+
+                <!-- Tytuł i autor -->
+                <div class="mb-3">
+                    <h1 id="book-title" class="text-3xl font-bold leading-tight"></h1>
+                    <p id="book-author" class="text-lg text-base-content/70 mt-1"></p>
+                </div>
+
+                <!-- Metadane w jednym wierszu -->
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span id="book-year" class="badge badge-outline"></span>
+                    <span id="book-isbn" class="badge badge-outline badge-ghost font-mono text-xs"></span>
+                    <span id="book-pages" class="badge badge-outline"></span>
+                </div>
+
+                <!-- Gatunki -->
+                <div id="book-genres-wrap" class="hidden flex flex-wrap gap-2 mb-4">
+                    <div id="book-genres" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Ocena -->
+                <div id="book-rating-wrap" class="hidden flex items-center gap-2 mb-4">
+                    <div id="book-stars" class="rating rating-sm"></div>
+                    <span id="book-rating-text" class="text-sm text-base-content/60"></span>
+                </div>
+
+                <!-- Divider -->
+                <div class="divider my-2"></div>
+
+                <!-- Akcje -->
+                <div id="book-actions" class="card-actions items-center gap-3">
+                    <a href="?page=home" class="btn btn-ghost btn-sm">&larr; Wróć do listy</a>
+                    <button id="btn-shelf" class="hidden btn btn-primary btn-sm"></button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Opis -->
+        <div id="book-description-wrap" class="hidden card bg-base-100 shadow-sm border border-base-300 mb-6">
+            <div class="card-body">
+                <h2 class="card-title text-base font-semibold mb-1">Opis</h2>
+                <p id="book-description" class="text-base-content/80 leading-relaxed whitespace-pre-line"></p>
+            </div>
+        </div>
+
+        <!-- Tagi -->
+        <div id="book-tags-wrap" class="hidden card bg-base-100 shadow-sm border border-base-300 mb-6">
+            <div class="card-body py-4">
+                <div id="book-tags" class="flex flex-wrap gap-2"></div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
