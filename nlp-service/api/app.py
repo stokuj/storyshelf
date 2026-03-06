@@ -31,7 +31,7 @@ def health():
 @app.post("/analyse/")
 async def get_analyse(chapter: BookChapter):
     """
-    POST /analyse/
+    Funkcja testowa, aktualne testuje pipeline danych
 
     Parameters:
         chapter: BookChapter - obiekt z treścią rozdziału książki
@@ -41,18 +41,8 @@ async def get_analyse(chapter: BookChapter):
     """
     return {"content": chapter.content}
 
-
-@app.post("/analyse/chapter/bert-base-NER")
-async def analyse_chapter_bert_base_ner(chapter: BookChapter):
-    """
-    Analizuje rozdzial i zwraca wykryte postaci,
-    uzywajac modelu `dslim/bert-base-NER`.
-    """
-    return extract_characters_from_chapter(chapter, "dslim/bert-base-NER")
-
-
-@app.post("/analyse/chapter/bert-large-cased-finetuned-conll03-english")
-async def analyse_chapter_bert_large_conll03(chapter: BookChapter):
+@app.post("/analyse/NER")
+async def analyse_NER(chapter: BookChapter):
     """
     Analizuje rozdzial i zwraca wykryte postaci,
     uzywajac modelu `dbmdz/bert-large-cased-finetuned-conll03-english`.
@@ -68,7 +58,8 @@ async def get_analyse_find_pair_sentences(
     book_id: int, names: list[str], db: Session = Depends(get_db)
 ):
     """
-    Funkcja szuka zdań w książce które posiadają liste imion.
+    Funkcja dla każdej kombinacji imion(para):
+    - filtruje książke, zwraca te zdania które posiadają daną pare imion.
     """
     return find_pair_sentences(db, book_id, ["Gandalf", "Bilbo", "Thorin"])
 

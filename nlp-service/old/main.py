@@ -10,7 +10,7 @@ from .spacy_part import extract_characters_from_chapter as spacy_analysis
 from .transformers_part import extract_characters_from_chapter as transformers_analysis
 
 
-DEFAULT_BOOK_PATH = Path("src/books/hobbit.txt")
+DEFAULT_BOOK_PATH = Path("old/books/hobbit.txt")
 
 
 class StoryWeaveApplication:
