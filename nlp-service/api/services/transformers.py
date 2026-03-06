@@ -6,12 +6,13 @@ import time
 
 from transformers import pipeline
 
-from ..models.model import BookChapter
+from ..models.model import BookChapter, Book
+
 
 logger = logging.getLogger(__name__)
 
 
-def extract_characters_from_chapter(chapter: BookChapter, model: str) -> dict:
+def extract_characters_from_book(book: Book, model: str) -> dict:
     """Extract PERSON entities from chapter with a transformers NER model."""
 
     try:
@@ -27,7 +28,7 @@ def extract_characters_from_chapter(chapter: BookChapter, model: str) -> dict:
 
     start_time = time.perf_counter()
 
-    entities = ner(chapter.content)
+    entities = ner(book.content)
     persons = [
         entity["word"].strip()
         for entity in entities
@@ -39,14 +40,12 @@ def extract_characters_from_chapter(chapter: BookChapter, model: str) -> dict:
     logger.info(
         "Transformers model %s chapter %d execution time: %.3f s",
         model,
-        chapter.number,
         elapsed_seconds,
     )
 
     return {
         "engine": "transformers",
         "model_name": model,
-        "chapter_number": chapter.number,
         "characters": dict(sorted(counts.items(), key=lambda x: x[1], reverse=True)),
         "execution_time_seconds": round(elapsed_seconds, 3),
     }
