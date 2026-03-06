@@ -1,7 +1,23 @@
 # storyweave
 An educational project for AI-powered character relationship analysis in books and narratives. Extract entities, map connections, and explore the social graph of any story.
 
+Currently using FastAPI with docker.
+
 ---
+## Endpoints
+
+The API currently exposes 9 endpoints.
+
+- `GET /` - Basic hello route.
+- `GET /health/` - Service health check with NER model load status.
+- `POST /analyse/{book_id}` - Returns book content loaded from DB by `book_id`.
+- `POST /analyse/` - Returns content passed directly in the request body.
+- `POST /find-pairs/{book_id}` - Finds character pairs and matching sentences using DB book content.
+- `POST /find-pairs/` - Finds character pairs and matching sentences using direct `content` input.
+- `POST /ner/{book_id}` - Runs NER on book content loaded from DB.
+- `POST /ner/` - Runs NER on direct `content` input.
+- `POST /relations/` - Extracts relations for exactly two names (`name_1`, `name_2`) from provided `sentences`.
+
 
 ## Data flow plan
 ```

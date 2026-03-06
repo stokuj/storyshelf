@@ -57,7 +57,7 @@ def extract_characters_from_book(book: Book, model: str = DEFAULT_NER_MODEL) -> 
     elapsed_seconds = time.perf_counter() - start_time
 
     logger.info(
-        "Transformers model %s chapter %d execution time: %.3f s",
+        "Transformers model %s execution time: %.3f s",
         model,
         elapsed_seconds,
     )
