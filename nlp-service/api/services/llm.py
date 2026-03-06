@@ -57,42 +57,42 @@ class LLMService:
 
         prompt = f"""You are an expert in literary analysis of fantasy and science-fiction.
 
-CHARACTERS:
-{names_text}
-
-TEXT FRAGMENT:
-{sentences_text}
-
-TASK:
-Extract all relationships between the characters listed above.
-
-ALLOWED RELATION TYPES (use ONLY these):
-{ALL_RELATIONS_STR}
-
-RULES:
-- Use only relation types from the list above
-- Relations must be supported by the text — either stated directly OR strongly implied by characters' actions and interactions
-- Acceptable inference: characters sharing a meal, traveling together, or one giving orders to another
-- Not acceptable: assuming relationship based on race, species, or role (e.g. "wizard therefore mentor")
-- Direction: source → relation → target (e.g. "Gandalf mentor_of Frodo")
-- Symmetric relations (friend_of, sibling_of, spouse_of, rival_of) — write once
-- Directional relations (betrays, commands, protects, etc.) — source is the one performing the action
-- If the same relation appears multiple times — include it once with the best evidence
-- If no relation exists between two characters — do not invent one
-- evidence must be a direct quote from the text
-
-RETURN ONLY JSON, no text before or after:
-
-{{
-  "relations": [
-    {{
-      "source": "character name",
-      "relation": "relation_type",
-      "target": "character name",
-      "evidence": "direct quote from the text"
-    }}
-  ]
-}}"""
+        CHARACTERS:
+        {names_text}
+        
+        TEXT FRAGMENT:
+        {sentences_text}
+        
+        TASK:
+        Extract all relationships between the characters listed above.
+        
+        ALLOWED RELATION TYPES (use ONLY these):
+        {ALL_RELATIONS_STR}
+        
+        RULES:
+        - Use only relation types from the list above
+        - Relations must be supported by the text — either stated directly OR strongly implied by characters' actions and interactions
+        - Acceptable inference: characters sharing a meal, traveling together, or one giving orders to another
+        - Not acceptable: assuming relationship based on race, species, or role (e.g. "wizard therefore mentor")
+        - Direction: source → relation → target (e.g. "Gandalf mentor_of Frodo")
+        - Symmetric relations (friend_of, sibling_of, spouse_of, rival_of) — write once
+        - Directional relations (betrays, commands, protects, etc.) — source is the one performing the action
+        - If the same relation appears multiple times — include it once with the best evidence
+        - If no relation exists between two characters — do not invent one
+        - evidence must be a direct quote from the text
+        
+        RETURN ONLY JSON, no text before or after:
+        
+        {{
+          "relations": [
+            {{
+              "source": "character name",
+              "relation": "relation_type",
+              "target": "character name",
+              "evidence": "direct quote from the text"
+            }}
+          ]
+        }}"""
 
         logger.info("Extracting relations for pair: %s", pair)
         response = self._client.chat.completions.create(

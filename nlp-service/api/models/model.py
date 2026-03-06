@@ -15,3 +15,21 @@ class BookChapter(BaseModel):
 class RelationRequest(BaseModel):
     pair: list[str] = Field(min_length=2, max_length=2)
     sentences: list[str] = Field(min_length=1)
+
+
+class RelationsDirectRequest(BaseModel):
+    name_1: str
+    name_2: str
+    sentences: list[str] = Field(min_length=1)
+
+
+class BookContentRequest(BaseModel):
+    content: str
+
+
+class NamesRequest(BaseModel):
+    names: list[str] = Field(min_length=2)
+
+
+class NamesWithContentRequest(NamesRequest):
+    content: str

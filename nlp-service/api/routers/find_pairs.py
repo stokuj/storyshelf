@@ -1,0 +1,27 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from api.db.database import get_db
+from api.models.model import NamesRequest, NamesWithContentRequest
+from api.services.book_service import (
+    find_pair_sentences,
+    get_book_content_by_id,
+)
+
+router = APIRouter(prefix="/find-pairs", tags=["find-pairs"])
+
+
+@router.post("/{book_id}")
+async def find_pairs_by_id(book_id: int,payload: NamesRequest,db: Session = Depends(get_db),):
+    content = get_book_content_by_id(db, book_id)
+    if content is None:
+        raise HTTPException(status_code=404, detail=f"Book with id {book_id} not found")
+
+    pairs = find_pair_sentences(content, payload.names)
+    return {"book_id": book_id, "pairs": pairs}
+
+
+@router.post("/")
+async def find_pairs_by_content(payload: NamesWithContentRequest):
+    pairs = find_pair_sentences(payload.content, payload.names)
+    return {"pairs": pairs}
