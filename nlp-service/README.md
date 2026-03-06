@@ -97,6 +97,21 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 
 ## Changelog
 
+### [0.5.0] — 2026-03-06
+
+API routing and inference startup were refactored:
+
+- Split API into 4 router categories: `analyse`, `find-pairs`, `ner`, `relations`
+- Standardized dual input flow for `analyse`, `find-pairs`, and `ner`:
+  - `POST /<category>/{book_id}` reads content from DB
+  - `POST /<category>/` accepts direct `content` in request body
+- Simplified `relations` to one endpoint: `POST /relations/` with `name_1`, `name_2`, and `sentences`
+- Simplified pair-search logic in `book_service.py` to one readable function with optional `include_empty` mode
+- Added NER model preloading on app startup and exposed model load status in `GET /health/`
+- Added request payload examples in `api/REQUEST_EXAMPLES.md`
+
+---
+
 ### [0.3.0] — 2026-03-04
 
 Integrated LLM relation extraction into the main pipeline:

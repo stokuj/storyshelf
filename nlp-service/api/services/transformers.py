@@ -3,28 +3,47 @@ from __future__ import annotations
 from collections import Counter
 import logging
 import time
+from typing import Any, Callable, cast
 
 from transformers import pipeline
 
-from ..models.model import BookChapter, Book
+from ..models.model import Book
 
 
 logger = logging.getLogger(__name__)
+DEFAULT_NER_MODEL = "dbmdz/bert-large-cased-finetuned-conll03-english"
+_NER_PIPELINES: dict[str, Any] = {}
 
 
-def extract_characters_from_book(book: Book, model: str) -> dict:
-    """Extract PERSON entities from chapter with a transformers NER model."""
+def load_ner_model(model: str) -> bool:
+    if model in _NER_PIPELINES:
+        return True
 
     try:
-        ner = pipeline(
+        logger.info("Loading transformers NER model: %s", model)
+        _NER_PIPELINES[model] = pipeline(
             task="token-classification",
             model=model,
             aggregation_strategy="first",
             stride=128,
         )
+        logger.info("Transformers NER model loaded: %s", model)
+        return True
     except Exception:
         logger.warning("Transformers model '%s' is not available. Skipping.", model)
+        return False
+
+
+def is_ner_model_loaded(model: str = DEFAULT_NER_MODEL) -> bool:
+    return model in _NER_PIPELINES
+
+
+def extract_characters_from_book(book: Book, model: str = DEFAULT_NER_MODEL) -> dict:
+    """Extract PERSON entities from chapter with a transformers NER model."""
+
+    if not load_ner_model(model):
         return {}
+    ner = cast(Callable[[str], list[dict]], _NER_PIPELINES[model])
 
     start_time = time.perf_counter()
 

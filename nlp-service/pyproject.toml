@@ -1,6 +1,6 @@
 [project]
 name = "storyweave"
-version = "0.1.0"
+version = "0.5.0"
 description = "Educational project for AI-powered person relationship analysis for books and narratives. Extract entities, map connections, and explore the social graph of any story."
 readme = "README.md"
 requires-python = ">=3.13"
