@@ -1,5 +1,7 @@
 # app.py
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers.analyse import router as analyse_router
@@ -12,7 +14,14 @@ from api.services.transformers import (
     load_ner_model,
 )
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    load_ner_model(DEFAULT_NER_MODEL)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,11 +35,6 @@ app.include_router(analyse_router)
 app.include_router(find_pairs_router)
 app.include_router(ner_router)
 app.include_router(relations_router)
-
-
-@app.on_event("startup")
-def preload_models() -> None:
-    load_ner_model(DEFAULT_NER_MODEL)
 
 
 @app.get("/")
