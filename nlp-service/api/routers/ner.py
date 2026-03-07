@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.db.database import get_db
-from api.models.model import Book, BookContentRequest
+from api.models.model import Book, TextContentRequest
 from api.services.book_service import get_book_content_by_id
 from api.services.transformers import DEFAULT_NER_MODEL, extract_characters_from_book
 
@@ -20,7 +20,7 @@ def ner_by_id(book_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/")
-def ner_by_content(payload: BookContentRequest):
+def ner_by_content(payload: TextContentRequest):
     result = extract_characters_from_book(
         Book(content=payload.content), DEFAULT_NER_MODEL
     )

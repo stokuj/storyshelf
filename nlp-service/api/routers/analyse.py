@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api.db.database import get_db
-from api.models.model import BookContentRequest
+from api.models.model import TextContentRequest
 from api.services.book_service import get_book_content_by_id
 
 router = APIRouter(prefix="/analyse", tags=["analyse"])
@@ -18,5 +18,5 @@ def analyse_by_id(book_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/")
-def analyse_by_content(payload: BookContentRequest):
+def analyse_by_content(payload: TextContentRequest):
     return {"content": payload.content}

@@ -13,11 +13,7 @@ from api.routers.analyse import router as analyse_router
 from api.routers.find_pairs import router as find_pairs_router
 from api.routers.ner import router as ner_router
 from api.routers.relations import router as relations_router
-from api.services.transformers import (
-    DEFAULT_NER_MODEL,
-    is_ner_model_loaded,
-    load_ner_model,
-)
+from api.services.transformers import (DEFAULT_NER_MODEL,is_ner_model_loaded,load_ner_model)
 
 
 @asynccontextmanager
