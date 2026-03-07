@@ -7,7 +7,7 @@ from typing import Any, Callable, cast
 
 from transformers import pipeline
 
-from ..models.model import Book
+from ..models.model import TextContentRequest
 
 
 logger = logging.getLogger(__name__)
@@ -38,8 +38,8 @@ def is_ner_model_loaded(model: str = DEFAULT_NER_MODEL) -> bool:
     return model in _NER_PIPELINES
 
 
-def extract_characters_from_book(book: Book, model: str = DEFAULT_NER_MODEL) -> dict:
-    """Extract PERSON entities from chapter with a transformers NER model."""
+def extract_entities(payload: TextContentRequest, model: str = DEFAULT_NER_MODEL) -> dict:
+    """Extract named entities (persons, organizations, locations, misc) with a transformers NER model."""
 
     if not load_ner_model(model):
         return {}
@@ -47,13 +47,32 @@ def extract_characters_from_book(book: Book, model: str = DEFAULT_NER_MODEL) -> 
 
     start_time = time.perf_counter()
 
-    entities = ner(book.content)
-    persons = [
-        entity["word"].strip()
-        for entity in entities
-        if entity.get("entity_group") in {"PER", "PERSON"} and entity.get("word")
-    ]
-    counts = Counter(name for name in persons if name)
+    entities = ner(payload.content)
+
+    entity_group_mapping: dict[str, list[str]] = {
+        "characters": [],
+        "organizations": [],
+        "locations": [],
+        "miscellaneous": [],
+    }
+    group_to_key = {
+        "PER": "characters",
+        "PERSON": "characters",
+        "ORG": "organizations",
+        "LOC": "locations",
+        "MISC": "miscellaneous",
+    }
+
+    for entity in entities:
+        word = entity.get("word", "").strip()
+        group = entity.get("entity_group")
+        key = group_to_key.get(group)
+        if word and key:
+            entity_group_mapping[key].append(word)
+
+    def sorted_counts(names: list[str]) -> dict[str, int]:
+        return dict(sorted(Counter(names).items(), key=lambda x: x[1], reverse=True))
+
     elapsed_seconds = time.perf_counter() - start_time
 
     logger.info(
@@ -65,6 +84,9 @@ def extract_characters_from_book(book: Book, model: str = DEFAULT_NER_MODEL) -> 
     return {
         "engine": "transformers",
         "model_name": model,
-        "characters": dict(sorted(counts.items(), key=lambda x: x[1], reverse=True)),
+        "characters": sorted_counts(entity_group_mapping["characters"]),
+        "organizations": sorted_counts(entity_group_mapping["organizations"]),
+        "locations": sorted_counts(entity_group_mapping["locations"]),
+        "miscellaneous": sorted_counts(entity_group_mapping["miscellaneous"]),
         "execution_time_seconds": round(elapsed_seconds, 3),
     }

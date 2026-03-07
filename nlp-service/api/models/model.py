@@ -3,10 +3,6 @@
 from pydantic import BaseModel, Field
 
 
-class Book(BaseModel):
-    content: str
-
-
 class BookChapter(BaseModel):
     number: int
     content: str
