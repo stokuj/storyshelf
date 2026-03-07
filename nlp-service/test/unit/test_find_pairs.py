@@ -1,11 +1,4 @@
 
-from fastapi.testclient import TestClient
-
-from api.app import app
-
-
-client = TestClient(app)
-
 from api.services.book_service import find_pair_sentences
 
 

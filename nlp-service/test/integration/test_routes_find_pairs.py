@@ -3,7 +3,6 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from api.app import app
-from api.services.transformers import DEFAULT_NER_MODEL
 
 client = TestClient(app)
 
