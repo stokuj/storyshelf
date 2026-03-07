@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter
 
 from api.models.model import RelationsDirectRequest
-from api.services.llm import LLMService
+from api.services.llm import llm_service
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +13,9 @@ router = APIRouter(prefix="/relations", tags=["relations"])
 
 @router.post("/")
 async def relations(payload: RelationsDirectRequest):
-    llm = LLMService()
     pair = [payload.name_1, payload.name_2]
 
-    relations_raw = await llm.extract_relations(pair, payload.sentences)
+    relations_raw = await llm_service.extract_relations(pair, payload.sentences)
 
     try:
         relations_data = json.loads(relations_raw)

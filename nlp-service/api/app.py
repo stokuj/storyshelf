@@ -1,6 +1,11 @@
 # app.py
 
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,7 +52,7 @@ def health():
     return {
         "status": "ok",
         "version": "1.0.0",
-        "timestamp": "2024-01-01T00:00:00Z",
+        "timestamp": datetime.now(UTC).isoformat(),
         "models": {
             "ner": {
                 "name": DEFAULT_NER_MODEL,

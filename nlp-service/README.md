@@ -25,13 +25,19 @@ Book (PDF / Text)
         ↓
 Text Extraction
         ↓
-Chunking (token-based, overlap enabled)
+(Optional spliting text into parts)
         ↓
 ───────────────────────────────────────
 │ 1. NER Model                         │
 │    → Extract Characters              │
 ───────────────────────────────────────
         ↓
+───────────────────────────────────────
+│ #TODO Coreference Model              │
+│    → coreference resolution          │
+│    → entity normalization            │
+───────────────────────────────────────
+        ↓    
 Person List (JSON)
         ↓
 Generate Person Pairs

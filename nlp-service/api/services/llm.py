@@ -4,11 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-
-from dotenv import load_dotenv
 from openai import AsyncOpenAI
-
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -108,3 +104,6 @@ class LLMService:
             extra_body={"reasoning": {"enabled": False}},
         )
         return response.choices[0].message.content
+
+
+llm_service = LLMService()
