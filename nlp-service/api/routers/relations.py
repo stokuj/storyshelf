@@ -16,7 +16,7 @@ async def relations(payload: RelationsDirectRequest):
     llm = LLMService()
     pair = [payload.name_1, payload.name_2]
 
-    relations_raw = llm.extract_relations(pair, payload.sentences)
+    relations_raw = await llm.extract_relations(pair, payload.sentences)
 
     try:
         relations_data = json.loads(relations_raw)
