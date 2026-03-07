@@ -13,6 +13,7 @@ async def analyse_by_id(book_id: int, db: Session = Depends(get_db)):
     content = get_book_content_by_id(db, book_id)
     if content is None:
         raise HTTPException(status_code=404, detail=f"Book with id {book_id} not found")
+
     return {"book_id": book_id, "content": content}
 
 
