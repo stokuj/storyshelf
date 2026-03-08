@@ -1,22 +1,37 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
 
+from api.config.celery_app import celery
 from api.models.model import TextContentRequest
 from api.services.transformers import DEFAULT_NER_MODEL, extract_entities
 
 router = APIRouter(prefix="/ner", tags=["ner"])
 
 
-# @router.post("/{book_id}")
-# def ner_by_id(book_id: int, db: Session = Depends(get_db)):
-#     content = get_book_content_by_id(db, book_id)
-#     if content is None:
-#         raise HTTPException(status_code=404, detail=f"Book with id {book_id} not found")
-#
-#     result = extract_entities(TextContentRequest(content=content), DEFAULT_NER_MODEL)
-#     return {"book_id": book_id, "result": result}
-
-
-@router.post("/")
+@router.post("/", status_code=202)
 def ner_by_content(payload: TextContentRequest):
-    result = extract_entities(payload, DEFAULT_NER_MODEL)
-    return {"result": result}
+    task = extract_entities_task.delay(payload.content)
+    return {"task_id": task.id}
+
+
+@celery.task(name="api.ner.extract_entities_task")
+def extract_entities_task(content: str):
+    result = extract_entities(TextContentRequest(content=content), DEFAULT_NER_MODEL)
+    return result
+
+
+@router.get("/{task_id}")
+def extract_entities_status(task_id: str):
+    task = celery.AsyncResult(task_id)
+
+    response = {
+        "task_id": task.id,
+        "state": task.state,
+        "ready": task.ready(),
+    }
+
+    if task.successful():
+        response["result"] = task.result
+    elif task.failed():
+        response["error"] = str(task.result)
+
+    return response
