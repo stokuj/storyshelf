@@ -9,57 +9,44 @@ Currently using FastAPI with docker.
 The API currently exposes 9 endpoints.
 
 - `GET /` - Basic hello route.
-- `GET /health/` - Service health check with NER model load status.
-- `POST /analyse/{book_id}` - Returns book content loaded from DB by `book_id`.
-- `POST /analyse/` - Returns content passed directly in the request body.
-- `POST /find-pairs/{book_id}` - Finds character pairs and matching sentences using DB book content.
-- `POST /find-pairs/` - Finds character pairs and matching sentences using direct `content` input.
-- `POST /ner/{book_id}` - Runs NER on book content loaded from DB.
-- `POST /ner/` - Runs NER on direct `content` input.
+- `GET /health/` - Service health check.
+- `POST /analyse/` - Returns text stats (`char_count`, `word_count`, `token_count`) for provided `content`.
+- `POST /find-pairs/` - Finds character pairs and matching sentences using direct `content` and `names`.
 - `POST /relations/` - Extracts relations for exactly two names (`name_1`, `name_2`) from provided `sentences`.
+- `POST /ner/` - Queues async NER extraction in Celery, returns `task_id` (`202 Accepted`).
+- `GET /ner/{task_id}` - Returns NER task state and result/error when ready.
+- `GET /celery_test` - Queues test add task (`a + b`), returns `task_id`.
+- `GET /celery_test/{task_id}` - Returns test task state and result/error when ready.
 
 
 ## Data flow plan
 ```
-Book (PDF / Text)
-        ↓
-Text Extraction
-        ↓
-(Optional spliting text into parts)
-        ↓
-───────────────────────────────────────
-│ 1. NER Model (bert-large-cased)      │
-│    → Extract Characters              │
-───────────────────────────────────────
-        ↓
-───────────────────────────────────────
-│ #TODO Coreference Model              │
-│    → coreference resolution          │
-│    → entity normalization            │
-───────────────────────────────────────
-        ↓    
-Person List (JSON)
-        ↓
-Generate Person Pairs
-        ↓
-Extract Sentences Containing Person Pairs
-        ↓
-───────────────────────────────────────
-│ 2. LLM Attribute Extraction          │
-│    → Age                             │
-│    → Gender                          │
-│    → Other facts                     │
-───────────────────────────────────────
-        ↓
-───────────────────────────────────────
-│ 3. LLM Relation Extraction           │
-│    → Relation triples                │
-│    (source, relation, target)        │
-───────────────────────────────────────
-        ↓
-Graph Database (Neo4j)
-        ↓
-Structured Knowledge Graph
+Input text (book/chapter/content)
+        |
+        +--> POST /analyse/ ----------------------> sync analysis response
+        |
+        +--> POST /ner/ --------------------------> task_id
+                       |                            
+                       v
+                Redis broker/result backend
+                       |
+                       v
+                Celery worker process
+                - worker starts
+                - loads NER model once per process
+                - runs transformers NER task
+                       |
+                       v
+                task result persisted in Redis
+                       |
+                       v
+                GET /ner/{task_id} -> state/result
+
+After NER result is ready:
+entities -> POST /find-pairs/ -> sentence pairs -> POST /relations/ -> relation graph JSON
+
+Future step:
+coreference resolution + entity normalization before pair generation
 ```
 
 ---
@@ -118,6 +105,13 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 ```
 
 ## Changelog
+
+### [0.6.0] - 2026-03-08
+
+- Moved NER execution to Celery async flow.
+- Added task-based NER API: `POST /ner/` returns `task_id`, `GET /ner/{task_id}` returns task state/result.
+- Added worker-side NER model preloading with `worker_process_init`.
+- Updated endpoint documentation and data flow to reflect Redis + Celery architecture.
 
 ### [0.5.1] - 2026-03-08
 

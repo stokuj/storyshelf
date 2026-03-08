@@ -40,8 +40,8 @@ def root():
 def health():
     return {
         "status": "ok",
-        "version": "1.0.0",
-        "timestamp": datetime.now(UTC).isoformat()
+        "version": "0.6.0",
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
