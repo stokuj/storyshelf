@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from api.db.database import get_db
 from api.models.model import NamesRequest, NamesWithContentRequest
 from api.services.book_service import find_pair_sentences
 
