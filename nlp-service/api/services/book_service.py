@@ -11,14 +11,14 @@ from sqlalchemy.orm import Session
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 
 
-def get_book_content_by_id(db: Session, book_id: int) -> str | None:
-    row = db.execute(
-        text("SELECT content FROM books WHERE id = :book_id"),
-        {"book_id": book_id},
-    ).first()
-    if not row:
-        return None
-    return row[0]
+# def get_book_content_by_id(db: Session, book_id: int) -> str | None:
+#     row = db.execute(
+#         text("SELECT content FROM books WHERE id = :book_id"),
+#         {"book_id": book_id},
+#     ).first()
+#     if not row:
+#         return None
+#     return row[0]
 
 
 def find_pair_sentences(book_content: str, characters: list[str], include_empty: bool = False) -> list[dict]:
