@@ -28,7 +28,7 @@ Text Extraction
 (Optional spliting text into parts)
         ↓
 ───────────────────────────────────────
-│ 1. NER Model                         │
+│ 1. NER Model (bert-large-cased)      │
 │    → Extract Characters              │
 ───────────────────────────────────────
         ↓
@@ -118,6 +118,15 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 ```
 
 ## Changelog
+
+### [0.5.1] - 2026-03-08
+
+- Removed database layer (`api/db/database.py`) and commented out all DB-dependent routes.
+- Switched `LLMService` from synchronous `OpenAI` to `AsyncOpenAI` and refactored it into a module-level singleton.
+- Expanded NER extraction from persons-only to four entity types: characters, organizations, locations, and miscellaneous.
+- Replaced the deprecated `@app.on_event("startup")` with a `lifespan` context manager and centralized `load_dotenv()` in `app.py`.
+- Added 14 tests with `pytest`, `httpx`, and `coverage` as new dependencies.
+- Planned future integration of Celery with dynamic workers to offload the NER model from the FastAPI process.
 
 ### [0.5.0] — 2026-03-06
 
