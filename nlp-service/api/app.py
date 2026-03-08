@@ -5,6 +5,8 @@ from datetime import UTC, datetime
 
 from dotenv import load_dotenv
 
+from api.celery_app import celery
+
 load_dotenv()
 
 from fastapi import FastAPI
@@ -56,3 +58,12 @@ def health():
             }
         },
     }
+
+@app.get("/celery_test")
+def celery_test(a: int, b: int):
+    task = add_celery.delay(a, b)
+    return {"task_id": task.id}
+
+@celery.task
+def add_celery(a: int, b: int) -> int:
+    return a + b

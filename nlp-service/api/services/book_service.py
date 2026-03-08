@@ -5,8 +5,9 @@ from __future__ import annotations
 from itertools import combinations
 import re
 
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+from transformers import AutoTokenizer
+from openai.types.conversations import TextContent
+
 
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 
@@ -17,15 +18,29 @@ SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 #         {"book_id": book_id},
 #     ).first()
 #     if not row:
-#         return None
+#         return Nones
 #     return row[0]
 
+def analyse_text(text: str) -> dict:
+    """Return analysed text: counts chars, words and tokens."""
 
-def find_pair_sentences(book_content: str, characters: list[str], include_empty: bool = False) -> list[dict]:
+    char_count = len(text)
+    word_count = len(text.split())
+    #TODO: change to real tokenizer
+    token_count = len(text) // 4
+
+    return {
+        "char_count": char_count,
+        "word_count": word_count,
+        "token_count": token_count,
+    }
+
+
+def find_sentences_with_both_characters(content: str, characters: list[str], include_empty: bool = False) -> list[dict]:
     """Return sentences containing each character pair from the entire book."""
 
     # Dzieli tekst na zdania.
-    sentences = [part for part in SENTENCE_SPLIT_RE.split(book_content.strip()) if part]
+    sentences = [part for part in SENTENCE_SPLIT_RE.split(content.strip()) if part]
     result: list[dict] = []
 
 

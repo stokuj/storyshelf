@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+
 
 from api.models.model import NamesRequest, NamesWithContentRequest
-from api.services.book_service import find_pair_sentences
+from api.services.book_service import find_sentences_with_both_characters
 
 
 router = APIRouter(prefix="/find-pairs", tags=["find-pairs"])
@@ -19,6 +19,6 @@ router = APIRouter(prefix="/find-pairs", tags=["find-pairs"])
 
 
 @router.post("/")
-def find_pairs_by_content(payload: NamesWithContentRequest):
-    pairs = find_pair_sentences(payload.content, payload.names)
+def find_sentences_with_both_characters(payload: NamesWithContentRequest):
+    pairs = find_sentences_with_both_characters(payload.content, payload.names)
     return {"pairs": pairs}

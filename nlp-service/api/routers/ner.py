@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
 from api.models.model import TextContentRequest
 from api.services.transformers import DEFAULT_NER_MODEL, extract_entities
