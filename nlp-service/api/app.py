@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 
 from dotenv import load_dotenv
 
-from api.celery_app import celery
+from api.config.celery_app import celery
 
 load_dotenv()
 
@@ -59,10 +59,30 @@ def health():
         },
     }
 
+
 @app.get("/celery_test")
 def celery_test(a: int, b: int):
     task = add_celery.delay(a, b)
     return {"task_id": task.id}
+
+
+@app.get("/celery_test/{task_id}")
+def celery_test_status(task_id: str):
+    task = celery.AsyncResult(task_id)
+
+    response = {
+        "task_id": task.id,
+        "state": task.state,
+        "ready": task.ready(),
+    }
+
+    if task.successful():
+        response["result"] = task.result
+    elif task.failed():
+        response["error"] = str(task.result)
+
+    return response
+
 
 @celery.task
 def add_celery(a: int, b: int) -> int:
