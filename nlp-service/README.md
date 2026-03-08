@@ -1,7 +1,8 @@
 # storyweave
 An educational project for AI-powered character relationship analysis in books and narratives. Extract entities, map connections, and explore the social graph of any story.
+Currently using FastAPI with Docker.
 
-Currently using FastAPI with docker.
+**storyweave** works with [springshelf](https://github.com/stokuj/springshelf)
 
 ---
 ## Endpoints
