@@ -9,6 +9,6 @@ router = APIRouter(prefix="/find-pairs", tags=["find-pairs"])
 
 
 @router.post("/")
-def find_sentences_with_both_characters(payload: NamesWithContentRequest):
+def find_pairs_endpoint(payload: NamesWithContentRequest):
     pairs = find_sentences_with_both_characters(payload.content, payload.names)
     return {"pairs": pairs}
