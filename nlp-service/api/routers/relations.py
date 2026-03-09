@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter
 
 from api.models.model import RelationsDirectRequest
-from api.services.llm import llm_service
+from api.services.llm_service import llm_service
 
 logger = logging.getLogger(__name__)
 

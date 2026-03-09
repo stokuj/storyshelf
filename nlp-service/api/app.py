@@ -45,4 +45,5 @@ def health():
         "status": "ok",
         "version": "0.6.0",
         "timestamp": datetime.now(UTC).isoformat(),
+        #TODO: add celery workers status, how many are active, how many are idle, etc.
     }

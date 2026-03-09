@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from api.config.celery_app import celery
 from api.models.model import TextContentRequest
-from api.services.transformers import DEFAULT_NER_MODEL, extract_entities
+from api.services.transformers_service import DEFAULT_NER_MODEL, extract_entities
 
 router = APIRouter(prefix="/ner", tags=["ner"])
 
