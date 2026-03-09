@@ -13,8 +13,17 @@ dependencies = [
     "openai>=1.0.0",
     "python-dotenv>=1.2.2",
     "redis>=7.3.0",
+    "torch>=2.10.0",
     "transformers>=4.57.0",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
 
 [build-system]
 requires = ["setuptools>=75.0"]
