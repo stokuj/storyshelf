@@ -9,6 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl build-esse
 RUN pip install --no-cache-dir uv
 
 COPY pyproject.toml uv.lock README.md ./
+
+# Install CPU-only PyTorch first to avoid downloading CUDA wheels
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.10.0
+
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY api ./api
