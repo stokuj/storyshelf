@@ -1,25 +1,25 @@
-# API Request Examples
+# API Testing Guide - Swagger UI
 
-All endpoints accept direct text input. The API currently exposes 4 main endpoints (plus helper endpoints for task status).
+This guide shows how to test all endpoints using **Swagger UI** at `http://localhost:8000/docs`
 
 ---
 
-## 1. POST /analyse/
+## 1. Testing POST /analyse/
 
-Analyze text statistics: character count, word count, and estimated token count.
+**Purpose:** Get text statistics (character count, word count, token count)
 
-### Request
-
-```bash
-curl -X POST http://localhost:8000/analyse/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "Bilbo met Gandalf near the Shire. They discussed the unexpected adventure ahead."
-  }'
+### Steps in Swagger UI:
+1. Click on **POST /analyse/**
+2. Click **Try it out**
+3. Replace the request body with:
+```json
+{
+  "content": "Bilbo met Gandalf near the Shire. They discussed the unexpected adventure ahead."
+}
 ```
+4. Click **Execute**
 
-### Response (200 OK)
-
+### Expected Response (200 OK):
 ```json
 {
   "analysis": {
@@ -32,23 +32,23 @@ curl -X POST http://localhost:8000/analyse/ \
 
 ---
 
-## 2. POST /find-pairs/
+## 2. Testing POST /find-pairs/
 
-Find all sentences containing any pair of specified character names.
+**Purpose:** Find all sentences containing pairs of specified character names
 
-### Request
-
-```bash
-curl -X POST http://localhost:8000/find-pairs/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "Bilbo met Gandalf near the Shire. Gandalf spoke with Thorin. Bilbo and Thorin argued about the treasure. Only Gandalf remained calm.",
-    "names": ["Bilbo", "Gandalf", "Thorin"]
-  }'
+### Steps in Swagger UI:
+1. Click on **POST /find-pairs/**
+2. Click **Try it out**
+3. Replace the request body with:
+```json
+{
+  "content": "Bilbo met Gandalf near the Shire. Gandalf spoke with Thorin. Bilbo and Thorin argued about the treasure. Only Gandalf remained calm.",
+  "names": ["Bilbo", "Gandalf", "Thorin"]
+}
 ```
+4. Click **Execute**
 
-### Response (200 OK)
-
+### Expected Response (200 OK):
 ```json
 {
   "pairs": [
@@ -79,55 +79,57 @@ curl -X POST http://localhost:8000/find-pairs/ \
 
 ---
 
-## 3. POST /ner/ (Async Named Entity Recognition)
+## 3. Testing POST /ner/ (Async NER)
 
-Queue an async NER task to extract named entities (characters, organizations, locations, misc) from text. Returns a `task_id` immediately.
+**Purpose:** Queue an async Named Entity Recognition task. Returns immediately with a `task_id`.
 
-### Request
-
-```bash
-curl -X POST http://localhost:8000/ner/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "In a hole in the ground there lived a hobbit. Bilbo Baggins lived in the Shire with Gandalf the Grey. They met with the thirteen dwarves led by Thorin Oakenshield."
-  }'
-```
-
-### Response (202 Accepted)
-
+### Steps in Swagger UI:
+1. Click on **POST /ner/**
+2. Click **Try it out**
+3. Replace the request body with:
 ```json
 {
-  "task_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+  "content": "In a hole in the ground there lived a hobbit. Bilbo Baggins lived in the Shire with Gandalf the Grey. They met with the thirteen dwarves led by Thorin Oakenshield."
+}
+```
+4. Click **Execute**
+
+### Expected Response (202 Accepted):
+```json
+{
+  "task_id": "abc12345-def6-7890-ghij-klmnopqrstuv"
 }
 ```
 
+**Note:** Copy the `task_id` value - you'll use it in the next endpoint.
+
 ---
 
-## 4. GET /ner/{task_id}
+## 4. Testing GET /ner/{task_id}
 
-Poll the status and result of an async NER extraction task.
+**Purpose:** Poll the status and result of an async NER extraction task
 
-### Request (Pending)
+### Steps in Swagger UI:
+1. Click on **GET /ner/{task_id}**
+2. Click **Try it out**
+3. In the `task_id` field, paste the task_id from the previous step (e.g., `abc12345-def6-7890-ghij-klmnopqrstuv`)
+4. Click **Execute**
 
-```bash
-curl http://localhost:8000/ner/f47ac10b-58cc-4372-a567-0e02b2c3d479
-```
-
-### Response (Task still processing)
-
+### Expected Response - Still Processing (200 OK):
 ```json
 {
-  "task_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "task_id": "abc12345-def6-7890-ghij-klmnopqrstuv",
   "state": "PENDING",
   "ready": false
 }
 ```
 
-### Response (Task completed successfully)
+**Wait a few seconds** and execute again. Once the task completes:
 
+### Expected Response - Task Completed (200 OK):
 ```json
 {
-  "task_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "task_id": "abc12345-def6-7890-ghij-klmnopqrstuv",
   "state": "SUCCESS",
   "ready": true,
   "result": {
@@ -137,52 +139,52 @@ curl http://localhost:8000/ner/f47ac10b-58cc-4372-a567-0e02b2c3d479
       "Bilbo": 1,
       "Gandalf": 1,
       "Thorin": 1,
-      "Oakenshield": 1
+      "Oakenshield": 1,
+      "Grey": 1
     },
     "organizations": {},
     "locations": {
       "Shire": 1
     },
     "miscellaneous": {},
-    "execution_time_seconds": 3.245
+    "execution_time_seconds": 2.845
   }
 }
 ```
 
-### Response (Task failed)
-
+### Possible Response - Task Failed (200 OK):
 ```json
 {
-  "task_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "task_id": "abc12345-def6-7890-ghij-klmnopqrstuv",
   "state": "FAILURE",
   "ready": true,
-  "error": "NER model failed to load: CUDA out of memory"
+  "error": "NER model failed to process text"
 }
 ```
 
 ---
 
-## 5. POST /relations/
+## 5. Testing POST /relations/
 
-Extract relations between two characters using an LLM. Provide character names and sentences containing both characters.
+**Purpose:** Extract relations between two characters using an LLM
 
-### Request
-
-```bash
-curl -X POST http://localhost:8000/relations/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name_1": "Gandalf",
-    "name_2": "Bilbo",
-    "sentences": [
-      "By some curious chance one morning long ago in the quiet of the world, when there was less noise and more green, and the hobbits were still numerous and prosperous, and Bilbo Baggins was standing at his door after breakfast smoking an enormous long wooden pipe that reached nearly down to his wooly toes (neatly brushed) - Gandalf came by.",
-      "Gandalf sat at the head of the party with the thirteen dwarves all around: and Bilbo sat on a stool at the fire-side, nibbling at a biscuit (his appetite was quite taken away), and trying to look as if this was all perfectly ordinary and not in the least an adventure."
-    ]
-  }'
+### Steps in Swagger UI:
+1. Click on **POST /relations/**
+2. Click **Try it out**
+3. Replace the request body with:
+```json
+{
+  "name_1": "Gandalf",
+  "name_2": "Bilbo",
+  "sentences": [
+    "By some curious chance one morning long ago in the quiet of the world, when there was less noise and more green, and the hobbits were still numerous and prosperous, and Bilbo Baggins was standing at his door after breakfast smoking an enormous long wooden pipe that reached nearly down to his wooly toes (neatly brushed) - Gandalf came by.",
+    "Gandalf sat at the head of the party with the thirteen dwarves all around: and Bilbo sat on a stool at the fire-side, nibbling at a biscuit (his appetite was quite taken away), and trying to look as if this was all perfectly ordinary and not in the least an adventure."
+  ]
+}
 ```
+4. Click **Execute**
 
-### Response (200 OK)
-
+### Expected Response (200 OK):
 ```json
 {
   "pair": [
@@ -211,29 +213,48 @@ curl -X POST http://localhost:8000/relations/ \
 
 ---
 
-## Health Check
+## 6. Testing GET /health/ (Bonus)
 
-### Request
+**Purpose:** Check API and service health
 
-```bash
-curl http://localhost:8000/health/
-```
+### Steps in Swagger UI:
+1. Click on **GET /health/**
+2. Click **Try it out**
+3. Click **Execute**
 
-### Response (200 OK)
-
+### Expected Response (200 OK):
 ```json
 {
   "status": "ok",
   "version": "0.6.0",
-  "timestamp": "2026-03-09T10:30:45.123456"
+  "timestamp": "2026-03-09T14:30:45.123456+00:00"
 }
 ```
 
 ---
 
+## Testing Workflow
+
+### Recommended testing order:
+1. **Start with `/health/`** to verify API is running
+2. **Try `/analyse/`** for a quick synchronous test
+3. **Try `/find-pairs/`** to test text parsing with names
+4. **Try `/ner/`** followed by `/ner/{task_id}` to test async flow
+5. **Try `/relations/`** to test LLM integration
+
+### Tips:
+- **Swagger UI URL:** http://localhost:8000/docs
+- **Alternative (ReDoc):** http://localhost:8000/redoc
+- **JSON schema validation:** Swagger UI will show errors if request format is invalid
+- **Copy/Paste:** You can copy responses and use them as templates for other requests
+- **Task polling:** For `/ner/{task_id}`, you may need to call it multiple times until `ready: true`
+
+---
+
 ## Notes
 
-- **NER** (`/ner/`) is async via Celery. Always check task status with `GET /ner/{task_id}` after receiving a task ID.
-- **Relations** (`/relations/`) requires exactly 2 names and at least 1 sentence.
-- **Find Pairs** (`/find-pairs/`) requires at least 2 names.
-- All endpoints require `Content-Type: application/json` for POST requests.
+- **NER** (`/ner/`) is **asynchronous via Celery**. It returns immediately with a task_id, so you must poll `/ner/{task_id}` for results.
+- **Relations** (`/relations/`) requires exactly **2 names** and at least **1 sentence**.
+- **Find Pairs** (`/find-pairs/`) requires at least **2 names**.
+- All endpoints require `Content-Type: application/json` (Swagger handles this automatically).
+- For the Celery worker to process tasks, ensure the `celery-worker` container is running.
