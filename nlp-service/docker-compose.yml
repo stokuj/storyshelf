@@ -13,6 +13,7 @@ services:
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+    restart: unless-stopped
     depends_on:
       redis:
         condition: service_started
@@ -24,12 +25,13 @@ services:
     pull_policy: build
     image: storyweave-api:local
     container_name: storyweave-celery-worker
-    command: ["uv", "run", "celery", "-A", "api.app.celery", "worker", "--loglevel=info"]
+    command: ["uv", "run", "celery", "-A", "api.app.celery", "worker", "--loglevel=warning"]
     env_file:
       - .env
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+    restart: unless-stopped
     depends_on:
       redis:
         condition: service_started
@@ -40,6 +42,7 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    restart: unless-stopped
 
 volumes:
   redis-data:
