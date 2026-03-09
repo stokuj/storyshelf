@@ -113,6 +113,7 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 - Added task-based NER API: `POST /ner/` returns `task_id`, `GET /ner/{task_id}` returns task state/result.
 - Added worker-side NER model preloading with `worker_process_init`.
 - Updated endpoint documentation and data flow to reflect Redis + Celery architecture.
+- Confirmed `dbmdz/bert-large-cased-finetuned-conll03-english` as production NER model (previous execution issues resolved with proper worker initialization).
 
 ### [0.5.1] - 2026-03-08
 
