@@ -5,8 +5,6 @@ from __future__ import annotations
 from itertools import combinations
 import re
 
-from transformers import AutoTokenizer
-from openai.types.conversations import TextContent
 
 
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")

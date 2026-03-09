@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
-
+from fastapi import APIRouter
 
 from api.models.model import NamesRequest, NamesWithContentRequest
 from api.services.book_service import find_sentences_with_both_characters
