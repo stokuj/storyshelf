@@ -6,18 +6,8 @@ from itertools import combinations
 import re
 
 
-
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 
-
-# def get_book_content_by_id(db: Session, book_id: int) -> str | None:
-#     row = db.execute(
-#         text("SELECT content FROM books WHERE id = :book_id"),
-#         {"book_id": book_id},
-#     ).first()
-#     if not row:
-#         return Nones
-#     return row[0]
 
 def analyse_text(text: str) -> dict:
     """Return analysed text: counts chars, words and tokens."""

@@ -1,10 +1,9 @@
 """LLM service for character relationship extraction."""
-
 from __future__ import annotations
 
 import logging
-import os
 from openai import AsyncOpenAI
+from api.config.settings import OPENROUTER_API_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ class LLMService:
         self._model = model
         self._client = AsyncOpenAI(
             base_url="https://openrouter.ai/api/v1",
-            api_key=os.getenv("OPENROUTER_API_KEY"),
+            api_key=OPENROUTER_API_KEY,
         )
 
     async def extract_relations(self, pair: list[str], sentences: list[str]) -> str:

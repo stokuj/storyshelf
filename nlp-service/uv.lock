@@ -1235,9 +1235,7 @@ source = { editable = "." }
 dependencies = [
     { name = "celery" },
     { name = "celery-types" },
-    { name = "coverage" },
     { name = "fastapi", extra = ["standard"] },
-    { name = "httpx" },
     { name = "openai" },
     { name = "python-dotenv" },
     { name = "redis" },
@@ -1248,6 +1246,8 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "coverage" },
+    { name = "httpx" },
     { name = "pytest" },
 ]
 
@@ -1255,9 +1255,7 @@ dev = [
 requires-dist = [
     { name = "celery", specifier = ">=5.6.2" },
     { name = "celery-types", specifier = ">=0.24.0" },
-    { name = "coverage", specifier = ">=7.13.4" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.135.1" },
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "redis", specifier = ">=7.3.0" },
@@ -1266,7 +1264,11 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.2" }]
+dev = [
+    { name = "coverage", specifier = ">=7.13.4" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+]
 
 [[package]]
 name = "sympy"
