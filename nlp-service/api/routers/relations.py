@@ -1,5 +1,3 @@
-
-
 import json
 import logging
 from fastapi import APIRouter, HTTPException
@@ -23,9 +21,13 @@ async def relations(payload: RelationsDirectRequest):
 
     relations_raw = await llm_service.extract_relations(pair, payload.sentences)
 
+    if relations_raw is None:
+        logger.warning("LLM returned None for pair %s", pair)
+        relations_raw = '{"relations": []}'
+
     try:
         relations_data = json.loads(relations_raw)
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError:
         relations_data = {"raw": relations_raw}
 
     logger.info("Relations for %s: %s", pair, relations_data)
