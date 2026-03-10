@@ -1,5 +1,3 @@
-#test_routes_ner.py
-
 from fastapi.testclient import TestClient
 import pytest
 from api.app import app
@@ -11,7 +9,9 @@ client = TestClient(app)
 def test_route_returns_202():
     """Test that the /ner/ route returns a 202 status code when given valid input."""
 
-    response = client.post("/ner/", json={"content": "Frodo and Sam walked through the Shire."})
+    response = client.post(
+        "/ner/", json={"content": "Frodo and Sam walked through the Shire."}
+    )
     assert response.status_code == 202
     assert "task_id" in response.json()
 
@@ -28,7 +28,9 @@ def test_get_task_status():
     """Test that the /ner/{task_id} route returns a 200 status code when given a valid task ID."""
 
     # First, create a new NER task
-    response = client.post("/ner/", json={"content": "Frodo and Sam walked through the Shire."})
+    response = client.post(
+        "/ner/", json={"content": "Frodo and Sam walked through the Shire."}
+    )
     task_id = response.json().get("task_id")
 
     # Now, check the state of the task

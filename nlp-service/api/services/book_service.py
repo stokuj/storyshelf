@@ -1,5 +1,3 @@
-# book_service.py
-
 from __future__ import annotations
 
 from itertools import combinations
@@ -14,8 +12,8 @@ def analyse_text(text: str) -> dict:
 
     char_count = len(text)
     word_count = len(text.split())
-    #TODO: count chars with and without spaces, punctuation, etc. for more detailed analysis
-    #TODO: change to real tokenizer
+    # TODO: count chars with and without spaces, punctuation, etc. for more detailed analysis
+    # TODO: change to real tokenizer
     token_count = len(text) // 4
 
     return {
@@ -25,13 +23,14 @@ def analyse_text(text: str) -> dict:
     }
 
 
-def find_sentences_with_both_characters(content: str, characters: list[str], include_empty: bool = False) -> list[dict]:
+def find_sentences_with_both_characters(
+    content: str, characters: list[str], include_empty: bool = False
+) -> list[dict]:
     """Return sentences containing each character pair from the entire book."""
 
-    # Dzieli tekst na zdania.
+    # Split text into sentences.
     sentences = [part for part in SENTENCE_SPLIT_RE.split(content.strip()) if part]
     result: list[dict] = []
-
 
     for person_a, person_b in combinations(characters, 2):
         pattern_a = re.compile(re.escape(person_a), re.IGNORECASE)

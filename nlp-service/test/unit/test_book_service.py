@@ -1,4 +1,3 @@
-#test_book_service.py
 import pytest
 from api.services.book_service import find_sentences_with_both_characters, analyse_text
 
@@ -26,8 +25,8 @@ def test_analyse_text_many_spaces():
     """Test that function counts words correctly when multiple spaces are present."""
 
     result = analyse_text("Hello   world!  This is a test.")
-    assert result["char_count"] == 31  # liczy wszystkie znaki łącznie ze spacjami
-    assert result["word_count"] == 6  # split() bez argumentu ignoruje wielokrotne spacje
+    assert result["char_count"] == 31  # counts all characters including spaces
+    assert result["word_count"] == 6  # split() without args ignores multiple spaces
     assert result["token_count"] == 7  # 31 // 4
 
 
@@ -48,6 +47,7 @@ def test_analyse_text_unicode_characters():
     assert result["word_count"] == 2  # split() dzieli na "Café" i "Münster"
     assert result["token_count"] == 3  # 12 // 4
 
+
 # --- find_sentences_with_both_characters tests ---
 def test_unicode_character_name():
     """Test that function correctly matches character names with Unicode characters."""
@@ -63,7 +63,9 @@ def test_character_namewith_spaces():
     """Test that function correctly matches character names with spaces."""
 
     content = "Frodo Baggins and Samwise Gamgee walked together."
-    result = find_sentences_with_both_characters(content, ["Frodo Baggins", "Samwise Gamgee"])
+    result = find_sentences_with_both_characters(
+        content, ["Frodo Baggins", "Samwise Gamgee"]
+    )
     assert len(result) == 1
     assert result[0]["pair"] == ["Frodo Baggins", "Samwise Gamgee"]
     assert len(result[0]["sentences"]) == 1
@@ -103,7 +105,9 @@ def test_returns_empty_when_one_character():
 def test_finds_pair_in_same_sentence():
     """Test that function finds sentences containing both characters."""
 
-    result = find_sentences_with_both_characters("Frodo and Sam walked together.", ["Frodo", "Sam"])
+    result = find_sentences_with_both_characters(
+        "Frodo and Sam walked together.", ["Frodo", "Sam"]
+    )
     assert len(result) == 1
     assert result[0]["pair"] == ["Frodo", "Sam"]
     assert len(result[0]["sentences"]) == 1
@@ -121,7 +125,9 @@ def test_include_empty_returns_pair_with_no_sentences():
     """Test that function returns pair with empty sentences list when include_empty is True."""
 
     content = "Frodo walked alone. Sam stayed home."
-    result = find_sentences_with_both_characters(content, ["Frodo", "Sam"], include_empty=True)
+    result = find_sentences_with_both_characters(
+        content, ["Frodo", "Sam"], include_empty=True
+    )
     assert len(result) == 1
     assert result[0]["sentences"] == []
 
@@ -159,12 +165,15 @@ def test_sentence_with_three_characters():
         assert len(r["sentences"]) == 1
         assert r["sentences"][0] == content.strip()
 
-#TODO: change regex to implement word boundary and enable this test
-@pytest.mark.xfail(reason="substring match: 'Ron' found in 'Kronos', word boundary not implemented")
+
+# TODO: change regex to implement word boundary and enable this test
+@pytest.mark.xfail(
+    reason="substring match: 'Ron' found in 'Kronos', word boundary not implemented"
+)
 def test_substring_name_false_positive():
     """Test that function does not match character names as substrings of other words."""
 
     content = "Kronos defeated Hermione in battle."
     result = find_sentences_with_both_characters(content, ["Ron", "Hermione"])
 
-    assert result == []  # powinno być puste, ale nie jest
+    assert result == []  # should be empty, but currently is not

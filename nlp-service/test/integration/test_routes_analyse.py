@@ -1,5 +1,3 @@
-#test_routes_analyse.py
-
 from fastapi.testclient import TestClient
 
 from api.app import app
@@ -19,4 +17,3 @@ def test_route_missing_content_returns_422():
 
     response = client.post("/analyse/", json={})
     assert response.status_code == 422
-

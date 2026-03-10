@@ -1,4 +1,3 @@
-# app.py
 from datetime import UTC, datetime
 from dotenv import load_dotenv
 
@@ -8,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+
 logger = logging.getLogger(__name__)
 from api.config import settings
 from api.routers.analyse import router as analyse_router
@@ -21,7 +21,13 @@ app = FastAPI()
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error("Unhandled exception: %s %s — %s", request.method, request.url, exc, exc_info=True)
+    logger.error(
+        "Unhandled exception: %s %s — %s",
+        request.method,
+        request.url,
+        exc,
+        exc_info=True,
+    )
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
@@ -56,5 +62,5 @@ def health():
         "status": "ok",
         "version": settings.APP_VERSION,
         "timestamp": datetime.now(UTC).isoformat(),
-        #TODO: add celery workers status, how many are active, how many are idle, etc.
+        # TODO: add celery workers status, how many are active, how many are idle, etc.
     }

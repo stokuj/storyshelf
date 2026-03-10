@@ -1,4 +1,3 @@
-#test_routes_app.py
 from fastapi.testclient import TestClient
 
 from api.app import app
@@ -27,6 +26,7 @@ def test_health_status_is_ok():
     response = client.get("/health/")
     assert response.json()["status"] == "ok"
 
+
 def test_health_contains_required_fields():
     """Test if the /health/ endpoint returns a JSON with required fields."""
 
@@ -36,11 +36,12 @@ def test_health_contains_required_fields():
     assert "version" in data
     assert "timestamp" in data
 
+
 def test_health_timestamp_is_valid_iso():
     """Test if the /health/ endpoint returns a timestamp in valid ISO format."""
 
     from datetime import datetime
+
     response = client.get("/health/")
     timestamp = response.json()["timestamp"]
     datetime.fromisoformat(timestamp)
-

@@ -1,5 +1,3 @@
-# test_llm_service.py
-
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from api.services.llm_service import LLMService
@@ -9,15 +7,13 @@ import openai
 
 @pytest.mark.asyncio
 async def test_returns_json_string():
-    """Testuje czy metoda przy fałszywej odpowiedzi z API zwraca poprawny format JSON."""
+    """Fake API response should be returned as a valid JSON string."""
 
-    # Przygotuj fałszywą odpowiedź z "API"
     fake_response = MagicMock()
     fake_response.choices[0].message.content = '{"relations": []}'
 
     service = LLMService()
 
-    # Podmień prawdziwy klient na mocka
     service._client.chat.completions.create = AsyncMock(return_value=fake_response)
 
     result = await service.extract_relations(
@@ -30,7 +26,7 @@ async def test_returns_json_string():
 
 @pytest.mark.asyncio
 async def test_calls_api_with_correct_model():
-    """Testuje czy metoda wywołuje API z poprawnym modelem."""
+    """API should be called with the model passed to the constructor."""
 
     fake_response = MagicMock()
     fake_response.choices[0].message.content = '{"relations": []}'
@@ -46,7 +42,7 @@ async def test_calls_api_with_correct_model():
 
 @pytest.mark.asyncio
 async def test_prompt_contains_pair_and_sentences():
-    """Testuje czy prompt zawiera nazwy postaci i zdania."""
+    """Prompt should contain character names and sentences."""
 
     fake_response = MagicMock()
     fake_response.choices[0].message.content = '{"relations": []}'

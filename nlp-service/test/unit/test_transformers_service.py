@@ -1,10 +1,9 @@
-#test_transformers_service.py
-
 from unittest.mock import patch, MagicMock
 import pytest
 import api.services.transformers_service as tf_service
 from api.services.transformers_service import load_ner_model, DEFAULT_NER_MODEL
 from api.models.model import TextContentRequest
+
 
 # used to ensure that the NER pipelines are cleared before and after each test to prevent state leakage between tests
 @pytest.fixture(autouse=True)
@@ -19,7 +18,9 @@ def clear_pipelines():
 # --- load_ner_model ---
 def test_load_ner_model_success():
     fake_pipeline = MagicMock()
-    with patch("api.services.transformers_service.pipeline", return_value=fake_pipeline) as mock_pipeline:
+    with patch(
+        "api.services.transformers_service.pipeline", return_value=fake_pipeline
+    ) as mock_pipeline:
         result = load_ner_model(DEFAULT_NER_MODEL)
 
     assert result is True
@@ -47,7 +48,10 @@ def test_load_ner_model_already_loaded():
 def test_load_ner_model_failure():
     """Test that if the model cannot be loaded, it returns False and does not add to the pipelines."""
 
-    with patch("api.services.transformers_service.pipeline", side_effect=OSError("model not found")):
+    with patch(
+        "api.services.transformers_service.pipeline",
+        side_effect=OSError("model not found"),
+    ):
         result = load_ner_model("nonexistent/model")
 
     assert result is False
@@ -73,7 +77,9 @@ def test_extract_entities_success():
         {"entity_group": "MISC", "word": "GPT-3"},
     ]
 
-    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(return_value=fake_ner_output)
+    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+        return_value=fake_ner_output
+    )
 
     payload = TextContentRequest(content="Test content")
     result = tf_service.extract_entities(payload)
@@ -100,7 +106,9 @@ def test_extract_entities_duplicate_entities():
         {"entity_group": "ORG", "word": "OpenAI"},
     ]
 
-    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(return_value=fake_ner_output)
+    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+        return_value=fake_ner_output
+    )
 
     payload = TextContentRequest(content="Test content")
     result = tf_service.extract_entities(payload)
@@ -123,7 +131,9 @@ def test_extract_entities_correct_ordering():
         {"entity_group": "PER", "word": "Bob"},
     ]
 
-    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(return_value=fake_ner_output)
+    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+        return_value=fake_ner_output
+    )
 
     payload = TextContentRequest(content="Test content")
     result = tf_service.extract_entities(payload)
@@ -141,7 +151,9 @@ def test_extract_entities_empty_word():
         {"entity_group": "LOC", "word": "San Francisco"},
     ]
 
-    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(return_value=fake_ner_output)
+    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+        return_value=fake_ner_output
+    )
 
     payload = TextContentRequest(content="Test content")
     result = tf_service.extract_entities(payload)
@@ -177,7 +189,9 @@ def test_extract_entities_person_aliases():
         {"entity_group": "ORG", "word": "OpenAI"},
     ]
 
-    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(return_value=fake_ner_output)
+    tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+        return_value=fake_ner_output
+    )
 
     payload = TextContentRequest(content="Test content")
     result = tf_service.extract_entities(payload)
