@@ -107,6 +107,19 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 
 ## Changelog
 
+### [0.7.0] - 2026-03-10
+
+- Centralised settings: moved hardcoded values to `settings.py`, moved dev deps to `[dependency-groups] dev`.
+- Added `max_length` validation on Pydantic request fields to prevent OOM and LLM cost abuse.
+- Sanitized user input before inserting into LLM prompt.
+- Handled `None` from LLM response in relations router.
+- Added custom `RequestValidationError` handler in `app.py` for readable 422 messages.
+- Added Celery workers info to `GET /health/` response.
+- Added whitespace-only input validation tests for all route handlers.
+- Removed dead validation code in `find_pairs` router (`if not payload.names` unreachable due to Pydantic `min_length=2`).
+- Fixed broken tests, cleaned up imports, removed stale file header comments.
+- Docker Compose setup for dev environment with CPU-only PyTorch.
+
 ### [0.6.0] - 2026-03-08
 
 - Moved NER execution to Celery async flow.
