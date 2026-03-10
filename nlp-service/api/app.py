@@ -10,6 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from api.config import settings
+from api.config.celery_app import celery
 from api.routers.analyse import router as analyse_router
 from api.routers.find_pairs import router as find_pairs_router
 from api.routers.ner import router as ner_router
@@ -58,9 +59,17 @@ def root():
 
 @app.get("/health/")
 def health():
+    inspector = celery.control.inspect()
+    active = inspector.active()
+
+    workers_status = {}
+    if active:
+        for worker, tasks in active.items():
+            workers_status[worker] = {"status": "online", "active_tasks": len(tasks)}
+
     return {
         "status": "ok",
         "version": settings.APP_VERSION,
         "timestamp": datetime.now(UTC).isoformat(),
-        # TODO: add celery workers status, how many are active, how many are idle, etc.
+        "celery": {"total_workers": len(workers_status), "workers": workers_status},
     }

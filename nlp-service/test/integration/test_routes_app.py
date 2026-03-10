@@ -35,6 +35,9 @@ def test_health_contains_required_fields():
     assert "status" in data
     assert "version" in data
     assert "timestamp" in data
+    assert "celery" in data
+    assert "total_workers" in data["celery"]
+    assert "workers" in data["celery"]
 
 
 def test_health_timestamp_is_valid_iso():
