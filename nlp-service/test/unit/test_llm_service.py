@@ -122,7 +122,7 @@ async def test_extract_relations_api_connection_error():
 
 @pytest.mark.asyncio
 async def test_extract_relations_returns_none_content():
-    """When the model returns None as content, the service should return None."""
+    """When the model returns None as content, the service should return the empty-relations fallback."""
 
     fake_response = MagicMock()
     fake_response.choices[0].message.content = None
@@ -131,7 +131,7 @@ async def test_extract_relations_returns_none_content():
     service._client.chat.completions.create = AsyncMock(return_value=fake_response)
 
     result = await service.extract_relations(["A", "B"], ["A met B."])
-    assert result is None
+    assert result == '{"relations": []}'
 
 
 def test_all_relations_contains_expected_relations():

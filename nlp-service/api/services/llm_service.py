@@ -43,6 +43,16 @@ class LLMService:
             api_key=OPENROUTER_API_KEY,
         )
 
+    @staticmethod
+    def _sanitize(text: str) -> str:
+        """Strip control characters and prompt-injection markers from user input."""
+
+        # Remove common injection delimiters
+        for marker in ("```", "---", "###", "SYSTEM:", "ASSISTANT:", "USER:"):
+            text = text.replace(marker, "")
+        # Remove ASCII control chars (except newline/space)
+        return "".join(ch for ch in text if ch == "\n" or ch >= " ")
+
     async def extract_relations(self, pair: list[str], sentences: list[str]) -> str:
         """Extract relationships between a character pair from the given sentences.
 
@@ -54,8 +64,8 @@ class LLMService:
             JSON string with extracted relations:
             {"relations": [{"source": ..., "relation": ..., "target": ..., "evidence": ...}]}
         """
-        names_text = ", ".join(pair)
-        sentences_text = " ".join(sentences)
+        names_text = ", ".join(self._sanitize(n) for n in pair)
+        sentences_text = " ".join(self._sanitize(s) for s in sentences)
 
         prompt = f"""You are an expert in literary analysis of fantasy and science-fiction.
 
@@ -111,7 +121,11 @@ class LLMService:
                 ],
                 extra_body={"reasoning": {"enabled": False}},
             )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            if content is None:
+                logger.warning("LLM returned None content for pair: %s", pair)
+                return '{"relations": []}'
+            return content
 
         except (
             openai.RateLimitError,

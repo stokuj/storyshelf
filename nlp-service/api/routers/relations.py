@@ -21,10 +21,6 @@ async def relations(payload: RelationsDirectRequest):
 
     relations_raw = await llm_service.extract_relations(pair, payload.sentences)
 
-    if relations_raw is None:
-        logger.warning("LLM returned None for pair %s", pair)
-        relations_raw = '{"relations": []}'
-
     try:
         relations_data = json.loads(relations_raw)
     except json.JSONDecodeError:
