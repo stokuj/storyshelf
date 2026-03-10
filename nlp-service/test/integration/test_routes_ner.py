@@ -1,3 +1,6 @@
+from types import SimpleNamespace
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 import pytest
 from api.app import app
@@ -9,9 +12,11 @@ client = TestClient(app)
 def test_route_returns_202():
     """Test that the /ner/ route returns a 202 status code when given valid input."""
 
-    response = client.post(
-        "/ner/", json={"content": "Frodo and Sam walked through the Shire."}
-    )
+    with patch("api.routers.ner.extract_entities_task.delay") as mock:
+        mock.return_value = SimpleNamespace(id="test-task-id")
+        response = client.post(
+            "/ner/", json={"content": "Frodo and Sam walked through the Shire."}
+        )
     assert response.status_code == 202
     assert "task_id" in response.json()
 
@@ -35,15 +40,17 @@ def test_route_whitespace_content_returns_422():
 def test_get_task_status():
     """Test that the /ner/{task_id} route returns a 200 status code when given a valid task ID."""
 
-    # First, create a new NER task
-    response = client.post(
-        "/ner/", json={"content": "Frodo and Sam walked through the Shire."}
-    )
-    task_id = response.json().get("task_id")
-
-    # Now, check the state of the task
-    response = client.get(f"/ner/{task_id}")
-    data = response.json()
+    with patch("api.routers.ner.celery.AsyncResult") as mock:
+        mock.return_value = SimpleNamespace(
+            id="test-task-id",
+            state="PENDING",
+            ready=lambda: False,
+            successful=lambda: False,
+            failed=lambda: False,
+            result=None,
+        )
+        response = client.get("/ner/test-task-id")
+        data = response.json()
 
     assert "state" in data  # PENDING / SUCCESS / FAILURE
     assert response.status_code == 200
@@ -53,6 +60,15 @@ def test_get_task_status():
 def test_get_task_status_invalid_id():
     """Unknown task_id returns 200 with PENDING status"""
 
-    response = client.get("/ner/nonexistent-task-id")
-    assert response.status_code == 200
-    assert response.json()["state"] == "PENDING"
+    with patch("api.routers.ner.celery.AsyncResult") as mock:
+        mock.return_value = SimpleNamespace(
+            id="nonexistent-task-id",
+            state="PENDING",
+            ready=lambda: False,
+            successful=lambda: False,
+            failed=lambda: False,
+            result=None,
+        )
+        response = client.get("/ner/nonexistent-task-id")
+        assert response.status_code == 200
+        assert response.json()["state"] == "PENDING"

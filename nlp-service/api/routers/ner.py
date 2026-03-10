@@ -1,15 +1,15 @@
-
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from api.config.celery_app import celery
 from api.models.model import TextContentRequest
+from api.middleware.rate_limiter import limiter
 from api.services.transformers_service import DEFAULT_NER_MODEL, extract_entities
 
 router = APIRouter(prefix="/ner", tags=["ner"])
 
 
 @router.post("/", status_code=202)
-def ner_by_content(payload: TextContentRequest):
+@limiter.limit("5/minute")
+def ner_by_content(request: Request, payload: TextContentRequest):
     if not payload.content.strip():
         raise HTTPException(status_code=422, detail="Content cannot be empty")
 

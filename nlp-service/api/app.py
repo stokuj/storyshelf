@@ -7,6 +7,9 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,6 +20,7 @@ FIELD_MISSING_MESSAGES: dict[str, str] = {
 }
 from api.config import settings
 from api.config.celery_app import celery
+from api.middleware.rate_limiter import limiter
 from api.routers.analyse import router as analyse_router
 from api.routers.find_pairs import router as find_pairs_router
 from api.routers.ner import router as ner_router
@@ -24,6 +28,9 @@ from api.routers.relations import router as relations_router
 
 
 app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 
 @app.exception_handler(Exception)
