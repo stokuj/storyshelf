@@ -81,17 +81,30 @@ def root():
 
 @app.get("/health/")
 def health():
-    inspector = celery.control.inspect()
-    active = inspector.active()
-
-    workers_status = {}
-    if active:
-        for worker, tasks in active.items():
-            workers_status[worker] = {"status": "online", "active_tasks": len(tasks)}
-
     return {
         "status": "ok",
         "version": settings.APP_VERSION,
         "timestamp": datetime.now(UTC).isoformat(),
-        "celery": {"total_workers": len(workers_status), "workers": workers_status},
+    }
+
+
+@app.get("/health/celery/")
+def health_celery():
+    try:
+        inspector = celery.control.inspect()
+        active = inspector.active() or {}
+    except Exception as exc:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "error": str(exc)},
+        )
+
+    workers = {
+        name: {"status": "online", "active_tasks": len(tasks)}
+        for name, tasks in active.items()
+    }
+    return {
+        "status": "ok",
+        "total_workers": len(workers),
+        "workers": workers,
     }

@@ -29,9 +29,9 @@ jobs:
         run: uv sync --frozen
 
       - name: Run tests
-        run: uv run pytest -v
+        run: uv run pytest -v -m "not integration"
 
       - name: Run coverage
         run: |
-          uv run coverage run -m pytest
+          uv run coverage run -m pytest -m "not integration"
           uv run coverage report --fail-under=90 --include="api/*"

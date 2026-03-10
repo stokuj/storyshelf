@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
 
@@ -10,7 +10,9 @@ client = TestClient(app)
 def test_global_exception_handler():
     """Test if the global exception handler returns a 500 status code when an unhandled exception occurs."""
 
-    with patch("api.routers.analyse.analyse_text", side_effect=RuntimeError("Unexpected error")):
+    with patch(
+        "api.routers.analyse.analyse_text", side_effect=RuntimeError("Unexpected error")
+    ):
         with TestClient(app, raise_server_exceptions=False) as c:
             response = c.post("/analyse/", json={"content": "test"})
             assert response.status_code == 500
@@ -47,9 +49,6 @@ def test_health_contains_required_fields():
     assert "status" in data
     assert "version" in data
     assert "timestamp" in data
-    assert "celery" in data
-    assert "total_workers" in data["celery"]
-    assert "workers" in data["celery"]
 
 
 def test_health_timestamp_is_valid_iso():
@@ -60,3 +59,57 @@ def test_health_timestamp_is_valid_iso():
     response = client.get("/health/")
     timestamp = response.json()["timestamp"]
     datetime.fromisoformat(timestamp)
+
+
+# --- /health/celery/ ---
+
+
+def test_health_celery_returns_200_with_workers():
+    """Test /health/celery/ returns worker info when Celery is available."""
+
+    mock_inspector = MagicMock()
+    mock_inspector.active.return_value = {
+        "worker-1": [{"id": "task-1"}],
+        "worker-2": [],
+    }
+
+    with patch("api.app.celery") as mock_celery:
+        mock_celery.control.inspect.return_value = mock_inspector
+        response = client.get("/health/celery/")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["total_workers"] == 2
+    assert data["workers"]["worker-1"]["active_tasks"] == 1
+    assert data["workers"]["worker-2"]["active_tasks"] == 0
+
+
+def test_health_celery_returns_200_no_workers():
+    """Test /health/celery/ returns empty workers when none are registered."""
+
+    mock_inspector = MagicMock()
+    mock_inspector.active.return_value = {}
+
+    with patch("api.app.celery") as mock_celery:
+        mock_celery.control.inspect.return_value = mock_inspector
+        response = client.get("/health/celery/")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["total_workers"] == 0
+    assert data["workers"] == {}
+
+
+def test_health_celery_returns_503_when_redis_unavailable():
+    """Test /health/celery/ returns 503 when Redis connection fails."""
+
+    with patch("api.app.celery") as mock_celery:
+        mock_celery.control.inspect.side_effect = ConnectionError("Connection refused")
+        response = client.get("/health/celery/")
+
+    assert response.status_code == 503
+    data = response.json()
+    assert data["status"] == "error"
+    assert "error" in data

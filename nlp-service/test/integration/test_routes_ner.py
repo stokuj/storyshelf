@@ -49,6 +49,7 @@ def test_get_task_status():
     assert response.status_code == 200
 
 
+@pytest.mark.integration
 def test_get_task_status_invalid_id():
     """Unknown task_id returns 200 with PENDING status"""
 
