@@ -46,3 +46,22 @@ def test_route_missing_name_2_returns_422():
         "/relations/", json={"name_1": "Frodo", "sentences": ["Frodo and Sam walked."]}
     )
     assert response.status_code == 422
+
+
+def test_route_whitespace_name_returns_422():
+    """Test that the /relations/ route returns a 422 when a character name is whitespace only."""
+
+    response = client.post(
+        "/relations/", json={"name_1": "  ", "name_2": "Sam", "sentences": ["Frodo and Sam walked."]}
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Character names cannot be empty"
+
+def test_route_same_names_returns_422():
+    """Test that the /relations/ route returns a 422 when both character names are the same."""
+
+    response = client.post(
+        "/relations/", json={"name_1": "Frodo", "name_2": "Frodo", "sentences": ["Frodo and Sam walked."]}
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Character names must be different"

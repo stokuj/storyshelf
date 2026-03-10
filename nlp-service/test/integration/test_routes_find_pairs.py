@@ -40,3 +40,14 @@ def test_route_missing_names_returns_422():
     )
     assert response.status_code == 422
     assert response.json()["detail"] == "Names cannot be empty"
+
+def test_route_whitespace_content_returns_422():
+    """Test that the /find-pairs/ route returns a 422 status code when the content is whitespace only."""
+
+    response = client.post("/find-pairs/", json={
+            "content": "   ",
+            "names": ["Bilbo", "Gandalf", "Thorin"]
+        }
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Content cannot be empty"

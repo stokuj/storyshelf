@@ -23,6 +23,14 @@ def test_route_missing_content_returns_422():
     assert response.status_code == 422
 
 
+def test_route_whitespace_content_returns_422():
+    """Test that the /ner/ route returns a 422 status code when the content is whitespace only."""
+
+    response = client.post("/ner/", json={"content": "   "})
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Content cannot be empty"
+
+
 @pytest.mark.integration
 def test_get_task_status():
     """Test that the /ner/{task_id} route returns a 200 status code when given a valid task ID."""
