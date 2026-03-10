@@ -10,7 +10,7 @@ client = TestClient(app)
 def test_route_returns_200():
     """Test that the /relations/ route returns a 200 status code when given valid input."""
 
-    with patch("api.routes.relations.llm_service.extract_relations", new_callable=AsyncMock) as mock:
+    with patch("api.routers.relations.llm_service.extract_relations", new_callable=AsyncMock) as mock:
         mock.return_value = '{"relations": []}'
         response = client.post("/relations/", json={
             "name_1": "Frodo",

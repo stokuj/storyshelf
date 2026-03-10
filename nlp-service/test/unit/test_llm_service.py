@@ -1,10 +1,11 @@
-#test_llm_service.py
+# test_llm_service.py
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from api.services.llm_service import LLMService
 from api.services.llm_service import ALL_RELATIONS_STR, RELATION_SCHEMA
 import openai
+
 
 @pytest.mark.asyncio
 async def test_returns_json_string():
@@ -20,8 +21,7 @@ async def test_returns_json_string():
     service._client.chat.completions.create = AsyncMock(return_value=fake_response)
 
     result = await service.extract_relations(
-        pair=["Gandalf", "Frodo"],
-        sentences=["Gandalf helped Frodo carry the burden."]
+        pair=["Gandalf", "Frodo"], sentences=["Gandalf helped Frodo carry the burden."]
     )
 
     assert isinstance(result, str)
@@ -65,34 +65,64 @@ async def test_prompt_contains_pair_and_sentences():
 
 
 @pytest.mark.asyncio
+async def test_api_authentication_error():
+    """On auth error the service should return an empty relations fallback."""
+
+    service = LLMService()
+    service._client.chat.completions.create = AsyncMock(
+        side_effect=openai.AuthenticationError(
+            message="invalid key", response=MagicMock(), body={}
+        )
+    )
+
+    result = await service.extract_relations(["A", "B"], ["A met B."])
+    assert result == '{"relations": []}'
+
+
+@pytest.mark.asyncio
+async def test_api_rate_limit_error():
+    """On rate limit error the service should return an empty relations fallback."""
+
+    service = LLMService()
+    service._client.chat.completions.create = AsyncMock(
+        side_effect=openai.RateLimitError(
+            message="rate limit exceeded", response=MagicMock(), body={}
+        )
+    )
+
+    result = await service.extract_relations(["A", "B"], ["A met B."])
+    assert result == '{"relations": []}'
+
+
+@pytest.mark.asyncio
 async def test_api_timeout():
-    """Testuje czy wyjątek timeout propaguje się wyżej."""
+    """On timeout the service should return an empty relations fallback, not crash."""
 
     service = LLMService()
     service._client.chat.completions.create = AsyncMock(
         side_effect=openai.APITimeoutError(request=MagicMock())
     )
 
-    with pytest.raises(openai.APITimeoutError):
-        await service.extract_relations(["A", "B"], ["A met B."])
+    result = await service.extract_relations(["A", "B"], ["A met B."])
+    assert result == '{"relations": []}'
 
 
 @pytest.mark.asyncio
 async def test_extract_relations_api_connection_error():
-    """Testuje czy błąd połączenia propaguje się wyżej."""
+    """On connection error the service should return an empty relations fallback."""
 
     service = LLMService()
     service._client.chat.completions.create = AsyncMock(
         side_effect=openai.APIConnectionError(request=MagicMock())
     )
 
-    with pytest.raises(openai.APIConnectionError):
-        await service.extract_relations(["A", "B"], ["A met B."])
+    result = await service.extract_relations(["A", "B"], ["A met B."])
+    assert result == '{"relations": []}'
 
 
 @pytest.mark.asyncio
 async def test_extract_relations_returns_none_content():
-    """Testuje zachowanie gdy model zwraca None jako content."""
+    """When the model returns None as content, the service should return None."""
 
     fake_response = MagicMock()
     fake_response.choices[0].message.content = None
@@ -105,33 +135,7 @@ async def test_extract_relations_returns_none_content():
 
 
 def test_all_relations_contains_expected_relations():
-    """Testuje czy ALL_RELATIONS_STR zawiera wszystkie relacje z RELATION_SCHEMA."""
+    """ALL_RELATIONS_STR should contain every key from RELATION_SCHEMA."""
 
     for relation in RELATION_SCHEMA.keys():
         assert relation in ALL_RELATIONS_STR
-
-
-@pytest.mark.asyncio
-async def test_api_authentication_error():
-    """Testuje czy błąd uwierzytelniania propaguje się wyżej."""
-
-    service = LLMService()
-    service._client.chat.completions.create = AsyncMock(
-        side_effect=openai.AuthenticationError(message="invalid key", response=MagicMock(), body={})
-    )
-
-    with pytest.raises(openai.AuthenticationError):
-        await service.extract_relations(["A", "B"], ["A met B."])
-
-
-@pytest.mark.asyncio
-async def test_api_rate_limit_error():
-    """Testuje czy błąd limitu zapytań propaguje się wyżej."""
-
-    service = LLMService()
-    service._client.chat.completions.create = AsyncMock(
-        side_effect=openai.RateLimitError(message="rate limit exceeded", response=MagicMock(), body={})
-    )
-
-    with pytest.raises(openai.RateLimitError):
-        await service.extract_relations(["A", "B"], ["A met B."])

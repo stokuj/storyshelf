@@ -41,7 +41,6 @@ def test_get_task_status():
 
 def test_get_task_status_invalid_id():
     """Unknown task_id returns 200 with PENDING status"""
-    """Celery cannot distinguish non-existent from pending."""
 
     response = client.get("/ner/nonexistent-task-id")
     assert response.status_code == 200

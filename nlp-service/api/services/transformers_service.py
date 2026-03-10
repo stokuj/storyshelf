@@ -8,10 +8,11 @@ from typing import Any, Callable, cast
 from transformers import pipeline
 
 from api.models.model import TextContentRequest
+from api.config.settings import NER_MODEL
 
 
 logger = logging.getLogger(__name__)
-DEFAULT_NER_MODEL = "dbmdz/bert-large-cased-finetuned-conll03-english"
+DEFAULT_NER_MODEL = NER_MODEL
 _NER_PIPELINES: dict[str, Any] = {}
 
 
@@ -39,7 +40,9 @@ def load_ner_model(model: str) -> bool:
         return False
 
 
-def extract_entities(payload: TextContentRequest, model: str = DEFAULT_NER_MODEL) -> dict:
+def extract_entities(
+    payload: TextContentRequest, model: str = DEFAULT_NER_MODEL
+) -> dict:
     """Extract named entities (persons, organizations, locations, misc) with a transformers NER model."""
 
     if not load_ner_model(model):

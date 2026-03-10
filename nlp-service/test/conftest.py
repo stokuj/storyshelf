@@ -1,6 +1,5 @@
 # tests/conftest.py
-import pytest
+import os
 
-@pytest.fixture(autouse=True)
-def set_openrouter_api_key(monkeypatch):
-    monkeypatch.setenv("OPENROUTER_API_KEY", "fake-key")
+# Must be set before any import of llm_service (module-level singleton reads the key at import time)
+os.environ.setdefault("OPENROUTER_API_KEY", "fake-key")

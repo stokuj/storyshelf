@@ -1,10 +1,16 @@
 """LLM service for character relationship extraction."""
+
 from __future__ import annotations
 
 import logging
 import openai
 from openai import AsyncOpenAI
-from api.config.settings import OPENROUTER_API_KEY
+from api.config.settings import (
+    OPENROUTER_API_KEY,
+    OPENROUTER_BASE_URL,
+    LLM_MODEL,
+    LLM_MAX_TOKENS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +31,7 @@ ALL_RELATIONS_STR = "\n".join(
 class LLMService:
     """Extract character relationships from text using an LLM via OpenRouter."""
 
-    def __init__(self, model: str = "qwen/qwen3.5-35b-a3b") -> None:
+    def __init__(self, model: str = LLM_MODEL) -> None:
         """Initialise the OpenRouter client.
 
         Args:
@@ -33,7 +39,7 @@ class LLMService:
         """
         self._model = model
         self._client = AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1",
+            base_url=OPENROUTER_BASE_URL,
             api_key=OPENROUTER_API_KEY,
         )
 
@@ -95,7 +101,7 @@ class LLMService:
         try:
             response = await self._client.chat.completions.create(
                 model=self._model,
-                max_tokens=1000,
+                max_tokens=LLM_MAX_TOKENS,
                 messages=[
                     {
                         "role": "system",
@@ -107,7 +113,12 @@ class LLMService:
             )
             return response.choices[0].message.content
 
-        except (openai.RateLimitError, openai.APITimeoutError, openai.APIConnectionError, openai.APIError) as e:
+        except (
+            openai.RateLimitError,
+            openai.APITimeoutError,
+            openai.APIConnectionError,
+            openai.APIError,
+        ) as e:
             logger.error("API error for pair %s: %s", pair, e, exc_info=True)
             return '{"relations": []}'
 

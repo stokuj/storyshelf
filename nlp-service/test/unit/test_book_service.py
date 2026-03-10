@@ -61,7 +61,6 @@ def test_unicode_character_name():
 
 def test_character_namewith_spaces():
     """Test that function correctly matches character names with spaces."""
-    """Frodo Baggins should be matched as a single name, not split into 'Frodo' and 'Baggins'."""
 
     content = "Frodo Baggins and Samwise Gamgee walked together."
     result = find_sentences_with_both_characters(content, ["Frodo Baggins", "Samwise Gamgee"])
