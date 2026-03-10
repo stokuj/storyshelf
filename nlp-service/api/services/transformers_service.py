@@ -7,7 +7,7 @@ from typing import Any, Callable, cast
 
 from transformers import pipeline
 
-from ..models.model import TextContentRequest
+from api.models.model import TextContentRequest
 
 
 logger = logging.getLogger(__name__)
@@ -29,13 +29,14 @@ def load_ner_model(model: str) -> bool:
         )
         logger.info("Transformers NER model loaded: %s", model)
         return True
-    except Exception:
-        logger.warning("Transformers model '%s' is not available. Skipping.", model)
+    except (OSError, EnvironmentError) as exception:
+        logger.warning(
+            "Transformers model '%s' is not available. Skipping. Reason: %s",
+            model,
+            exception,
+            exc_info=True,
+        )
         return False
-
-
-def is_ner_model_loaded(model: str = DEFAULT_NER_MODEL) -> bool:
-    return model in _NER_PIPELINES
 
 
 def extract_entities(payload: TextContentRequest, model: str = DEFAULT_NER_MODEL) -> dict:

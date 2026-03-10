@@ -1,5 +1,6 @@
-from fastapi import APIRouter
 
+
+from fastapi import APIRouter, HTTPException
 from api.config.celery_app import celery
 from api.models.model import TextContentRequest
 from api.services.transformers_service import DEFAULT_NER_MODEL, extract_entities
@@ -9,6 +10,9 @@ router = APIRouter(prefix="/ner", tags=["ner"])
 
 @router.post("/", status_code=202)
 def ner_by_content(payload: TextContentRequest):
+    if not payload.content.strip():
+        raise HTTPException(status_code=422, detail="Content cannot be empty")
+
     task = extract_entities_task.delay(payload.content)
     return {"task_id": task.id}
 

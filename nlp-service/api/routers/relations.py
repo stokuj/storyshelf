@@ -1,8 +1,8 @@
+
+
 import json
 import logging
-
-from fastapi import APIRouter
-
+from fastapi import APIRouter, HTTPException
 from api.models.model import RelationsDirectRequest
 from api.services.llm_service import llm_service
 
@@ -13,6 +13,12 @@ router = APIRouter(prefix="/relations", tags=["relations"])
 
 @router.post("/")
 async def relations(payload: RelationsDirectRequest):
+    if not payload.name_1.strip() or not payload.name_2.strip():
+        raise HTTPException(status_code=422, detail="Character names cannot be empty")
+
+    if payload.name_1.strip() == payload.name_2.strip():
+        raise HTTPException(status_code=422, detail="Character names must be different")
+
     pair = [payload.name_1, payload.name_2]
 
     relations_raw = await llm_service.extract_relations(pair, payload.sentences)

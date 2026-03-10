@@ -14,6 +14,7 @@ def analyse_text(text: str) -> dict:
 
     char_count = len(text)
     word_count = len(text.split())
+    #TODO: count chars with and without spaces, punctuation, etc. for more detailed analysis
     #TODO: change to real tokenizer
     token_count = len(text) // 4
 

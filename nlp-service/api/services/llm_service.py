@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import openai
 from openai import AsyncOpenAI
 from api.config.settings import OPENROUTER_API_KEY
 
@@ -90,19 +91,25 @@ class LLMService:
         }}"""
 
         logger.info("Extracting relations for pair: %s", pair)
-        response = await self._client.chat.completions.create(
-            model=self._model,
-            max_tokens=1000,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a literary analysis expert. Return only valid JSON.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            extra_body={"reasoning": {"enabled": False}},
-        )
-        return response.choices[0].message.content
+
+        try:
+            response = await self._client.chat.completions.create(
+                model=self._model,
+                max_tokens=1000,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a literary analysis expert. Return only valid JSON.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                extra_body={"reasoning": {"enabled": False}},
+            )
+            return response.choices[0].message.content
+
+        except (openai.RateLimitError, openai.APITimeoutError, openai.APIConnectionError, openai.APIError) as e:
+            logger.error("API error for pair %s: %s", pair, e, exc_info=True)
+            return '{"relations": []}'
 
 
 llm_service = LLMService()

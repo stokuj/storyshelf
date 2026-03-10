@@ -4,11 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-
+import logging
+logger = logging.getLogger(__name__)
 from api.config import settings
-from api.config.celery_app import celery  # noqa: F811
 from api.routers.analyse import router as analyse_router
 from api.routers.find_pairs import router as find_pairs_router
 from api.routers.ner import router as ner_router
@@ -16,6 +17,16 @@ from api.routers.relations import router as relations_router
 
 
 app = FastAPI()
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled exception: %s %s — %s", request.method, request.url, exc, exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
 
 app.add_middleware(
     CORSMiddleware,
