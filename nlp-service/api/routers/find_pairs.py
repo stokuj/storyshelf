@@ -13,5 +13,8 @@ def find_pairs_endpoint(payload: NamesWithContentRequest):
     if not payload.content.strip():
         raise HTTPException(status_code=422, detail="Content cannot be empty")
 
+    if not payload.names:
+        raise HTTPException(status_code=422, detail="Names cannot be empty")
+
     pairs = find_sentences_with_both_characters(payload.content, payload.names)
     return {"pairs": pairs}

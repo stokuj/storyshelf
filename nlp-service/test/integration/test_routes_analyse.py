@@ -17,3 +17,4 @@ def test_route_missing_content_returns_422():
 
     response = client.post("/analyse/", json={})
     assert response.status_code == 422
+    assert response.json()["detail"] == "Content cannot be empty"

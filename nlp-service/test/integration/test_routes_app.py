@@ -1,8 +1,20 @@
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 
 from api.app import app
 
 client = TestClient(app)
+
+
+def test_global_exception_handler():
+    """Test if the global exception handler returns a 500 status code when an unhandled exception occurs."""
+
+    with patch("api.routers.analyse.analyse_text", side_effect=RuntimeError("Unexpected error")):
+        with TestClient(app, raise_server_exceptions=False) as c:
+            response = c.post("/analyse/", json={"content": "test"})
+            assert response.status_code == 500
+            assert response.json() == {"detail": "Internal server error"}
 
 
 def test_root():

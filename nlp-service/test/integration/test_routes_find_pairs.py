@@ -29,9 +29,6 @@ def test_route_missing_content_returns_422():
         }
     )
     assert response.status_code == 422
-    detail = response.json()["detail"][0]
-    assert detail["type"] == "missing"
-    assert "content" in detail["loc"]
     assert response.json()["detail"] == "Content cannot be empty"
 
 def test_route_missing_names_returns_422():
@@ -42,7 +39,4 @@ def test_route_missing_names_returns_422():
         }
     )
     assert response.status_code == 422
-    detail = response.json()["detail"][0]
-    assert detail["type"] == "missing"
-    assert "names" in detail["loc"]
     assert response.json()["detail"] == "Names cannot be empty"

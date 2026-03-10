@@ -4,11 +4,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 logger = logging.getLogger(__name__)
+
+FIELD_MISSING_MESSAGES: dict[str, str] = {
+    "content": "Content cannot be empty",
+    "names": "Names cannot be empty",
+}
 from api.config import settings
 from api.config.celery_app import celery
 from api.routers.analyse import router as analyse_router
@@ -32,6 +38,22 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    for error in exc.errors():
+        if error.get("type") == "missing":
+            field = error["loc"][-1]
+            if field in FIELD_MISSING_MESSAGES:
+                return JSONResponse(
+                    status_code=422,
+                    content={"detail": FIELD_MISSING_MESSAGES[field]},
+                )
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
     )
 
 
