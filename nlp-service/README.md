@@ -159,7 +159,7 @@ Integrated LLM relation extraction into the main pipeline:
 - `llm.py` refactored from a standalone script into `LLMService` class with `extract_relations(pair, sentences)` method
 - `find_pair_sentences` now searches the entire book instead of a single chapter, and returns `list[dict]` instead of a JSON string
 - `main.py` now iterates over all character pairs and calls `LLMService` for each one
-- First run with 3 characters (Gandalf, Bilbo, Thorin) — 3 pairs extracted, 10 relations total (see [TESTS.MD](TESTS.MD))
+- First run with 3 characters (Gandalf, Bilbo, Thorin) — 3 pairs extracted, 10 relations total (see [TESTS.MD](docs/TESTS.MD))
 
 ---
 
