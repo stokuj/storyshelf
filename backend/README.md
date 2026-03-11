@@ -36,6 +36,24 @@ Migracja frontendu do Thymeleaf i uporządkowanie autoryzacji web/API.
 - Naprawiono przypadek błędnej identyfikacji anonimowego użytkownika w `PageController`.
 - Na stronie głównej (`/`) osoba niezalogowana nie widzi już akcji `+ Dodaj`.
 
+### [0.3.1] - 2026-03-11
+
+Porządki w konfiguracji Dockera i env oraz częściowa aktualizacja książek.
+
+#### Added
+
+- `PATCH /api/books/{id}` do częściowej aktualizacji książki.
+- Przykładowy `.env.example` pod uruchamianie przez Docker Compose.
+
+#### Changed
+
+- `docker-compose.yml`: poprawiona konfiguracja usług, healthcheck DB, stały wolumen danych i pin obrazu Postgres do 16.
+- `application.properties`: obsługa zmiennych środowiskowych dla DB i `jwt.secret`.
+
+#### Removed
+
+- `src/main/resources/application-local.properties` (konfiguracja lokalna przeniesiona do env).
+
 ### [0.2.1] - 2026-03-04
 
 Rozbudowa modelu książki i porządki.
