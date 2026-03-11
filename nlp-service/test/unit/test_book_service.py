@@ -8,6 +8,7 @@ class TestAnalyseText:
 
         result = analyse_text("Hello world!")
         assert result["char_count"] == 12
+        assert result["char_count_clean"] == 10
         assert result["word_count"] == 2
         assert result["token_count"] == 3
 
@@ -16,6 +17,7 @@ class TestAnalyseText:
 
         result = analyse_text("")
         assert result["char_count"] == 0
+        assert result["char_count_clean"] == 0
         assert result["word_count"] == 0
         assert result["token_count"] == 0
 
@@ -24,6 +26,7 @@ class TestAnalyseText:
 
         result = analyse_text("Hello   world!  This is a test.")
         assert result["char_count"] == 31  # counts all characters including spaces
+        assert result["char_count_clean"] == 21
         assert result["word_count"] == 6  # split() without args ignores multiple spaces
         assert result["token_count"] == 10
 
@@ -32,6 +35,7 @@ class TestAnalyseText:
 
         result = analyse_text("     ")
         assert result["char_count"] == 5
+        assert result["char_count_clean"] == 0
         assert result["word_count"] == 0
         assert result["token_count"] == 1
 
@@ -40,9 +44,39 @@ class TestAnalyseText:
 
         result = analyse_text("Café Münster")
         assert result["char_count"] == 12  # liczy wszystkie znaki, w tym unicode
+        assert result["char_count_clean"] == 11
         assert result["word_count"] == 2  # split() dzieli na "Café" i "Münster"
         assert result["token_count"] == 6
 
+
+    def test_analyse_text_newlines_and_tabs(self):
+        """Test that function counts characters and tokens correctly when newlines and tabs are present."""
+
+        result = analyse_text("Hello\tworld!\nThis is a test.")
+        assert result["char_count"] == 28  # counts all characters including tabs and newlines
+        assert result["char_count_clean"] == 21
+        assert result["word_count"] == 6  # split() without args ignores tabs and newlines
+        assert result["token_count"] == 8
+
+
+    def test_analyse_text_punctuation(self):
+        """Test that function counts characters and tokens correctly when punctuation is present."""
+
+        result = analyse_text("Hello, world! This is a test.")
+        assert result["char_count"] == 29  # counts all characters including punctuation
+        assert result["char_count_clean"] == 21
+        assert result["word_count"] == 6  # split() without args ignores punctuation
+        assert result["token_count"] == 9
+
+
+    def test_analyse_test_numbers(self):
+        """Test that function counts characters and tokens correctly when numbers are present."""
+
+        result = analyse_text("The year is 2024.")
+        assert result["char_count"] == 17  # counts all characters including spaces and punctuation
+        assert result["char_count_clean"] == 13
+        assert result["word_count"] == 4  # split() without args splits on spaces
+        assert result["token_count"] == 7
 
 class TestFindSentencesWithBothCharacters:
     def test_unicode_names_match(self):
