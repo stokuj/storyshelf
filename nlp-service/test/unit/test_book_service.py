@@ -48,16 +48,18 @@ class TestAnalyseText:
         assert result["word_count"] == 2  # split() dzieli na "Café" i "Münster"
         assert result["token_count"] == 6
 
-
     def test_analyse_text_newlines_and_tabs(self):
         """Test that function counts characters and tokens correctly when newlines and tabs are present."""
 
         result = analyse_text("Hello\tworld!\nThis is a test.")
-        assert result["char_count"] == 28  # counts all characters including tabs and newlines
+        assert (
+            result["char_count"] == 28
+        )  # counts all characters including tabs and newlines
         assert result["char_count_clean"] == 21
-        assert result["word_count"] == 6  # split() without args ignores tabs and newlines
+        assert (
+            result["word_count"] == 6
+        )  # split() without args ignores tabs and newlines
         assert result["token_count"] == 8
-
 
     def test_analyse_text_punctuation(self):
         """Test that function counts characters and tokens correctly when punctuation is present."""
@@ -68,15 +70,17 @@ class TestAnalyseText:
         assert result["word_count"] == 6  # split() without args ignores punctuation
         assert result["token_count"] == 9
 
-
     def test_analyse_test_numbers(self):
         """Test that function counts characters and tokens correctly when numbers are present."""
 
         result = analyse_text("The year is 2024.")
-        assert result["char_count"] == 17  # counts all characters including spaces and punctuation
+        assert (
+            result["char_count"] == 17
+        )  # counts all characters including spaces and punctuation
         assert result["char_count_clean"] == 13
         assert result["word_count"] == 4  # split() without args splits on spaces
         assert result["token_count"] == 7
+
 
 class TestFindSentencesWithBothCharacters:
     def test_unicode_names_match(self):
@@ -188,10 +192,6 @@ class TestFindSentencesWithBothCharacters:
             assert len(r["sentences"]) == 1
             assert r["sentences"][0] == content.strip()
 
-    # TODO: change regex to implement word boundary and enable this test
-    @pytest.mark.xfail(
-        reason="substring match: 'Ron' found in 'Kronos', word boundary not implemented"
-    )
     def test_substring_name_false_positive(self):
         """Test that function does not match character names as substrings of other words."""
 

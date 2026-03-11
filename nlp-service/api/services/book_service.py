@@ -41,9 +41,7 @@ def analyse_text(text: str) -> dict:
     }
 
 
-def find_sentences_with_both_characters(
-    content: str, characters: list[str], include_empty: bool = False
-) -> list[dict]:
+def find_sentences_with_both_characters(content: str, characters: list[str], include_empty: bool = False) -> list[dict]:
     """Return sentences containing each character pair from the entire book."""
 
     # Split text into sentences.
@@ -51,8 +49,8 @@ def find_sentences_with_both_characters(
     result: list[dict] = []
 
     for person_a, person_b in combinations(characters, 2):
-        pattern_a = re.compile(re.escape(person_a), re.IGNORECASE)
-        pattern_b = re.compile(re.escape(person_b), re.IGNORECASE)
+        pattern_a = re.compile(r"\b" + re.escape(person_a) + r"\b", re.IGNORECASE)
+        pattern_b = re.compile(r"\b" + re.escape(person_b) + r"\b", re.IGNORECASE)
         matching = [s for s in sentences if pattern_a.search(s) and pattern_b.search(s)]
 
         if include_empty or matching:
