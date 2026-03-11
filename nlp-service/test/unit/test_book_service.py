@@ -198,4 +198,4 @@ class TestFindSentencesWithBothCharacters:
         content = "Kronos defeated Hermione in battle."
         result = find_sentences_with_both_characters(content, ["Ron", "Hermione"])
 
-        assert result == []  # should be empty, but currently is not
+        assert result == []
