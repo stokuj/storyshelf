@@ -7,17 +7,16 @@ Currently using FastAPI with Docker.
 ---
 ## Endpoints
 
-The API currently exposes 9 endpoints.
+The API currently exposes 8 endpoints.
 
 - `GET /` - Basic hello route.
 - `GET /health/` - Service health check.
-- `POST /analyse/` - Returns text stats (`char_count`, `word_count`, `token_count`) for provided `content`.
+- `GET /health/celery/` - Celery workers status and active task count.
+- `POST /analyse/` - Returns text stats (`char_count`, `char_count_clean`, `word_count`, `token_count`) for provided `content`.
 - `POST /find-pairs/` - Finds character pairs and matching sentences using direct `content` and `names`.
 - `POST /relations/` - Extracts relations for exactly two names (`name_1`, `name_2`) from provided `sentences`.
 - `POST /ner/` - Queues async NER extraction in Celery, returns `task_id` (`202 Accepted`).
 - `GET /ner/{task_id}` - Returns NER task state and result/error when ready.
-- `GET /celery_test` - Queues test add task (`a + b`), returns `task_id`.
-- `GET /celery_test/{task_id}` - Returns test task state and result/error when ready.
 
 
 ## Data flow plan
@@ -107,6 +106,20 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 
 ## Changelog
 
+### [0.8.0] - 2026-03-11
+
+- Separated Celery health check into dedicated `GET /health/celery/` endpoint.
+- Added rate limiting with `slowapi` for `/relations/` (10/min) and `/ner/` (5/min) with integration tests.
+- Moved Celery NER task from router to dedicated `api/tasks/ner_task.py` module; registered via `include` in `celery_app.py`.
+- Replaced approximate token counting (`len // 4`) with real tokenizer using `tiktoken` (`cl100k_base`) with lazy-loaded cached encoder and fallback.
+- Added `char_count_clean` field to `/analyse/` response (letters + digits only, no spaces or punctuation).
+- Fixed character name substring matching in `find_sentences_with_both_characters` by adding regex word boundaries (`\b`).
+- Grouped all tests into classes with consistent naming convention across unit and integration test files.
+- Added CI workflow (`tests.yml`) and SSH deploy job.
+- Added production deployment files (`docker-compose.prod.yml`, VM setup and deploy scripts).
+- Added shared HuggingFace cache volume and worker concurrency configuration.
+- Removed stale `celery_test` endpoints.
+
 ### [0.7.0] - 2026-03-10
 
 - Centralised settings: moved hardcoded values to `settings.py`, moved dev deps to `[dependency-groups] dev`.
@@ -159,7 +172,7 @@ Integrated LLM relation extraction into the main pipeline:
 - `llm.py` refactored from a standalone script into `LLMService` class with `extract_relations(pair, sentences)` method
 - `find_pair_sentences` now searches the entire book instead of a single chapter, and returns `list[dict]` instead of a JSON string
 - `main.py` now iterates over all character pairs and calls `LLMService` for each one
-- First run with 3 characters (Gandalf, Bilbo, Thorin) — 3 pairs extracted, 10 relations total (see [TESTS.MD](docs/TESTS.MD))
+- First run with 3 characters (Gandalf, Bilbo, Thorin) — 3 pairs extracted, 10 relations total (see [TESTS.MD](docs/TESTING_NER_MODELS.MD))
 
 ---
 

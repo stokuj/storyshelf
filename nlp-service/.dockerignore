@@ -9,4 +9,4 @@ __pycache__
 *.pyd
 .env
 old
-docs/TESTS.MD
+docs/TESTING_NER_MODELS.MD
