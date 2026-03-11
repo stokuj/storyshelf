@@ -1,15 +1,13 @@
-{$DOMAIN:localhost} {
+:80 {
     reverse_proxy storyweave-api:8000
-
     encode gzip
-
     header {
         X-Content-Type-Options nosniff
         X-Frame-Options DENY
         Referrer-Policy no-referrer
     }
-
     log {
         output stdout
     }
 }
+#test
