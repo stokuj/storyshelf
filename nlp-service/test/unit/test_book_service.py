@@ -1,5 +1,5 @@
 import pytest
-from api.services.book_service import find_sentences_with_both_characters, analyse_text
+from api.services.book_service import analyse_text, find_sentences_with_both_characters
 
 
 class TestAnalyseText:
@@ -25,7 +25,7 @@ class TestAnalyseText:
         result = analyse_text("Hello   world!  This is a test.")
         assert result["char_count"] == 31  # counts all characters including spaces
         assert result["word_count"] == 6  # split() without args ignores multiple spaces
-        assert result["token_count"] == 7  # 31 // 4
+        assert result["token_count"] == 10
 
     def test_analyse_text_only_spaces(self):
         """Test that function counts characters and tokens but zero words when string has only spaces."""
@@ -33,7 +33,7 @@ class TestAnalyseText:
         result = analyse_text("     ")
         assert result["char_count"] == 5
         assert result["word_count"] == 0
-        assert result["token_count"] == 1  # 5 // 4
+        assert result["token_count"] == 1
 
     def test_analyse_text_unicode_chars(self):
         """Test that function counts Unicode characters correctly."""
@@ -41,7 +41,7 @@ class TestAnalyseText:
         result = analyse_text("Café Münster")
         assert result["char_count"] == 12  # liczy wszystkie znaki, w tym unicode
         assert result["word_count"] == 2  # split() dzieli na "Café" i "Münster"
-        assert result["token_count"] == 3  # 12 // 4
+        assert result["token_count"] == 6
 
 
 class TestFindSentencesWithBothCharacters:
@@ -155,7 +155,9 @@ class TestFindSentencesWithBothCharacters:
             assert r["sentences"][0] == content.strip()
 
     # TODO: change regex to implement word boundary and enable this test
-    @pytest.mark.xfail(reason="substring match: 'Ron' found in 'Kronos', word boundary not implemented")
+    @pytest.mark.xfail(
+        reason="substring match: 'Ron' found in 'Kronos', word boundary not implemented"
+    )
     def test_substring_name_false_positive(self):
         """Test that function does not match character names as substrings of other words."""
 

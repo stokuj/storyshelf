@@ -3,8 +3,22 @@ from __future__ import annotations
 from itertools import combinations
 import re
 
+try:
+    import tiktoken
+except ImportError:  # pragma: no cover - fallback when optional dep is missing
+    tiktoken = None
+
 
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+TOKENIZER_NAME = "cl100k_base"
+_TOKENIZER = None
+
+
+def _get_tokenizer():
+    global _TOKENIZER
+    if _TOKENIZER is None and tiktoken is not None:
+        _TOKENIZER = tiktoken.get_encoding(TOKENIZER_NAME)
+    return _TOKENIZER
 
 
 def analyse_text(text: str) -> dict:
@@ -13,8 +27,11 @@ def analyse_text(text: str) -> dict:
     char_count = len(text)
     word_count = len(text.split())
     # TODO: count chars with and without spaces, punctuation, etc. for more detailed analysis
-    # TODO: change to real tokenizer
-    token_count = len(text) // 4
+    tokenizer = _get_tokenizer()
+    if tokenizer is None:
+        token_count = len(text) // 4
+    else:
+        token_count = len(tokenizer.encode(text))
 
     return {
         "char_count": char_count,
