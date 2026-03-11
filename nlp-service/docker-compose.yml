@@ -45,7 +45,7 @@ services:
     pull_policy: build
     image: storyweave-api:local
     container_name: storyweave-celery-worker
-    command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=warning"]
+    command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=info"]
     env_file:
       - .env
     environment:

@@ -38,7 +38,7 @@ services:
   celery-worker:
     image: ghcr.io/stokuj/storyweave:main
     container_name: storyweave-celery-worker
-    command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=warning", "--concurrency=4"]
+    command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=info", "--concurrency=32"]
     env_file:
       - .env
     environment:

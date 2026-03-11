@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 import logging
+import os
 import time
 from typing import Any, Callable, cast
 
@@ -21,7 +22,7 @@ def load_ner_model(model: str) -> bool:
         return True
 
     try:
-        logger.info("Loading transformers NER model: %s", model)
+        logger.info("Loading transformers NER model: %s (pid=%s)", model, os.getpid())
         _NER_PIPELINES[model] = pipeline(
             task="token-classification",
             model=model,
