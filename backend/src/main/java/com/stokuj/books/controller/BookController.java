@@ -1,5 +1,6 @@
 package com.stokuj.books.controller;
 
+import com.stokuj.books.dto.BookPatchRequest;
 import com.stokuj.books.dto.BookRequest;
 import com.stokuj.books.model.Book;
 import com.stokuj.books.service.BookService;
@@ -18,14 +19,10 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    
     @GetMapping
     public List<Book> getAll() {
         return bookService.getAll();
-    }
-
-    @GetMapping("/{id}")
-    public Book getById(@PathVariable Long id) {
-        return bookService.getById(id);
     }
 
     @PostMapping
@@ -33,9 +30,19 @@ public class BookController {
         return bookService.create(request);
     }
 
+    @GetMapping("/{id}")
+    public Book getById(@PathVariable Long id) {
+        return bookService.getById(id);
+    }
+
     @PutMapping("/{id}")
     public Book update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         return bookService.update(id, request);
+    }
+
+    @PatchMapping("/{id}")
+    public Book patch(@PathVariable Long id, @Valid @RequestBody BookPatchRequest request) {
+        return bookService.patch(id, request);
     }
 
     @DeleteMapping("/{id}")

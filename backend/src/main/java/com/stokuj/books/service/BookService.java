@@ -1,5 +1,6 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.dto.BookPatchRequest;
 import com.stokuj.books.dto.BookRequest;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.model.Book;
@@ -35,6 +36,40 @@ public class BookService {
     public Book update(Long id, BookRequest request) {
         Book existing = getById(id);
         mapRequestToBook(request, existing);
+        return bookRepository.save(existing);
+    }
+
+    public Book patch(Long id, BookPatchRequest request) {
+        Book existing = getById(id);
+
+        if (request.getTitle() != null) {
+            existing.setTitle(request.getTitle());
+        }
+        if (request.getAuthor() != null) {
+            existing.setAuthor(request.getAuthor());
+        }
+        if (request.getYear() != null) {
+            existing.setYear(request.getYear());
+        }
+        if (request.getIsbn() != null) {
+            existing.setIsbn(request.getIsbn());
+        }
+        if (request.getDescription() != null) {
+            existing.setDescription(request.getDescription());
+        }
+        if (request.getContent() != null) {
+            existing.setContent(request.getContent());
+        }
+        if (request.getPageCount() != null) {
+            existing.setPageCount(request.getPageCount());
+        }
+        if (request.getGenres() != null) {
+            existing.setGenres(request.getGenres());
+        }
+        if (request.getTags() != null) {
+            existing.setTags(request.getTags());
+        }
+
         return bookRepository.save(existing);
     }
 

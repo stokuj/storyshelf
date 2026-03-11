@@ -1,0 +1,13 @@
+:80 {
+    reverse_proxy springshelf:8080
+    encode gzip
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+    }
+    log {
+        output stdout
+    }
+}
+#test
