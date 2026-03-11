@@ -1,24 +1,30 @@
 from fastapi import APIRouter, HTTPException, Request
 from api.config.celery_app import celery
-from api.models.model import TextContentRequest
+from api.models.model import (
+    TaskAcceptedResponse,
+    TaskStatusResponse,
+    TextContentRequest,
+)
 from api.middleware.rate_limiter import limiter
 from api.tasks.ner_task import extract_entities_task
 
 router = APIRouter(prefix="/ner", tags=["ner"])
 
 
-@router.post("/", status_code=202)
-@limiter.limit("5/minute")
-def ner_by_content(request: Request, payload: TextContentRequest):
+@router.post("/", status_code=202, response_model=TaskAcceptedResponse)
+@limiter.limit("30/minute")
+def ner_by_content(
+    request: Request, payload: TextContentRequest
+) -> TaskAcceptedResponse:
     if not payload.content.strip():
         raise HTTPException(status_code=422, detail="Content cannot be empty")
 
     task = extract_entities_task.delay(payload.content)
-    return {"task_id": task.id}
+    return TaskAcceptedResponse(task_id=task.id)
 
 
-@router.get("/{task_id}")
-def extract_entities_status(task_id: str):
+@router.get("/{task_id}", response_model=TaskStatusResponse)
+def extract_entities_status(task_id: str) -> TaskStatusResponse:
     task = celery.AsyncResult(task_id)
 
     response = {
@@ -32,4 +38,4 @@ def extract_entities_status(task_id: str):
     elif task.failed():
         response["error"] = str(task.result)
 
-    return response
+    return TaskStatusResponse(**response)

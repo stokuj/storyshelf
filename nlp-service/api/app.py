@@ -105,18 +105,34 @@ def health_celery():
     try:
         inspector = celery.control.inspect()
         active = inspector.active() or {}
+        stats = inspector.stats() or {}
     except Exception as exc:
         return JSONResponse(
             status_code=503,
             content={"status": "error", "error": str(exc)},
         )
 
-    workers = {
-        name: {"status": "online", "active_tasks": len(tasks)}
-        for name, tasks in active.items()
-    }
+    workers = {}
+    total_processes = 0
+    for name, tasks in active.items():
+        worker_stats = stats.get(name, {})
+        pool_stats = worker_stats.get("pool", {})
+        max_concurrency = (
+            pool_stats.get("max-concurrency")
+            or pool_stats.get("max_concurrency")
+            or worker_stats.get("max-concurrency")
+        )
+        if isinstance(max_concurrency, int):
+            total_processes += max_concurrency
+
+        workers[name] = {
+            "status": "online",
+            "active_tasks": len(tasks),
+            "concurrency": max_concurrency,
+        }
     return {
         "status": "ok",
         "total_workers": len(workers),
+        "total_processes": total_processes,
         "workers": workers,
     }

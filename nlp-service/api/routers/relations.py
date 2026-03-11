@@ -1,7 +1,7 @@
 import json
 import logging
 from fastapi import APIRouter, HTTPException, Request
-from api.models.model import RelationsDirectRequest
+from api.models.model import RelationsDirectRequest, RelationsResponse
 from api.middleware.rate_limiter import limiter
 from api.services.llm_service import llm_service
 
@@ -10,9 +10,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/relations", tags=["relations"])
 
 
-@router.post("/")
-@limiter.limit("10/minute")
-async def relations(request: Request, payload: RelationsDirectRequest):
+@router.post("/", response_model=RelationsResponse)
+@limiter.limit("30/minute")
+async def relations(
+    request: Request, payload: RelationsDirectRequest
+) -> RelationsResponse:
     if not payload.name_1.strip() or not payload.name_2.strip():
         raise HTTPException(status_code=422, detail="Character names cannot be empty")
 
@@ -29,8 +31,8 @@ async def relations(request: Request, payload: RelationsDirectRequest):
         relations_data = {"raw": relations_raw}
 
     logger.info("Relations for %s: %s", pair, relations_data)
-    return {
-        "pair": pair,
-        "sentences_count": len(payload.sentences),
-        "relations": relations_data,
-    }
+    return RelationsResponse(
+        pair=pair,
+        sentences_count=len(payload.sentences),
+        relations=relations_data,
+    )

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Any, Optional
 
 from pydantic import BaseModel, Field, StringConstraints
 
@@ -27,3 +27,41 @@ class NamesRequest(BaseModel):
 
 class NamesWithContentRequest(NamesRequest):
     content: str = Field(max_length=MAX_CONTENT_LENGTH)
+
+
+class AnalyseStats(BaseModel):
+    char_count: int
+    char_count_clean: int
+    word_count: int
+    token_count: int
+
+
+class AnalyseResponse(BaseModel):
+    analysis: AnalyseStats
+
+
+class TaskAcceptedResponse(BaseModel):
+    task_id: str
+
+
+class TaskStatusResponse(BaseModel):
+    task_id: str
+    state: str
+    ready: bool
+    result: Optional[Any] = None
+    error: Optional[str] = None
+
+
+class RelationsResponse(BaseModel):
+    pair: list[Name]
+    sentences_count: int
+    relations: Any
+
+
+class PairSentences(BaseModel):
+    pair: list[Name]
+    sentences: list[Sentence]
+
+
+class FindPairsResponse(BaseModel):
+    pairs: list[PairSentences]
