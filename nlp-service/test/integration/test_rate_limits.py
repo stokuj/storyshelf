@@ -36,7 +36,7 @@ class TestRateLimitsRelations:
                 new_callable=AsyncMock,
             ) as mock:
                 mock.return_value = '{"relations": []}'
-                for _ in range(10):
+                for _ in range(30):
                     response = client.post("/relations/", json=payload)
                     assert response.status_code == 200
 
@@ -51,7 +51,7 @@ class TestRateLimitsNer:
         with rate_limit_key("rate-limit-ner"):
             with patch("api.routers.ner.extract_entities_task.delay") as mock:
                 mock.return_value = SimpleNamespace(id="test-task-id")
-                for _ in range(5):
+                for _ in range(30):
                     response = client.post("/ner/", json=payload)
                     assert response.status_code == 202
 
