@@ -1,3 +1,6 @@
+# Docker Compose configuration for development environment
+# Uses only 2 images. VM has separate docker-compose for production with more services.
+
 services:
   springshelf:
     build:
@@ -6,8 +9,8 @@ services:
     pull_policy: build
     image: springshelf:local
     container_name: springshelf
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     env_file:
       - .env
     environment:
@@ -18,24 +21,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: springshelf-caddy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
-      - caddy-data:/data
-      - caddy-config:/config
-    environment:
-      DOMAIN: ${DOMAIN:-localhost}
-    restart: unless-stopped
-    depends_on:
-      - springshelf
-
 
   db:
     image: postgres:16
@@ -56,5 +41,3 @@ services:
 
 volumes:
   db-data:
-  caddy-data:
-  caddy-config:
