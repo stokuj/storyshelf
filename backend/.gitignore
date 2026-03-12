@@ -41,3 +41,4 @@ frontend/assets/css/styles.css
 src/main/resources/application-local.properties
 .classpath
 .project
+.factorypath
