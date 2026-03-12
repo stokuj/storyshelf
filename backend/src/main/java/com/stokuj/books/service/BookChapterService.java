@@ -8,11 +8,9 @@ import com.stokuj.books.repository.BookRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class BookChapterService {
@@ -20,9 +18,15 @@ public class BookChapterService {
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
 
-    private static final Pattern CHAPTER_PATTERN = Pattern.compile(
-            "^(chapter|rozdział|part|księga)\\s+[\\dIVXivx]+",
-            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
+    private static final int MIN_CHAPTER_SIZE = 1200;
+
+    // regex dopasowujący słowne liczby ONE, TWENTY-ONE itd.
+    private static final Pattern WORD_NUMBER_PATTERN = Pattern.compile(
+            "(?i)^(?:one|two|three|four|five|six|seven|eight|nine|ten|"
+                    + "eleven|twelve|thirteen|fourteen|fifteen|"
+                    + "sixteen|seventeen|eighteen|nineteen|"
+                    + "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety"
+                    + "(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?)$"
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
@@ -41,11 +45,21 @@ public class BookChapterService {
         List<String> parts = splitIntoChapters(fullText);
 
         List<BookChapter> chapters = new ArrayList<>();
+
         for (int i = 0; i < parts.size(); i++) {
+            String content = parts.get(i).strip();
+
             BookChapter chapter = new BookChapter();
             chapter.setBook(book);
             chapter.setChapterNumber(i + 1);
-            chapter.setContent(parts.get(i).strip());
+            chapter.setContent(content);
+
+            String firstLine = content.lines().findFirst().orElse("");
+            if (firstLine.length() > 150) {
+                firstLine = firstLine.substring(0, 150);
+            }
+            chapter.setTitle(firstLine);
+
             chapters.add(chapter);
         }
 
@@ -63,26 +77,69 @@ public class BookChapterService {
     }
 
     private List<String> splitIntoChapters(String text) {
-        String[] parts = CHAPTER_PATTERN.split(text);
+        String[] lines = text.split("\n");
 
-        if (parts.length <= 1) {
-            return splitByWordCount(text, 10000);
+        List<Integer> chapterLines = new ArrayList<>();
+        for (int i = 0; i < lines.length; i++) {
+            if (isChapterLine(lines[i])) {
+                chapterLines.add(i);
+            }
         }
 
-        return Arrays.stream(parts)
-                .filter(s -> !s.isBlank())
-                .toList();
+        if (chapterLines.isEmpty()) {
+            return List.of(text.strip());
+        }
+
+        List<String> chapters = new ArrayList<>();
+
+        // preambuła przed pierwszym rozdziałem
+        if (chapterLines.get(0) > 0) {
+            String preamble = String.join("\n", Arrays.copyOfRange(lines, 0, chapterLines.get(0))).strip();
+            if (!preamble.isBlank()) {
+                chapters.add(preamble);
+            }
+        }
+
+        for (int i = 0; i < chapterLines.size(); i++) {
+            int start = chapterLines.get(i);
+            int end = (i + 1 < chapterLines.size()) ? chapterLines.get(i + 1) : lines.length;
+
+            String part = String.join("\n", Arrays.copyOfRange(lines, start, end)).strip();
+
+            if (part.isBlank()) continue;
+
+            if (part.length() < MIN_CHAPTER_SIZE && !chapters.isEmpty()) {
+                // łączymy z poprzednim rozdziałem
+                String merged = chapters.remove(chapters.size() - 1) + "\n\n" + part;
+                chapters.add(merged);
+            } else {
+                chapters.add(part);
+            }
+        }
+
+        return chapters;
     }
 
-    private List<String> splitByWordCount(String text, int wordsPerChunk) {
-        String[] words = text.split("\\s+");
-        List<String> chunks = new ArrayList<>();
+    private boolean isChapterLine(String line) {
+        line = line.strip();
+        if (line.isEmpty()) return false;
 
-        for (int i = 0; i < words.length; i += wordsPerChunk) {
-            int end = Math.min(i + wordsPerChunk, words.length);
-            chunks.add(String.join(" ", Arrays.copyOfRange(words, i, end)));
-        }
+        int score = 0;
+        String lower = line.toLowerCase();
 
-        return chunks;
+        // keywords
+        if (lower.startsWith("chapter")) score += 3;
+        if (lower.startsWith("prologue") || lower.startsWith("epilogue")) score += 3;
+
+        // linia CAPS (ONE, TWENTY-ONE)
+        if (line.equals(line.toUpperCase()) && line.length() <= 25) score += 2;
+
+        // linia krótka
+        if (line.length() <= 60) score += 1;
+
+        // słowna liczba
+        if (WORD_NUMBER_PATTERN.matcher(line).matches()) score += 2;
+
+        return score >= 3;
     }
 }
