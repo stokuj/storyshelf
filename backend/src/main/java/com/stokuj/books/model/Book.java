@@ -1,5 +1,6 @@
 package com.stokuj.books.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -37,6 +38,7 @@ public class Book {
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("chapterNumber ASC")
+    @JsonIgnore
     private List<BookChapter> chapters = new ArrayList<>();
 
     // === OCENY ===
