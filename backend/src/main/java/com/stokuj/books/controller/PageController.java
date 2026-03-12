@@ -6,7 +6,10 @@ import com.stokuj.books.model.ReadingStatus;
 import com.stokuj.books.model.User;
 import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.service.BookService;
+import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.UserBookService;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,21 +19,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class PageController {
 
     private final BookService bookService;
+    private final BookChapterService bookChapterService;
     private final UserBookService userBookService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public PageController(BookService bookService,
+                          BookChapterService bookChapterService,
                           UserBookService userBookService,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder) {
         this.bookService = bookService;
+        this.bookChapterService = bookChapterService;
         this.userBookService = userBookService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -173,5 +180,40 @@ public class PageController {
                                   @RequestParam(required = false, defaultValue = "/bookshelf") String returnTo) {
         userBookService.removeFromShelf(authentication.getName(), bookId);
         return "redirect:" + returnTo;
+    }
+
+    // -------------------------------------------------------------------------
+    // Upload treści książki (HTML formularz)
+    // -------------------------------------------------------------------------
+
+    @PostMapping("/book/{id}/content")
+    public String uploadBookContent(@PathVariable Long id,
+                                    @RequestParam("file") MultipartFile file,
+                                    RedirectAttributes redirectAttributes) {
+        if (file == null || file.isEmpty()) {
+            redirectAttributes.addFlashAttribute("contentMsg", "Wybierz plik .txt przed wysłaniem.");
+            redirectAttributes.addFlashAttribute("contentMsgType", "error");
+            return "redirect:/book/" + id;
+        }
+
+        String content;
+        try {
+            content = new String(file.getBytes(), StandardCharsets.UTF_8).strip();
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("contentMsg", "Nie udało się odczytać pliku.");
+            redirectAttributes.addFlashAttribute("contentMsgType", "error");
+            return "redirect:/book/" + id;
+        }
+
+        if (content.isBlank()) {
+            redirectAttributes.addFlashAttribute("contentMsg", "Plik jest pusty.");
+            redirectAttributes.addFlashAttribute("contentMsgType", "error");
+            return "redirect:/book/" + id;
+        }
+
+        int chaptersCount = bookChapterService.loadContent(id, content);
+        redirectAttributes.addFlashAttribute("contentMsg", "Treść wgrana. Rozdziałów: " + chaptersCount + ".");
+        redirectAttributes.addFlashAttribute("contentMsgType", "success");
+        return "redirect:/book/" + id;
     }
 }
