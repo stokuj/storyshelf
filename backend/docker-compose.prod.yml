@@ -1,4 +1,20 @@
 services:
+  springshelf:
+    image: ghcr.io/stokuj/springshelf:main
+    container_name: springshelf
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-booksdb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-secret-key}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+
   storyweave-api:
     image: ghcr.io/stokuj/storyweave:main
     container_name: storyweave-api
@@ -38,6 +54,22 @@ services:
       redis:
         condition: service_started
 
+  db:
+    image: postgres:16
+    container_name: books-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-booksdb}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret-key}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-booksdb}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     container_name: storyweave-redis
@@ -46,5 +78,6 @@ services:
     restart: unless-stopped
 
 volumes:
+  db-data:
   redis-data:
   hf-cache:
