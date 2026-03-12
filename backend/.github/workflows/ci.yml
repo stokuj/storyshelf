@@ -28,7 +28,7 @@ jobs:
           cache: maven
 
       - name: Run tests
-        run: ./mvnw test
+        run: mvn -B test
 
   build-and-push:
     needs: test
