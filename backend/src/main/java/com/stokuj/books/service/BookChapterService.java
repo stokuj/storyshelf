@@ -18,15 +18,18 @@ public class BookChapterService {
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
 
-    private static final int MIN_CHAPTER_SIZE = 1200;
+    private static final int MIN_CHAPTER_SIZE = 1200;    // minimalny rozmiar fragmentu
+    private static final int MAX_CHAPTER_SIZE = 10000;   // maksymalny rozmiar fragmentu
 
-    // regex dopasowujący słowne liczby ONE, TWENTY-ONE itd.
-    private static final Pattern WORD_NUMBER_PATTERN = Pattern.compile(
-            "(?i)^(?:one|two|three|four|five|six|seven|eight|nine|ten|"
-                    + "eleven|twelve|thirteen|fourteen|fifteen|"
-                    + "sixteen|seventeen|eighteen|nineteen|"
-                    + "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety"
-                    + "(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?)$"
+    // dopasowuje nagłówki: Chapter, Book, Prologue, Epilogue + liczby (arabic, roman, słowne)
+    private static final Pattern CHAPTER_PATTERN = Pattern.compile(
+            "(?i)^(?:chapter|book|prologue|epilogue)\\s+(?:\\d+|[ivxlcdm]+|" +
+                    "one|two|three|four|five|six|seven|eight|nine|ten|" +
+                    "eleven|twelve|thirteen|fourteen|fifteen|" +
+                    "sixteen|seventeen|eighteen|nineteen|" +
+                    "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety" +
+                    "(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?)" +
+                    ".*$"
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
@@ -37,30 +40,39 @@ public class BookChapterService {
 
     @Transactional
     public int loadContent(Long bookId, String fullText) {
+
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
 
         chapterRepository.deleteAllByBookId(bookId);
 
         List<String> parts = splitIntoChapters(fullText);
-
         List<BookChapter> chapters = new ArrayList<>();
+        int chapterNumber = 1;
 
-        for (int i = 0; i < parts.size(); i++) {
-            String content = parts.get(i).strip();
+        for (String part : parts) {
+            List<String> subParts = splitLargeChapter(part);
+            for (int i = 0; i < subParts.size(); i++) {
+                String subPart = subParts.get(i).strip();
 
-            BookChapter chapter = new BookChapter();
-            chapter.setBook(book);
-            chapter.setChapterNumber(i + 1);
-            chapter.setContent(content);
+                if (subPart.isBlank()) continue;
 
-            String firstLine = content.lines().findFirst().orElse("");
-            if (firstLine.length() > 150) {
-                firstLine = firstLine.substring(0, 150);
+                BookChapter chapter = new BookChapter();
+                chapter.setBook(book);
+                chapter.setChapterNumber(chapterNumber++);
+                chapter.setContent(subPart);
+
+                // tytuł = pierwsza linia oryginalnego rozdziału
+                String firstLine = part.lines().findFirst().orElse("");
+                if (firstLine.length() > 150) firstLine = firstLine.substring(0, 150);
+
+                if (subParts.size() > 1) {
+                    firstLine += " (Part " + (i + 1) + ")";
+                }
+
+                chapter.setTitle(firstLine);
+                chapters.add(chapter);
             }
-            chapter.setTitle(firstLine);
-
-            chapters.add(chapter);
         }
 
         chapterRepository.saveAll(chapters);
@@ -76,10 +88,11 @@ public class BookChapterService {
         chapterRepository.deleteAllByBookId(bookId);
     }
 
+    // dzieli tekst na fragmenty według nagłówków
     private List<String> splitIntoChapters(String text) {
         String[] lines = text.split("\n");
-
         List<Integer> chapterLines = new ArrayList<>();
+
         for (int i = 0; i < lines.length; i++) {
             if (isChapterLine(lines[i])) {
                 chapterLines.add(i);
@@ -92,7 +105,7 @@ public class BookChapterService {
 
         List<String> chapters = new ArrayList<>();
 
-        // preambuła przed pierwszym rozdziałem
+        // preambuła przed pierwszym nagłówkiem
         if (chapterLines.get(0) > 0) {
             String preamble = String.join("\n", Arrays.copyOfRange(lines, 0, chapterLines.get(0))).strip();
             if (!preamble.isBlank()) {
@@ -105,11 +118,10 @@ public class BookChapterService {
             int end = (i + 1 < chapterLines.size()) ? chapterLines.get(i + 1) : lines.length;
 
             String part = String.join("\n", Arrays.copyOfRange(lines, start, end)).strip();
-
             if (part.isBlank()) continue;
 
+            // łącz krótkie fragmenty z poprzednim
             if (part.length() < MIN_CHAPTER_SIZE && !chapters.isEmpty()) {
-                // łączymy z poprzednim rozdziałem
                 String merged = chapters.remove(chapters.size() - 1) + "\n\n" + part;
                 chapters.add(merged);
             } else {
@@ -120,26 +132,35 @@ public class BookChapterService {
         return chapters;
     }
 
+    // sprawdza, czy linia jest nagłówkiem rozdziału
     private boolean isChapterLine(String line) {
         line = line.strip();
         if (line.isEmpty()) return false;
+        Matcher matcher = CHAPTER_PATTERN.matcher(line);
+        return matcher.matches();
+    }
 
-        int score = 0;
-        String lower = line.toLowerCase();
+    // dzieli duży rozdział na fragmenty po paragrafach
+    private List<String> splitLargeChapter(String chapterContent) {
+        List<String> parts = new ArrayList<>();
+        if (chapterContent.length() <= MAX_CHAPTER_SIZE) {
+            parts.add(chapterContent);
+            return parts;
+        }
 
-        // keywords
-        if (lower.startsWith("chapter")) score += 3;
-        if (lower.startsWith("prologue") || lower.startsWith("epilogue")) score += 3;
+        String[] paragraphs = chapterContent.split("\\n\\n");
+        StringBuilder current = new StringBuilder();
 
-        // linia CAPS (ONE, TWENTY-ONE)
-        if (line.equals(line.toUpperCase()) && line.length() <= 25) score += 2;
+        for (String para : paragraphs) {
+            if (current.length() + para.length() + 2 > MAX_CHAPTER_SIZE) {
+                if (current.length() > 0) parts.add(current.toString().strip());
+                current = new StringBuilder();
+            }
+            if (current.length() > 0) current.append("\n\n");
+            current.append(para);
+        }
 
-        // linia krótka
-        if (line.length() <= 60) score += 1;
-
-        // słowna liczba
-        if (WORD_NUMBER_PATTERN.matcher(line).matches()) score += 2;
-
-        return score >= 3;
+        if (current.length() > 0) parts.add(current.toString().strip());
+        return parts;
     }
 }
