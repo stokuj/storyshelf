@@ -1,5 +1,12 @@
 :80 {
-    reverse_proxy springshelf:8080
+    handle_path /storyweave/* {
+        reverse_proxy storyweave-api:8000
+    }
+
+    handle {
+        reverse_proxy springshelf:8080
+    }
+
     encode gzip
     header {
         X-Content-Type-Options nosniff
@@ -10,4 +17,3 @@
         output stdout
     }
 }
-#test
