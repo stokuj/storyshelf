@@ -101,6 +101,25 @@
 
                     </div>
 
+                    <!-- Upload treści -->
+                    <th:block sec:authorize="isAuthenticated()">
+                        <div class="card bg-base-100 shadow-sm p-4 mb-6 max-w-sm">
+                            <h2 class="text-sm font-semibold mb-3">Wgraj treść książki</h2>
+                            <div th:if="${contentMsg}" class="alert text-sm mb-3"
+                                 th:classappend="${contentMsgType == 'success'} ? ' alert-success' : ' alert-error'"
+                                 th:text="${contentMsg}"></div>
+                            <form th:action="@{/book/{id}/content(id=${book.id})}" method="post"
+                                  enctype="multipart/form-data" class="space-y-3">
+                                <input name="file" type="file" accept=".txt,text/plain"
+                                       class="file-input file-input-bordered w-full"/>
+                                <button type="submit" class="btn btn-sm btn-primary w-full">Wyślij plik</button>
+                                <p class="text-xs text-base-content/60">
+                                    Obsługiwany format: .txt (text/plain)
+                                </p>
+                            </form>
+                        </div>
+                    </th:block>
+
                     <!-- Opis -->
                     <div th:if="${book.description}">
                         <h2 class="text-lg font-semibold mb-2">Opis</h2>

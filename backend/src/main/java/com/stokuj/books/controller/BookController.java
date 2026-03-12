@@ -1,6 +1,5 @@
 package com.stokuj.books.controller;
 
-import com.stokuj.books.dto.BookContentRequest;
 import com.stokuj.books.dto.BookPatchRequest;
 import com.stokuj.books.dto.BookRequest;
 import com.stokuj.books.model.Book;
@@ -8,6 +7,7 @@ import com.stokuj.books.model.BookChapter;
 import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.BookService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,12 +59,12 @@ public class BookController {
     }
 
 
-    @PostMapping("/{id}/content")
+    @PostMapping(path = "/{id}/content", consumes = "text/plain")
     public ResponseEntity<Map<String, Object>> uploadContent(
             @PathVariable Long id,
-            @Valid @RequestBody BookContentRequest request) {
+            @NotBlank @RequestBody String content) {
 
-        int chaptersCount = bookChapterService.loadContent(id, request.getContent());
+        int chaptersCount = bookChapterService.loadContent(id, content);
         return ResponseEntity.ok(Map.of(
                 "book_id", id,
                 "chapters_loaded", chaptersCount

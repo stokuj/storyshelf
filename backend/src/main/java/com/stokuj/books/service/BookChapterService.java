@@ -8,11 +8,9 @@ import com.stokuj.books.repository.BookRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class BookChapterService {
@@ -20,9 +18,18 @@ public class BookChapterService {
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
 
+    private static final int MIN_CHAPTER_SIZE = 1200;    // minimalny rozmiar fragmentu
+    private static final int MAX_CHAPTER_SIZE = 10000;   // maksymalny rozmiar fragmentu
+
+    // dopasowuje nagłówki: Chapter, Book, Prologue, Epilogue + liczby (arabic, roman, słowne)
     private static final Pattern CHAPTER_PATTERN = Pattern.compile(
-            "^(chapter|rozdział|part|księga)\\s+[\\dIVXivx]+",
-            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
+            "(?i)^(?:chapter|book|prologue|epilogue)\\s+(?:\\d+|[ivxlcdm]+|" +
+                    "one|two|three|four|five|six|seven|eight|nine|ten|" +
+                    "eleven|twelve|thirteen|fourteen|fifteen|" +
+                    "sixteen|seventeen|eighteen|nineteen|" +
+                    "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety" +
+                    "(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?)" +
+                    ".*$"
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
@@ -33,20 +40,39 @@ public class BookChapterService {
 
     @Transactional
     public int loadContent(Long bookId, String fullText) {
+
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
 
         chapterRepository.deleteAllByBookId(bookId);
 
         List<String> parts = splitIntoChapters(fullText);
-
         List<BookChapter> chapters = new ArrayList<>();
-        for (int i = 0; i < parts.size(); i++) {
-            BookChapter chapter = new BookChapter();
-            chapter.setBook(book);
-            chapter.setChapterNumber(i + 1);
-            chapter.setContent(parts.get(i).strip());
-            chapters.add(chapter);
+        int chapterNumber = 1;
+
+        for (String part : parts) {
+            List<String> subParts = splitLargeChapter(part);
+            for (int i = 0; i < subParts.size(); i++) {
+                String subPart = subParts.get(i).strip();
+
+                if (subPart.isBlank()) continue;
+
+                BookChapter chapter = new BookChapter();
+                chapter.setBook(book);
+                chapter.setChapterNumber(chapterNumber++);
+                chapter.setContent(subPart);
+
+                // tytuł = pierwsza linia oryginalnego rozdziału
+                String firstLine = part.lines().findFirst().orElse("");
+                if (firstLine.length() > 150) firstLine = firstLine.substring(0, 150);
+
+                if (subParts.size() > 1) {
+                    firstLine += " (Part " + (i + 1) + ")";
+                }
+
+                chapter.setTitle(firstLine);
+                chapters.add(chapter);
+            }
         }
 
         chapterRepository.saveAll(chapters);
@@ -62,27 +88,79 @@ public class BookChapterService {
         chapterRepository.deleteAllByBookId(bookId);
     }
 
+    // dzieli tekst na fragmenty według nagłówków
     private List<String> splitIntoChapters(String text) {
-        String[] parts = CHAPTER_PATTERN.split(text);
+        String[] lines = text.split("\n");
+        List<Integer> chapterLines = new ArrayList<>();
 
-        if (parts.length <= 1) {
-            return splitByWordCount(text, 10000);
+        for (int i = 0; i < lines.length; i++) {
+            if (isChapterLine(lines[i])) {
+                chapterLines.add(i);
+            }
         }
 
-        return Arrays.stream(parts)
-                .filter(s -> !s.isBlank())
-                .toList();
+        if (chapterLines.isEmpty()) {
+            return List.of(text.strip());
+        }
+
+        List<String> chapters = new ArrayList<>();
+
+        // preambuła przed pierwszym nagłówkiem
+        if (chapterLines.get(0) > 0) {
+            String preamble = String.join("\n", Arrays.copyOfRange(lines, 0, chapterLines.get(0))).strip();
+            if (!preamble.isBlank()) {
+                chapters.add(preamble);
+            }
+        }
+
+        for (int i = 0; i < chapterLines.size(); i++) {
+            int start = chapterLines.get(i);
+            int end = (i + 1 < chapterLines.size()) ? chapterLines.get(i + 1) : lines.length;
+
+            String part = String.join("\n", Arrays.copyOfRange(lines, start, end)).strip();
+            if (part.isBlank()) continue;
+
+            // łącz krótkie fragmenty z poprzednim
+            if (part.length() < MIN_CHAPTER_SIZE && !chapters.isEmpty()) {
+                String merged = chapters.remove(chapters.size() - 1) + "\n\n" + part;
+                chapters.add(merged);
+            } else {
+                chapters.add(part);
+            }
+        }
+
+        return chapters;
     }
 
-    private List<String> splitByWordCount(String text, int wordsPerChunk) {
-        String[] words = text.split("\\s+");
-        List<String> chunks = new ArrayList<>();
+    // sprawdza, czy linia jest nagłówkiem rozdziału
+    private boolean isChapterLine(String line) {
+        line = line.strip();
+        if (line.isEmpty()) return false;
+        Matcher matcher = CHAPTER_PATTERN.matcher(line);
+        return matcher.matches();
+    }
 
-        for (int i = 0; i < words.length; i += wordsPerChunk) {
-            int end = Math.min(i + wordsPerChunk, words.length);
-            chunks.add(String.join(" ", Arrays.copyOfRange(words, i, end)));
+    // dzieli duży rozdział na fragmenty po paragrafach
+    private List<String> splitLargeChapter(String chapterContent) {
+        List<String> parts = new ArrayList<>();
+        if (chapterContent.length() <= MAX_CHAPTER_SIZE) {
+            parts.add(chapterContent);
+            return parts;
         }
 
-        return chunks;
+        String[] paragraphs = chapterContent.split("\\n\\n");
+        StringBuilder current = new StringBuilder();
+
+        for (String para : paragraphs) {
+            if (current.length() + para.length() + 2 > MAX_CHAPTER_SIZE) {
+                if (current.length() > 0) parts.add(current.toString().strip());
+                current = new StringBuilder();
+            }
+            if (current.length() > 0) current.append("\n\n");
+            current.append(para);
+        }
+
+        if (current.length() > 0) parts.add(current.toString().strip());
+        return parts;
     }
 }
