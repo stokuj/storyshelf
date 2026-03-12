@@ -1,123 +1,131 @@
 # springshelf
 
-A book tracking and recommendation app inspired by Goodreads. Built with Java Spring Boot, FastAPI (Python ML microservice), Docker, and GitHub Actions.
-Features will include user authentication via OAuth2, book ratings and reviews, and a recommendation engine. The project documents my learning journey with the Spring ecosystem and event-driven architecture.
+A book tracking and recommendation app inspired by Goodreads. Built with Java Spring Boot, FastAPI (Python ML microservice), Docker, and GitHub Actions. Features will include OAuth2 authentication, book ratings and reviews, and a recommendation engine. The project documents my learning journey with the Spring ecosystem and event-driven architecture.
 
-## Struktura projektu
+## Project structure
 
-- `src/main/java/` - backend Spring Boot (REST API + kontrolery stron)
-- `src/main/resources/templates/` - frontend serwowany przez Thymeleaf
-- `src/main/resources/application.properties` - konfiguracja aplikacji i OAuth2
+- `src/main/java/` - Spring Boot backend (REST API + page controllers)
+- `src/main/resources/templates/` - Thymeleaf-served frontend
+- `src/main/resources/application.properties` - app and OAuth2 configuration
 
 ## Changelog
 
-### [0.3.0] - 2026-03-05
+### [0.4.0] - 2026-03-12
 
-Migracja frontendu do Thymeleaf i uporządkowanie autoryzacji web/API.
+Deploy and CI. Move infrastructure config to Docker and Caddy.
 
 #### Added
 
-- Dodano widoki Thymeleaf: `home`, `book`, `bookshelf`, `login`, `register`, `settings`, `error` oraz layout bazowy.
-- Dodano `PageController` do obsługi stron, logowania/rejestracji i akcji półki przez formularze HTML.
-- Dodano `UserDetailsServiceImpl` pod logowanie sesyjne (form login).
+- CI for SpringShelf: tests, image build, and SSH deploy.
+- H2-based test profile so tests do not need Postgres.
 
 #### Changed
 
-- Usunięto stary frontend SPA (`frontend/`) oparty o statyczne HTML + JS i token w `localStorage`.
-- Rozdzielono security na dwa łańcuchy:
-  - `/api/**` — JWT + stateless,
-  - web (`/**`) — sesja + form login + OAuth2.
-- OAuth2 success flow loguje użytkownika do sesji i przekierowuje na `/`.
-- Zmieniono `GlobalExceptionHandler`, aby dla `/api/**` zwracał JSON, a dla stron webowych renderował `error.html`.
-
-#### Fixed
-
-- Poprawiono renderowanie elementów zależnych od logowania w szablonach (`sec:authorize`).
-- Naprawiono przypadek błędnej identyfikacji anonimowego użytkownika w `PageController`.
-- Na stronie głównej (`/`) osoba niezalogowana nie widzi już akcji `+ Dodaj`.
+- Production compose now includes the full stack (SpringShelf + StoryWeave + DB + Redis + Caddy).
+- Caddy routes /storyweave and defaults to SpringShelf.
+- Dev compose exposes port 8080 on the host and does not use Caddy.
 
 ### [0.3.1] - 2026-03-11
 
-Porządki w konfiguracji Dockera i env oraz częściowa aktualizacja książek.
+Docker and env cleanup plus partial book updates.
 
 #### Added
 
-- `PATCH /api/books/{id}` do częściowej aktualizacji książki.
-- Przykładowy `.env.example` pod uruchamianie przez Docker Compose.
+- `PATCH /api/books/{id}` for partial book updates.
+- Example `.env.example` for running via Docker Compose.
 
 #### Changed
 
-- `docker-compose.yml`: poprawiona konfiguracja usług, healthcheck DB, stały wolumen danych i pin obrazu Postgres do 16.
-- `application.properties`: obsługa zmiennych środowiskowych dla DB i `jwt.secret`.
+- `docker-compose.yml`: improved service config, DB healthcheck, persistent volume, and pinned Postgres 16 image.
+- `application.properties`: environment variable support for DB and `jwt.secret`.
 
 #### Removed
 
-- `src/main/resources/application-local.properties` (konfiguracja lokalna przeniesiona do env).
+- `src/main/resources/application-local.properties` (local config moved to env).
 
-### [0.2.1] - 2026-03-04
+### [0.3.0] - 2026-03-05
 
-Rozbudowa modelu książki i porządki.
+Frontend migration to Thymeleaf and cleaned up web/API auth flow.
 
 #### Added
 
-- Nowe pola w modelu `Book`: `isbn`, `description`, `pageCount`, `genres`, `tags`, `rating`, `ratingsCount`, `createdAt`, `updatedAt`.
-- Tabele `book_genres` i `book_tags` do filtrowania książek po gatunkach i tagach.
+- Thymeleaf views: `home`, `book`, `bookshelf`, `login`, `register`, `settings`, `error`, plus a base layout.
+- `PageController` for pages, login/register, and bookshelf actions via HTML forms.
+- `UserDetailsServiceImpl` for session-based login (form login).
 
 #### Changed
 
-- Refaktoryzacja `BookService` — mapowanie DTO na encję wydzielone do osobnej metody `mapRequestToBook()`.
-- Usunięto pole `category` z modelu (zastąpione przez `genres`).
-- Usunięto `rating` i `ratingsCount` z `BookRequest` — klient nie może już ustawiać ocen ręcznie.
+- Removed the old SPA frontend (`frontend/`) based on static HTML + JS and a token in `localStorage`.
+- Split security into two chains:
+  - `/api/**` - JWT + stateless,
+  - web (`/**`) - session + form login + OAuth2.
+- OAuth2 success flow logs the user into a session and redirects to `/`.
+- `GlobalExceptionHandler` returns JSON for `/api/**` and renders `error.html` for web pages.
 
 #### Fixed
 
-- Naprawiono duplikaty wpisów w `.gitignore`.
-- Usunięto `styles.css` z trackingu gita.
-- Poprawiono nazwę parametru w setterze `setIsbn()`.
+- Fixed login-dependent rendering in templates (`sec:authorize`).
+- Fixed anonymous user detection in `PageController`.
+- The home page (`/`) no longer shows the `+ Add` action to guests.
 
-### [0.2.0] - 2026-03-03
+### [0.2.1] - 2026-03-04
 
-Działający prototyp z frontendem.
+Expanded book model and cleanup.
 
 #### Added
 
-- Aplikacja ma osobny frontend oparty o Node.js + Tailwind + daisyUI.
-- Proste podstrony: base, settings, login, register.
-- Backend ma modele książek, książek użytkownika oraz użytkowników.
+- New `Book` fields: `isbn`, `description`, `pageCount`, `genres`, `tags`, `rating`, `ratingsCount`, `createdAt`, `updatedAt`.
+- `book_genres` and `book_tags` tables for filtering by genres and tags.
+
+#### Changed
+
+- `BookService` refactor: extracted DTO-to-entity mapping into `mapRequestToBook()`.
+- Removed `category` from the model (replaced by `genres`).
+- Removed `rating` and `ratingsCount` from `BookRequest` so clients cannot set ratings manually.
+
+#### Fixed
+
+- Fixed duplicate `.gitignore` entries.
+- Removed `styles.css` from git tracking.
+- Fixed the parameter name in `setIsbn()`.
+
+### [0.2.0] - 2026-03-03
+
+Working prototype with frontend.
+
+#### Added
+
+- Separate frontend based on Node.js + Tailwind + daisyUI.
+- Simple pages: base, settings, login, register.
+- Backend models for books, user books, and users.
 
 ![img.png](img.png)
 
 ### [0.1.1] - 2026-03-02
 
-Działający prototyp ze Swagger UI.
+Working prototype with Swagger UI.
 
 #### Added
 
-- Dodałem logowanie oraz rejestrację.
-- Dodałem połączenie z GitHubem.
-- Dodałem zmienne środowiskowe z profilu `local` w `application-local.properties` (`.gitignore`).
-- Dodałem autoryzację poprzez tokeny JWT.
+- Login and registration.
+- GitHub login.
+- Env vars for the `local` profile in `application-local.properties` (`.gitignore`).
+- JWT-based auth.
 
 ![img_1.png](img_1.png)
 
 ### [0.1.0] - 2026-03-02
 
-Pierwsza wersja robocza backendu.
+First working backend version.
 
 #### Added
 
-- Start projektu Spring Boot 4 + Java 21.
-- Konfiguracja połączenia z PostgreSQL.
-- Model `Book` i repozytorium `BookRepository`.
-- Logika biznesowa w `BookService`.
-- REST API w `BookController` (`GET`, `POST`, `PUT`, `DELETE`).
-- Walidacja payloadu przez `BookRequest`.
-- Globalny handler błędów (`GlobalExceptionHandler`).
-- Konteneryzacja aplikacji i bazy danych.
+- Spring Boot 4 + Java 21 project scaffold.
+- PostgreSQL connection configuration.
+- `Book` model and `BookRepository`.
+- Business logic in `BookService`.
+- REST API in `BookController` (`GET`, `POST`, `PUT`, `DELETE`).
+- Payload validation via `BookRequest`.
+- Global error handler (`GlobalExceptionHandler`).
+- Containerized app and database.
 
-### Plan na kolejne etapy
-
-- Dodać prosty frontend jako monolit (template'y Thymeleaf).
-- Oceny i recenzje książek.
-- Serwis rekomendacji (FastAPI + ML).
-- CI/CD (GitHub Actions) i testy integracyjne.
