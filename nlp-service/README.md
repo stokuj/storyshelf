@@ -106,6 +106,16 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 
 ## Changelog
 
+### [0.8.1] - 2026-03-12
+
+Docs and deploy updates without code changes.
+
+#### Changed
+
+- Production described as a shared stack with SpringShelf.
+- Caddy and infra-related deploy pieces are now managed from the SpringShelf repo.
+- Deployed both services on the same VM with Caddy as a reverse proxy.
+
 ### [0.8.0] - 2026-03-11
 
 - Separated Celery health check into dedicated `GET /health/celery/` endpoint.
