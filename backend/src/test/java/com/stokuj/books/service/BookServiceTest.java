@@ -124,6 +124,7 @@ class BookServiceTest {
         verify(bookRepository).save(any(Book.class));
     }
 
+
     // ========== update ==========
 
     @Test
@@ -185,6 +186,118 @@ class BookServiceTest {
         // then
         assertThat(result.getTitle()).isEqualTo("New Title");
         assertThat(result.getAuthor()).isEqualTo("Old Author"); // niezmieniony!
+    }
+
+    @Test
+    void shouldNotChangeAnythingWhenPatchRequestIsEmpty() {
+        // given
+        var existing = new Book();
+        existing.setId(1L);
+        existing.setTitle("Old Title");
+        existing.setAuthor("Old Author");
+        existing.setYear(2000);
+
+        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
+
+        // when
+        var result = bookService.patch(1L, new BookPatchRequest()); // wszystko null
+
+        // then
+        assertThat(result.getTitle()).isEqualTo("Old Title");
+        assertThat(result.getAuthor()).isEqualTo("Old Author");
+        assertThat(result.getYear()).isEqualTo(2000);
+    }
+
+    @Test
+    void shouldPatchMultipleFieldsAtOnce() {
+        // given
+        var existing = new Book();
+        existing.setId(1L);
+        existing.setTitle("Old Title");
+        existing.setAuthor("Old Author");
+        existing.setYear(2000);
+
+        var request = new BookPatchRequest();
+        request.setTitle("New Title");
+        request.setAuthor("New Author");
+        request.setYear(2024);
+
+        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
+
+        // when
+        var result = bookService.patch(1L, request);
+
+        // then
+        assertThat(result.getTitle()).isEqualTo("New Title");
+        assertThat(result.getAuthor()).isEqualTo("New Author");
+        assertThat(result.getYear()).isEqualTo(2024);
+    }
+
+    @Test
+    void shouldThrowWhenPatchingNonExistentBook() {
+        // given
+        given(bookRepository.findById(99L)).willReturn(Optional.empty());
+
+        // when / then
+        assertThatThrownBy(() -> bookService.patch(99L, new BookPatchRequest()))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldPatchGenresAndTags() {
+        // given
+        var existing = new Book();
+        existing.setId(1L);
+        existing.setTitle("Dune");
+        existing.setGenres(Set.of("Sci-Fi"));
+        existing.setTags(List.of("classic"));
+
+        var request = new BookPatchRequest();
+        request.setGenres(Set.of("Sci-Fi", "Adventure"));
+        request.setTags(List.of("classic", "must-read"));
+
+        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
+
+        // when
+        var result = bookService.patch(1L, request);
+
+        // then
+        assertThat(result.getGenres()).containsExactlyInAnyOrder("Sci-Fi", "Adventure");
+        assertThat(result.getTags()).containsExactlyInAnyOrder("classic", "must-read");
+        assertThat(result.getTitle()).isEqualTo("Dune"); // niezmieniony
+    }
+
+    @Test
+    void shouldPatchIsbnDescriptionAndPageCount() {
+        // given
+        var existing = new Book();
+        existing.setId(1L);
+        existing.setTitle("Dune");
+        existing.setIsbn("000-old");
+        existing.setDescription("Stary opis");
+        existing.setPageCount(100);
+
+        var request = new BookPatchRequest();
+        request.setIsbn("978-0441013593");
+        request.setDescription("Nowy opis");
+        request.setPageCount(412);
+
+        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
+
+        // when
+        var result = bookService.patch(1L, request);
+
+        // then
+        assertThat(result.getIsbn()).isEqualTo("978-0441013593");
+        assertThat(result.getDescription()).isEqualTo("Nowy opis");
+        assertThat(result.getPageCount()).isEqualTo(412);
+        assertThat(result.getTitle()).isEqualTo("Dune"); // niezmieniony
     }
 
     // ========== delete ==========
