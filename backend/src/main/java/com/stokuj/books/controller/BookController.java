@@ -1,13 +1,19 @@
 package com.stokuj.books.controller;
 
+import com.stokuj.books.dto.BookContentRequest;
 import com.stokuj.books.dto.BookPatchRequest;
 import com.stokuj.books.dto.BookRequest;
 import com.stokuj.books.model.Book;
+import com.stokuj.books.model.BookChapter;
+import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.BookService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/books")
@@ -15,11 +21,13 @@ public class BookController {
 
     private final BookService bookService;
 
-    public BookController(BookService bookService) {
+    private final BookChapterService bookChapterService;
+
+    public BookController(BookService bookService, BookChapterService bookChapterService) {
         this.bookService = bookService;
+        this.bookChapterService = bookChapterService;
     }
 
-    
     @GetMapping
     public List<Book> getAll() {
         return bookService.getAll();
@@ -48,5 +56,29 @@ public class BookController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         bookService.delete(id);
+    }
+
+
+    @PostMapping("/{id}/content")
+    public ResponseEntity<Map<String, Object>> uploadContent(
+            @PathVariable Long id,
+            @Valid @RequestBody BookContentRequest request) {
+
+        int chaptersCount = bookChapterService.loadContent(id, request.getContent());
+        return ResponseEntity.ok(Map.of(
+                "book_id", id,
+                "chapters_loaded", chaptersCount
+        ));
+    }
+
+    @GetMapping("/{id}/content")
+    public ResponseEntity<List<BookChapter>> getContent(@PathVariable Long id) {
+        return ResponseEntity.ok(bookChapterService.getChapters(id));
+    }
+
+    @DeleteMapping("/{id}/content")
+    public ResponseEntity<Void> clearContent(@PathVariable Long id) {
+        bookChapterService.clearContent(id);
+        return ResponseEntity.noContent().build();
     }
 }

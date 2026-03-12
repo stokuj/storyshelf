@@ -7,9 +7,9 @@ import java.time.Instant;
 
 public class UserBookResponse {
 
-    private Book book;
-    private ReadingStatus status;
-    private Instant createdAt;
+    private final Book book;
+    private final ReadingStatus status;
+    private final Instant createdAt;
 
     public UserBookResponse(Book book, ReadingStatus status, Instant createdAt) {
         this.book = book;

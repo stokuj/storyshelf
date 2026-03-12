@@ -57,9 +57,6 @@ public class BookService {
         if (request.getDescription() != null) {
             existing.setDescription(request.getDescription());
         }
-        if (request.getContent() != null) {
-            existing.setContent(request.getContent());
-        }
         if (request.getPageCount() != null) {
             existing.setPageCount(request.getPageCount());
         }
@@ -87,4 +84,5 @@ public class BookService {
         book.setGenres(request.getGenres());
         book.setTags(request.getTags());
     }
+
 }
