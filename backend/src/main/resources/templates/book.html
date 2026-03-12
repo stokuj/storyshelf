@@ -101,6 +101,22 @@
 
                     </div>
 
+                    <!-- Upload treści -->
+                    <th:block sec:authorize="isAuthenticated()">
+                        <div class="card bg-base-100 shadow-sm p-4 mb-6 max-w-sm">
+                            <h2 class="text-sm font-semibold mb-3">Wgraj treść książki</h2>
+                            <form id="content-upload-form" class="space-y-3">
+                                <input id="content-file" type="file" accept=".txt,text/plain"
+                                       class="file-input file-input-bordered w-full"/>
+                                <button type="submit" class="btn btn-sm btn-primary w-full">Wyślij plik</button>
+                                <p class="text-xs text-base-content/60">
+                                    Obsługiwany format: .txt (text/plain)
+                                </p>
+                            </form>
+                            <div id="content-upload-status" class="text-xs mt-2"></div>
+                        </div>
+                    </th:block>
+
                     <!-- Opis -->
                     <div th:if="${book.description}">
                         <h2 class="text-lg font-semibold mb-2">Opis</h2>
@@ -118,6 +134,50 @@
 
     </th:block>
 </th:block>
+
+<script th:inline="javascript">
+    const contentUploadForm = document.getElementById("content-upload-form");
+    if (contentUploadForm) {
+        const statusEl = document.getElementById("content-upload-status");
+        const fileInput = document.getElementById("content-file");
+        const bookId = [[${book.id}]];
+
+        contentUploadForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const file = fileInput.files[0];
+            if (!file) {
+                statusEl.className = "text-xs mt-2 text-error";
+                statusEl.textContent = "Wybierz plik .txt przed wysłaniem.";
+                return;
+            }
+
+            try {
+                statusEl.className = "text-xs mt-2 text-base-content/60";
+                statusEl.textContent = "Wysyłanie treści...";
+
+                const content = await file.text();
+                const response = await fetch(`/api/books/${bookId}/content`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "text/plain"
+                    },
+                    body: content
+                });
+
+                if (!response.ok) {
+                    throw new Error("Upload failed");
+                }
+
+                statusEl.className = "text-xs mt-2 text-success";
+                statusEl.textContent = "Treść została wgrana.";
+            } catch (error) {
+                statusEl.className = "text-xs mt-2 text-error";
+                statusEl.textContent = "Nie udało się wgrać treści.";
+            }
+        });
+    }
+</script>
 
 </body>
 </html>
