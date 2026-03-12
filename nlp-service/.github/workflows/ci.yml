@@ -96,6 +96,6 @@ jobs:
           port: 22
           script: |
             cd /opt/storyweave
-            docker compose -f docker-compose.yml pull storyweave-api celery-worker
-            docker compose -f docker-compose.yml up -d --force-recreate storyweave-api celery-worker
-            docker compose -f docker-compose.yml ps
+            docker compose -f docker-compose.prod.yml pull storyweave-api celery-worker
+            docker compose -f docker-compose.prod.yml up -d --force-recreate storyweave-api celery-worker
+            docker compose -f docker-compose.prod.yml ps
