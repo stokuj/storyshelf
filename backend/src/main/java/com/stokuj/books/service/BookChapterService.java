@@ -1,7 +1,6 @@
 package com.stokuj.books.service;
 
 import com.stokuj.books.client.StoryweaveClient;
-import com.stokuj.books.dto.AnalyseStats;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.model.Book;
 import com.stokuj.books.model.BookChapter;
@@ -21,7 +20,7 @@ public class BookChapterService {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
-    private final StoryweaveClient storyweaveClient;
+    private final ChapterAnalysisService chapterAnalysisService;
 
     private static final int MIN_CHAPTER_SIZE = 1200;    // minimalny rozmiar fragmentu
     private static final int MAX_CHAPTER_SIZE = 10000;   // maksymalny rozmiar fragmentu
@@ -38,10 +37,10 @@ public class BookChapterService {
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
-                              BookRepository bookRepository, StoryweaveClient storyweaveClient) {
+                              BookRepository bookRepository, StoryweaveClient storyweaveClient, ChapterAnalysisService chapterAnalysisService) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
-        this.storyweaveClient = storyweaveClient;
+        this.chapterAnalysisService = chapterAnalysisService;
     }
 
     @Transactional
@@ -68,20 +67,6 @@ public class BookChapterService {
                 chapter.setChapterNumber(chapterNumber++);
                 chapter.setContent(subPart);
 
-                ///
-                /// FastAPI Web Client with /analyse/ endpoint
-                try {
-                    AnalyseStats stats = storyweaveClient.analyse(subPart);
-                    chapter.setCharCount(stats.charCount());
-                    chapter.setCharCountClean(stats.charCountClean());
-                    chapter.setWordCount(stats.wordCount());
-                    chapter.setTokenCount(stats.tokenCount());
-                    chapter.setAnalysisCompleted(true);
-                } catch (Exception e) {
-                    log.warn("Storyweave analyse failed for chapter {}: {}", chapterNumber, e.getMessage());
-                }
-
-
                 // tytuł = pierwsza linia oryginalnego rozdziału
                 String firstLine = part.lines().findFirst().orElse("");
                 if (firstLine.length() > 150) firstLine = firstLine.substring(0, 150);
@@ -96,6 +81,13 @@ public class BookChapterService {
         }
 
         chapterRepository.saveAll(chapters);
+
+        /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+        ///  FastAPI Chapter Analysis - asynchronous call for each chapter
+        chapters.forEach(chapter ->
+                chapterAnalysisService.analyseAsync(chapter.getId())
+        );
+
         return chapters.size();
     }
 
