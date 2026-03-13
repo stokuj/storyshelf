@@ -1,7 +1,7 @@
 package com.stokuj.books.client;
 
-import com.stokuj.books.dto.AnalyseResponse;
-import com.stokuj.books.dto.AnalyseStats;
+import com.stokuj.books.dto.storyweave.AnalyseResponse;
+import com.stokuj.books.dto.storyweave.AnalyseStats;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;

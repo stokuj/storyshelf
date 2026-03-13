@@ -1,7 +1,7 @@
 package com.stokuj.books.service;
 
 import com.stokuj.books.client.StoryweaveClient;
-import com.stokuj.books.dto.AnalyseStats;
+import com.stokuj.books.dto.storyweave.AnalyseStats;
 import com.stokuj.books.model.BookChapter;
 import com.stokuj.books.repository.BookChapterRepository;
 import lombok.extern.slf4j.Slf4j;

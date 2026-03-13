@@ -1,6 +1,9 @@
 package com.stokuj.books.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.stokuj.books.model.storyweave.FindPairsResult;
+import com.stokuj.books.model.storyweave.NerResult;
+import com.stokuj.books.model.storyweave.RelationsResult;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;
