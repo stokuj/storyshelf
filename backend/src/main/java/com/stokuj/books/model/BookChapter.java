@@ -1,6 +1,9 @@
 package com.stokuj.books.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.stokuj.books.converter.FindPairsResultConverter;
+import com.stokuj.books.converter.NerResultConverter;
+import com.stokuj.books.converter.RelationsResultConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,4 +31,40 @@ public class BookChapter {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
+
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+    /// Analysis part - ENDPOINT FROM FAST API /analysis/
+    private Boolean analysisCompleted = false;
+
+    private Integer charCount;
+
+    private Integer charCountClean;
+
+    private Integer wordCount;
+
+    private Integer tokenCount;
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+    /// NER part - ENDPOINT FROM FAST API /NER/{task_id}
+    @Convert(converter = NerResultConverter.class)
+    @Column(columnDefinition = "jsonb")
+    private NerResult nerResult;
+
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+    /// find-pairs part - ENDPOINT FROM FAST API /find-pairs/
+    @Convert(converter = FindPairsResultConverter.class)
+    @Column(columnDefinition = "jsonb")
+    private FindPairsResult findPairsResult;
+
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+    /// relations part - ENDPOINT FROM FAST API /relations/
+    @Convert(converter = RelationsResultConverter.class)
+    @Column(columnDefinition = "jsonb")
+    private RelationsResult relationsResult;
+    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
 }
