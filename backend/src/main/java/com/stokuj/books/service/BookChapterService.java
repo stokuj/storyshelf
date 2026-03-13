@@ -1,10 +1,12 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.client.StoryweaveClient;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.model.Book;
 import com.stokuj.books.model.BookChapter;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,11 +14,13 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 public class BookChapterService {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
+    private final ChapterAnalysisService chapterAnalysisService;
 
     private static final int MIN_CHAPTER_SIZE = 1200;    // minimalny rozmiar fragmentu
     private static final int MAX_CHAPTER_SIZE = 10000;   // maksymalny rozmiar fragmentu
@@ -33,9 +37,10 @@ public class BookChapterService {
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
-                              BookRepository bookRepository) {
+                              BookRepository bookRepository, StoryweaveClient storyweaveClient, ChapterAnalysisService chapterAnalysisService) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
+        this.chapterAnalysisService = chapterAnalysisService;
     }
 
     @Transactional
@@ -76,6 +81,13 @@ public class BookChapterService {
         }
 
         chapterRepository.saveAll(chapters);
+
+        /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+        ///  FastAPI Chapter Analysis - asynchronous call for each chapter
+        chapters.forEach(chapter ->
+                chapterAnalysisService.analyseAsync(chapter.getId())
+        );
+
         return chapters.size();
     }
 
@@ -106,8 +118,8 @@ public class BookChapterService {
         List<String> chapters = new ArrayList<>();
 
         // preambuła przed pierwszym nagłówkiem
-        if (chapterLines.get(0) > 0) {
-            String preamble = String.join("\n", Arrays.copyOfRange(lines, 0, chapterLines.get(0))).strip();
+        if (chapterLines.getFirst() > 0) {
+            String preamble = String.join("\n", Arrays.copyOfRange(lines, 0, chapterLines.getFirst())).strip();
             if (!preamble.isBlank()) {
                 chapters.add(preamble);
             }
@@ -122,7 +134,7 @@ public class BookChapterService {
 
             // łącz krótkie fragmenty z poprzednim
             if (part.length() < MIN_CHAPTER_SIZE && !chapters.isEmpty()) {
-                String merged = chapters.remove(chapters.size() - 1) + "\n\n" + part;
+                String merged = chapters.removeLast() + "\n\n" + part;
                 chapters.add(merged);
             } else {
                 chapters.add(part);
@@ -153,14 +165,14 @@ public class BookChapterService {
 
         for (String para : paragraphs) {
             if (current.length() + para.length() + 2 > MAX_CHAPTER_SIZE) {
-                if (current.length() > 0) parts.add(current.toString().strip());
+                if (!current.isEmpty()) parts.add(current.toString().strip());
                 current = new StringBuilder();
             }
-            if (current.length() > 0) current.append("\n\n");
+            if (!current.isEmpty()) current.append("\n\n");
             current.append(para);
         }
 
-        if (current.length() > 0) parts.add(current.toString().strip());
+        if (!current.isEmpty()) parts.add(current.toString().strip());
         return parts;
     }
 }
