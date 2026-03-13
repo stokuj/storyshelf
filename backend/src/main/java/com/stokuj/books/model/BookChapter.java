@@ -1,9 +1,8 @@
 package com.stokuj.books.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.stokuj.books.converter.FindPairsResultConverter;
-import com.stokuj.books.converter.NerResultConverter;
-import com.stokuj.books.converter.RelationsResultConverter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,24 +46,20 @@ public class BookChapter {
 
     /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
     /// NER part - ENDPOINT FROM FAST API /NER/{task_id}
-    @Convert(converter = NerResultConverter.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private NerResult nerResult;
 
     /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
     /// find-pairs part - ENDPOINT FROM FAST API /find-pairs/
-    @Convert(converter = FindPairsResultConverter.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private FindPairsResult findPairsResult;
 
     /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
     /// relations part - ENDPOINT FROM FAST API /relations/
-    @Convert(converter = RelationsResultConverter.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private RelationsResult relationsResult;
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
+
 }

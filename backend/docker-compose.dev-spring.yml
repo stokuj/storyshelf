@@ -41,3 +41,7 @@ services:
 
 volumes:
   db-data:
+
+networks:
+  default:
+    name: springshelf-dev-separate
