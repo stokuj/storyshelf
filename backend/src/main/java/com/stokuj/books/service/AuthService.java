@@ -1,10 +1,10 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.AuthRequest;
-import com.stokuj.books.dto.AuthResponse;
+import com.stokuj.books.dto.request.AuthRequest;
+import com.stokuj.books.dto.response.AuthResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.UnauthorizedException;
-import com.stokuj.books.model.User;
+import com.stokuj.books.model.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,9 +1,9 @@
 package com.stokuj.books.controller;
 
-import com.stokuj.books.dto.UserBookRequest;
+import com.stokuj.books.dto.request.UserBookRequest;
 import com.stokuj.books.exception.ConflictException;
-import com.stokuj.books.model.ReadingStatus;
-import com.stokuj.books.model.User;
+import com.stokuj.books.model.enums.ReadingStatus;
+import com.stokuj.books.model.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;

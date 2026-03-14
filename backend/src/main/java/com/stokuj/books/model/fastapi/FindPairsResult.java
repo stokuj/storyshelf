@@ -1,4 +1,4 @@
-package com.stokuj.books.model.storyweave;
+package com.stokuj.books.model.fastapi;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

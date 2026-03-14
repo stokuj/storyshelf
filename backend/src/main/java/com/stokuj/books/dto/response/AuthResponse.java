@@ -1,4 +1,4 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.response;
 
 public class AuthResponse {
     private String token;

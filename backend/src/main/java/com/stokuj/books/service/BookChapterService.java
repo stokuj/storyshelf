@@ -1,9 +1,9 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.client.StoryweaveClient;
+import com.stokuj.books.client.FastApiClient;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.Book;
-import com.stokuj.books.model.BookChapter;
+import com.stokuj.books.model.entity.Book;
+import com.stokuj.books.model.entity.BookChapter;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class BookChapterService {
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
-                              BookRepository bookRepository, StoryweaveClient storyweaveClient, ChapterAnalysisService chapterAnalysisService) {
+                              BookRepository bookRepository, FastApiClient storyweaveClient, ChapterAnalysisService chapterAnalysisService) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
         this.chapterAnalysisService = chapterAnalysisService;

@@ -1,4 +1,4 @@
-package com.stokuj.books.model;
+package com.stokuj.books.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

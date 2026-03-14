@@ -1,9 +1,9 @@
 package com.stokuj.books.controller;
 
-import com.stokuj.books.dto.BookPatchRequest;
-import com.stokuj.books.dto.BookRequest;
-import com.stokuj.books.model.Book;
-import com.stokuj.books.model.BookChapter;
+import com.stokuj.books.dto.request.BookPatchRequest;
+import com.stokuj.books.dto.request.BookRequest;
+import com.stokuj.books.model.entity.Book;
+import com.stokuj.books.model.entity.BookChapter;
 import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.BookService;
 import jakarta.validation.Valid;

@@ -1,7 +1,7 @@
 package com.stokuj.books.client;
 
-import com.stokuj.books.dto.storyweave.AnalyseResponse;
-import com.stokuj.books.dto.storyweave.AnalyseStats;
+import com.stokuj.books.dto.fastapi.AnalyseResponse;
+import com.stokuj.books.dto.fastapi.AnalyseStats;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -12,11 +12,11 @@ import java.util.Map;
 
 @Slf4j
 @Service
-public class StoryweaveClient {
+public class FastApiClient {
 
     private final WebClient client;
 
-    public StoryweaveClient(WebClient storyweaveWebClient) {
+    public FastApiClient(WebClient storyweaveWebClient) {
         this.client = storyweaveWebClient;
     }
 

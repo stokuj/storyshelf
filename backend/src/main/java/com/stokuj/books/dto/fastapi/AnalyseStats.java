@@ -1,4 +1,4 @@
-package com.stokuj.books.dto.storyweave;
+package com.stokuj.books.dto.fastapi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
