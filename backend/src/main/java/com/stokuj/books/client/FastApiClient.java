@@ -4,6 +4,7 @@ import com.stokuj.books.dto.fastapi.AnalyseResponse;
 import com.stokuj.books.dto.fastapi.AnalyseStats;
 import com.stokuj.books.dto.fastapi.NerTaskResponse;
 import com.stokuj.books.dto.fastapi.NerTaskStatusResponse;
+import com.stokuj.books.model.fastapi.FindPairsResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,23 @@ public class FastApiClient {
                                 .then(Mono.error(new RuntimeException("Storyweave NER poll error: " + response.statusCode())))
                 )
                 .bodyToMono(NerTaskStatusResponse.class)
+                .block();
+    }
+
+    public FindPairsResult findPairs(String content, Iterable<String> names) {
+        return client.post()
+                .uri("/find-pairs/")
+                .bodyValue(Map.of(
+                        "content", content,
+                        "names", names
+                ))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class)
+                                .doOnNext(body -> log.warn("Storyweave find-pairs error {}: {}", response.statusCode(), body))
+                                .then(Mono.error(new RuntimeException("Storyweave find-pairs error: " + response.statusCode())))
+                )
+                .bodyToMono(FindPairsResult.class)
                 .block();
     }
 

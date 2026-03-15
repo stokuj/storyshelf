@@ -92,6 +92,11 @@ public class BookChapterService {
         //         chapterAnalysisService.nerAsync(chapter.getId())
         // );
 
+        // FastAPI find-pairs - disabled for now (manual endpoint only)
+        // chapters.forEach(chapter ->
+        //         fastApiClient.findPairs(chapter.getContent(), List.of())
+        // );
+
         return chapters.size();
     }
 
