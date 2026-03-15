@@ -1,9 +1,9 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.client.StoryweaveClient;
+import com.stokuj.books.client.FastApiClient;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.Book;
-import com.stokuj.books.model.BookChapter;
+import com.stokuj.books.model.entity.Book;
+import com.stokuj.books.model.entity.BookChapter;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,8 @@ public class BookChapterService {
     private final BookRepository bookRepository;
     private final ChapterAnalysisService chapterAnalysisService;
 
-    private static final int MIN_CHAPTER_SIZE = 1200;    // minimalny rozmiar fragmentu
-    private static final int MAX_CHAPTER_SIZE = 10000;   // maksymalny rozmiar fragmentu
+    private static final int MIN_CHAPTER_SIZE = 2000;    // minimalny rozmiar fragmentu
+    private static final int MAX_CHAPTER_SIZE = 50000;   // maksymalny rozmiar fragmentu
 
     // dopasowuje nagłówki: Chapter, Book, Prologue, Epilogue + liczby (arabic, roman, słowne)
     private static final Pattern CHAPTER_PATTERN = Pattern.compile(
@@ -37,7 +37,7 @@ public class BookChapterService {
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
-                              BookRepository bookRepository, StoryweaveClient storyweaveClient, ChapterAnalysisService chapterAnalysisService) {
+                              BookRepository bookRepository, FastApiClient storyweaveClient, ChapterAnalysisService chapterAnalysisService) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
         this.chapterAnalysisService = chapterAnalysisService;
@@ -82,11 +82,20 @@ public class BookChapterService {
 
         chapterRepository.saveAll(chapters);
 
-        /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-        ///  FastAPI Chapter Analysis - asynchronous call for each chapter
-        chapters.forEach(chapter ->
-                chapterAnalysisService.analyseAsync(chapter.getId())
-        );
+        // FastAPI Chapter Analysis - disabled for now (manual endpoints only)
+        // chapters.forEach(chapter ->
+        //         chapterAnalysisService.analyseAsync(chapter.getId())
+        // );
+
+        // FastAPI NER Analysis - disabled for now (manual endpoints only)
+        // chapters.forEach(chapter ->
+        //         chapterAnalysisService.nerAsync(chapter.getId())
+        // );
+
+        // FastAPI find-pairs - disabled for now (manual endpoint only)
+        // chapters.forEach(chapter ->
+        //         fastApiClient.findPairs(chapter.getContent(), List.of())
+        // );
 
         return chapters.size();
     }

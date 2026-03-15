@@ -1,9 +1,9 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.BookPatchRequest;
-import com.stokuj.books.dto.BookRequest;
+import com.stokuj.books.dto.request.BookPatchRequest;
+import com.stokuj.books.dto.request.BookRequest;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.Book;
+import com.stokuj.books.model.entity.Book;
 import com.stokuj.books.repository.BookRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

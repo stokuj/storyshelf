@@ -1,3 +1,3 @@
-package com.stokuj.books.dto.storyweave;
+package com.stokuj.books.dto.fastapi;
 
 public record AnalyseResponse(AnalyseStats analysis) {}

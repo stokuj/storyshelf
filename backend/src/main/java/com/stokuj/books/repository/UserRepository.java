@@ -1,6 +1,6 @@
 package com.stokuj.books.repository;
 
-import com.stokuj.books.model.User;
+import com.stokuj.books.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

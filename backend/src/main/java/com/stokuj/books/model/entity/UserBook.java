@@ -1,5 +1,6 @@
-package com.stokuj.books.model;
+package com.stokuj.books.model.entity;
 
+import com.stokuj.books.model.enums.ReadingStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

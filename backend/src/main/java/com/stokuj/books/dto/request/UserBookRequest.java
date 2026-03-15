@@ -1,6 +1,6 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.request;
 
-import com.stokuj.books.model.ReadingStatus;
+import com.stokuj.books.model.enums.ReadingStatus;
 
 public class UserBookRequest {
 

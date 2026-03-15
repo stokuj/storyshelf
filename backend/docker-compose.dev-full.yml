@@ -1,5 +1,5 @@
 # Docker Compose configuration for development environment
-# Uses only 2 images. VM has separate docker-compose for production with more services.
+# Uses dev services plus storyweave containers. VM has separate docker-compose for production with more services.
 
 services:
   springshelf:
@@ -22,6 +22,43 @@ services:
       db:
         condition: service_healthy
 
+  storyweave-api:
+    image: ghcr.io/stokuj/storyweave:main
+    container_name: storyweave-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      HF_HOME: /cache/huggingface
+      TRANSFORMERS_CACHE: /cache/huggingface
+    volumes:
+      - hf-cache:/cache/huggingface
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+
+  celery-worker:
+    image: ghcr.io/stokuj/storyweave:main
+    container_name: storyweave-celery-worker
+    command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=info"]
+    env_file:
+      - .env
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      HF_HOME: /cache/huggingface
+      TRANSFORMERS_CACHE: /cache/huggingface
+    volumes:
+      - hf-cache:/cache/huggingface
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+
   db:
     image: postgres:16
     container_name: books-db
@@ -39,5 +76,14 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    container_name: storyweave-redis
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
 volumes:
   db-data:
+  redis-data:
+  hf-cache:

@@ -1,7 +1,7 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.response;
 
-import com.stokuj.books.model.Book;
-import com.stokuj.books.model.ReadingStatus;
+import com.stokuj.books.model.entity.Book;
+import com.stokuj.books.model.enums.ReadingStatus;
 
 import java.time.Instant;
 

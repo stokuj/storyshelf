@@ -17,7 +17,7 @@ public class WebClientConfig {
     private String baseUrl;
 
     @Bean
-    public WebClient storyweaveWebClient() {
+    public WebClient fastapiWebClient() {
         HttpClient httpClient = HttpClient.create()
                 .responseTimeout(Duration.ofSeconds(10));
         return WebClient.builder()

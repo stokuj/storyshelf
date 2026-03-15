@@ -10,6 +10,20 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 
 ## Changelog
 
+### [0.4.1] - 2026-03-15
+
+Manual FastAPI endpoints for per-chapter analysis.
+
+#### Added
+
+- FastAPI find-pairs client method and request DTO.
+- `POST /api/NER/chapters/{chapterId}/find-pairs` to run find-pairs for a single chapter.
+- Manual NER and analysis endpoints for single chapters.
+
+#### Changed
+
+- Disabled automatic NER and analysis calls during chapter load.
+
 ### [0.4.0] - 2026-03-12
 
 Deploy and CI. Move infrastructure config to Docker and Caddy.
@@ -128,4 +142,3 @@ First working backend version.
 - Payload validation via `BookRequest`.
 - Global error handler (`GlobalExceptionHandler`).
 - Containerized app and database.
-
