@@ -2,6 +2,8 @@ package com.stokuj.books.client;
 
 import com.stokuj.books.dto.fastapi.AnalyseResponse;
 import com.stokuj.books.dto.fastapi.AnalyseStats;
+import com.stokuj.books.dto.fastapi.NerTaskResponse;
+import com.stokuj.books.dto.fastapi.NerTaskStatusResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -34,4 +36,33 @@ public class FastApiClient {
                 .map(AnalyseResponse::analysis)
                 .block();
     }
+
+    public String startNer(String content) {
+        return client.post()
+                .uri("/ner/")
+                .bodyValue(Map.of("content", content))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class)
+                                .doOnNext(body -> log.warn("Storyweave NER start error {}: {}", response.statusCode(), body))
+                                .then(Mono.error(new RuntimeException("Storyweave NER error: " + response.statusCode())))
+                )
+                .bodyToMono(NerTaskResponse.class)
+                .map(NerTaskResponse::taskId)
+                .block();
+    }
+
+    public NerTaskStatusResponse pollNer(String taskId) {
+        return client.get()
+                .uri("/ner/{taskId}", taskId)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class)
+                                .doOnNext(body -> log.warn("Storyweave NER poll error {}: {}", response.statusCode(), body))
+                                .then(Mono.error(new RuntimeException("Storyweave NER poll error: " + response.statusCode())))
+                )
+                .bodyToMono(NerTaskStatusResponse.class)
+                .block();
+    }
+
 }

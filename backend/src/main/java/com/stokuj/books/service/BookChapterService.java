@@ -22,8 +22,8 @@ public class BookChapterService {
     private final BookRepository bookRepository;
     private final ChapterAnalysisService chapterAnalysisService;
 
-    private static final int MIN_CHAPTER_SIZE = 1200;    // minimalny rozmiar fragmentu
-    private static final int MAX_CHAPTER_SIZE = 10000;   // maksymalny rozmiar fragmentu
+    private static final int MIN_CHAPTER_SIZE = 2000;    // minimalny rozmiar fragmentu
+    private static final int MAX_CHAPTER_SIZE = 50000;   // maksymalny rozmiar fragmentu
 
     // dopasowuje nagłówki: Chapter, Book, Prologue, Epilogue + liczby (arabic, roman, słowne)
     private static final Pattern CHAPTER_PATTERN = Pattern.compile(
@@ -82,11 +82,15 @@ public class BookChapterService {
 
         chapterRepository.saveAll(chapters);
 
-        /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-        ///  FastAPI Chapter Analysis - asynchronous call for each chapter
-        chapters.forEach(chapter ->
-                chapterAnalysisService.analyseAsync(chapter.getId())
-        );
+        // FastAPI Chapter Analysis - disabled for now (manual endpoints only)
+        // chapters.forEach(chapter ->
+        //         chapterAnalysisService.analyseAsync(chapter.getId())
+        // );
+
+        // FastAPI NER Analysis - disabled for now (manual endpoints only)
+        // chapters.forEach(chapter ->
+        //         chapterAnalysisService.nerAsync(chapter.getId())
+        // );
 
         return chapters.size();
     }
