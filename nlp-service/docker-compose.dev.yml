@@ -58,3 +58,7 @@ services:
 volumes:
   redis-data:
   hf-cache:
+
+networks:
+  default:
+    name: springshelf-dev-separate
