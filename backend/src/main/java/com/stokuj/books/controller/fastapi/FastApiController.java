@@ -8,11 +8,13 @@ import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.service.ChapterAnalysisService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
+import com.stokuj.books.dto.fastapi.AnalyseResponse;
 
 import java.util.Map;
 
@@ -30,6 +32,25 @@ public class FastApiController {
         this.chapterRepository = chapterRepository;
         this.chapterAnalysisService = chapterAnalysisService;
         this.fastApiClient = fastApiClient;
+    }
+
+    @PatchMapping("/chapters/{chapterId}/analyse-result")
+    public ResponseEntity<Void> updateAnalyseResult(@PathVariable Long chapterId,
+                                                    @RequestBody AnalyseResponse result) {
+        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
+        if (chapter == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        chapter.setCharCount(result.analysis().charCount());
+        chapter.setCharCountClean(result.analysis().charCountClean());
+        chapter.setWordCount(result.analysis().wordCount());
+        chapter.setTokenCount(result.analysis().tokenCount());
+        chapter.setAnalysisCompleted(true);
+
+        chapterRepository.save(chapter);
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/chapters/{chapterId}/analyse")
