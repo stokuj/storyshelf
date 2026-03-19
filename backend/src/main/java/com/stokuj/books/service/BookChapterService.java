@@ -93,10 +93,24 @@ public class BookChapterService {
         //         chapterAnalysisService.analyseAsync(chapter.getId())
         // );
 
+        for (BookChapter chapter : chapters) {
+            if (chapter.getChapterNumber() == 1) { // <-- Ten warunek załatwia sprawę
+                chapterEventProducer.sendChapterForNer(chapter.getId(), chapter.getContent());
+            }
+
+            //chapterEventProducer.sendChapterForNer(chapter.getId(), chapter.getContent());
+        }
+
         // FastAPI NER Analysis - disabled for now (manual endpoints only)
         // chapters.forEach(chapter ->
         //         chapterAnalysisService.nerAsync(chapter.getId())
         // );
+
+        // TODO: We cannot call find-pairs right after saveAll, because it requires NER results (List of names)
+        // This will be implemented in the future, right after the NER webhook completes.
+        // for (BookChapter chapter : chapters) {
+        //     chapterEventProducer.sendChapterForFindPairs(chapter.getId(), chapter.getContent(), List.of());
+        // }
 
         // FastAPI find-pairs - disabled for now (manual endpoint only)
         // chapters.forEach(chapter ->

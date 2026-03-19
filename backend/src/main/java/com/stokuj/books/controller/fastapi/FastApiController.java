@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.stokuj.books.dto.fastapi.AnalyseResponse;
+import com.stokuj.books.model.fastapi.FindPairsResult;
+import com.stokuj.books.model.fastapi.NerResult;
 
 import java.util.Map;
 
@@ -48,6 +50,34 @@ public class FastApiController {
         chapter.setTokenCount(result.analysis().tokenCount());
         chapter.setAnalysisCompleted(true);
 
+        chapterRepository.save(chapter);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/chapters/{chapterId}/ner-result")
+    public ResponseEntity<Void> updateNerResult(@PathVariable Long chapterId,
+                                                @RequestBody NerResult result) {
+        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
+        if (chapter == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        chapter.setNerResult(result);
+        chapterRepository.save(chapter);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/chapters/{chapterId}/find-pairs-result")
+    public ResponseEntity<Void> updateFindPairsResult(@PathVariable Long chapterId,
+                                                      @RequestBody FindPairsResult result) {
+        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
+        if (chapter == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        chapter.setFindPairsResult(result);
         chapterRepository.save(chapter);
 
         return ResponseEntity.ok().build();
