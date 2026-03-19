@@ -84,6 +84,14 @@ public class BookChapterService {
 
         chapterRepository.saveAll(chapters);
 
+        int count = chapterRepository.countByBookId(bookId);
+        book.setChaptersCount(count);
+        book.setNerCompletedCount(0);
+        book.setCharacters(new HashMap<>());
+        book.setFindPairsResult(null);
+        book.setRelationsResult(null);
+        bookRepository.save(book);
+
         for (BookChapter chapter : chapters) {
             chapterEventProducer.sendChapterForAnalysis(chapter.getId(), chapter.getContent());
         }

@@ -7,4 +7,5 @@ import com.stokuj.books.model.entity.BookChapter;
 public interface BookChapterRepository extends JpaRepository<BookChapter, Long> {
     List<BookChapter> findAllByBookIdOrderByChapterNumber(Long bookId);
     void deleteAllByBookId(Long bookId);
+    int countByBookId(Long bookId);
 }

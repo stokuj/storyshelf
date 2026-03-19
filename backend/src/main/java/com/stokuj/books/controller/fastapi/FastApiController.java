@@ -1,12 +1,12 @@
 package com.stokuj.books.controller.fastapi;
 
-import com.stokuj.books.client.FastApiClient;
-import com.stokuj.books.dto.fastapi.FindPairsRequest;
+import com.stokuj.books.model.entity.Book;
 import com.stokuj.books.model.entity.BookChapter;
 import com.stokuj.books.model.fastapi.FindPairsResult;
 import com.stokuj.books.repository.BookChapterRepository;
+import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.service.ChapterAnalysisService;
-import jakarta.validation.Valid;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,29 +16,29 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.stokuj.books.dto.fastapi.AnalyseResponse;
 import com.stokuj.books.model.fastapi.NerResult;
-import com.stokuj.books.model.fastapi.RelationsResult;
 import com.stokuj.books.service.ChapterEventProducer;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/fastAPI")
 public class FastApiController {
 
     private final BookChapterRepository chapterRepository;
+    private final BookRepository bookRepository;
     private final ChapterAnalysisService chapterAnalysisService;
-    private final FastApiClient fastApiClient;
     private final ChapterEventProducer chapterEventProducer;
 
     public FastApiController(BookChapterRepository chapterRepository,
+                             BookRepository bookRepository,
                              ChapterAnalysisService chapterAnalysisService,
-                             FastApiClient fastApiClient,
                              ChapterEventProducer chapterEventProducer) {
         this.chapterRepository = chapterRepository;
+        this.bookRepository = bookRepository;
         this.chapterAnalysisService = chapterAnalysisService;
-        this.fastApiClient = fastApiClient;
         this.chapterEventProducer = chapterEventProducer;
     }
 
@@ -62,6 +62,7 @@ public class FastApiController {
     }
 
     @PatchMapping("/chapters/{chapterId}/ner-result")
+    @Transactional
     public ResponseEntity<Void> updateNerResult(@PathVariable Long chapterId,
                                                 @RequestBody NerResult result) {
         BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
@@ -72,45 +73,62 @@ public class FastApiController {
         chapter.setNerResult(result);
         chapterRepository.save(chapter);
 
-        // Trigger find-pairs and relations for chapter 1 after NER completes.
-        // Passing character names avoids re-running NER in the relations task.
-        if (chapter.getChapterNumber() == 1 && result.getCharacters() != null) {
-            List<String> characterNames = new ArrayList<>(result.getCharacters().keySet());
-            if (!characterNames.isEmpty()) {
-                chapterEventProducer.sendChapterForFindPairs(chapterId, chapter.getContent(), characterNames);
-            }
-            if (characterNames.size() >= 2) {
-                chapterEventProducer.sendChapterForRelations(chapterId, chapter.getContent(), characterNames);
-            }
+        Book book = bookRepository.findByIdForUpdate(chapter.getBook().getId()).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Map<String, Integer> current = book.getCharacters() != null ? book.getCharacters() : new HashMap<>();
+        if (result.getCharacters() != null) {
+            result.getCharacters().forEach((name, count) -> current.merge(name, count, Integer::sum));
+        }
+        book.setCharacters(current);
+        book.setNerCompletedCount(book.getNerCompletedCount() + 1);
+        bookRepository.save(book);
+
+        boolean readyForFindPairs = book.getNerCompletedCount() >= book.getChaptersCount();
+        if (!readyForFindPairs && chapter.getChapterNumber() == 1) {
+            readyForFindPairs = true;
+        }
+
+        if (readyForFindPairs && book.getFindPairsResult() == null && current != null && !current.isEmpty()) {
+            List<BookChapter> chapters = chapterRepository.findAllByBookIdOrderByChapterNumber(book.getId());
+            String fullContent = chapters.stream()
+                    .map(BookChapter::getContent)
+                    .collect(Collectors.joining("\n\n"));
+            chapterEventProducer.sendBookForFindPairs(book.getId(), fullContent, current);
         }
 
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/chapters/{chapterId}/find-pairs-result")
-    public ResponseEntity<Void> updateFindPairsResult(@PathVariable Long chapterId,
-                                                      @RequestBody FindPairsResult result) {
-        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
-        if (chapter == null) {
+    @PatchMapping("/books/{bookId}/find-pairs-result")
+    public ResponseEntity<Void> updateBookFindPairsResult(@PathVariable Long bookId,
+                                                          @RequestBody FindPairsResult result) {
+        Book book = bookRepository.findById(bookId).orElse(null);
+        if (book == null) {
             return ResponseEntity.notFound().build();
         }
 
-        chapter.setFindPairsResult(result);
-        chapterRepository.save(chapter);
+        book.setFindPairsResult(result);
+        bookRepository.save(book);
+
+        if (result.getPairs() != null && !result.getPairs().isEmpty()) {
+            chapterEventProducer.sendBookForRelations(bookId, result.getPairs());
+        }
 
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/chapters/{chapterId}/relations-result")
-    public ResponseEntity<Void> updateRelationsResult(@PathVariable Long chapterId,
-                                                      @RequestBody RelationsResult result) {
-        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
-        if (chapter == null) {
+    @PatchMapping("/books/{bookId}/relations-result")
+    public ResponseEntity<Void> updateBookRelationsResult(@PathVariable Long bookId,
+                                                          @RequestBody Map<String, Object> result) {
+        Book book = bookRepository.findById(bookId).orElse(null);
+        if (book == null) {
             return ResponseEntity.notFound().build();
         }
 
-        chapter.setRelationsResult(result);
-        chapterRepository.save(chapter);
+        book.setRelationsResult(result);
+        bookRepository.save(book);
 
         return ResponseEntity.ok().build();
     }
@@ -142,17 +160,11 @@ public class FastApiController {
     }
 
     @PostMapping("/chapters/{chapterId}/find-pairs")
-    public ResponseEntity<FindPairsResult> findPairs(@PathVariable Long chapterId,
-                                                     @Valid @RequestBody FindPairsRequest request) {
-        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
-        if (chapter == null) {
+    public ResponseEntity<Void> findPairs(@PathVariable Long chapterId) {
+        if (!chapterRepository.existsById(chapterId)) {
             return ResponseEntity.notFound().build();
         }
 
-        FindPairsResult result = fastApiClient.findPairs(chapter.getContent(), request.names());
-        chapter.setFindPairsResult(result);
-        chapterRepository.save(chapter);
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.status(410).build();
     }
 }

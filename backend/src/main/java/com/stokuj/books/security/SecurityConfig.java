@@ -68,8 +68,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/analyse-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/ner-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/find-pairs-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/relations-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/books/*/find-pairs-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/books/*/relations-result").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions

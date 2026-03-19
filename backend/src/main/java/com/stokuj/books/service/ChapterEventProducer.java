@@ -15,8 +15,8 @@ public class ChapterEventProducer {
     private final KafkaTemplate<Object, Object> kafkaTemplate;
     private static final String TOPIC_ANALYSE = "chapter.analyse";
     private static final String TOPIC_NER = "chapter.ner";
-    private static final String TOPIC_FIND_PAIRS = "chapter.find-pairs";
-    private static final String TOPIC_RELATIONS = "chapter.relations";
+    private static final String TOPIC_BOOK_FIND_PAIRS = "book.find-pairs";
+    private static final String TOPIC_BOOK_RELATIONS = "book.relations";
 
     public ChapterEventProducer(KafkaTemplate<Object, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
@@ -42,25 +42,24 @@ public class ChapterEventProducer {
         kafkaTemplate.send(TOPIC_NER, String.valueOf(chapterId), payload);
     }
 
-    public void sendChapterForRelations(Long chapterId, String content, List<String> names) {
-        log.info("Sending chapter {} to topic {} for relations", chapterId, TOPIC_RELATIONS);
+    public void sendBookForFindPairs(Long bookId, String fullContent, Map<String, Integer> characters) {
+        log.info("Sending book {} to topic {} for find-pairs", bookId, TOPIC_BOOK_FIND_PAIRS);
 
         Map<String, Object> payload = new HashMap<>();
-        payload.put("chapterId", chapterId);
-        payload.put("content", content);
-        payload.put("names", names);
+        payload.put("bookId", bookId);
+        payload.put("content", fullContent);
+        payload.put("characters", characters);
 
-        kafkaTemplate.send(TOPIC_RELATIONS, String.valueOf(chapterId), payload);
+        kafkaTemplate.send(TOPIC_BOOK_FIND_PAIRS, String.valueOf(bookId), payload);
     }
 
-    public void sendChapterForFindPairs(Long chapterId, String content, java.util.List<String> names) {
-        log.info("Sending chapter {} to topic {} for find-pairs", chapterId, TOPIC_FIND_PAIRS);
-        
+    public void sendBookForRelations(Long bookId, List<?> pairs) {
+        log.info("Sending book {} to topic {} for relations", bookId, TOPIC_BOOK_RELATIONS);
+
         Map<String, Object> payload = new HashMap<>();
-        payload.put("chapterId", chapterId);
-        payload.put("content", content);
-        payload.put("names", names);
-        
-        kafkaTemplate.send(TOPIC_FIND_PAIRS, String.valueOf(chapterId), payload);
+        payload.put("bookId", bookId);
+        payload.put("pairs", pairs);
+
+        kafkaTemplate.send(TOPIC_BOOK_RELATIONS, String.valueOf(bookId), payload);
     }
 }
