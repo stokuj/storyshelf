@@ -70,7 +70,9 @@ class LLMService:
         {sentences_text}
         
         TASK:
-        Extract all relationships between the characters listed above.
+        Extract ONLY relationships directly between {names_text}.
+        Do NOT extract relationships involving any other characters.
+        If there is no direct relationship between {names_text} — return empty relations array.
         
         ALLOWED RELATION TYPES (use ONLY these):
         {ALL_RELATIONS_STR}
