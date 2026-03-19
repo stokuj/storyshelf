@@ -5,7 +5,6 @@ import com.stokuj.books.model.entity.BookChapter;
 import com.stokuj.books.model.fastapi.FindPairsResult;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
-import com.stokuj.books.service.ChapterAnalysisService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,16 +28,13 @@ public class FastApiController {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
-    private final ChapterAnalysisService chapterAnalysisService;
     private final ChapterEventProducer chapterEventProducer;
 
     public FastApiController(BookChapterRepository chapterRepository,
                              BookRepository bookRepository,
-                             ChapterAnalysisService chapterAnalysisService,
                              ChapterEventProducer chapterEventProducer) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
-        this.chapterAnalysisService = chapterAnalysisService;
         this.chapterEventProducer = chapterEventProducer;
     }
 
@@ -135,11 +131,12 @@ public class FastApiController {
 
     @PostMapping("/chapters/{chapterId}/analyse")
     public ResponseEntity<Map<String, Object>> analyseChapter(@PathVariable Long chapterId) {
-        if (!chapterRepository.existsById(chapterId)) {
+        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
+        if (chapter == null) {
             return ResponseEntity.notFound().build();
         }
 
-        chapterAnalysisService.analyseAsync(chapterId);
+        chapterEventProducer.sendChapterForAnalysis(chapter.getId(), chapter.getContent());
         return ResponseEntity.accepted().body(Map.of(
                 "chapter_id", chapterId,
                 "analysis_started", true
@@ -148,11 +145,12 @@ public class FastApiController {
 
     @PostMapping("/chapters/{chapterId}/ner")
     public ResponseEntity<Map<String, Object>> nerChapter(@PathVariable Long chapterId) {
-        if (!chapterRepository.existsById(chapterId)) {
+        BookChapter chapter = chapterRepository.findById(chapterId).orElse(null);
+        if (chapter == null) {
             return ResponseEntity.notFound().build();
         }
 
-        chapterAnalysisService.nerAsync(chapterId);
+        chapterEventProducer.sendChapterForNer(chapter.getId(), chapter.getContent());
         return ResponseEntity.accepted().body(Map.of(
                 "chapter_id", chapterId,
                 "ner_started", true

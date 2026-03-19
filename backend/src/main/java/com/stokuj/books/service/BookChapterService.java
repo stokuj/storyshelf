@@ -20,7 +20,6 @@ public class BookChapterService {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
-    private final ChapterAnalysisService chapterAnalysisService;
     private final ChapterEventProducer chapterEventProducer;
 
     private static final int MIN_CHAPTER_SIZE = 2000;    // minimalny rozmiar fragmentu
@@ -38,10 +37,9 @@ public class BookChapterService {
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
-                              BookRepository bookRepository, FastApiClient storyweaveClient, ChapterAnalysisService chapterAnalysisService, ChapterEventProducer chapterEventProducer) {
+                              BookRepository bookRepository, FastApiClient storyweaveClient, ChapterEventProducer chapterEventProducer) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
-        this.chapterAnalysisService = chapterAnalysisService;
         this.chapterEventProducer = chapterEventProducer;
     }
 
