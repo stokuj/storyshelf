@@ -7,7 +7,10 @@ from api.services.callback_client import patch_to_spring
 
 
 def process_find_pairs(
-    content: str, names: list[str], chapter_id: int | str | None = None
+    content: str,
+    names: list[str],
+    chapter_id: int | str | None = None,
+    book_id: int | str | None = None,
 ) -> list[dict]:
     """Find sentence pairs and optionally send the result back to Spring.
 
@@ -15,6 +18,7 @@ def process_find_pairs(
         content: Raw text to search.
         names: Character names to pair up.
         chapter_id: If provided, PATCHes the result to the Spring backend.
+        book_id: If provided, PATCHes the result to the Spring backend.
 
     Returns:
         List of ``{"pair": [...], "sentences": [...]}`` dicts.
@@ -22,6 +26,9 @@ def process_find_pairs(
     result = find_sentences_with_both_characters(content, names)
 
     if chapter_id is not None:
-        patch_to_spring(chapter_id, "find-pairs-result", {"pairs": result})
+        patch_to_spring(chapter_id, "find-pairs-result", {"pairs": result}, resource="chapters")
+
+    if book_id is not None:
+        patch_to_spring(book_id, "find-pairs-result", {"pairs": result}, resource="books")
 
     return result

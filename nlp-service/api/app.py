@@ -1,3 +1,4 @@
+import asyncio
 from datetime import UTC, datetime
 from dotenv import load_dotenv
 
@@ -31,6 +32,8 @@ from api.kafka.consumer import ChapterAnalysisConsumer
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start Kafka Consumer
+    import api.kafka.consumer as consumer_module
+    consumer_module.app_event_loop = asyncio.get_event_loop()
     consumer_thread = ChapterAnalysisConsumer()
     consumer_thread.start()
     

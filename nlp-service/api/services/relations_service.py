@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 
 from api.models.model import TextContentRequest
 from api.services.book_service import find_sentences_with_both_characters
-from api.services.callback_client import patch_to_spring
+from api.services.callback_client import patch_to_spring, patch_to_spring_async
 from api.services.llm_service import llm_service
 from api.services.transformers_service import DEFAULT_NER_MODEL, extract_entities
 
@@ -95,4 +96,22 @@ def process_chapter_relations(
     patch_to_spring(chapter_id, "relations-result", compat_result)
 
     logger.info("Successfully sent relations result for chapter %s back to Spring", chapter_id)
+    return result
+
+
+async def process_book_relations_async(pairs: list[dict], book_id: int | str) -> dict:
+    async def extract_one(pair_data: dict) -> dict:
+        pair = pair_data["pair"]
+        sentences = pair_data["sentences"]
+        relations_raw = await llm_service.extract_relations(pair, sentences)
+        try:
+            relations = json.loads(relations_raw)
+        except json.JSONDecodeError:
+            relations = {"raw": relations_raw}
+        return {"pair": pair, "relations": relations}
+
+    results = await asyncio.gather(*[extract_one(p) for p in pairs])
+
+    result = {"bookId": book_id, "all_relations": list(results)}
+    await patch_to_spring_async(book_id, "relations-result", result, resource="books")
     return result
