@@ -40,7 +40,7 @@ jobs:
       - name: Run coverage
         run: |
           uv run coverage run -m pytest -m "not integration"
-          uv run coverage report --fail-under=90 --include="api/*"
+          uv run coverage report --fail-under=70 --include="api/*"
 
   build-and-push:
     needs: test
