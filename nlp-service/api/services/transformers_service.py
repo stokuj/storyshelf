@@ -9,11 +9,11 @@ from typing import Any, Callable, cast
 from transformers import pipeline
 
 from api.models.model import TextContentRequest
-from api.config.settings import NER_MODEL
+from api.config import settings
 
 
 logger = logging.getLogger(__name__)
-DEFAULT_NER_MODEL = NER_MODEL
+DEFAULT_NER_MODEL = settings.NER_MODEL
 _NER_PIPELINES: dict[str, Any] = {}
 
 
@@ -71,12 +71,15 @@ def extract_entities(
     for entity in entities:
         word = entity.get("word", "").strip()
         group = entity.get("entity_group")
-        key = group_to_key.get(group)
-        if word and key:
-            entity_group_mapping[key].append(word)
+        if group is not None:
+            key = group_to_key.get(str(group))
+            if word and key:
+                entity_group_mapping[key].append(word)
 
-    def sorted_counts(names: list[str]) -> dict[str, int]:
-        return dict(sorted(Counter(names).items(), key=lambda x: x[1], reverse=True))
+    def sorted_counts(names: list[str], min_occurrences: int = 1) -> dict[str, int]:
+        counts = Counter(names)
+        filtered = {name: count for name, count in counts.items() if count >= min_occurrences}
+        return dict(sorted(filtered.items(), key=lambda x: x[1], reverse=True))
 
     elapsed_seconds = time.perf_counter() - start_time
 
@@ -89,9 +92,9 @@ def extract_entities(
     return {
         "engine": "transformers",
         "model_name": model,
-        "characters": sorted_counts(entity_group_mapping["characters"]),
-        "organizations": sorted_counts(entity_group_mapping["organizations"]),
-        "locations": sorted_counts(entity_group_mapping["locations"]),
-        "miscellaneous": sorted_counts(entity_group_mapping["miscellaneous"]),
+        "characters": sorted_counts(entity_group_mapping["characters"], min_occurrences=settings.NER_MIN_OCCURRENCES),
+        "organizations": sorted_counts(entity_group_mapping["organizations"], min_occurrences=settings.NER_MIN_OCCURRENCES),
+        "locations": sorted_counts(entity_group_mapping["locations"], min_occurrences=settings.NER_MIN_OCCURRENCES),
+        "miscellaneous": sorted_counts(entity_group_mapping["miscellaneous"], min_occurrences=1),
         "execution_time_seconds": round(elapsed_seconds, 3),
     }

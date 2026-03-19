@@ -43,6 +43,7 @@ LLM_MAX_TOKENS: int = int(os.getenv("LLM_MAX_TOKENS", "1000"))
 NER_MODEL: str = os.getenv(
     "NER_MODEL", "dbmdz/bert-large-cased-finetuned-conll03-english"
 )
+NER_MIN_OCCURRENCES: int = int(os.getenv("NER_MIN_OCCURRENCES", "5"))
 
 # --- Kafka ---
 KAFKA_BOOTSTRAP_SERVERS: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
