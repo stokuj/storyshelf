@@ -11,7 +11,7 @@ def analyse_text_endpoint(
 ) -> AcceptedResponse:
     if not payload.content.strip():
         raise HTTPException(status_code=422, detail="Content cannot be empty")
-    if payload.chapterId != chapterId:
+    if str(payload.chapterId) != str(chapterId):
         raise HTTPException(status_code=422, detail="chapterId does not match path")
 
     process_analyse(payload.content, chapter_id=chapterId)

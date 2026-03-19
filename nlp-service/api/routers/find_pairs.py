@@ -17,7 +17,7 @@ async def find_pairs_endpoint(
 ) -> AcceptedResponse:
     if not payload.content.strip():
         raise HTTPException(status_code=422, detail="Content cannot be empty")
-    if payload.bookId != bookId:
+    if str(payload.bookId) != str(bookId):
         raise HTTPException(status_code=422, detail="bookId does not match path")
 
     names = list((payload.characters or {}).keys())

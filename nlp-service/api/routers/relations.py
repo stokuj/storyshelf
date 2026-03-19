@@ -16,7 +16,7 @@ router = APIRouter(prefix="/books", tags=["relations"])
 async def relations(
     request: Request, bookId: int | str, payload: BookRelationsPayload
 ) -> AcceptedResponse:
-    if payload.bookId != bookId:
+    if str(payload.bookId) != str(bookId):
         raise HTTPException(status_code=422, detail="bookId does not match path")
 
     task = asyncio.create_task(process_book_relations_async(payload.pairs, bookId))
