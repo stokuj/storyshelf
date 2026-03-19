@@ -10,6 +10,20 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 
 ## Changelog
 
+### [0.5.0] - 2026-03-19
+
+Kafka flow and book-level results.
+
+#### Added
+
+- Book fields for aggregation: `chaptersCount`, `nerCompletedCount`, `characters`, `findPairsResult`, `relationsResult`.
+- Book-level callbacks for find-pairs and relations.
+
+#### Changed
+
+- Manual `POST /api/fastAPI/chapters/{chapterId}/analyse` and `/ner` now send Kafka events and return 202.
+- find-pairs and relations results are saved on the book, not on chapters.
+
 ### [0.4.1] - 2026-03-15
 
 Manual FastAPI endpoints for per-chapter analysis.
