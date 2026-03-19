@@ -12,5 +12,5 @@ import java.util.List;
 public class RelationsResult {
     private List<String> pair;
     private Integer sentencesCount;
-    private String relations;
+    private Object relations;
 }

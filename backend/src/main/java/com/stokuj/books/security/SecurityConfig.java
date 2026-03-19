@@ -69,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/analyse-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/ner-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/find-pairs-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/relations-result").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
