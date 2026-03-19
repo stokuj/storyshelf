@@ -20,7 +20,7 @@ public class BookChapterService {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
-    private final ChapterAnalysisService chapterAnalysisService;
+    private final ChapterEventProducer chapterEventProducer;
 
     private static final int MIN_CHAPTER_SIZE = 2000;    // minimalny rozmiar fragmentu
     private static final int MAX_CHAPTER_SIZE = 50000;   // maksymalny rozmiar fragmentu
@@ -37,10 +37,10 @@ public class BookChapterService {
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
-                              BookRepository bookRepository, FastApiClient storyweaveClient, ChapterAnalysisService chapterAnalysisService) {
+                              BookRepository bookRepository, FastApiClient storyweaveClient, ChapterEventProducer chapterEventProducer) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
-        this.chapterAnalysisService = chapterAnalysisService;
+        this.chapterEventProducer = chapterEventProducer;
     }
 
     @Transactional
@@ -82,15 +82,34 @@ public class BookChapterService {
 
         chapterRepository.saveAll(chapters);
 
+        int count = chapterRepository.countByBookId(bookId);
+        book.setChaptersCount(count);
+        book.setNerCompletedCount(0);
+        book.setCharacters(new HashMap<>());
+        book.setFindPairsResult(null);
+        book.setRelationsResult(null);
+        bookRepository.save(book);
+
+        for (BookChapter chapter : chapters) {
+            chapterEventProducer.sendChapterForAnalysis(chapter.getId(), chapter.getContent());
+        }
+
+        for (BookChapter chapter : chapters) {
+            if (chapter.getChapterNumber() == 1) {
+                chapterEventProducer.sendChapterForNer(chapter.getId(), chapter.getContent());
+            }
+        }
+
         // FastAPI Chapter Analysis - disabled for now (manual endpoints only)
-        // chapters.forEach(chapter ->
-        //         chapterAnalysisService.analyseAsync(chapter.getId())
-        // );
 
         // FastAPI NER Analysis - disabled for now (manual endpoints only)
         // chapters.forEach(chapter ->
         //         chapterAnalysisService.nerAsync(chapter.getId())
         // );
+
+        // NOTE: find-pairs and relations are triggered from the NER webhook
+        // (FastApiController.updateNerResult), once character names are available.
+        // This avoids re-running NER in the relations task and keeps the event flow sequential.
 
         // FastAPI find-pairs - disabled for now (manual endpoint only)
         // chapters.forEach(chapter ->

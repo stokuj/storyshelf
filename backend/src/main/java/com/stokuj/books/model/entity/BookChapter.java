@@ -1,9 +1,7 @@
 package com.stokuj.books.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.stokuj.books.model.fastapi.FindPairsResult;
 import com.stokuj.books.model.fastapi.NerResult;
-import com.stokuj.books.model.fastapi.RelationsResult;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;
@@ -52,17 +50,5 @@ public class BookChapter {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private NerResult nerResult;
-
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-    /// find-pairs part - ENDPOINT FROM FAST API /find-pairs/
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private FindPairsResult findPairsResult;
-
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-    /// relations part - ENDPOINT FROM FAST API /relations/
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private RelationsResult relationsResult;
 
 }
