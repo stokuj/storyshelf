@@ -12,11 +12,13 @@ class TestGlobalErrors:
         """Test if the global exception handler returns a 500 status code when an unhandled exception occurs."""
 
         with patch(
-            "api.routers.analyse.analyse_text",
+            "api.routers.analyse.process_analyse",
             side_effect=RuntimeError("Unexpected error"),
         ):
             with TestClient(app, raise_server_exceptions=False) as c:
-                response = c.post("/analyse/", json={"content": "test"})
+                response = c.post(
+                    "/chapters/1/analyse", json={"chapterId": 1, "content": "test"}
+                )
                 assert response.status_code == 500
                 assert response.json() == {"detail": "Internal server error"}
 

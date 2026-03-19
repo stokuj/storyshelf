@@ -7,46 +7,33 @@ Currently using FastAPI with Docker.
 ---
 ## Endpoints
 
-The API currently exposes 8 endpoints.
+The API currently exposes 7 endpoints.
 
 - `GET /` - Basic hello route.
 - `GET /health/` - Service health check.
 - `GET /health/celery/` - Celery workers status and active task count.
-- `POST /analyse/` - Returns text stats (`char_count`, `char_count_clean`, `word_count`, `token_count`) for provided `content`.
-- `POST /find-pairs/` - Finds character pairs and matching sentences using direct `content` and `names`.
-- `POST /relations/` - Extracts relations for exactly two names (`name_1`, `name_2`) from provided `sentences`.
-- `POST /ner/` - Queues async NER extraction in Celery, returns `task_id` (`202 Accepted`).
-- `GET /ner/{task_id}` - Returns NER task state and result/error when ready.
+- `POST /chapters/{chapterId}/analyse` - Sends chapter analysis to Kafka.
+- `POST /chapters/{chapterId}/ner` - Sends chapter NER to Kafka (Celery does the work).
+- `POST /books/{bookId}/find-pairs` - Sends book find-pairs to Kafka (Celery does the work).
+- `POST /books/{bookId}/relations` - Sends book relations to Kafka (async worker).
 
 
 ## Data flow plan
 ```
 Input text (book/chapter/content)
         |
-        +--> POST /analyse/ ----------------------> sync analysis response
+        +--> POST /chapters/{chapterId}/analyse --> Kafka --> callback to Spring
         |
-        +--> POST /ner/ --------------------------> task_id
-                       |                            
-                       v
-                Redis broker/result backend
-                       |
-                       v
-                Celery worker process
-                - worker starts
-                - loads NER model once per process
-                - runs transformers NER task
-                       |
-                       v
-                task result persisted in Redis
-                       |
-                       v
-                GET /ner/{task_id} -> state/result
-
-After NER result is ready:
-entities -> POST /find-pairs/ -> sentence pairs -> POST /relations/ -> relation graph JSON
-
-Future step:
-coreference resolution + entity normalization before pair generation
+        +--> POST /chapters/{chapterId}/ner -----> Kafka --> Celery --> callback to Spring
+                                                     |
+                                                     v
+                                   characters saved on the book
+                                                     |
+                                                     v
+                     POST /books/{bookId}/find-pairs --> Kafka --> Celery --> callback to Spring
+                                                     |
+                                                     v
+                     POST /books/{bookId}/relations --> Kafka --> async --> callback to Spring
 ```
 
 ---
@@ -105,6 +92,19 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 ```
 
 ## Changelog
+
+### [0.9.0] - 2026-03-19
+
+Kafka endpoints and book-level flow.
+
+#### Added
+
+- Celery task for book-level find-pairs.
+
+#### Changed
+
+- HTTP endpoints use the same payloads as Kafka.
+- find-pairs and relations moved to book-level endpoints.
 
 ### [0.8.1] - 2026-03-12
 

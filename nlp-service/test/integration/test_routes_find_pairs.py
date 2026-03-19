@@ -6,50 +6,44 @@ client = TestClient(app)
 
 
 class TestFindPairsRoute:
-    def test_post_find_pairs_returns_200(self):
-        """Test that the /find-pairs/ route returns a 200 status code when given valid input."""
+    def test_post_find_pairs_returns_202(self):
+        """Test that the /books/{bookId}/find-pairs route returns 202 with valid input."""
 
         response = client.post(
-            "/find-pairs/",
+            "/books/1/find-pairs",
             json={
+                "bookId": 1,
                 "content": "Bilbo met Gandalf near the Shire. Gandalf spoke with Thorin. Bilbo and Thorin argued about the treasure. Only Gandalf remained calm.",
-                "names": ["Bilbo", "Gandalf", "Thorin"],
+                "characters": {"Bilbo": 1, "Gandalf": 1, "Thorin": 1},
             },
         )
-        data = response.json()
-
-        assert response.status_code == 200
-        assert "pairs" in data
-        assert isinstance(data["pairs"], list)  # check if pairs is a list
-        assert len(data["pairs"]) > 0  # check if pairs is not empty
+        assert response.status_code == 202
 
     def test_post_find_pairs_missing_content_returns_422(self):
         """Test that the /find-pairs/ route returns a 422 status code when the content field is missing."""
 
-        response = client.post(
-            "/find-pairs/", json={"names": ["Bilbo", "Gandalf", "Thorin"]}
-        )
+        response = client.post("/books/1/find-pairs", json={"bookId": 1})
         assert response.status_code == 422
         assert response.json()["detail"] == "Content cannot be empty"
 
-    def test_post_find_pairs_missing_names_returns_422(self):
-        """Test that the /find-pairs/ route returns a 422 status code when the names field is missing."""
+    def test_post_find_pairs_missing_names_returns_202(self):
+        """Test that the endpoint accepts empty characters and still queues work."""
 
         response = client.post(
-            "/find-pairs/",
+            "/books/1/find-pairs",
             json={
-                "content": "Bilbo met Gandalf near the Shire. Gandalf spoke with Thorin. Bilbo and Thorin argued about the treasure. Only Gandalf remained calm."
+                "bookId": 1,
+                "content": "Bilbo met Gandalf near the Shire. Gandalf spoke with Thorin. Bilbo and Thorin argued about the treasure. Only Gandalf remained calm.",
             },
         )
-        assert response.status_code == 422
-        assert response.json()["detail"] == "Names cannot be empty"
+        assert response.status_code == 202
 
     def test_post_find_pairs_whitespace_content_returns_422(self):
         """Test that the /find-pairs/ route returns a 422 status code when the content is whitespace only."""
 
         response = client.post(
-            "/find-pairs/",
-            json={"content": "   ", "names": ["Bilbo", "Gandalf", "Thorin"]},
+            "/books/1/find-pairs",
+            json={"bookId": 1, "content": "   ", "characters": {"Bilbo": 1}},
         )
         assert response.status_code == 422
         assert response.json()["detail"] == "Content cannot be empty"

@@ -9,7 +9,7 @@ celery = Celery(
     "app",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["api.tasks.ner_task"],
+    include=["api.tasks.ner_task", "api.tasks.relations_task", "api.tasks.find_pairs_task"],
 )
 
 

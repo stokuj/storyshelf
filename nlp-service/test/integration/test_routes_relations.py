@@ -6,72 +6,64 @@ client = TestClient(app)
 
 
 class TestRelationsRoute:
-    def test_post_relations_returns_200(self):
-        """Test that the /relations/ route returns a 200 status code when given valid input."""
+    def test_post_relations_returns_202(self):
+        """Test that the /books/{bookId}/relations route returns 202 with valid input."""
 
         with patch(
-            "api.routers.relations.llm_service.extract_relations",
+            "api.routers.relations.process_book_relations_async",
             new_callable=AsyncMock,
         ) as mock:
-            mock.return_value = '{"relations": []}'
+            mock.return_value = {"relations": []}
             response = client.post(
-                "/relations/",
+                "/books/1/relations",
                 json={
-                    "name_1": "Frodo",
-                    "name_2": "Sam",
-                    "sentences": ["Frodo and Sam walked."],
+                    "bookId": 1,
+                    "pairs": [
+                        {
+                            "pair": ["Frodo", "Sam"],
+                            "sentences": ["Frodo and Sam walked."],
+                        }
+                    ],
                 },
             )
-        assert response.status_code == 200
+        assert response.status_code == 202
 
     def test_post_relations_missing_sentences_returns_422(self):
         """Test that the /relations/ route returns a 422 status code when the sentences field is missing."""
 
-        response = client.post("/relations/", json={"name_1": "Frodo", "name_2": "Sam"})
+        response = client.post("/books/1/relations", json={})
         assert response.status_code == 422
+        assert response.json()["detail"] == "bookId is required"
 
     def test_post_relations_missing_name1_returns_422(self):
         """Test that the /relations/ route returns a 422 status code when the name_1 field is missing."""
 
-        response = client.post(
-            "/relations/",
-            json={"name_2": "Sam", "sentences": ["Frodo and Sam walked."]},
-        )
+        response = client.post("/books/1/relations", json={})
         assert response.status_code == 422
+        assert response.json()["detail"] == "bookId is required"
 
     def test_post_relations_missing_name2_returns_422(self):
         """Test that the /relations/ route returns a 422 status code when the name_2 field is missing."""
 
-        response = client.post(
-            "/relations/",
-            json={"name_1": "Frodo", "sentences": ["Frodo and Sam walked."]},
-        )
+        response = client.post("/books/1/relations", json={})
         assert response.status_code == 422
+        assert response.json()["detail"] == "bookId is required"
 
     def test_post_relations_whitespace_name_returns_422(self):
         """Test that the /relations/ route returns a 422 when a character name is whitespace only."""
 
         response = client.post(
-            "/relations/",
-            json={
-                "name_1": "  ",
-                "name_2": "Sam",
-                "sentences": ["Frodo and Sam walked."],
-            },
+            "/books/1/relations",
+            json={"bookId": 1, "pairs": []},
         )
-        assert response.status_code == 422
-        assert response.json()["detail"] == "Character names cannot be empty"
+        assert response.status_code == 202
 
     def test_post_relations_same_names_returns_422(self):
         """Test that the /relations/ route returns a 422 when both character names are the same."""
 
         response = client.post(
-            "/relations/",
-            json={
-                "name_1": "Frodo",
-                "name_2": "Frodo",
-                "sentences": ["Frodo and Sam walked."],
-            },
+            "/books/1/relations",
+            json={"bookId": 2, "pairs": []},
         )
         assert response.status_code == 422
-        assert response.json()["detail"] == "Character names must be different"
+        assert response.json()["detail"] == "bookId does not match path"

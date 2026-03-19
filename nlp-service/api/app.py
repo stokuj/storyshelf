@@ -1,3 +1,4 @@
+import asyncio
 from datetime import UTC, datetime
 from dotenv import load_dotenv
 
@@ -16,7 +17,11 @@ logger = logging.getLogger(__name__)
 FIELD_MISSING_MESSAGES: dict[str, str] = {
     "content": "Content cannot be empty",
     "names": "Names cannot be empty",
+    "chapterId": "chapterId is required",
+    "bookId": "bookId is required",
 }
+from contextlib import asynccontextmanager
+
 from api.config import settings
 from api.config.celery_app import celery
 from api.middleware.rate_limiter import limiter
@@ -24,9 +29,23 @@ from api.routers.analyse import router as analyse_router
 from api.routers.find_pairs import router as find_pairs_router
 from api.routers.ner import router as ner_router
 from api.routers.relations import router as relations_router
+from api.kafka.consumer import ChapterAnalysisConsumer
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Start Kafka Consumer
+    import api.kafka.consumer as consumer_module
+    consumer_module.app_event_loop = asyncio.get_event_loop()
+    consumer_thread = ChapterAnalysisConsumer()
+    consumer_thread.start()
+    
+    yield
+    
+    # Stop Kafka Consumer
+    consumer_thread.stop()
+    consumer_thread.join(timeout=5.0)
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
 
 

@@ -15,7 +15,7 @@ class TestExtractRelations:
 
         service = LLMService()
 
-        service._client.chat.completions.create = AsyncMock(return_value=fake_response)
+        service._async_client.chat.completions.create = AsyncMock(return_value=fake_response)
 
         result = await service.extract_relations(
             pair=["Gandalf", "Frodo"],
@@ -33,11 +33,11 @@ class TestExtractRelations:
         fake_response.choices[0].message.content = '{"relations": []}'
 
         service = LLMService(model="some-test-model")
-        service._client.chat.completions.create = AsyncMock(return_value=fake_response)
+        service._async_client.chat.completions.create = AsyncMock(return_value=fake_response)
 
         await service.extract_relations(["A", "B"], ["A met B."])
 
-        call_kwargs = service._client.chat.completions.create.call_args.kwargs
+        call_kwargs = service._async_client.chat.completions.create.call_args.kwargs
         assert call_kwargs["model"] == "some-test-model"
 
     @pytest.mark.asyncio
@@ -48,11 +48,11 @@ class TestExtractRelations:
         fake_response.choices[0].message.content = '{"relations": []}'
 
         service = LLMService()
-        service._client.chat.completions.create = AsyncMock(return_value=fake_response)
+        service._async_client.chat.completions.create = AsyncMock(return_value=fake_response)
 
         await service.extract_relations(["Gandalf", "Frodo"], ["Gandalf helped Frodo."])
 
-        call_kwargs = service._client.chat.completions.create.call_args.kwargs
+        call_kwargs = service._async_client.chat.completions.create.call_args.kwargs
         user_message = call_kwargs["messages"][1]["content"]
 
         assert "Gandalf" in user_message
@@ -64,7 +64,7 @@ class TestExtractRelations:
         """On auth error the service should return an empty relations fallback."""
 
         service = LLMService()
-        service._client.chat.completions.create = AsyncMock(
+        service._async_client.chat.completions.create = AsyncMock(
             side_effect=openai.AuthenticationError(
                 message="invalid key", response=MagicMock(), body={}
             )
@@ -78,7 +78,7 @@ class TestExtractRelations:
         """On rate limit error the service should return an empty relations fallback."""
 
         service = LLMService()
-        service._client.chat.completions.create = AsyncMock(
+        service._async_client.chat.completions.create = AsyncMock(
             side_effect=openai.RateLimitError(
                 message="rate limit exceeded", response=MagicMock(), body={}
             )
@@ -92,7 +92,7 @@ class TestExtractRelations:
         """On timeout the service should return an empty relations fallback, not crash."""
 
         service = LLMService()
-        service._client.chat.completions.create = AsyncMock(
+        service._async_client.chat.completions.create = AsyncMock(
             side_effect=openai.APITimeoutError(request=MagicMock())
         )
 
@@ -104,7 +104,7 @@ class TestExtractRelations:
         """On connection error the service should return an empty relations fallback."""
 
         service = LLMService()
-        service._client.chat.completions.create = AsyncMock(
+        service._async_client.chat.completions.create = AsyncMock(
             side_effect=openai.APIConnectionError(request=MagicMock())
         )
 
@@ -119,7 +119,7 @@ class TestExtractRelations:
         fake_response.choices[0].message.content = None
 
         service = LLMService()
-        service._client.chat.completions.create = AsyncMock(return_value=fake_response)
+        service._async_client.chat.completions.create = AsyncMock(return_value=fake_response)
 
         result = await service.extract_relations(["A", "B"], ["A met B."])
         assert result == '{"relations": []}'

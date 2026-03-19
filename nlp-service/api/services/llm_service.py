@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import openai
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
 from api.config.settings import (
     OPENROUTER_API_KEY,
     OPENROUTER_BASE_URL,
@@ -38,7 +38,11 @@ class LLMService:
             model: OpenRouter model identifier to use for relation extraction.
         """
         self._model = model
-        self._client = AsyncOpenAI(
+        self._async_client = AsyncOpenAI(
+            base_url=OPENROUTER_BASE_URL,
+            api_key=OPENROUTER_API_KEY,
+        )
+        self._sync_client = OpenAI(
             base_url=OPENROUTER_BASE_URL,
             api_key=OPENROUTER_API_KEY,
         )
@@ -53,21 +57,11 @@ class LLMService:
         # Remove ASCII control chars (except newline/space)
         return "".join(ch for ch in text if ch == "\n" or ch >= " ")
 
-    async def extract_relations(self, pair: list[str], sentences: list[str]) -> str:
-        """Extract relationships between a character pair from the given sentences.
-
-        Args:
-            pair: Exactly two character names, e.g. ["Gandalf", "Bilbo"].
-            sentences: List of sentences in which both characters appear.
-
-        Returns:
-            JSON string with extracted relations:
-            {"relations": [{"source": ..., "relation": ..., "target": ..., "evidence": ...}]}
-        """
+    def _get_prompt(self, pair: list[str], sentences: list[str]) -> str:
         names_text = ", ".join(self._sanitize(n) for n in pair)
         sentences_text = " ".join(self._sanitize(s) for s in sentences)
 
-        prompt = f"""You are an expert in literary analysis of fantasy and science-fiction.
+        return f"""You are an expert in literary analysis of fantasy and science-fiction.
 
         CHARACTERS:
         {names_text}
@@ -76,7 +70,9 @@ class LLMService:
         {sentences_text}
         
         TASK:
-        Extract all relationships between the characters listed above.
+        Extract ONLY relationships directly between {names_text}.
+        Do NOT extract relationships involving any other characters.
+        If there is no direct relationship between {names_text} — return empty relations array.
         
         ALLOWED RELATION TYPES (use ONLY these):
         {ALL_RELATIONS_STR}
@@ -106,10 +102,57 @@ class LLMService:
           ]
         }}"""
 
-        logger.info("Extracting relations for pair: %s", pair)
+    async def extract_relations(self, pair: list[str], sentences: list[str]) -> str:
+        """Extract relationships between a character pair from the given sentences.
+
+        Args:
+            pair: Exactly two character names, e.g. ["Gandalf", "Bilbo"].
+            sentences: List of sentences in which both characters appear.
+
+        Returns:
+            JSON string with extracted relations:
+            {"relations": [{"source": ..., "relation": ..., "target": ..., "evidence": ...}]}
+        """
+        prompt = self._get_prompt(pair, sentences)
+
+        logger.info("Extracting relations for pair (async): %s", pair)
 
         try:
-            response = await self._client.chat.completions.create(
+            response = await self._async_client.chat.completions.create(
+                model=self._model,
+                max_tokens=LLM_MAX_TOKENS,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a literary analysis expert. Return only valid JSON.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                extra_body={"reasoning": {"enabled": False}},
+            )
+            content = response.choices[0].message.content
+            if content is None:
+                logger.warning("LLM returned None content for pair: %s", pair)
+                return '{"relations": []}'
+            return content
+
+        except (
+            openai.RateLimitError,
+            openai.APITimeoutError,
+            openai.APIConnectionError,
+            openai.APIError,
+        ) as e:
+            logger.error("API error for pair %s: %s", pair, e, exc_info=True)
+            return '{"relations": []}'
+
+    def extract_relations_sync(self, pair: list[str], sentences: list[str]) -> str:
+        """Synchronous version of extract_relations for Celery workers."""
+        prompt = self._get_prompt(pair, sentences)
+
+        logger.info("Extracting relations for pair (sync): %s", pair)
+
+        try:
+            response = self._sync_client.chat.completions.create(
                 model=self._model,
                 max_tokens=LLM_MAX_TOKENS,
                 messages=[
