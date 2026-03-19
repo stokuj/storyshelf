@@ -1,41 +1,20 @@
 from fastapi import APIRouter, HTTPException, Request
-from api.config.celery_app import celery
-from api.models.model import (
-    TaskAcceptedResponse,
-    TaskStatusResponse,
-    TextContentRequest,
-)
+from api.models.model import AcceptedResponse, ChapterContentPayload
 from api.middleware.rate_limiter import limiter
 from api.tasks.ner_task import extract_entities_task
 
-router = APIRouter(prefix="/ner", tags=["ner"])
+router = APIRouter(prefix="/chapters", tags=["ner"])
 
 
-@router.post("/", status_code=202, response_model=TaskAcceptedResponse)
+@router.post("/{chapterId}/ner", status_code=202, response_model=AcceptedResponse)
 @limiter.limit("30/minute")
 def ner_by_content(
-    request: Request, payload: TextContentRequest
-) -> TaskAcceptedResponse:
+    request: Request, chapterId: int | str, payload: ChapterContentPayload
+) -> AcceptedResponse:
     if not payload.content.strip():
         raise HTTPException(status_code=422, detail="Content cannot be empty")
+    if payload.chapterId != chapterId:
+        raise HTTPException(status_code=422, detail="chapterId does not match path")
 
-    task = extract_entities_task.delay(payload.content)
-    return TaskAcceptedResponse(task_id=task.id)
-
-
-@router.get("/{task_id}", response_model=TaskStatusResponse)
-def extract_entities_status(task_id: str) -> TaskStatusResponse:
-    task = celery.AsyncResult(task_id)
-
-    response = {
-        "task_id": task.id,
-        "state": task.state,
-        "ready": task.ready(),
-    }
-
-    if task.successful():
-        response["result"] = task.result
-    elif task.failed():
-        response["error"] = str(task.result)
-
-    return TaskStatusResponse(**response)
+    extract_entities_task.delay(payload.content, chapter_id=chapterId)
+    return AcceptedResponse(status="accepted")

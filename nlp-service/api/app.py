@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 FIELD_MISSING_MESSAGES: dict[str, str] = {
     "content": "Content cannot be empty",
     "names": "Names cannot be empty",
+    "chapterId": "chapterId is required",
+    "bookId": "bookId is required",
 }
 from contextlib import asynccontextmanager
 

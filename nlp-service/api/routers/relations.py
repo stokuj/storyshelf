@@ -1,38 +1,32 @@
-import json
+import asyncio
 import logging
+
 from fastapi import APIRouter, HTTPException, Request
-from api.models.model import RelationsDirectRequest, RelationsResponse
+from api.models.model import AcceptedResponse, BookRelationsPayload
 from api.middleware.rate_limiter import limiter
-from api.services.llm_service import llm_service
+from api.services.relations_service import process_book_relations_async
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/relations", tags=["relations"])
+router = APIRouter(prefix="/books", tags=["relations"])
 
 
-@router.post("/", response_model=RelationsResponse)
+@router.post("/{bookId}/relations", response_model=AcceptedResponse, status_code=202)
 @limiter.limit("30/minute")
 async def relations(
-    request: Request, payload: RelationsDirectRequest
-) -> RelationsResponse:
-    if not payload.name_1.strip() or not payload.name_2.strip():
-        raise HTTPException(status_code=422, detail="Character names cannot be empty")
+    request: Request, bookId: int | str, payload: BookRelationsPayload
+) -> AcceptedResponse:
+    if payload.bookId != bookId:
+        raise HTTPException(status_code=422, detail="bookId does not match path")
 
-    if payload.name_1.strip() == payload.name_2.strip():
-        raise HTTPException(status_code=422, detail="Character names must be different")
+    task = asyncio.create_task(process_book_relations_async(payload.pairs, bookId))
 
-    pair = [payload.name_1, payload.name_2]
+    def _log_task_result(t: asyncio.Task) -> None:
+        try:
+            t.result()
+        except Exception as exc:
+            logger.error("Book relations task failed: %s", exc, exc_info=True)
 
-    relations_raw = await llm_service.extract_relations(pair, payload.sentences)
+    task.add_done_callback(_log_task_result)
 
-    try:
-        relations_data = json.loads(relations_raw)
-    except json.JSONDecodeError:
-        relations_data = {"raw": relations_raw}
-
-    logger.info("Relations for %s: %s", pair, relations_data)
-    return RelationsResponse(
-        pair=pair,
-        sentences_count=len(payload.sentences),
-        relations=relations_data,
-    )
+    return AcceptedResponse(status="accepted")
