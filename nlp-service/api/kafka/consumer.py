@@ -6,8 +6,8 @@ from confluent_kafka import Consumer, KafkaError
 
 from api.config import settings
 from api.services.analyse_service import process_analyse
-from api.services.find_pairs_service import process_find_pairs
 from api.services.relations_service import process_book_relations_async
+from api.tasks.find_pairs_task import find_pairs_task
 from api.tasks.ner_task import extract_entities_task
 
 logger = logging.getLogger(__name__)
@@ -74,21 +74,9 @@ class ChapterAnalysisConsumer(threading.Thread):
                     if not book_id or not content:
                         logger.warning(f"Invalid payload received on {topic}, missing bookId or content")
                         continue
-                    logger.info(f"Finding pairs for book {book_id} with {len(names)} characters...")
-                    if app_event_loop is None:
-                        process_find_pairs(content, names, book_id=book_id)
-                        logger.info(f"Successfully processed book.find-pairs for {book_id}")
-                    else:
-                        app_event_loop.call_soon_threadsafe(
-                            app_event_loop.run_in_executor,
-                            None,
-                            process_find_pairs,
-                            content,
-                            names,
-                            None,
-                            book_id,
-                        )
-                        logger.info(f"Scheduled book.find-pairs for {book_id}")
+                    logger.info(f"Queueing find-pairs task for book {book_id} with {len(names)} characters...")
+                    find_pairs_task.delay(content, names, book_id)
+                    logger.info(f"Successfully queued book.find-pairs for {book_id}")
 
                 elif topic == 'book.relations':
                     book_id = payload.get('bookId')
