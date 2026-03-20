@@ -31,7 +31,8 @@ public class AuthService {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole("ROLE_USER");
+        user.setRole(com.stokuj.books.model.enums.Role.USER);
+        user.setUsername(generateUsername(request.getEmail()));
 
         userRepository.save(user);
 
@@ -49,5 +50,16 @@ public class AuthService {
 
         String token = jwtService.generateToken(user.getEmail());
         return new AuthResponse(token);
+    }
+
+    private String generateUsername(String email) {
+        String base = email.split("@", 2)[0].toLowerCase();
+        String candidate = base;
+        int counter = 1;
+        while (userRepository.existsByUsername(candidate)) {
+            candidate = base + counter;
+            counter++;
+        }
+        return candidate;
     }
 }

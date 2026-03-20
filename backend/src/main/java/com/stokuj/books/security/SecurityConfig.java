@@ -106,6 +106,9 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/login", "/register", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/home", "/book/**").permitAll()
+                        .requestMatchers("/admin/users/**", "/admin/system").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").hasRole("MODERATOR")
+                        .requestMatchers("/books/propose", "/settings").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
