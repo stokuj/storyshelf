@@ -139,7 +139,7 @@
                     </div>
 
                     <!-- Tagi -->
-                    <div th:if="${not #lists.isEmpty(book.tags)}" class="flex flex-wrap gap-2 mt-4">
+                    <div th:if="${book.tags != null and not #lists.isEmpty(book.tags)}" class="flex flex-wrap gap-2 mt-4">
                         <span th:each="tag : ${book.tags}" class="badge badge-ghost text-xs" th:text="${tag}">tag</span>
                     </div>
 
