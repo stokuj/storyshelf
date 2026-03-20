@@ -6,8 +6,10 @@
 BEGIN;
 
 -- Wyczyść istniejące dane seed (opcjonalne, odkomentuj jeśli potrzebujesz czystego slate)
+-- DELETE FROM book_chapters WHERE book_id IN (SELECT id FROM books WHERE ratings_count > 0);
 -- DELETE FROM book_tags   WHERE book_id IN (SELECT id FROM books WHERE ratings_count > 0);
 -- DELETE FROM book_genres WHERE book_id IN (SELECT id FROM books WHERE ratings_count > 0);
+-- DELETE FROM user_books  WHERE book_id IN (SELECT id FROM books WHERE ratings_count > 0);
 -- DELETE FROM books       WHERE ratings_count > 0;
 
 -- -----------------------------------------------------------

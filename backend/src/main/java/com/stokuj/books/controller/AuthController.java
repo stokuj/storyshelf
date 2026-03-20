@@ -1,6 +1,7 @@
 package com.stokuj.books.controller;
 
 import com.stokuj.books.dto.request.AuthRequest;
+import com.stokuj.books.dto.request.LoginRequest;
 import com.stokuj.books.dto.response.AuthResponse;
 import com.stokuj.books.service.AuthService;
 import jakarta.validation.Valid;
@@ -26,7 +27,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 

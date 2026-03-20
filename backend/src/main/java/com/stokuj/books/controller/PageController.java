@@ -8,21 +8,27 @@ import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.UserBookService;
+import com.stokuj.books.service.UserProfileService;
+import com.stokuj.books.dto.request.UserProfileUpdateRequest;
+import com.stokuj.books.dto.response.UserSettingsResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@Validated
 public class PageController {
 
     private final BookService bookService;
@@ -30,17 +36,20 @@ public class PageController {
     private final UserBookService userBookService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserProfileService userProfileService;
 
     public PageController(BookService bookService,
                           BookChapterService bookChapterService,
                           UserBookService userBookService,
                           UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          UserProfileService userProfileService) {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
         this.userBookService = userBookService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userProfileService = userProfileService;
     }
 
     private boolean hasAuthenticatedUser(Authentication authentication) {
@@ -98,8 +107,73 @@ public class PageController {
     // -------------------------------------------------------------------------
 
     @GetMapping("/settings")
-    public String settings() {
+    public String settings(Model model, Authentication authentication) {
+        UserSettingsResponse settings = userProfileService.toSettingsResponse(
+                userProfileService.findByEmail(authentication.getName())
+        );
+        if (!model.containsAttribute("profileForm")) {
+            model.addAttribute("profileForm", new UserProfileUpdateRequest(
+                    settings.username(),
+                    settings.bio(),
+                    settings.avatarUrl()
+            ));
+        }
+        model.addAttribute("settings", settings);
         return "settings";
+    }
+
+    @PostMapping("/settings")
+    public String updateSettings(@Valid @ModelAttribute("profileForm") UserProfileUpdateRequest request,
+                                 org.springframework.validation.BindingResult bindingResult,
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
+        if (bindingResult.hasErrors()) {
+            UserSettingsResponse settings = userProfileService.toSettingsResponse(
+                    userProfileService.findByEmail(authentication.getName())
+            );
+            model.addAttribute("settings", settings);
+            return "settings";
+        }
+
+        UserSettingsResponse updated = userProfileService.updateProfile(
+                userProfileService.findByEmail(authentication.getName()),
+                request
+        );
+        redirectAttributes.addFlashAttribute("settingsMsg", "Zapisano zmiany profilu.");
+        return "redirect:/settings";
+    }
+
+    @PostMapping("/settings/visibility")
+    public String updateVisibility(@RequestParam("profilePublic") boolean profilePublic,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
+        userProfileService.updateVisibility(
+                userProfileService.findByEmail(authentication.getName()),
+                profilePublic
+        );
+        redirectAttributes.addFlashAttribute("settingsMsg", "Zmieniono widoczność profilu.");
+        return "redirect:/settings";
+    }
+
+    @GetMapping("/profile/{username}")
+    public String profile(@PathVariable String username,
+                          Authentication authentication,
+                          Model model) {
+        User user = userProfileService.findByUsername(username);
+        boolean isOwner = hasAuthenticatedUser(authentication)
+                && authentication.getName().equalsIgnoreCase(user.getEmail());
+
+        if (!user.isProfilePublic() && !isOwner) {
+            model.addAttribute("status", 403);
+            model.addAttribute("error", "Forbidden");
+            model.addAttribute("message", "Ten profil jest prywatny.");
+            return "error";
+        }
+
+        model.addAttribute("profile", userProfileService.toPublicResponse(user));
+        model.addAttribute("isOwner", isOwner);
+        return "profile";
     }
 
     // -------------------------------------------------------------------------
@@ -127,11 +201,21 @@ public class PageController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestParam @Email @NotBlank String email,
+    public String register(@RequestParam @NotBlank
+                           String username,
+                           @RequestParam @Email @NotBlank String email,
                            @RequestParam @NotBlank @Size(min = 6) String password,
                            RedirectAttributes redirectAttributes) {
+        if (username == null || !username.matches("[a-z]{3,30}")) {
+            redirectAttributes.addFlashAttribute("registerError", "Username musi mieć 3-30 małych liter (a-z).");
+            return "redirect:/register";
+        }
         if (userRepository.findByEmail(email).isPresent()) {
             redirectAttributes.addFlashAttribute("registerError", "Użytkownik z tym adresem email już istnieje.");
+            return "redirect:/register";
+        }
+        if (userRepository.existsByUsername(username)) {
+            redirectAttributes.addFlashAttribute("registerError", "Username jest już zajęty.");
             return "redirect:/register";
         }
 
@@ -139,7 +223,7 @@ public class PageController {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(com.stokuj.books.model.enums.Role.USER);
-        user.setUsername(generateUsername(email));
+        user.setUsername(username);
         userRepository.save(user);
 
         return "redirect:/login?registered";
@@ -214,14 +298,4 @@ public class PageController {
         return "redirect:/book/" + id;
     }
 
-    private String generateUsername(String email) {
-        String base = email.split("@", 2)[0].toLowerCase();
-        String candidate = base;
-        int counter = 1;
-        while (userRepository.existsByUsername(candidate)) {
-            candidate = base + counter;
-            counter++;
-        }
-        return candidate;
-    }
 }
