@@ -51,7 +51,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             newUser.setEmail(finalEmail);
             newUser.setPassword("OAUTH2_ACCOUNT");
             newUser.setRole(Role.USER);
-            newUser.setUsername(generateUsername(finalEmail));
+            String login = oAuth2User.getAttribute("login");
+            String base = sanitizeUsername(login != null ? login : finalEmail);
+            newUser.setUsername(generateUsername(base));
             newUser.setProvider("github");
             Object providerId = oAuth2User.getAttribute("id");
             if (providerId != null) {
@@ -77,14 +79,36 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.sendRedirect("/");
     }
 
-    private String generateUsername(String email) {
-        String base = email.split("@", 2)[0].toLowerCase();
+    private String sanitizeUsername(String value) {
+        String lower = value == null ? "" : value.toLowerCase();
+        String lettersOnly = lower.replaceAll("[^a-z]", "");
+        if (lettersOnly.length() < 3) {
+            lettersOnly = (lettersOnly + "user").substring(0, 3);
+        }
+        return lettersOnly.length() > 30 ? lettersOnly.substring(0, 30) : lettersOnly;
+    }
+
+    private String generateUsername(String base) {
         String candidate = base;
-        int counter = 1;
+        int counter = 0;
         while (userRepository.existsByUsername(candidate)) {
-            candidate = base + counter;
             counter++;
+            String suffix = toAlphabetSuffix(counter);
+            int maxBase = Math.max(1, 30 - suffix.length());
+            candidate = base.substring(0, Math.min(base.length(), maxBase)) + suffix;
         }
         return candidate;
+    }
+
+    private String toAlphabetSuffix(int counter) {
+        StringBuilder result = new StringBuilder();
+        int value = counter;
+        while (value > 0) {
+            value--;
+            char next = (char) ('a' + (value % 26));
+            result.insert(0, next);
+            value /= 26;
+        }
+        return result.toString();
     }
 }

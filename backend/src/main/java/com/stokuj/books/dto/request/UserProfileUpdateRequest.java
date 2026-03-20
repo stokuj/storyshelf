@@ -7,7 +7,7 @@ import org.hibernate.validator.constraints.URL;
 
 public record UserProfileUpdateRequest(
         @NotBlank(message = "Username jest wymagany")
-        @Pattern(regexp = "[a-z0-9_]{3,30}", message = "Username musi mieć 3-30 znaków: a-z, 0-9 lub _")
+        @Pattern(regexp = "[a-z]{3,30}", message = "Username musi mieć 3-30 małych liter (a-z)")
         String username,
         @Size(max = 500, message = "Bio może mieć maksymalnie 500 znaków")
         String bio,

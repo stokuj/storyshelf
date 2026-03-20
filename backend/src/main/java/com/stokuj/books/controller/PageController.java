@@ -21,12 +21,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@Validated
 public class PageController {
 
     private final BookService bookService;
@@ -199,11 +201,21 @@ public class PageController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestParam @Email @NotBlank String email,
+    public String register(@RequestParam @NotBlank
+                           String username,
+                           @RequestParam @Email @NotBlank String email,
                            @RequestParam @NotBlank @Size(min = 6) String password,
                            RedirectAttributes redirectAttributes) {
+        if (username == null || !username.matches("[a-z]{3,30}")) {
+            redirectAttributes.addFlashAttribute("registerError", "Username musi mieć 3-30 małych liter (a-z).");
+            return "redirect:/register";
+        }
         if (userRepository.findByEmail(email).isPresent()) {
             redirectAttributes.addFlashAttribute("registerError", "Użytkownik z tym adresem email już istnieje.");
+            return "redirect:/register";
+        }
+        if (userRepository.existsByUsername(username)) {
+            redirectAttributes.addFlashAttribute("registerError", "Username jest już zajęty.");
             return "redirect:/register";
         }
 
@@ -211,7 +223,7 @@ public class PageController {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(com.stokuj.books.model.enums.Role.USER);
-        user.setUsername(generateUsername(email));
+        user.setUsername(username);
         userRepository.save(user);
 
         return "redirect:/login?registered";
@@ -286,14 +298,4 @@ public class PageController {
         return "redirect:/book/" + id;
     }
 
-    private String generateUsername(String email) {
-        String base = email.split("@", 2)[0].toLowerCase();
-        String candidate = base;
-        int counter = 1;
-        while (userRepository.existsByUsername(candidate)) {
-            candidate = base + counter;
-            counter++;
-        }
-        return candidate;
-    }
 }

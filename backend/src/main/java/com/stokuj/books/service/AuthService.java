@@ -1,6 +1,7 @@
 package com.stokuj.books.service;
 
 import com.stokuj.books.dto.request.AuthRequest;
+import com.stokuj.books.dto.request.LoginRequest;
 import com.stokuj.books.dto.response.AuthResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.UnauthorizedException;
@@ -27,12 +28,15 @@ public class AuthService {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new ConflictException("Uzytkownik z tym emailem juz istnieje");
         }
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ConflictException("Username jest już zajęty");
+        }
 
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(com.stokuj.books.model.enums.Role.USER);
-        user.setUsername(generateUsername(request.getEmail()));
+        user.setUsername(request.getUsername());
 
         userRepository.save(user);
 
@@ -40,7 +44,7 @@ public class AuthService {
         return new AuthResponse(token);
     }
 
-    public AuthResponse login(AuthRequest request) {
+    public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Nieprawidlowy email lub haslo"));
 
@@ -52,14 +56,4 @@ public class AuthService {
         return new AuthResponse(token);
     }
 
-    private String generateUsername(String email) {
-        String base = email.split("@", 2)[0].toLowerCase();
-        String candidate = base;
-        int counter = 1;
-        while (userRepository.existsByUsername(candidate)) {
-            candidate = base + counter;
-            counter++;
-        }
-        return candidate;
-    }
 }

@@ -42,8 +42,11 @@
                     <form th:action="@{/settings}" th:object="${profileForm}" method="post">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                         <div class="form-control mb-3">
-                            <label class="label"><span class="label-text">Username</span></label>
-                            <input type="text" class="input input-bordered" th:field="*{username}"/>
+                            <label class="label">
+                                <span class="label-text">Username</span>
+                                <span class="label-text-alt text-base-content/50">3-30 małych liter</span>
+                            </label>
+                            <input type="text" class="input input-bordered" th:field="*{username}" pattern="[a-z]{3,30}"/>
                             <p class="text-xs text-error mt-1" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
                         </div>
                         <div class="form-control mb-3">
