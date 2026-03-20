@@ -19,7 +19,8 @@ class ChapterAnalysisConsumer(threading.Thread):
         self.consumer = Consumer({
             'bootstrap.servers': settings.KAFKA_BOOTSTRAP_SERVERS,
             'group.id': 'storyweave-analysis-group',
-            'auto.offset.reset': 'earliest'
+            'auto.offset.reset': 'earliest',
+            'enable.auto.commit': False,
         })
         self._running = True
 
@@ -55,6 +56,7 @@ class ChapterAnalysisConsumer(threading.Thread):
                     logger.info(f"Analysing chapter {chapter_id}...")
                     process_analyse(content, chapter_id)
                     logger.info(f"Successfully processed chapter.analyse for {chapter_id}")
+                    self.consumer.commit(message=msg, asynchronous=False)
 
                 elif topic == 'chapter.ner':
                     chapter_id = payload.get('chapterId')
@@ -65,6 +67,7 @@ class ChapterAnalysisConsumer(threading.Thread):
                     logger.info(f"Queueing NER task for chapter {chapter_id}...")
                     extract_entities_task.delay(content, chapter_id)
                     logger.info(f"Successfully queued chapter.ner for {chapter_id}")
+                    self.consumer.commit(message=msg, asynchronous=False)
 
                 elif topic == 'book.find-pairs':
                     book_id = payload.get('bookId')
@@ -77,6 +80,7 @@ class ChapterAnalysisConsumer(threading.Thread):
                     logger.info(f"Queueing find-pairs task for book {book_id} with {len(names)} characters...")
                     find_pairs_task.delay(content, names, book_id)
                     logger.info(f"Successfully queued book.find-pairs for {book_id}")
+                    self.consumer.commit(message=msg, asynchronous=False)
 
                 elif topic == 'book.relations':
                     book_id = payload.get('bookId')
@@ -93,6 +97,7 @@ class ChapterAnalysisConsumer(threading.Thread):
                         app_event_loop,
                     )
                     logger.info(f"Successfully scheduled book.relations for {book_id}")
+                    self.consumer.commit(message=msg, asynchronous=False)
 
             except Exception as e:
                 logger.error(f"Error processing kafka message from topic {msg.topic() if msg else 'unknown'}: {e}", exc_info=True)
