@@ -1,6 +1,5 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.client.FastApiClient;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.model.entity.Book;
 import com.stokuj.books.model.entity.BookChapter;
@@ -37,7 +36,8 @@ public class BookChapterService {
     );
 
     public BookChapterService(BookChapterRepository chapterRepository,
-                              BookRepository bookRepository, FastApiClient storyweaveClient, ChapterEventProducer chapterEventProducer) {
+                              BookRepository bookRepository,
+                              ChapterEventProducer chapterEventProducer) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
         this.chapterEventProducer = chapterEventProducer;
@@ -99,22 +99,6 @@ public class BookChapterService {
                 chapterEventProducer.sendChapterForNer(chapter.getId(), chapter.getContent());
             }
         }
-
-        // FastAPI Chapter Analysis - disabled for now (manual endpoints only)
-
-        // FastAPI NER Analysis - disabled for now (manual endpoints only)
-        // chapters.forEach(chapter ->
-        //         chapterAnalysisService.nerAsync(chapter.getId())
-        // );
-
-        // NOTE: find-pairs and relations are triggered from the NER webhook
-        // (FastApiController.updateNerResult), once character names are available.
-        // This avoids re-running NER in the relations task and keeps the event flow sequential.
-
-        // FastAPI find-pairs - disabled for now (manual endpoint only)
-        // chapters.forEach(chapter ->
-        //         fastApiClient.findPairs(chapter.getContent(), List.of())
-        // );
 
         return chapters.size();
     }

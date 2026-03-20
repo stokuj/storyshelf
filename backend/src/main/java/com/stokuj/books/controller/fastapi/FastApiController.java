@@ -157,12 +157,4 @@ public class FastApiController {
         ));
     }
 
-    @PostMapping("/chapters/{chapterId}/find-pairs")
-    public ResponseEntity<Void> findPairs(@PathVariable Long chapterId) {
-        if (!chapterRepository.existsById(chapterId)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.status(410).build();
-    }
 }
