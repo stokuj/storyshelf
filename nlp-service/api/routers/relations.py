@@ -19,7 +19,8 @@ async def relations(
     if str(payload.bookId) != str(bookId):
         raise HTTPException(status_code=422, detail="bookId does not match path")
 
-    task = asyncio.create_task(process_book_relations_async(payload.pairs, bookId))
+    pairs = [pair.model_dump() for pair in payload.pairs]
+    task = asyncio.create_task(process_book_relations_async(pairs, bookId))
 
     def _log_task_result(t: asyncio.Task) -> None:
         try:
