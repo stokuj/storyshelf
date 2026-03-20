@@ -64,8 +64,10 @@ public class PageController {
 
     @GetMapping({"/", "/home"})
     public String home(Model model,
+                       @RequestParam(required = false) String q,
                        Authentication authentication) {
-        model.addAttribute("books", bookService.getAll());
+        model.addAttribute("books", bookService.search(q));
+        model.addAttribute("q", q);
         if (hasAuthenticatedUser(authentication)) {
             model.addAttribute("shelfEntries",
                     userBookService.getMyBooks(authentication.getName()));

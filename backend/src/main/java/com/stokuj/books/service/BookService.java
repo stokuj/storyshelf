@@ -22,6 +22,19 @@ public class BookService {
         return bookRepository.findAll();
     }
 
+    public List<Book> search(String query) {
+        if (query == null || query.isBlank()) {
+            return getAll();
+        }
+        String trimmed = query.trim();
+        return bookRepository
+                .findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenresContainingIgnoreCase(
+                        trimmed,
+                        trimmed,
+                        trimmed
+                );
+    }
+
     public Book getById(Long id) {
         return bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));

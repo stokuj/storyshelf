@@ -19,6 +19,13 @@
     </div>
     <div class="navbar-center hidden md:flex">
         <a href="/" class="btn btn-ghost btn-sm">Katalog</a>
+        <form action="/" method="get" class="ml-3">
+            <label class="input input-bordered input-sm flex items-center gap-2">
+                <input type="text" name="q" class="grow" placeholder="Szukaj książek"
+                       th:value="${q}"/>
+                <button class="btn btn-primary btn-xs" type="submit">Szukaj</button>
+            </label>
+        </form>
     </div>
     <div class="navbar-end gap-2">
 
