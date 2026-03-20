@@ -138,15 +138,12 @@ public class PageController {
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole("ROLE_USER");
+        user.setRole(com.stokuj.books.model.enums.Role.USER);
+        user.setUsername(generateUsername(email));
         userRepository.save(user);
 
         return "redirect:/login?registered";
     }
-
-    // -------------------------------------------------------------------------
-    // Akcje półki (POST — formularz HTML)
-    // -------------------------------------------------------------------------
 
     @PostMapping("/shelf/{bookId}/add")
     public String addToShelf(@PathVariable Long bookId,
@@ -215,5 +212,16 @@ public class PageController {
         redirectAttributes.addFlashAttribute("contentMsg", "Treść wgrana. Rozdziałów: " + chaptersCount + ".");
         redirectAttributes.addFlashAttribute("contentMsgType", "success");
         return "redirect:/book/" + id;
+    }
+
+    private String generateUsername(String email) {
+        String base = email.split("@", 2)[0].toLowerCase();
+        String candidate = base;
+        int counter = 1;
+        while (userRepository.existsByUsername(candidate)) {
+            candidate = base + counter;
+            counter++;
+        }
+        return candidate;
     }
 }
