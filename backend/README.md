@@ -14,7 +14,6 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 
 #### GUEST
 
-As a GUEST I can register a new account at /register.
 - As a `GUEST` I can register a new account at `/register`.
 - As a `GUEST` I can log in with email/password or GitHub at `/login`.
 - As a `GUEST` I can browse the book catalog at `/`.
