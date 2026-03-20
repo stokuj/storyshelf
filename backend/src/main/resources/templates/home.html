@@ -7,12 +7,17 @@
 <th:block th:replace="~{layout/base :: layout('Katalog', ~{::content})}">
     <th:block th:ref="content">
 
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-1">
-                <span th:if="${q != null and !q.isBlank()}" th:text="'Wyniki dla: ' + ${q}">Wyniki dla</span>
-                <span th:unless="${q != null and !q.isBlank()}">Katalog książek</span>
-            </h1>
-            <p class="text-base-content/60" th:text="${#lists.size(books)} + ' książek'">0 książek</p>
+        <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold mb-1">
+                    <span th:if="${q != null and !q.isBlank()}" th:text="'Wyniki dla: ' + ${q}">Wyniki dla</span>
+                    <span th:unless="${q != null and !q.isBlank()}">Katalog książek</span>
+                </h1>
+                <p class="text-base-content/60" th:text="${#lists.size(books)} + ' książek'">0 książek</p>
+            </div>
+            <th:block sec:authorize="hasRole('MODERATOR')">
+                <a href="/admin/books/new" class="btn btn-primary btn-sm">+ Dodaj książkę</a>
+            </th:block>
         </div>
 
         <!-- Siatka książek -->

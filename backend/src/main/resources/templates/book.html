@@ -41,6 +41,17 @@
                         <span th:if="${book.isbn}" th:text="'ISBN: ' + ${book.isbn}"></span>
                     </div>
 
+                    <!-- Admin akcje -->
+                    <th:block sec:authorize="hasRole('MODERATOR')">
+                        <div class="flex flex-wrap gap-2 mb-5">
+                            <a th:href="@{/admin/books/{id}/edit(id=${book.id})}" class="btn btn-sm btn-outline">Edytuj</a>
+                            <form th:action="@{/admin/books/{id}/delete(id=${book.id})}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-error">Usuń</button>
+                            </form>
+                        </div>
+                    </th:block>
+
                     <!-- Gatunki -->
                     <div th:if="${not #sets.isEmpty(book.genres)}" class="flex flex-wrap gap-2 mb-5">
                         <span th:each="genre : ${book.genres}" class="badge badge-outline" th:text="${genre}">gatunek</span>
@@ -102,14 +113,15 @@
                     </div>
 
                     <!-- Upload treści -->
-                    <th:block sec:authorize="isAuthenticated()">
+                    <th:block sec:authorize="hasRole('MODERATOR')">
                         <div class="card bg-base-100 shadow-sm p-4 mb-6 max-w-sm">
                             <h2 class="text-sm font-semibold mb-3">Wgraj treść książki</h2>
                             <div th:if="${contentMsg}" class="alert text-sm mb-3"
-                                 th:classappend="${contentMsgType == 'success'} ? ' alert-success' : ' alert-error'"
-                                 th:text="${contentMsg}"></div>
-                            <form th:action="@{/book/{id}/content(id=${book.id})}" method="post"
+                                  th:classappend="${contentMsgType == 'success'} ? ' alert-success' : ' alert-error'"
+                                  th:text="${contentMsg}"></div>
+                            <form th:action="@{/admin/book/{id}/content(id=${book.id})}" method="post"
                                   enctype="multipart/form-data" class="space-y-3">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <input name="file" type="file" accept=".txt,text/plain"
                                        class="file-input file-input-bordered w-full"/>
                                 <button type="submit" class="btn btn-sm btn-primary w-full">Wyślij plik</button>
