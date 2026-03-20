@@ -8,8 +8,11 @@
     <th:block th:ref="content">
 
         <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-1">Katalog książek</h1>
-            <p class="text-base-content/60" th:text="${#lists.size(books)} + ' książek w katalogu'">0 książek</p>
+            <h1 class="text-3xl font-bold mb-1">
+                <span th:if="${q != null and !q.isBlank()}" th:text="'Wyniki dla: ' + ${q}">Wyniki dla</span>
+                <span th:unless="${q != null and !q.isBlank()}">Katalog książek</span>
+            </h1>
+            <p class="text-base-content/60" th:text="${#lists.size(books)} + ' książek'">0 książek</p>
         </div>
 
         <!-- Siatka książek -->
