@@ -39,6 +39,11 @@
                     </div>
                 </div>
                 <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow">
+                    <li>
+                        <a th:href="${currentUsername} != null ? '/profile/' + currentUsername : '/settings'">
+                            Mój profil
+                        </a>
+                    </li>
                     <li><a href="/settings">Ustawienia</a></li>
                     <li>
                         <form th:action="@{/logout}" method="post">

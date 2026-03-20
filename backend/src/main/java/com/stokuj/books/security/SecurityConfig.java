@@ -110,7 +110,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/users/**").hasRole("MODERATOR")
                         .requestMatchers("/admin/system").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("MODERATOR")
-                        .requestMatchers("/books/propose", "/settings").hasRole("USER")
+                        .requestMatchers("/books/propose", "/settings", "/settings/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

@@ -8,11 +8,15 @@ import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.UserBookService;
+import com.stokuj.books.service.UserProfileService;
+import com.stokuj.books.dto.request.UserProfileUpdateRequest;
+import com.stokuj.books.dto.response.UserSettingsResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,17 +34,20 @@ public class PageController {
     private final UserBookService userBookService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserProfileService userProfileService;
 
     public PageController(BookService bookService,
                           BookChapterService bookChapterService,
                           UserBookService userBookService,
                           UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          UserProfileService userProfileService) {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
         this.userBookService = userBookService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userProfileService = userProfileService;
     }
 
     private boolean hasAuthenticatedUser(Authentication authentication) {
@@ -98,8 +105,73 @@ public class PageController {
     // -------------------------------------------------------------------------
 
     @GetMapping("/settings")
-    public String settings() {
+    public String settings(Model model, Authentication authentication) {
+        UserSettingsResponse settings = userProfileService.toSettingsResponse(
+                userProfileService.findByEmail(authentication.getName())
+        );
+        if (!model.containsAttribute("profileForm")) {
+            model.addAttribute("profileForm", new UserProfileUpdateRequest(
+                    settings.username(),
+                    settings.bio(),
+                    settings.avatarUrl()
+            ));
+        }
+        model.addAttribute("settings", settings);
         return "settings";
+    }
+
+    @PostMapping("/settings")
+    public String updateSettings(@Valid @ModelAttribute("profileForm") UserProfileUpdateRequest request,
+                                 org.springframework.validation.BindingResult bindingResult,
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
+        if (bindingResult.hasErrors()) {
+            UserSettingsResponse settings = userProfileService.toSettingsResponse(
+                    userProfileService.findByEmail(authentication.getName())
+            );
+            model.addAttribute("settings", settings);
+            return "settings";
+        }
+
+        UserSettingsResponse updated = userProfileService.updateProfile(
+                userProfileService.findByEmail(authentication.getName()),
+                request
+        );
+        redirectAttributes.addFlashAttribute("settingsMsg", "Zapisano zmiany profilu.");
+        return "redirect:/settings";
+    }
+
+    @PostMapping("/settings/visibility")
+    public String updateVisibility(@RequestParam("profilePublic") boolean profilePublic,
+                                   Authentication authentication,
+                                   RedirectAttributes redirectAttributes) {
+        userProfileService.updateVisibility(
+                userProfileService.findByEmail(authentication.getName()),
+                profilePublic
+        );
+        redirectAttributes.addFlashAttribute("settingsMsg", "Zmieniono widoczność profilu.");
+        return "redirect:/settings";
+    }
+
+    @GetMapping("/profile/{username}")
+    public String profile(@PathVariable String username,
+                          Authentication authentication,
+                          Model model) {
+        User user = userProfileService.findByUsername(username);
+        boolean isOwner = hasAuthenticatedUser(authentication)
+                && authentication.getName().equalsIgnoreCase(user.getEmail());
+
+        if (!user.isProfilePublic() && !isOwner) {
+            model.addAttribute("status", 403);
+            model.addAttribute("error", "Forbidden");
+            model.addAttribute("message", "Ten profil jest prywatny.");
+            return "error";
+        }
+
+        model.addAttribute("profile", userProfileService.toPublicResponse(user));
+        model.addAttribute("isOwner", isOwner);
+        return "profile";
     }
 
     // -------------------------------------------------------------------------
