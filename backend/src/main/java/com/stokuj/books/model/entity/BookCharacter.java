@@ -19,7 +19,7 @@ public class BookCharacter {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "character_id", nullable = false)
     private Character character;
 

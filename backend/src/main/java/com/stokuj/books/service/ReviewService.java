@@ -72,8 +72,11 @@ public class ReviewService {
                 .toList();
     }
 
-    public List<Review> getAllReviews() {
-        return reviewRepository.findAllByOrderByCreatedAtDesc();
+    public List<ReviewResponse> getAllReviews() {
+        return reviewRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     private void updateBookRatings(Long bookId, Book book) {
@@ -90,7 +93,9 @@ public class ReviewService {
                 review.getUser().getUsername(),
                 review.getRating(),
                 review.getContent(),
-                review.getCreatedAt()
+                review.getCreatedAt(),
+                review.getBook().getTitle(),
+                review.getBook().getId()
         );
     }
 

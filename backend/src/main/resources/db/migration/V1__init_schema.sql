@@ -15,13 +15,48 @@ CREATE TABLE books (
     page_count INTEGER NOT NULL DEFAULT 0,
     chapters_count INTEGER NOT NULL DEFAULT 0,
     ner_completed_count INTEGER NOT NULL DEFAULT 0,
-    characters JSONB,
-    find_pairs_result JSONB,
-    relations_result JSONB,
     rating DOUBLE PRECISION NOT NULL DEFAULT 0,
     ratings_count INTEGER NOT NULL DEFAULT 0,
+    version BIGINT NOT NULL DEFAULT 0,
     created_at DATE,
     updated_at DATE
+);
+
+CREATE TABLE characters (
+    id BIGSERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE book_characters (
+    id BIGSERIAL PRIMARY KEY,
+    book_id BIGINT NOT NULL,
+    character_id BIGINT NOT NULL,
+    mention_count INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT fk_book_characters_book
+        FOREIGN KEY (book_id) REFERENCES books(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_book_characters_character
+        FOREIGN KEY (character_id) REFERENCES characters(id)
+        ON DELETE CASCADE,
+    CONSTRAINT uk_book_character UNIQUE (book_id, character_id)
+);
+
+CREATE TABLE character_relations (
+    id BIGSERIAL PRIMARY KEY,
+    book_id BIGINT NOT NULL,
+    source_id BIGINT NOT NULL,
+    target_id BIGINT NOT NULL,
+    relation TEXT,
+    evidence TEXT,
+    confidence DOUBLE PRECISION,
+    CONSTRAINT fk_character_relations_book
+        FOREIGN KEY (book_id) REFERENCES books(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_character_relations_source
+        FOREIGN KEY (source_id) REFERENCES characters(id),
+    CONSTRAINT fk_character_relations_target
+        FOREIGN KEY (target_id) REFERENCES characters(id),
+    CONSTRAINT uk_character_relation UNIQUE (book_id, source_id, target_id)
 );
 
 CREATE TABLE book_genres (

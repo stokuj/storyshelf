@@ -42,6 +42,9 @@ public class User {
     @Column(name = "profile_public", nullable = false)
     private boolean profilePublic = true;
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

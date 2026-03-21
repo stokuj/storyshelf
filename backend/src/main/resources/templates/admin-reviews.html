@@ -26,8 +26,8 @@
                         </thead>
                         <tbody>
                         <tr th:each="review : ${reviews}">
-                            <td th:text="${review.book.title}">Tytuł</td>
-                            <td th:text="${review.user.username}">user</td>
+                            <td th:text="${review.bookTitle}">Tytuł</td>
+                            <td th:text="${review.username}">user</td>
                             <td th:text="${review.rating}">5</td>
                             <td th:text="${review.content != null ? review.content : '-'}">treść</td>
                             <td th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">data</td>

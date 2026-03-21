@@ -4,6 +4,7 @@ import com.stokuj.books.model.entity.Character;
 import com.stokuj.books.repository.CharacterRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -15,7 +16,7 @@ public class CharacterService {
         this.characterRepository = characterRepository;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Character findOrCreate(String name) {
         if (name == null) {
             throw new IllegalArgumentException("Character name cannot be null");

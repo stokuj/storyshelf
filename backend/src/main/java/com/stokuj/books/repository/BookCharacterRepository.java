@@ -10,5 +10,8 @@ public interface BookCharacterRepository extends JpaRepository<BookCharacter, Lo
 
     List<BookCharacter> findAllByBookId(Long bookId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT bc FROM BookCharacter bc JOIN FETCH bc.character WHERE bc.book.id = :bookId")
+    List<BookCharacter> findAllByBookIdWithCharacter(@org.springframework.data.repository.query.Param("bookId") Long bookId);
+
     void deleteAllByBookId(Long bookId);
 }

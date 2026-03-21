@@ -18,9 +18,11 @@ import java.util.List;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
-    public JwtFilter(JwtService jwtService) {
+    public JwtFilter(JwtService jwtService, org.springframework.security.core.userdetails.UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -43,13 +45,14 @@ public class JwtFilter extends OncePerRequestFilter {
         // sprawdź czy token jest ważny
         if (jwtService.isTokenValid(token)) {
             String email = jwtService.extractEmail(token);
+            org.springframework.security.core.userdetails.UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
             // powiedz Springowi że użytkownik jest zalogowany
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
-                            email,
+                            userDetails,
                             null,
-                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                            userDetails.getAuthorities()
                     );
 
             SecurityContextHolder.getContext().setAuthentication(auth);

@@ -25,10 +25,12 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final FastApiSecretFilter fastApiSecretFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    public SecurityConfig(JwtFilter jwtFilter, OAuth2SuccessHandler oAuth2SuccessHandler) {
+    public SecurityConfig(JwtFilter jwtFilter, FastApiSecretFilter fastApiSecretFilter, OAuth2SuccessHandler oAuth2SuccessHandler) {
         this.jwtFilter = jwtFilter;
+        this.fastApiSecretFilter = fastApiSecretFilter;
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
@@ -43,7 +45,8 @@ public class SecurityConfig {
                 .securityMatcher("/api/**")
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .addFilterBefore(fastApiSecretFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -83,6 +86,7 @@ public class SecurityConfig {
                                             + request.getRequestURI() + "\"}");
                         })
                 )
+                .addFilterBefore(fastApiSecretFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

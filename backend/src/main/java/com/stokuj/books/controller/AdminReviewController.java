@@ -32,11 +32,4 @@ public class AdminReviewController {
         redirectAttributes.addFlashAttribute("reviewMsg", "Usunięto recenzję.");
         return "redirect:/admin/reviews";
     }
-
-    @DeleteMapping("/{id}")
-    public String deleteReviewDelete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        reviewService.deleteReview(id);
-        redirectAttributes.addFlashAttribute("reviewMsg", "Usunięto recenzję.");
-        return "redirect:/admin/reviews";
-    }
 }

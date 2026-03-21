@@ -7,6 +7,8 @@ public record ReviewResponse(
         String username,
         int rating,
         String content,
-        Instant createdAt
+        Instant createdAt,
+        String bookTitle,
+        Long bookId
 ) {
 }
