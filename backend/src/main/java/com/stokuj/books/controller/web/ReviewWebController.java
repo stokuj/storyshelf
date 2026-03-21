@@ -1,4 +1,4 @@
-package com.stokuj.books.controller;
+package com.stokuj.books.controller.web;
 
 import com.stokuj.books.dto.request.ReviewRequest;
 import com.stokuj.books.exception.ConflictException;
@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-public class ReviewController {
+public class ReviewWebController {
 
     private final ReviewService reviewService;
 
-    public ReviewController(ReviewService reviewService) {
+    public ReviewWebController(ReviewService reviewService) {
         this.reviewService = reviewService;
     }
 

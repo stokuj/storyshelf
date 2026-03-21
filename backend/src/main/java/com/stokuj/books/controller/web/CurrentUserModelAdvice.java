@@ -1,4 +1,4 @@
-package com.stokuj.books.controller;
+package com.stokuj.books.controller.web;
 
 import com.stokuj.books.repository.UserRepository;
 import org.springframework.security.core.Authentication;

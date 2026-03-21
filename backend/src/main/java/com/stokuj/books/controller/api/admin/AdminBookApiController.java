@@ -1,4 +1,4 @@
-package com.stokuj.books.controller;
+package com.stokuj.books.controller.api.admin;
 
 import com.stokuj.books.dto.request.BookPatchRequest;
 import com.stokuj.books.dto.request.BookRequest;
@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/books")
-public class AdminBookController {
+public class AdminBookApiController {
 
     private final BookService bookService;
     private final BookChapterService bookChapterService;
 
-    public AdminBookController(BookService bookService, BookChapterService bookChapterService) {
+    public AdminBookApiController(BookService bookService, BookChapterService bookChapterService) {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
     }

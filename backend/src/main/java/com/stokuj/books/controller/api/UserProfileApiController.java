@@ -1,4 +1,4 @@
-package com.stokuj.books.controller;
+package com.stokuj.books.controller.api;
 
 import com.stokuj.books.dto.request.UserProfileUpdateRequest;
 import com.stokuj.books.dto.request.UserProfileVisibilityRequest;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class UserProfileController {
+public class UserProfileApiController {
 
     private final UserProfileService userProfileService;
 
-    public UserProfileController(UserProfileService userProfileService) {
+    public UserProfileApiController(UserProfileService userProfileService) {
         this.userProfileService = userProfileService;
     }
 
