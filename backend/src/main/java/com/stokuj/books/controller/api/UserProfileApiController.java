@@ -17,10 +17,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/api")
 public class UserProfileApiController {
 
     private final UserProfileService userProfileService;
@@ -29,7 +31,7 @@ public class UserProfileApiController {
         this.userProfileService = userProfileService;
     }
 
-    @GetMapping(value = "/profile/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/users/{username}/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserProfileResponse> getPublicProfile(@PathVariable String username) {
         User user;
         try {
@@ -45,7 +47,7 @@ public class UserProfileApiController {
         return ResponseEntity.ok(userProfileService.toPublicResponse(user));
     }
 
-    @GetMapping(value = "/settings", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/me/settings", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getSettings(Authentication authentication) {
         try {
             User user = userProfileService.findByEmail(authentication.getName());
@@ -55,7 +57,7 @@ public class UserProfileApiController {
         }
     }
 
-    @PutMapping(value = "/settings", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/me/settings", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> updateSettings(@Valid @RequestBody UserProfileUpdateRequest request,
                                             Authentication authentication) {
         try {
@@ -69,7 +71,7 @@ public class UserProfileApiController {
         }
     }
 
-    @PutMapping(value = "/settings/visibility", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/me/settings/visibility", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> updateVisibility(@Valid @RequestBody UserProfileVisibilityRequest request,
                                               Authentication authentication) {
         try {
