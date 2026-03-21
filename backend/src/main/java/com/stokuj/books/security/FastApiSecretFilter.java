@@ -20,7 +20,7 @@ public class FastApiSecretFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (request.getRequestURI().startsWith("/api/fastAPI/")) {
+        if (request.getRequestURI().startsWith("/api/fastapi/")) {
             // Apply only to POST endpoints as requested, or explicitly all under /fastAPI/
             if (request.getMethod().equalsIgnoreCase("POST")) {
                 String header = request.getHeader("X-FastAPI-Secret");
