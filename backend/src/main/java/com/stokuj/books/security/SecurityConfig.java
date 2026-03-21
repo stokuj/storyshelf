@@ -66,6 +66,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("MODERATOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/analyse-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/chapters/*/ner-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastAPI/books/*/find-pairs-result").permitAll()

@@ -1,5 +1,7 @@
 package com.stokuj.books.controller;
 
+import com.stokuj.books.dto.request.AdminBookForm;
+import com.stokuj.books.dto.request.BookRequest;
 import com.stokuj.books.dto.request.UserBookRequest;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.model.enums.ReadingStatus;
@@ -13,6 +15,11 @@ import com.stokuj.books.dto.request.UserProfileUpdateRequest;
 import com.stokuj.books.dto.response.UserSettingsResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -269,7 +276,7 @@ public class PageController {
     // Upload treści książki (HTML formularz)
     // -------------------------------------------------------------------------
 
-    @PostMapping("/book/{id}/content")
+    @PostMapping("/admin/book/{id}/content")
     public String uploadBookContent(@PathVariable Long id,
                                     @RequestParam("file") MultipartFile file,
                                     RedirectAttributes redirectAttributes) {
@@ -298,6 +305,128 @@ public class PageController {
         redirectAttributes.addFlashAttribute("contentMsg", "Treść wgrana. Rozdziałów: " + chaptersCount + ".");
         redirectAttributes.addFlashAttribute("contentMsgType", "success");
         return "redirect:/book/" + id;
+    }
+
+    // -------------------------------------------------------------------------
+    // Admin: zarządzanie książkami (Thymeleaf)
+    // -------------------------------------------------------------------------
+
+    @GetMapping("/admin/books/new")
+    public String newBookForm(Model model) {
+        model.addAttribute("bookForm", new AdminBookForm());
+        model.addAttribute("formTitle", "Dodaj książkę");
+        model.addAttribute("formAction", "/admin/books/new");
+        return "admin-book-form";
+    }
+
+    @PostMapping("/admin/books/new")
+    public String createBook(@Valid @ModelAttribute("bookForm") AdminBookForm form,
+                             org.springframework.validation.BindingResult bindingResult,
+                             RedirectAttributes redirectAttributes,
+                             Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("formTitle", "Dodaj książkę");
+            model.addAttribute("formAction", "/admin/books/new");
+            return "admin-book-form";
+        }
+
+        bookService.create(toBookRequest(form));
+        redirectAttributes.addFlashAttribute("shelfMsg", "Dodano książkę do katalogu.");
+        return "redirect:/";
+    }
+
+    @GetMapping("/admin/books/{id}/edit")
+    public String editBookForm(@PathVariable Long id, Model model) {
+        model.addAttribute("bookForm", toForm(bookService.getById(id)));
+        model.addAttribute("formTitle", "Edytuj książkę");
+        model.addAttribute("formAction", "/admin/books/" + id + "/edit");
+        model.addAttribute("bookId", id);
+        return "admin-book-form";
+    }
+
+    @PostMapping("/admin/books/{id}/edit")
+    public String updateBook(@PathVariable Long id,
+                             @Valid @ModelAttribute("bookForm") AdminBookForm form,
+                             org.springframework.validation.BindingResult bindingResult,
+                             RedirectAttributes redirectAttributes,
+                             Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("formTitle", "Edytuj książkę");
+            model.addAttribute("formAction", "/admin/books/" + id + "/edit");
+            model.addAttribute("bookId", id);
+            return "admin-book-form";
+        }
+
+        bookService.update(id, toBookRequest(form));
+        redirectAttributes.addFlashAttribute("shelfMsg", "Zaktualizowano książkę.");
+        return "redirect:/book/" + id;
+    }
+
+    @PostMapping("/admin/books/{id}/delete")
+    public String deleteBook(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        bookService.delete(id);
+        redirectAttributes.addFlashAttribute("shelfMsg", "Usunięto książkę.");
+        return "redirect:/";
+    }
+
+    private BookRequest toBookRequest(AdminBookForm form) {
+        BookRequest request = new BookRequest();
+        request.setTitle(form.getTitle());
+        request.setAuthor(form.getAuthor());
+        request.setYear(form.getYear() != null ? form.getYear() : 0);
+        request.setIsbn(form.getIsbn());
+        request.setDescription(form.getDescription());
+        request.setPageCount(form.getPageCount() != null ? form.getPageCount() : 0);
+        request.setGenres(parseSet(form.getGenres()));
+        request.setTags(parseList(form.getTags()));
+        return request;
+    }
+
+    private AdminBookForm toForm(com.stokuj.books.model.entity.Book book) {
+        AdminBookForm form = new AdminBookForm();
+        form.setTitle(book.getTitle());
+        form.setAuthor(book.getAuthor());
+        form.setYear(book.getYear());
+        form.setIsbn(book.getIsbn());
+        form.setDescription(book.getDescription());
+        form.setPageCount(book.getPageCount());
+        form.setGenres(joinCsv(book.getGenres()));
+        form.setTags(joinCsv(book.getTags()));
+        return form;
+    }
+
+    private Set<String> parseSet(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return Set.of();
+        }
+        return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private List<String> parseList(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .toList();
+    }
+
+    private String joinCsv(Set<String> values) {
+        if (values == null || values.isEmpty()) {
+            return "";
+        }
+        return String.join(", ", values);
+    }
+
+    private String joinCsv(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return "";
+        }
+        return String.join(", ", values);
     }
 
 }

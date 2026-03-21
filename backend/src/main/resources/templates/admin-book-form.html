@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pl"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<th:block th:replace="~{layout/base :: layout(${formTitle}, ~{::content})}">
+    <th:block th:ref="content">
+
+        <div class="max-w-3xl mx-auto">
+            <div class="card bg-base-100 shadow">
+                <div class="card-body">
+                    <h1 class="text-2xl font-bold mb-4" th:text="${formTitle}">Formularz</h1>
+
+                    <form th:action="${formAction}" th:object="${bookForm}" method="post" class="space-y-4">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Tytuł</span></label>
+                            <input type="text" class="input input-bordered" th:field="*{title}"/>
+                            <p class="text-xs text-error mt-1" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></p>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Autor</span></label>
+                            <input type="text" class="input input-bordered" th:field="*{author}"/>
+                            <p class="text-xs text-error mt-1" th:if="${#fields.hasErrors('author')}" th:errors="*{author}"></p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Rok</span></label>
+                                <input type="number" class="input input-bordered" th:field="*{year}" min="1"/>
+                                <p class="text-xs text-error mt-1" th:if="${#fields.hasErrors('year')}" th:errors="*{year}"></p>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Liczba stron</span></label>
+                                <input type="number" class="input input-bordered" th:field="*{pageCount}" min="1"/>
+                                <p class="text-xs text-error mt-1" th:if="${#fields.hasErrors('pageCount')}" th:errors="*{pageCount}"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">ISBN</span></label>
+                            <input type="text" class="input input-bordered" th:field="*{isbn}" placeholder="np. 9781234567890"/>
+                            <p class="text-xs text-error mt-1" th:if="${#fields.hasErrors('isbn')}" th:errors="*{isbn}"></p>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Gatunki (CSV)</span></label>
+                            <input type="text" class="input input-bordered" th:field="*{genres}" placeholder="fantasy, sci-fi"/>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Tagi (CSV)</span></label>
+                            <input type="text" class="input input-bordered" th:field="*{tags}" placeholder="klasyk, bestseller"/>
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Opis</span></label>
+                            <textarea class="textarea textarea-bordered" rows="6" th:field="*{description}"></textarea>
+                            <p class="text-xs text-error mt-1" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Zapisz</button>
+                            <a href="/" class="btn btn-ghost btn-sm">Anuluj</a>
+                            <a th:if="${bookId != null}" th:href="@{/book/{id}(id=${bookId})}" class="btn btn-outline btn-sm">Podgląd</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </th:block>
+</th:block>
+
+</body>
+</html>
