@@ -4,14 +4,9 @@ import com.stokuj.books.dto.fastapi.AnalyseResponse;
 import com.stokuj.books.dto.fastapi.BookFindPairsResult;
 import com.stokuj.books.model.entity.Book;
 import com.stokuj.books.model.entity.BookChapter;
-import com.stokuj.books.model.entity.BookCharacter;
-import com.stokuj.books.model.entity.Character;
-import com.stokuj.books.model.entity.CharacterRelation;
 import com.stokuj.books.repository.BookChapterRepository;
-import com.stokuj.books.repository.BookCharacterRepository;
 import com.stokuj.books.repository.BookRepository;
-import com.stokuj.books.repository.CharacterRelationRepository;
-import com.stokuj.books.service.ChapterEventProducer;
+import com.stokuj.books.integration.kafka.ChapterEventProducer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,16 +15,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
-import com.stokuj.books.model.fastapi.NerResult;
-import com.stokuj.books.service.NerResultProcessor;
-import com.stokuj.books.service.RelationsResultProcessor;
+import com.stokuj.books.dto.fastapi.NerResult;
+import com.stokuj.books.integration.processor.NerResultProcessor;
+import com.stokuj.books.integration.processor.RelationsResultProcessor;
 
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
-@RequestMapping("/api/fastAPI")
-public class FastApiController {
+@RequestMapping("/api/fastapi")
+public class FastApiCallbackController {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
@@ -37,11 +31,11 @@ public class FastApiController {
     private final NerResultProcessor nerResultProcessor;
     private final RelationsResultProcessor relationsResultProcessor;
 
-    public FastApiController(BookChapterRepository chapterRepository,
-                             BookRepository bookRepository,
-                             ChapterEventProducer chapterEventProducer,
-                             NerResultProcessor nerResultProcessor,
-                             RelationsResultProcessor relationsResultProcessor) {
+    public FastApiCallbackController(BookChapterRepository chapterRepository,
+                                     BookRepository bookRepository,
+                                     ChapterEventProducer chapterEventProducer,
+                                     NerResultProcessor nerResultProcessor,
+                                     RelationsResultProcessor relationsResultProcessor) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
         this.chapterEventProducer = chapterEventProducer;

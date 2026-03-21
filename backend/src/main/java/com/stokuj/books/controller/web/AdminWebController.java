@@ -1,4 +1,4 @@
-package com.stokuj.books.controller;
+package com.stokuj.books.controller.web;
 
 import com.stokuj.books.dto.request.AdminBookForm;
 import com.stokuj.books.dto.request.BookRequest;
@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
-public class AdminPageController {
+public class AdminWebController {
 
     private final BookService bookService;
     private final BookChapterService bookChapterService;
 
-    public AdminPageController(BookService bookService, BookChapterService bookChapterService) {
+    public AdminWebController(BookService bookService, BookChapterService bookChapterService) {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
     }

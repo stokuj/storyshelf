@@ -7,6 +7,7 @@ import com.stokuj.books.repository.BookCharacterRepository;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.CharacterRelationRepository;
+import com.stokuj.books.integration.kafka.ChapterEventProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
