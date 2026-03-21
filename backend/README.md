@@ -18,6 +18,8 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 - As a `GUEST` I can log in with email/password or GitHub at `/login`.
 - As a `GUEST` I can browse the book catalog at `/`.
 - As a `GUEST` I can view book details at `/book/{id}`.
+- As a `GUEST` I can search for books by title, author or genre at `/`.
+- As a `GUEST` I can view a public user profile at `/profile/{username}`.
 
 #### USER
 
@@ -27,33 +29,29 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 - As a `USER` I can remove a book from my shelf at `/bookshelf`.
 - As a `USER` I can filter my shelf by reading status at `/bookshelf`.
 - As a `USER` I can upload a .txt file with book content at `/book/{id}` to trigger background analysis.
-
-### TODO
-
-#### GUEST
-
-- As a `GUEST` I can search for books by title, author or genre at `/`.
-- As a `GUEST` I can view a public user profile at `/profile/{username}`.
-
-#### USER
-
 - As a `USER` I can view detected characters for a book at `/book/{id}`.
 - As a `USER` I can view character relationships for a book at `/book/{id}`.
 - As a `USER` I can view chapter statistics (word count, token count) at `/book/{id}`.
 - As a `USER` I can rate a book and write a review at `/book/{id}`.
 - As a `USER` I can edit my profile (username, bio, avatar) at `/settings`.
 - As a `USER` I can set my profile as public or private at `/settings`.
+
+### TODO
+
+#### GUEST
+
+- (none)
+
+#### USER
+
 - As a `USER` I can submit a book proposal at `/books/propose`.
 - As a `USER` I can check the status of my proposal (pending / approved / rejected) at `/books/proposals`.
 
 #### MODERATOR
 
-- As a `MODERATOR` I can add a book directly to the catalog at `/admin/books/new`.
-- As a `MODERATOR` I can edit book details at `/admin/books/{id}/edit`.
 - As a `MODERATOR` I can approve or reject a book proposal at `/admin/proposals`.
 - As a `MODERATOR` I can edit a proposed book before approving it at `/admin/proposals/{id}/edit`.
 - As a `MODERATOR` I can manually trigger analysis for a book at `/admin/books/{id}`.
-- As a `MODERATOR` I can delete a user review at `/admin/reviews`.
 - As a `MODERATOR` I can view a private user profile at `/admin/users/{id}`.
 
 #### ADMIN
@@ -65,6 +63,32 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 - As an `ADMIN` I can delete a book from the catalog at `/admin/books/{id}`.
 
 ## Changelog
+
+### [0.5.2] - 2026-03-21
+
+Endpoint routing and package reorganization.
+
+#### Added
+
+- Flyway migration `V7__add_book_version.sql` to ensure `books.version` exists in every environment.
+
+#### Changed
+
+- Split controllers into `api/` and `web/` packages and moved FastAPI callbacks to `/api/fastapi`.
+- Moved FastAPI DTOs into `dto/fastapi` and integration classes into `integration/`.
+- Updated security matchers and FastAPI secret filter to align with `/api/fastapi`.
+
+### [0.5.1] - 2026-03-20
+
+User profile and shelf web features stabilized.
+
+#### Added
+
+- Web controllers for home, bookshelf, settings, auth, and user profile pages.
+
+#### Changed
+
+- User profile API endpoints moved under `/api`.
 
 ### [0.5.0] - 2026-03-19
 
