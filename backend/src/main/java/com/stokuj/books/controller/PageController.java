@@ -91,6 +91,7 @@ public class PageController {
                              Model model,
                              Authentication authentication) {
         model.addAttribute("book", bookService.getById(id));
+        model.addAttribute("chapters", bookChapterService.getChapters(id));
         model.addAttribute("statuses", ReadingStatus.values());
         if (hasAuthenticatedUser(authentication)) {
             model.addAttribute("shelfEntry",

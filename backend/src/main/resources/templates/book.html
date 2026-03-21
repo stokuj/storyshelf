@@ -143,6 +143,88 @@
                         <span th:each="tag : ${book.tags}" class="badge badge-ghost text-xs" th:text="${tag}">tag</span>
                     </div>
 
+                    <th:block sec:authorize="isAuthenticated()">
+                        <!-- Postacie -->
+                        <div class="card bg-base-100 shadow-sm p-4 mt-6">
+                            <h2 class="text-sm font-semibold mb-3">Postacie</h2>
+                            <div th:if="${book.characters != null and !book.characters.isEmpty()}">
+                                <div class="overflow-x-auto">
+                                    <table class="table table-sm">
+                                        <thead>
+                                        <tr>
+                                            <th>Imię</th>
+                                            <th>Liczba wystąpień</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="entry : ${book.characters.entrySet()}">
+                                            <td class="font-medium" th:text="${entry.key}">Postać</td>
+                                            <td th:text="${entry.value}">0</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div th:if="${book.characters == null or book.characters.isEmpty()}"
+                                 class="text-sm text-base-content/60">
+                                Brak danych o postaciach.
+                            </div>
+                        </div>
+
+                        <!-- Relacje -->
+                        <div class="card bg-base-100 shadow-sm p-4 mt-4">
+                            <h2 class="text-sm font-semibold mb-3">Relacje</h2>
+                            <div th:if="${book.relationsResult != null and book.relationsResult['all_relations'] != null
+                                        and !#lists.isEmpty(book.relationsResult['all_relations'])}">
+                                <ul class="space-y-2">
+                                    <li th:each="rel : ${book.relationsResult['all_relations']}" class="text-sm">
+                                        <span class="font-medium" th:text="${rel['pair'][0]}">Postać A</span>
+                                        <span class="text-base-content/60"> - </span>
+                                        <span class="font-medium" th:text="${rel['pair'][1]}">Postać B</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div th:if="${book.relationsResult == null or book.relationsResult['all_relations'] == null
+                                        or #lists.isEmpty(book.relationsResult['all_relations'])}"
+                                 class="text-sm text-base-content/60">
+                                Brak danych o relacjach.
+                            </div>
+                        </div>
+
+                        <!-- Statystyki rozdziałów -->
+                        <div class="card bg-base-100 shadow-sm p-4 mt-4">
+                            <h2 class="text-sm font-semibold mb-3">Statystyki rozdziałów</h2>
+                            <div th:if="${chapters != null and !#lists.isEmpty(chapters)}">
+                                <div class="overflow-x-auto">
+                                    <table class="table table-sm">
+                                        <thead>
+                                        <tr>
+                                            <th>Rozdział</th>
+                                            <th>Słowa</th>
+                                            <th>Tokeny</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="chapter : ${chapters}">
+                                            <td class="font-medium"
+                                                th:text="${(!#strings.isEmpty(chapter.title))
+                                                ? chapter.title : 'Rozdział ' + chapter.chapterNumber}">
+                                                Rozdział 1
+                                            </td>
+                                            <td th:text="${chapter.wordCount != null ? chapter.wordCount : '-'}">0</td>
+                                            <td th:text="${chapter.tokenCount != null ? chapter.tokenCount : '-'}">0</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div th:if="${chapters == null or #lists.isEmpty(chapters)}"
+                                 class="text-sm text-base-content/60">
+                                Brak statystyk rozdziałów.
+                            </div>
+                        </div>
+                    </th:block>
+
                 </div>
             </div>
         </div>
