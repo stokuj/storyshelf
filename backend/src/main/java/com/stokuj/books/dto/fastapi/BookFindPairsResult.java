@@ -1,15 +1,14 @@
-package com.stokuj.books.model.fastapi;
+package com.stokuj.books.dto.fastapi;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FindPairsResult {
+public class BookFindPairsResult {
     private List<CharacterPair> pairs;
 
     @Data

@@ -11,7 +11,9 @@ import org.springframework.web.servlet.ModelAndView;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -91,6 +93,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public Object handleRuntime(RuntimeException ex, HttpServletRequest request) {
+        log.error("Wystąpił nieoczekiwany błąd serwera", ex);
         if (isApiRequest(request)) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI(), null);
         }

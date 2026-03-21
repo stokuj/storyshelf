@@ -143,6 +143,155 @@
                         <span th:each="tag : ${book.tags}" class="badge badge-ghost text-xs" th:text="${tag}">tag</span>
                     </div>
 
+                    <!-- Recenzje -->
+                    <div class="card bg-base-100 shadow-sm p-4 mt-6">
+                        <h2 class="text-sm font-semibold mb-3">Oceny i recenzje</h2>
+
+                        <div th:if="${reviewMsg}" class="alert alert-success mb-3 text-sm" th:text="${reviewMsg}"></div>
+                        <div th:if="${reviewError}" class="alert alert-error mb-3 text-sm" th:text="${reviewError}"></div>
+
+                        <th:block sec:authorize="isAuthenticated()">
+                            <form th:action="@{/book/{id}/review(id=${book.id})}" method="post"
+                                  th:object="${reviewForm}" class="space-y-3">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                                <div>
+                                    <label class="text-sm text-base-content/70">Ocena</label>
+                                    <div class="rating rating-sm ml-2">
+                                        <input type="radio" class="mask mask-star-2 bg-orange-400" th:field="*{rating}" value="1"/>
+                                        <input type="radio" class="mask mask-star-2 bg-orange-400" th:field="*{rating}" value="2"/>
+                                        <input type="radio" class="mask mask-star-2 bg-orange-400" th:field="*{rating}" value="3"/>
+                                        <input type="radio" class="mask mask-star-2 bg-orange-400" th:field="*{rating}" value="4"/>
+                                        <input type="radio" class="mask mask-star-2 bg-orange-400" th:field="*{rating}" value="5"/>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <textarea class="textarea textarea-bordered w-full" rows="4"
+                                              placeholder="Napisz krótką opinię (opcjonalnie)"
+                                              maxlength="2000" th:field="*{content}"></textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-sm btn-primary">Dodaj recenzję</button>
+                            </form>
+                        </th:block>
+
+                        <div class="mt-4 space-y-3" th:if="${reviews != null and !#lists.isEmpty(reviews)}">
+                            <div class="border-b border-base-200 pb-3" th:each="review : ${reviews}">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold" th:text="${review.username}">user</span>
+                                    <div class="rating rating-xs">
+                                        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                            <input type="radio" class="mask mask-star-2 bg-orange-400" disabled
+                                                   th:checked="${i <= review.rating}"/>
+                                        </th:block>
+                                    </div>
+                                    <span class="text-xs text-base-content/60"
+                                          th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">data</span>
+                                </div>
+                                <p class="text-sm text-base-content/80 mt-1"
+                                   th:text="${review.content != null ? review.content : 'Brak treści.'}">treść</p>
+                                <th:block sec:authorize="hasRole('MODERATOR')">
+                                    <form th:action="@{/admin/reviews/{id}/delete(id=${review.id})}" method="post" class="mt-2">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn btn-xs btn-error">Usuń</button>
+                                    </form>
+                                </th:block>
+                            </div>
+                        </div>
+                        <div class="text-sm text-base-content/60" th:if="${reviews == null or #lists.isEmpty(reviews)}">
+                            Brak recenzji.
+                        </div>
+                    </div>
+
+                    <th:block sec:authorize="isAuthenticated()">
+                        <!-- Postacie -->
+                        <div class="card bg-base-100 shadow-sm p-4 mt-6">
+                            <h2 class="text-sm font-semibold mb-3">Postacie</h2>
+                            <div th:if="${bookCharacters != null and !#lists.isEmpty(bookCharacters)}">
+                                <div class="overflow-x-auto">
+                                    <table class="table table-sm">
+                                        <thead>
+                                        <tr>
+                                            <th>Imię</th>
+                                            <th>Liczba wystąpień</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="entry : ${bookCharacters}">
+                                            <td class="font-medium" th:text="${entry.character.name}">Postać</td>
+                                            <td th:text="${entry.mentionCount}">0</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div th:if="${bookCharacters == null or #lists.isEmpty(bookCharacters)}"
+                                 class="text-sm text-base-content/60">
+                                Brak danych o postaciach.
+                            </div>
+                        </div>
+
+                        <!-- Relacje -->
+                        <div class="card bg-base-100 shadow-sm p-4 mt-4">
+                            <h2 class="text-sm font-semibold mb-3">Relacje</h2>
+                            <div th:if="${characterRelations != null and !#lists.isEmpty(characterRelations)}">
+                                <ul class="space-y-2">
+                                    <li th:each="rel : ${characterRelations}" class="text-sm">
+                                        <span class="font-medium" th:text="${rel.source.name}">Postać A</span>
+                                        <span class="text-base-content/60"> - </span>
+                                        <span class="font-medium" th:text="${rel.target.name}">Postać B</span>
+                                        <span class="text-base-content/60" th:if="${rel.relation != null}">
+                                            &nbsp;•&nbsp;
+                                        </span>
+                                        <span th:if="${rel.relation != null}" th:text="${rel.relation}">relacja</span>
+                                        <div th:if="${rel.evidence != null}" class="text-xs text-base-content/60 mt-1"
+                                             th:text="${rel.evidence}">
+                                            evidence
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div th:if="${characterRelations == null or #lists.isEmpty(characterRelations)}"
+                                 class="text-sm text-base-content/60">
+                                Brak danych o relacjach.
+                            </div>
+                        </div>
+
+                        <!-- Statystyki rozdziałów -->
+                        <div class="card bg-base-100 shadow-sm p-4 mt-4">
+                            <h2 class="text-sm font-semibold mb-3">Statystyki rozdziałów</h2>
+                            <div th:if="${chapters != null and !#lists.isEmpty(chapters)}">
+                                <div class="overflow-x-auto">
+                                    <table class="table table-sm">
+                                        <thead>
+                                        <tr>
+                                            <th>Rozdział</th>
+                                            <th>Słowa</th>
+                                            <th>Tokeny</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="chapter : ${chapters}">
+                                            <td class="font-medium"
+                                                th:text="${(!#strings.isEmpty(chapter.title))
+                                                ? chapter.title : 'Rozdział ' + chapter.chapterNumber}">
+                                                Rozdział 1
+                                            </td>
+                                            <td th:text="${chapter.wordCount != null ? chapter.wordCount : '-'}">0</td>
+                                            <td th:text="${chapter.tokenCount != null ? chapter.tokenCount : '-'}">0</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div th:if="${chapters == null or #lists.isEmpty(chapters)}"
+                                 class="text-sm text-base-content/60">
+                                Brak statystyk rozdziałów.
+                            </div>
+                        </div>
+                    </th:block>
+
                 </div>
             </div>
         </div>

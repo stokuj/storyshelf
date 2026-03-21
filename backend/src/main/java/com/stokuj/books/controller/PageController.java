@@ -9,6 +9,9 @@ import com.stokuj.books.model.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
+import com.stokuj.books.repository.BookCharacterRepository;
+import com.stokuj.books.repository.CharacterRelationRepository;
+import com.stokuj.books.service.ReviewService;
 import com.stokuj.books.service.UserBookService;
 import com.stokuj.books.service.UserProfileService;
 import com.stokuj.books.dto.request.UserProfileUpdateRequest;
@@ -40,6 +43,9 @@ public class PageController {
 
     private final BookService bookService;
     private final BookChapterService bookChapterService;
+    private final BookCharacterRepository bookCharacterRepository;
+    private final CharacterRelationRepository characterRelationRepository;
+    private final ReviewService reviewService;
     private final UserBookService userBookService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -47,12 +53,18 @@ public class PageController {
 
     public PageController(BookService bookService,
                           BookChapterService bookChapterService,
+                          BookCharacterRepository bookCharacterRepository,
+                          CharacterRelationRepository characterRelationRepository,
+                          ReviewService reviewService,
                           UserBookService userBookService,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           UserProfileService userProfileService) {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
+        this.bookCharacterRepository = bookCharacterRepository;
+        this.characterRelationRepository = characterRelationRepository;
+        this.reviewService = reviewService;
         this.userBookService = userBookService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -91,6 +103,13 @@ public class PageController {
                              Model model,
                              Authentication authentication) {
         model.addAttribute("book", bookService.getById(id));
+        model.addAttribute("chapters", bookChapterService.getChapters(id));
+        model.addAttribute("bookCharacters", bookCharacterRepository.findAllByBookIdWithCharacter(id));
+        model.addAttribute("characterRelations", characterRelationRepository.findAllByBookId(id));
+        model.addAttribute("reviews", reviewService.getReviewsForBook(id));
+        if (!model.containsAttribute("reviewForm")) {
+            model.addAttribute("reviewForm", new com.stokuj.books.dto.request.ReviewRequest());
+        }
         model.addAttribute("statuses", ReadingStatus.values());
         if (hasAuthenticatedUser(authentication)) {
             model.addAttribute("shelfEntry",
@@ -270,163 +289,6 @@ public class PageController {
                                   @RequestParam(required = false, defaultValue = "/bookshelf") String returnTo) {
         userBookService.removeFromShelf(authentication.getName(), bookId);
         return "redirect:" + returnTo;
-    }
-
-    // -------------------------------------------------------------------------
-    // Upload treści książki (HTML formularz)
-    // -------------------------------------------------------------------------
-
-    @PostMapping("/admin/book/{id}/content")
-    public String uploadBookContent(@PathVariable Long id,
-                                    @RequestParam("file") MultipartFile file,
-                                    RedirectAttributes redirectAttributes) {
-        if (file == null || file.isEmpty()) {
-            redirectAttributes.addFlashAttribute("contentMsg", "Wybierz plik .txt przed wysłaniem.");
-            redirectAttributes.addFlashAttribute("contentMsgType", "error");
-            return "redirect:/book/" + id;
-        }
-
-        String content;
-        try {
-            content = new String(file.getBytes(), StandardCharsets.UTF_8).strip();
-        } catch (IOException e) {
-            redirectAttributes.addFlashAttribute("contentMsg", "Nie udało się odczytać pliku.");
-            redirectAttributes.addFlashAttribute("contentMsgType", "error");
-            return "redirect:/book/" + id;
-        }
-
-        if (content.isBlank()) {
-            redirectAttributes.addFlashAttribute("contentMsg", "Plik jest pusty.");
-            redirectAttributes.addFlashAttribute("contentMsgType", "error");
-            return "redirect:/book/" + id;
-        }
-
-        int chaptersCount = bookChapterService.loadContent(id, content);
-        redirectAttributes.addFlashAttribute("contentMsg", "Treść wgrana. Rozdziałów: " + chaptersCount + ".");
-        redirectAttributes.addFlashAttribute("contentMsgType", "success");
-        return "redirect:/book/" + id;
-    }
-
-    // -------------------------------------------------------------------------
-    // Admin: zarządzanie książkami (Thymeleaf)
-    // -------------------------------------------------------------------------
-
-    @GetMapping("/admin/books/new")
-    public String newBookForm(Model model) {
-        model.addAttribute("bookForm", new AdminBookForm());
-        model.addAttribute("formTitle", "Dodaj książkę");
-        model.addAttribute("formAction", "/admin/books/new");
-        return "admin-book-form";
-    }
-
-    @PostMapping("/admin/books/new")
-    public String createBook(@Valid @ModelAttribute("bookForm") AdminBookForm form,
-                             org.springframework.validation.BindingResult bindingResult,
-                             RedirectAttributes redirectAttributes,
-                             Model model) {
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("formTitle", "Dodaj książkę");
-            model.addAttribute("formAction", "/admin/books/new");
-            return "admin-book-form";
-        }
-
-        bookService.create(toBookRequest(form));
-        redirectAttributes.addFlashAttribute("shelfMsg", "Dodano książkę do katalogu.");
-        return "redirect:/";
-    }
-
-    @GetMapping("/admin/books/{id}/edit")
-    public String editBookForm(@PathVariable Long id, Model model) {
-        model.addAttribute("bookForm", toForm(bookService.getById(id)));
-        model.addAttribute("formTitle", "Edytuj książkę");
-        model.addAttribute("formAction", "/admin/books/" + id + "/edit");
-        model.addAttribute("bookId", id);
-        return "admin-book-form";
-    }
-
-    @PostMapping("/admin/books/{id}/edit")
-    public String updateBook(@PathVariable Long id,
-                             @Valid @ModelAttribute("bookForm") AdminBookForm form,
-                             org.springframework.validation.BindingResult bindingResult,
-                             RedirectAttributes redirectAttributes,
-                             Model model) {
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("formTitle", "Edytuj książkę");
-            model.addAttribute("formAction", "/admin/books/" + id + "/edit");
-            model.addAttribute("bookId", id);
-            return "admin-book-form";
-        }
-
-        bookService.update(id, toBookRequest(form));
-        redirectAttributes.addFlashAttribute("shelfMsg", "Zaktualizowano książkę.");
-        return "redirect:/book/" + id;
-    }
-
-    @PostMapping("/admin/books/{id}/delete")
-    public String deleteBook(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        bookService.delete(id);
-        redirectAttributes.addFlashAttribute("shelfMsg", "Usunięto książkę.");
-        return "redirect:/";
-    }
-
-    private BookRequest toBookRequest(AdminBookForm form) {
-        BookRequest request = new BookRequest();
-        request.setTitle(form.getTitle());
-        request.setAuthor(form.getAuthor());
-        request.setYear(form.getYear() != null ? form.getYear() : 0);
-        request.setIsbn(form.getIsbn());
-        request.setDescription(form.getDescription());
-        request.setPageCount(form.getPageCount() != null ? form.getPageCount() : 0);
-        request.setGenres(parseSet(form.getGenres()));
-        request.setTags(parseList(form.getTags()));
-        return request;
-    }
-
-    private AdminBookForm toForm(com.stokuj.books.model.entity.Book book) {
-        AdminBookForm form = new AdminBookForm();
-        form.setTitle(book.getTitle());
-        form.setAuthor(book.getAuthor());
-        form.setYear(book.getYear());
-        form.setIsbn(book.getIsbn());
-        form.setDescription(book.getDescription());
-        form.setPageCount(book.getPageCount());
-        form.setGenres(joinCsv(book.getGenres()));
-        form.setTags(joinCsv(book.getTags()));
-        return form;
-    }
-
-    private Set<String> parseSet(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return Set.of();
-        }
-        return Arrays.stream(raw.split(","))
-                .map(String::trim)
-                .filter(value -> !value.isBlank())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    private List<String> parseList(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(raw.split(","))
-                .map(String::trim)
-                .filter(value -> !value.isBlank())
-                .toList();
-    }
-
-    private String joinCsv(Set<String> values) {
-        if (values == null || values.isEmpty()) {
-            return "";
-        }
-        return String.join(", ", values);
-    }
-
-    private String joinCsv(List<String> values) {
-        if (values == null || values.isEmpty()) {
-            return "";
-        }
-        return String.join(", ", values);
     }
 
 }

@@ -3,8 +3,10 @@ package com.stokuj.books.service;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.model.entity.Book;
 import com.stokuj.books.model.entity.BookChapter;
+import com.stokuj.books.repository.BookCharacterRepository;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
+import com.stokuj.books.repository.CharacterRelationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,8 @@ public class BookChapterService {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
+    private final BookCharacterRepository bookCharacterRepository;
+    private final CharacterRelationRepository characterRelationRepository;
     private final ChapterEventProducer chapterEventProducer;
 
     private static final int MIN_CHAPTER_SIZE = 2000;    // minimalny rozmiar fragmentu
@@ -37,9 +41,13 @@ public class BookChapterService {
 
     public BookChapterService(BookChapterRepository chapterRepository,
                               BookRepository bookRepository,
+                              BookCharacterRepository bookCharacterRepository,
+                              CharacterRelationRepository characterRelationRepository,
                               ChapterEventProducer chapterEventProducer) {
         this.chapterRepository = chapterRepository;
         this.bookRepository = bookRepository;
+        this.bookCharacterRepository = bookCharacterRepository;
+        this.characterRelationRepository = characterRelationRepository;
         this.chapterEventProducer = chapterEventProducer;
     }
 
@@ -85,10 +93,10 @@ public class BookChapterService {
         int count = chapterRepository.countByBookId(bookId);
         book.setChaptersCount(count);
         book.setNerCompletedCount(0);
-        book.setCharacters(new HashMap<>());
-        book.setFindPairsResult(null);
-        book.setRelationsResult(null);
         bookRepository.save(book);
+
+        bookCharacterRepository.deleteAllByBookId(bookId);
+        characterRelationRepository.deleteAllByBookId(bookId);
 
         for (BookChapter chapter : chapters) {
             chapterEventProducer.sendChapterForAnalysis(chapter.getId(), chapter.getContent());
