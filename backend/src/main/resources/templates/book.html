@@ -147,7 +147,7 @@
                         <!-- Postacie -->
                         <div class="card bg-base-100 shadow-sm p-4 mt-6">
                             <h2 class="text-sm font-semibold mb-3">Postacie</h2>
-                            <div th:if="${book.characters != null and !book.characters.isEmpty()}">
+                            <div th:if="${bookCharacters != null and !#lists.isEmpty(bookCharacters)}">
                                 <div class="overflow-x-auto">
                                     <table class="table table-sm">
                                         <thead>
@@ -157,15 +157,15 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr th:each="entry : ${book.characters.entrySet()}">
-                                            <td class="font-medium" th:text="${entry.key}">Postać</td>
-                                            <td th:text="${entry.value}">0</td>
+                                        <tr th:each="entry : ${bookCharacters}">
+                                            <td class="font-medium" th:text="${entry.character.name}">Postać</td>
+                                            <td th:text="${entry.mentionCount}">0</td>
                                         </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                            <div th:if="${book.characters == null or book.characters.isEmpty()}"
+                            <div th:if="${bookCharacters == null or #lists.isEmpty(bookCharacters)}"
                                  class="text-sm text-base-content/60">
                                 Brak danych o postaciach.
                             </div>
@@ -174,18 +174,24 @@
                         <!-- Relacje -->
                         <div class="card bg-base-100 shadow-sm p-4 mt-4">
                             <h2 class="text-sm font-semibold mb-3">Relacje</h2>
-                            <div th:if="${book.relationsResult != null and book.relationsResult['all_relations'] != null
-                                        and !#lists.isEmpty(book.relationsResult['all_relations'])}">
+                            <div th:if="${characterRelations != null and !#lists.isEmpty(characterRelations)}">
                                 <ul class="space-y-2">
-                                    <li th:each="rel : ${book.relationsResult['all_relations']}" class="text-sm">
-                                        <span class="font-medium" th:text="${rel['pair'][0]}">Postać A</span>
+                                    <li th:each="rel : ${characterRelations}" class="text-sm">
+                                        <span class="font-medium" th:text="${rel.source.name}">Postać A</span>
                                         <span class="text-base-content/60"> - </span>
-                                        <span class="font-medium" th:text="${rel['pair'][1]}">Postać B</span>
+                                        <span class="font-medium" th:text="${rel.target.name}">Postać B</span>
+                                        <span class="text-base-content/60" th:if="${rel.relation != null}">
+                                            &nbsp;•&nbsp;
+                                        </span>
+                                        <span th:if="${rel.relation != null}" th:text="${rel.relation}">relacja</span>
+                                        <div th:if="${rel.evidence != null}" class="text-xs text-base-content/60 mt-1"
+                                             th:text="${rel.evidence}">
+                                            evidence
+                                        </div>
                                     </li>
                                 </ul>
                             </div>
-                            <div th:if="${book.relationsResult == null or book.relationsResult['all_relations'] == null
-                                        or #lists.isEmpty(book.relationsResult['all_relations'])}"
+                            <div th:if="${characterRelations == null or #lists.isEmpty(characterRelations)}"
                                  class="text-sm text-base-content/60">
                                 Brak danych o relacjach.
                             </div>

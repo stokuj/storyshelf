@@ -9,6 +9,7 @@ import com.stokuj.books.model.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
+import com.stokuj.books.service.BookAnalysisViewService;
 import com.stokuj.books.service.UserBookService;
 import com.stokuj.books.service.UserProfileService;
 import com.stokuj.books.dto.request.UserProfileUpdateRequest;
@@ -40,6 +41,7 @@ public class PageController {
 
     private final BookService bookService;
     private final BookChapterService bookChapterService;
+    private final BookAnalysisViewService bookAnalysisViewService;
     private final UserBookService userBookService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -47,12 +49,14 @@ public class PageController {
 
     public PageController(BookService bookService,
                           BookChapterService bookChapterService,
+                          BookAnalysisViewService bookAnalysisViewService,
                           UserBookService userBookService,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           UserProfileService userProfileService) {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
+        this.bookAnalysisViewService = bookAnalysisViewService;
         this.userBookService = userBookService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -92,6 +96,8 @@ public class PageController {
                              Authentication authentication) {
         model.addAttribute("book", bookService.getById(id));
         model.addAttribute("chapters", bookChapterService.getChapters(id));
+        model.addAttribute("bookCharacters", bookAnalysisViewService.getBookCharacters(id));
+        model.addAttribute("characterRelations", bookAnalysisViewService.getCharacterRelations(id));
         model.addAttribute("statuses", ReadingStatus.values());
         if (hasAuthenticatedUser(authentication)) {
             model.addAttribute("shelfEntry",
