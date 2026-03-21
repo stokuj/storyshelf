@@ -10,6 +10,7 @@ import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.BookAnalysisViewService;
+import com.stokuj.books.service.ReviewService;
 import com.stokuj.books.service.UserBookService;
 import com.stokuj.books.service.UserProfileService;
 import com.stokuj.books.dto.request.UserProfileUpdateRequest;
@@ -42,6 +43,7 @@ public class PageController {
     private final BookService bookService;
     private final BookChapterService bookChapterService;
     private final BookAnalysisViewService bookAnalysisViewService;
+    private final ReviewService reviewService;
     private final UserBookService userBookService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -50,6 +52,7 @@ public class PageController {
     public PageController(BookService bookService,
                           BookChapterService bookChapterService,
                           BookAnalysisViewService bookAnalysisViewService,
+                          ReviewService reviewService,
                           UserBookService userBookService,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
@@ -57,6 +60,7 @@ public class PageController {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
         this.bookAnalysisViewService = bookAnalysisViewService;
+        this.reviewService = reviewService;
         this.userBookService = userBookService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -98,6 +102,10 @@ public class PageController {
         model.addAttribute("chapters", bookChapterService.getChapters(id));
         model.addAttribute("bookCharacters", bookAnalysisViewService.getBookCharacters(id));
         model.addAttribute("characterRelations", bookAnalysisViewService.getCharacterRelations(id));
+        model.addAttribute("reviews", reviewService.getReviewsForBook(id));
+        if (!model.containsAttribute("reviewForm")) {
+            model.addAttribute("reviewForm", new com.stokuj.books.dto.request.ReviewRequest());
+        }
         model.addAttribute("statuses", ReadingStatus.values());
         if (hasAuthenticatedUser(authentication)) {
             model.addAttribute("shelfEntry",
