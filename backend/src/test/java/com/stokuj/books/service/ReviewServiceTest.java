@@ -58,13 +58,16 @@ class ReviewServiceTest {
     void addReview_throwsConflictException_whenReviewAlreadyExists() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
         when(bookRepository.findById(10L)).thenReturn(Optional.of(testBook));
-        when(reviewRepository.existsByBookIdAndUserId(10L, 1L)).thenReturn(true);
+        when(reviewRepository.findByBookIdAndUserId(10L, 1L))
+                .thenReturn(Optional.of(new Review()));
 
-        ReviewRequest request = new ReviewRequest(5, "Great book");
+        ReviewRequest request = new ReviewRequest();
+        request.setRating(5);
+        request.setContent("Great book");
 
-        assertThatThrownBy(() -> reviewService.addReview("test@example.com", 10L, request))
+        assertThatThrownBy(() -> reviewService.addReview(10L, "test@example.com", request))
                 .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("Dodałeś/aś");
+                .hasMessageContaining("Recenzja już istnieje");
                 
         verify(reviewRepository, never()).save(any(Review.class));
         verify(bookRepository, never()).save(any(Book.class));
@@ -74,10 +77,12 @@ class ReviewServiceTest {
     void addReview_updatesAverageRating_whenSuccess() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
         when(bookRepository.findById(10L)).thenReturn(Optional.of(testBook));
-        when(reviewRepository.existsByBookIdAndUserId(10L, 1L)).thenReturn(false);
+        when(reviewRepository.findByBookIdAndUserId(10L, 1L)).thenReturn(Optional.empty());
 
         // Previous state: Rating = 0.0, Count = 0
-        ReviewRequest request = new ReviewRequest(4, "Good read");
+        ReviewRequest request = new ReviewRequest();
+        request.setRating(4);
+        request.setContent("Good read");
         
         Review savedReview = new Review();
         savedReview.setId(100L);
@@ -87,8 +92,10 @@ class ReviewServiceTest {
         savedReview.setUser(testUser);
         
         when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
+        when(reviewRepository.countByBookId(10L)).thenReturn(1L);
+        when(reviewRepository.findAverageRating(10L)).thenReturn(4.0);
 
-        reviewService.addReview("test@example.com", 10L, request);
+        reviewService.addReview(10L, "test@example.com", request);
 
         verify(reviewRepository).save(any(Review.class));
         verify(bookRepository).save(testBook);
@@ -109,6 +116,9 @@ class ReviewServiceTest {
         testBook.setRatingsCount(1);
 
         when(reviewRepository.findById(100L)).thenReturn(Optional.of(review));
+        when(bookRepository.findById(10L)).thenReturn(Optional.of(testBook));
+        when(reviewRepository.countByBookId(10L)).thenReturn(0L);
+        when(reviewRepository.findAverageRating(10L)).thenReturn((Double) null);
 
         reviewService.deleteReview(100L);
 

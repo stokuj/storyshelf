@@ -11,6 +11,7 @@ import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookCharacterRepository;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.CharacterRelationRepository;
+import com.stokuj.books.service.ChapterEventProducer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
