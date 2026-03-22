@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/users/{username}")
 @PreAuthorize("hasRole('USER')")
 public class UserFollowController {
 
@@ -27,7 +27,7 @@ public class UserFollowController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping("/{username}/follow")
+    @PostMapping("/follow")
     public ResponseEntity<Void> follow(@PathVariable String username,
                                        Authentication authentication) {
         if (userFollowRepository.existsByFollower_EmailAndFollowing_Username(
@@ -48,7 +48,7 @@ public class UserFollowController {
         return ResponseEntity.status(201).build();
     }
 
-    @DeleteMapping("/{username}/follow")
+    @DeleteMapping("/follow")
     public ResponseEntity<Void> unfollow(@PathVariable String username,
                                          Authentication authentication) {
         UserFollow follow = userFollowRepository
@@ -59,14 +59,14 @@ public class UserFollowController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{username}/followers")
+    @GetMapping("/followers")
     public ResponseEntity<List<UserFollow>> getFollowers(@PathVariable String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return ResponseEntity.ok(userFollowRepository.findAllByFollowing_Email(user.getEmail()));
     }
 
-    @GetMapping("/{username}/following")
+    @GetMapping("/following")
     public ResponseEntity<List<UserFollow>> getFollowing(@PathVariable String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
