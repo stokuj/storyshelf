@@ -1,10 +1,12 @@
 package com.stokuj.books.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.Instant;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "user_follows")
 public class UserFollow {

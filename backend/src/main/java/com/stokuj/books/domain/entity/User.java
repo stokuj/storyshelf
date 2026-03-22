@@ -2,10 +2,12 @@ package com.stokuj.books.domain.entity;
 
 import com.stokuj.books.domain.enums.Role;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.Instant;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "users")
 public class User {
