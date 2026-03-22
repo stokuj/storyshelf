@@ -1,7 +1,5 @@
 package com.stokuj.books.integration.processor;
 
-import com.stokuj.books.domain.entity.Book;
-import com.stokuj.books.domain.entity.Chapter;
 import com.stokuj.books.dto.integration.NerResult;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;

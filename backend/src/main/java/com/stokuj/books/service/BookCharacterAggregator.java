@@ -1,9 +1,6 @@
 package com.stokuj.books.service;
 
 import com.stokuj.books.dto.integration.NerResult;
-import com.stokuj.books.domain.entity.Book;
-import com.stokuj.books.domain.entity.BookCharacter;
-import com.stokuj.books.domain.entity.Character;
 import com.stokuj.books.repository.BookCharacterRepository;
 import java.util.HashMap;
 import java.util.Map;

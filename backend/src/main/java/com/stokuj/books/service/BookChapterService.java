@@ -1,8 +1,6 @@
 package com.stokuj.books.service;
 
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.domain.entity.Book;
-import com.stokuj.books.domain.entity.Chapter;
 import com.stokuj.books.repository.BookCharacterRepository;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;

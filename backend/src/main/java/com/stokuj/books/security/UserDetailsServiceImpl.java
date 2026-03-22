@@ -1,6 +1,5 @@
 package com.stokuj.books.security;
 
-import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -23,7 +23,7 @@ public class Chapter {
     @JsonIgnore
     private Book book;
 
-    @Column(nullable = false)
+    @Column(name = "chapter_number", nullable = false)
     private Integer chapterNumber;
 
     @Column(length = 500)
@@ -32,23 +32,22 @@ public class Chapter {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-    /// Analysis part - ENDPOINT FROM FAST API /analysis/
+    @Column(name = "analysis_completed")
     private Boolean analysisCompleted = false;
 
+    @Column(name = "char_count")
     private Integer charCount;
 
+    @Column(name = "char_count_clean")
     private Integer charCountClean;
 
+    @Column(name = "word_count")
     private Integer wordCount;
 
+    @Column(name = "token_count")
     private Integer tokenCount;
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
 
-    /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
-    /// NER part - ENDPOINT FROM FAST API /NER/{task_id}
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "ner_result", columnDefinition = "jsonb")
     private NerResult nerResult;
-
 }

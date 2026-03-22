@@ -1,6 +1,5 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

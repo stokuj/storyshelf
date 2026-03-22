@@ -8,7 +8,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "character_relations",
-        uniqueConstraints = @UniqueConstraint(name = "uk_character_relation",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_character_relation",
                 columnNames = {"book_id", "source_id", "target_id"}))
 public class CharacterRelation {
 
@@ -29,8 +30,6 @@ public class CharacterRelation {
     private Character target;
 
     private String relation;
-
     private String evidence;
-
     private Double confidence;
 }

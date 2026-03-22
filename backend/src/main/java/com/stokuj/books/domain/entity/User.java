@@ -31,9 +31,6 @@ public class User {
 
     private String bio;
 
-    @Column(name = "avatar_url")
-    private String avatarUrl;
-
     @Column(name = "profile_public", nullable = false)
     private boolean profilePublic = true;
 

@@ -2,8 +2,6 @@ package com.stokuj.books.controller.integration;
 
 import com.stokuj.books.dto.integration.AnalyseResponse;
 import com.stokuj.books.dto.integration.BookFindPairsResult;
-import com.stokuj.books.domain.entity.Book;
-import com.stokuj.books.domain.entity.Chapter;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.integration.kafka.ChapterEventProducer;

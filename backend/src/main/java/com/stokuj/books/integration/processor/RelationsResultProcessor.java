@@ -1,9 +1,6 @@
 package com.stokuj.books.integration.processor;
 
 import com.stokuj.books.dto.integration.BookFindPairsResult;
-import com.stokuj.books.domain.entity.Book;
-import com.stokuj.books.domain.entity.Character;
-import com.stokuj.books.domain.entity.CharacterRelation;
 import com.stokuj.books.repository.CharacterRelationRepository;
 import com.stokuj.books.service.CharacterService;
 import com.stokuj.books.integration.kafka.ChapterEventProducer;

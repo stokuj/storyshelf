@@ -1,6 +1,5 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.service.UserProfileService;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;

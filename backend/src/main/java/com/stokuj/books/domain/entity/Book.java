@@ -2,36 +2,39 @@ package com.stokuj.books.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "books")
 public class Book {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Version
     private Long version;
+
     private String title;
     private int year;
     private String isbn;
     private String description;
+
+    @Column(name = "page_count")
     private int pageCount;
 
-    // === KATEGORYZACJA ===
     @ElementCollection
-    @CollectionTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"))
+    @CollectionTable(name = "book_genresbook_genres", joinColumns = @JoinColumn(name = "book_id"))
     @Column(name = "genre")
-    private Set<String> genres;
+    private Set<String> genres = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "series_id")
@@ -51,15 +54,21 @@ public class Book {
     @JsonIgnore
     private List<Chapter> chapters = new ArrayList<>();
 
+    @Column(name = "chapters_count")
     private int chaptersCount;
+
+    @Column(name = "ner_completed_count")
     private int nerCompletedCount;
 
-    // === OCENY ===
     private double rating;
+
+    @Column(name = "ratings_count")
     private int ratingsCount;
 
-    // === METADANE ===
+    @Column(name = "created_at")
     private LocalDate createdAt;
+
+    @Column(name = "updated_at")
     private LocalDate updatedAt;
 
     @PrePersist

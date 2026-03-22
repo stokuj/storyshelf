@@ -8,7 +8,9 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "book_characters",
-        uniqueConstraints = @UniqueConstraint(name = "uk_book_character", columnNames = {"book_id", "character_id"}))
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_book_character",
+                columnNames = {"book_id", "character_id"}))
 public class BookCharacter {
 
     @Id

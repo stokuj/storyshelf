@@ -1,31 +1,18 @@
 package com.stokuj.books.domain.entity;
 
 import com.stokuj.books.domain.enums.ReadingStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-
-import java.time.Instant;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
-@Table(
-        name = "user_books",
-        uniqueConstraints = @UniqueConstraint(name = "uk_user_book", columnNames = {"user_id", "book_id"})
-)
+@Table(name = "user_books",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_user_book",
+                columnNames = {"user_id", "book_id"}))
 public class UserBook {
 
     @Id
@@ -51,5 +38,4 @@ public class UserBook {
     public void prePersist() {
         this.createdAt = Instant.now();
     }
-
 }

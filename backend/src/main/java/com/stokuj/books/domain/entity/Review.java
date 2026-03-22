@@ -1,15 +1,17 @@
 package com.stokuj.books.domain.entity;
 
 import jakarta.persistence.*;
-import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "reviews",
-        uniqueConstraints = @UniqueConstraint(name = "uk_review", columnNames = {"book_id", "user_id"}))
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_review",
+                columnNames = {"book_id", "user_id"}))
 public class Review {
 
     @Id
