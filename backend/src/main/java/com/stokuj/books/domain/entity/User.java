@@ -29,11 +29,6 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    private String provider;
-
-    @Column(name = "provider_id")
-    private String providerId;
-
     private String bio;
 
     @Column(name = "avatar_url")

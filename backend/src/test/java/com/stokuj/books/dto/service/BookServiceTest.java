@@ -3,8 +3,14 @@ package com.stokuj.books.dto.service;
 import com.stokuj.books.dto.book.BookPatchRequest;
 import com.stokuj.books.dto.book.BookRequest;
 import com.stokuj.books.exception.ResourceNotFoundException;
+import com.stokuj.books.domain.entity.Author;
 import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.BookAuthor;
+import com.stokuj.books.domain.entity.BookTag;
+import com.stokuj.books.domain.entity.Tag;
+import com.stokuj.books.repository.AuthorRepository;
 import com.stokuj.books.repository.BookRepository;
+import com.stokuj.books.repository.TagRepository;
 import com.stokuj.books.service.BookService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +35,12 @@ class BookServiceTest {
     @Mock
     BookRepository bookRepository;
 
+    @Mock
+    AuthorRepository authorRepository;
+
+    @Mock
+    TagRepository tagRepository;
+
     @InjectMocks
     BookService bookService;
 
@@ -40,7 +52,7 @@ class BookServiceTest {
         var book = new Book();
         book.setId(1L);
         book.setTitle("Dune");
-        book.setAuthor("Herbert");
+        book.getBookAuthors().add(makeBookAuthor(book, "Herbert"));
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(book));
 
@@ -49,7 +61,7 @@ class BookServiceTest {
 
         // then
         assertThat(result.getTitle()).isEqualTo("Dune");
-        assertThat(result.getAuthor()).isEqualTo("Herbert");
+        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Herbert");
     }
 
     @Test
@@ -112,7 +124,10 @@ class BookServiceTest {
         var savedBook = new Book();
         savedBook.setId(1L);
         savedBook.setTitle("Dune");
-        savedBook.setAuthor("Herbert");
+        savedBook.getBookAuthors().add(makeBookAuthor(savedBook, "Herbert"));
+
+        given(authorRepository.findByNameIgnoreCase("Herbert"))
+                .willReturn(Optional.of(makeAuthor("Herbert")));
 
         given(bookRepository.save(any(Book.class))).willReturn(savedBook);
 
@@ -140,6 +155,9 @@ class BookServiceTest {
         request.setAuthor("Herbert");
         request.setYear(1965);
 
+        given(authorRepository.findByNameIgnoreCase("Herbert"))
+                .willReturn(Optional.of(makeAuthor("Herbert")));
+
         given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
         given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -148,7 +166,7 @@ class BookServiceTest {
 
         // then
         assertThat(result.getTitle()).isEqualTo("Dune");
-        assertThat(result.getAuthor()).isEqualTo("Herbert");
+        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Herbert");
         verify(bookRepository).save(existing);
     }
 
@@ -172,7 +190,7 @@ class BookServiceTest {
         var existing = new Book();
         existing.setId(1L);
         existing.setTitle("Old Title");
-        existing.setAuthor("Old Author");
+        existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
 
         var patchRequest = new BookPatchRequest();
         patchRequest.setTitle("New Title");
@@ -186,7 +204,7 @@ class BookServiceTest {
 
         // then
         assertThat(result.getTitle()).isEqualTo("New Title");
-        assertThat(result.getAuthor()).isEqualTo("Old Author"); // niezmieniony!
+        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Old Author"); // niezmieniony!
     }
 
     @Test
@@ -195,7 +213,7 @@ class BookServiceTest {
         var existing = new Book();
         existing.setId(1L);
         existing.setTitle("Old Title");
-        existing.setAuthor("Old Author");
+        existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
         existing.setYear(2000);
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
@@ -206,7 +224,7 @@ class BookServiceTest {
 
         // then
         assertThat(result.getTitle()).isEqualTo("Old Title");
-        assertThat(result.getAuthor()).isEqualTo("Old Author");
+        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Old Author");
         assertThat(result.getYear()).isEqualTo(2000);
     }
 
@@ -216,13 +234,16 @@ class BookServiceTest {
         var existing = new Book();
         existing.setId(1L);
         existing.setTitle("Old Title");
-        existing.setAuthor("Old Author");
+        existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
         existing.setYear(2000);
 
         var request = new BookPatchRequest();
         request.setTitle("New Title");
         request.setAuthor("New Author");
         request.setYear(2024);
+
+        given(authorRepository.findByNameIgnoreCase("New Author"))
+                .willReturn(Optional.of(makeAuthor("New Author")));
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
         given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
@@ -232,7 +253,7 @@ class BookServiceTest {
 
         // then
         assertThat(result.getTitle()).isEqualTo("New Title");
-        assertThat(result.getAuthor()).isEqualTo("New Author");
+        assertThat(extractPrimaryAuthorName(result)).isEqualTo("New Author");
         assertThat(result.getYear()).isEqualTo(2024);
     }
 
@@ -255,11 +276,16 @@ class BookServiceTest {
         existing.setId(1L);
         existing.setTitle("Dune");
         existing.setGenres(Set.of("Sci-Fi"));
-        existing.setTags(List.of("classic"));
+        existing.getBookTags().add(makeBookTag(existing, "classic"));
 
         var request = new BookPatchRequest();
         request.setGenres(Set.of("Sci-Fi", "Adventure"));
         request.setTags(List.of("classic", "must-read"));
+
+        given(tagRepository.findByNameIgnoreCase("classic"))
+                .willReturn(Optional.of(makeTag("classic")));
+        given(tagRepository.findByNameIgnoreCase("must-read"))
+                .willReturn(Optional.of(makeTag("must-read")));
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
         given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
@@ -269,7 +295,7 @@ class BookServiceTest {
 
         // then
         assertThat(result.getGenres()).containsExactlyInAnyOrder("Sci-Fi", "Adventure");
-        assertThat(result.getTags()).containsExactlyInAnyOrder("classic", "must-read");
+        assertThat(extractTagNames(result)).containsExactlyInAnyOrder("classic", "must-read");
         assertThat(result.getTitle()).isEqualTo("Dune"); // niezmieniony
     }
 
@@ -310,5 +336,55 @@ class BookServiceTest {
 
         // then
         verify(bookRepository).deleteById(1L);
+    }
+
+    private Author makeAuthor(String name) {
+        Author author = new Author();
+        author.setId(1L);
+        author.setName(name);
+        return author;
+    }
+
+    private BookAuthor makeBookAuthor(Book book, String name) {
+        BookAuthor bookAuthor = new BookAuthor();
+        bookAuthor.setBook(book);
+        bookAuthor.setAuthor(makeAuthor(name));
+        bookAuthor.setRole("AUTHOR");
+        return bookAuthor;
+    }
+
+    private Tag makeTag(String name) {
+        Tag tag = new Tag();
+        tag.setId(1L);
+        tag.setName(name);
+        return tag;
+    }
+
+    private BookTag makeBookTag(Book book, String name) {
+        BookTag bookTag = new BookTag();
+        bookTag.setBook(book);
+        bookTag.setTag(makeTag(name));
+        return bookTag;
+    }
+
+    private String extractPrimaryAuthorName(Book book) {
+        if (book.getBookAuthors() == null || book.getBookAuthors().isEmpty()) {
+            return null;
+        }
+        return book.getBookAuthors().stream()
+                .map(bookAuthor -> bookAuthor.getAuthor() != null ? bookAuthor.getAuthor().getName() : null)
+                .filter(name -> name != null && !name.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
+
+    private List<String> extractTagNames(Book book) {
+        if (book.getBookTags() == null || book.getBookTags().isEmpty()) {
+            return List.of();
+        }
+        return book.getBookTags().stream()
+                .map(bookTag -> bookTag.getTag() != null ? bookTag.getTag().getName() : null)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
     }
 }

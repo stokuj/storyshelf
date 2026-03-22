@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-public class BookshelfWebController {
+public class UserBookWebController {
 
     private final UserBookService userBookService;
 
-    public BookshelfWebController(UserBookService userBookService) {
+    public UserBookWebController(UserBookService userBookService) {
         this.userBookService = userBookService;
     }
 

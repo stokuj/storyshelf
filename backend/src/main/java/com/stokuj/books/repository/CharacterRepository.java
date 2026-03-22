@@ -1,9 +1,9 @@
 package com.stokuj.books.repository;
 
-import com.stokuj.books.domain.entity.StoryCharacter;
+import com.stokuj.books.domain.entity.Character;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CharacterRepository extends JpaRepository<StoryCharacter, Long> {
-    Optional<StoryCharacter> findByNameIgnoreCase(String name);
+public interface CharacterRepository extends JpaRepository<Character, Long> {
+    Optional<Character> findByNameIgnoreCase(String name);
 }

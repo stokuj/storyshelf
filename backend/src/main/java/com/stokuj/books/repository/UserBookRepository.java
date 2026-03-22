@@ -1,13 +1,13 @@
 package com.stokuj.books.repository;
 
-import com.stokuj.books.domain.entity.Bookshelf;
+import com.stokuj.books.domain.entity.UserBook;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface UserBookRepository extends JpaRepository<Bookshelf, Long> {
-    List<Bookshelf> findAllByUserEmailOrderByCreatedAtDesc(String email);
+public interface UserBookRepository extends JpaRepository<UserBook, Long> {
+    List<UserBook> findAllByUserEmailOrderByCreatedAtDesc(String email);
 
-    Optional<Bookshelf> findByUserEmailAndBookId(String email, Long bookId);
+    Optional<UserBook> findByUserEmailAndBookId(String email, Long bookId);
 }

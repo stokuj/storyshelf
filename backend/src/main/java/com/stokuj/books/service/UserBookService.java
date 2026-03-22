@@ -7,7 +7,7 @@ import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.domain.entity.Book;
 import com.stokuj.books.domain.enums.ReadingStatus;
 import com.stokuj.books.domain.entity.User;
-import com.stokuj.books.domain.entity.Bookshelf;
+import com.stokuj.books.domain.entity.UserBook;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.UserBookRepository;
 import com.stokuj.books.repository.UserRepository;
@@ -60,34 +60,34 @@ public class UserBookService {
                 ? request.getStatus()
                 : ReadingStatus.WANT_TO_READ;
 
-        Bookshelf bookshelf = new Bookshelf();
-        bookshelf.setUser(user);
-        bookshelf.setBook(book);
-        bookshelf.setStatus(status);
-        userBookRepository.save(bookshelf);
+        UserBook userBook = new UserBook();
+        userBook.setUser(user);
+        userBook.setBook(book);
+        userBook.setStatus(status);
+        userBookRepository.save(userBook);
 
-        return new UserBookResponse(book, bookshelf.getStatus(), bookshelf.getCreatedAt());
+        return new UserBookResponse(book, userBook.getStatus(), userBook.getCreatedAt());
     }
 
     @Transactional
     public UserBookResponse updateStatus(String email, Long bookId, UserBookRequest request) {
-        Bookshelf bookshelf = userBookRepository.findByUserEmailAndBookId(email, bookId)
+        UserBook userBook = userBookRepository.findByUserEmailAndBookId(email, bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book is not on your shelf"));
 
         if (request == null || request.getStatus() == null) {
             throw new ResourceNotFoundException("Status is required");
         }
 
-        bookshelf.setStatus(request.getStatus());
-        userBookRepository.save(bookshelf);
+        userBook.setStatus(request.getStatus());
+        userBookRepository.save(userBook);
 
-        return new UserBookResponse(bookshelf.getBook(), bookshelf.getStatus(), bookshelf.getCreatedAt());
+        return new UserBookResponse(userBook.getBook(), userBook.getStatus(), userBook.getCreatedAt());
     }
 
     @Transactional
     public void removeFromShelf(String email, Long bookId) {
-        Bookshelf bookshelf = userBookRepository.findByUserEmailAndBookId(email, bookId)
+        UserBook userBook = userBookRepository.findByUserEmailAndBookId(email, bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book is not on your shelf"));
-        userBookRepository.delete(bookshelf);
+        userBookRepository.delete(userBook);
     }
 }

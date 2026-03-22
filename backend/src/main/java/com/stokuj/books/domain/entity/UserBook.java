@@ -23,10 +23,10 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(
-        name = "bookshelf",
+        name = "user_books",
         uniqueConstraints = @UniqueConstraint(name = "uk_user_book", columnNames = {"user_id", "book_id"})
 )
-public class Bookshelf {
+public class UserBook {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

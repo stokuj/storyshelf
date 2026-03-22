@@ -1,1 +1,1 @@
-ALTER TABLE user_books RENAME TO bookshelf;
+-- No-op: keep user_books for ERD alignment

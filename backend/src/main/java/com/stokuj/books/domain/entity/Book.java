@@ -22,7 +22,6 @@ public class Book {
     @Version
     private Long version;
     private String title;
-    private String author;
     private int year;
     private String isbn;
     private String description;
@@ -34,10 +33,18 @@ public class Book {
     @Column(name = "genre")
     private Set<String> genres;
 
-    @ElementCollection
-    @CollectionTable(name = "book_tags", joinColumns = @JoinColumn(name = "book_id"))
-    @Column(name = "tag")
-    private List<String> tags;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "series_id")
+    private Series series;
+
+    @Column(name = "position_in_series")
+    private Integer positionInSeries;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookAuthor> bookAuthors = new ArrayList<>();
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookTag> bookTags = new ArrayList<>();
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("chapterNumber ASC")
