@@ -81,4 +81,21 @@ public class Book {
     protected void onUpdate() {
         this.updatedAt = LocalDate.now();
     }
+
+    public String getAuthor() {
+        if (bookAuthors == null || bookAuthors.isEmpty()) return null;
+        return bookAuthors.stream()
+                .map(ba -> ba.getAuthor() != null ? ba.getAuthor().getName() : null)
+                .filter(name -> name != null && !name.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<String> getTags() {
+        if (bookTags == null) return List.of();
+        return bookTags.stream()
+                .map(bt -> bt.getTag() != null ? bt.getTag().getName() : null)
+                .filter(name -> name != null && !name.isBlank())
+                .toList();
+    }
 }

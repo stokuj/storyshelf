@@ -13,11 +13,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/shelf")
 @PreAuthorize("hasRole('USER')")
-public class UserBookController {
+public class BookShelfController {
 
     private final UserBookService userBookService;
 
-    public UserBookController(UserBookService userBookService) {
+    public BookShelfController(UserBookService userBookService) {
         this.userBookService = userBookService;
     }
 
