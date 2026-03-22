@@ -1,14 +1,14 @@
 package com.stokuj.books.repository;
 
-import com.stokuj.books.domain.entity.CharacterRelation;
+import com.stokuj.books.domain.entity.StoryCharacterRelation;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CharacterRelationRepository extends JpaRepository<CharacterRelation, Long> {
-    Optional<CharacterRelation> findByBookIdAndSourceIdAndTargetId(Long bookId, Long sourceId, Long targetId);
+public interface CharacterRelationRepository extends JpaRepository<StoryCharacterRelation, Long> {
+    Optional<StoryCharacterRelation> findByBookIdAndSourceIdAndTargetId(Long bookId, Long sourceId, Long targetId);
 
-    List<CharacterRelation> findAllByBookId(Long bookId);
+    List<StoryCharacterRelation> findAllByBookId(Long bookId);
 
     boolean existsByBookId(Long bookId);
 

@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.api.admin;
 
-import com.stokuj.books.dto.BookPatchRequest;
-import com.stokuj.books.dto.BookRequest;
+import com.stokuj.books.dto.book.BookPatchRequest;
+import com.stokuj.books.dto.book.BookRequest;
 import com.stokuj.books.domain.entity.Book;
 import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.BookService;

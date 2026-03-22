@@ -2,8 +2,8 @@ package com.stokuj.books.service;
 
 import com.stokuj.books.dto.integration.NerResult;
 import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.BookStoryCharacters;
 import com.stokuj.books.domain.entity.StoryCharacter;
-import com.stokuj.books.domain.entity.Character;
 import com.stokuj.books.repository.BookCharacterRepository;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,13 +30,13 @@ public class BookCharacterAggregator {
             if (normalized == null) {
                 return;
             }
-            Character character = characterService.findOrCreate(normalized);
-            StoryCharacter bookCharacter = bookCharacterRepository
+            StoryCharacter character = characterService.findOrCreate(normalized);
+            BookStoryCharacters bookCharacter = bookCharacterRepository
                     .findByBookIdAndCharacterId(book.getId(), character.getId())
                     .orElse(null);
             int increment = count != null ? count : 0;
             if (bookCharacter == null) {
-                bookCharacter = new StoryCharacter();
+                bookCharacter = new BookStoryCharacters();
                 bookCharacter.setBook(book);
                 bookCharacter.setCharacter(character);
                 bookCharacter.setMentionCount(increment);

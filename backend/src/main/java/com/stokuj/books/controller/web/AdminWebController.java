@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.AdminBookForm;
-import com.stokuj.books.dto.BookRequest;
+import com.stokuj.books.dto.book.AdminBookForm;
+import com.stokuj.books.dto.book.BookRequest;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
 import jakarta.validation.Valid;

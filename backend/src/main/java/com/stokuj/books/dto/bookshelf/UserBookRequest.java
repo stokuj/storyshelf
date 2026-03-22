@@ -1,4 +1,4 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.bookshelf;
 
 import com.stokuj.books.domain.enums.ReadingStatus;
 

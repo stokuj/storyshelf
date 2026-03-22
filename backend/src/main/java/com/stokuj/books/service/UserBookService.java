@@ -1,7 +1,7 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.UserBookRequest;
-import com.stokuj.books.dto.UserBookResponse;
+import com.stokuj.books.dto.bookshelf.UserBookRequest;
+import com.stokuj.books.dto.bookshelf.UserBookResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.domain.entity.Book;

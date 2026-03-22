@@ -7,10 +7,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "character_relations",
+@Table(name = "story_character_relations",
         uniqueConstraints = @UniqueConstraint(name = "uk_character_relation",
                 columnNames = {"book_id", "source_id", "target_id"}))
-public class CharacterRelation {
+public class StoryCharacterRelation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,11 +22,11 @@ public class CharacterRelation {
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "source_id", nullable = false)
-    private Character source;
+    private StoryCharacter source;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "target_id", nullable = false)
-    private Character target;
+    private StoryCharacter target;
 
     private String relation;
 

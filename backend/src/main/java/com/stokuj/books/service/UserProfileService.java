@@ -1,8 +1,8 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.UserProfileUpdateRequest;
-import com.stokuj.books.dto.UserProfileResponse;
-import com.stokuj.books.dto.UserSettingsResponse;
+import com.stokuj.books.dto.user.UserProfileUpdateRequest;
+import com.stokuj.books.dto.user.UserProfileResponse;
+import com.stokuj.books.dto.user.UserSettingsResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.domain.entity.User;

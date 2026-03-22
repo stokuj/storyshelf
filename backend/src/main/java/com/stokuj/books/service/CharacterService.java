@@ -1,6 +1,6 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.domain.entity.Character;
+import com.stokuj.books.domain.entity.StoryCharacter;
 import com.stokuj.books.repository.CharacterRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ public class CharacterService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Character findOrCreate(String name) {
+    public StoryCharacter findOrCreate(String name) {
         if (name == null) {
             throw new IllegalArgumentException("Character name cannot be null");
         }
@@ -29,7 +29,7 @@ public class CharacterService {
         return characterRepository.findByNameIgnoreCase(normalized)
                 .orElseGet(() -> {
                     try {
-                        Character character = new Character();
+                        StoryCharacter character = new StoryCharacter();
                         character.setName(normalized);
                         return characterRepository.saveAndFlush(character);
                     } catch (DataIntegrityViolationException e) {

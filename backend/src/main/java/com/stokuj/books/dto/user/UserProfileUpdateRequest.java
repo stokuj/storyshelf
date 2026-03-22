@@ -1,4 +1,4 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

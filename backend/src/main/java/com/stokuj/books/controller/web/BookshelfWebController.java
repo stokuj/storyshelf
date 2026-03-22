@@ -1,6 +1,6 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.UserBookRequest;
+import com.stokuj.books.dto.bookshelf.UserBookRequest;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.domain.enums.ReadingStatus;
 import com.stokuj.books.service.UserBookService;

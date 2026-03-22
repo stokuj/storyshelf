@@ -1,6 +1,6 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.ReviewRequest;
+import com.stokuj.books.dto.review.ReviewRequest;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.service.ReviewService;
 import jakarta.validation.Valid;

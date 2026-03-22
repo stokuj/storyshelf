@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.api;
 
-import com.stokuj.books.dto.UserBookRequest;
-import com.stokuj.books.dto.UserBookResponse;
+import com.stokuj.books.dto.bookshelf.UserBookRequest;
+import com.stokuj.books.dto.bookshelf.UserBookResponse;
 import com.stokuj.books.service.UserBookService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;

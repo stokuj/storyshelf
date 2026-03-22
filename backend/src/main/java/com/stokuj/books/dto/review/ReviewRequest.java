@@ -1,4 +1,4 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.review;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

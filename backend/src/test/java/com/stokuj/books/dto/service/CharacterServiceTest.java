@@ -1,6 +1,6 @@
 package com.stokuj.books.dto.service;
 
-import com.stokuj.books.domain.entity.Character;
+import com.stokuj.books.domain.entity.StoryCharacter;
 import com.stokuj.books.repository.CharacterRepository;
 import java.util.Optional;
 
@@ -30,35 +30,35 @@ class CharacterServiceTest {
 
     @Test
     void shouldReturnExistingCharacterIgnoringCase() {
-        Character existing = new Character();
+        StoryCharacter existing = new StoryCharacter();
         existing.setId(1L);
         existing.setName("Anna");
 
         given(characterRepository.findByNameIgnoreCase("anna"))
                 .willReturn(Optional.of(existing));
 
-        Character result = characterService.findOrCreate(" anna ");
+        StoryCharacter result = characterService.findOrCreate(" anna ");
 
         assertThat(result).isSameAs(existing);
-        verify(characterRepository, never()).save(any(Character.class));
+        verify(characterRepository, never()).save(any(StoryCharacter.class));
     }
 
     @Test
     void shouldCreateCharacterWhenMissing() {
         given(characterRepository.findByNameIgnoreCase("Piotr"))
                 .willReturn(Optional.empty());
-        given(characterRepository.saveAndFlush(any(Character.class)))
+        given(characterRepository.saveAndFlush(any(StoryCharacter.class)))
                 .willAnswer(inv -> inv.getArgument(0));
 
-        Character result = characterService.findOrCreate("  Piotr  ");
+        StoryCharacter result = characterService.findOrCreate("  Piotr  ");
 
         assertThat(result.getName()).isEqualTo("Piotr");
-        verify(characterRepository).saveAndFlush(any(Character.class));
+        verify(characterRepository).saveAndFlush(any(StoryCharacter.class));
     }
 
     @Test
     void shouldReturnExistingWhenConcurrentInsertHappens() {
-        Character existing = new Character();
+        StoryCharacter existing = new StoryCharacter();
         existing.setId(2L);
         existing.setName("Ewa");
 
@@ -67,11 +67,11 @@ class CharacterServiceTest {
                 .willReturn(Optional.of(existing));
         doThrow(new DataIntegrityViolationException("duplicate"))
                 .when(characterRepository)
-                .saveAndFlush(any(Character.class));
+                .saveAndFlush(any(StoryCharacter.class));
 
-        Character result = characterService.findOrCreate("Ewa");
+        StoryCharacter result = characterService.findOrCreate("Ewa");
 
         assertThat(result).isSameAs(existing);
-        verify(characterRepository).saveAndFlush(any(Character.class));
+        verify(characterRepository).saveAndFlush(any(StoryCharacter.class));
     }
 }

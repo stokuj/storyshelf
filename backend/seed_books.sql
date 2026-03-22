@@ -161,7 +161,7 @@ VALUES
  'Philip Pullman',
  1995,
  '9780679879244',
- 'Lyra Belacqua wyrusza na Dalekę Północ, aby uratować porwane dzieci. Fantasy łączące światy równoległe, demony-towarzyszów i tajemniczą substancję zwaną Pyłem.',
+ 'Lyra Belacqua wyrusza na Daleką Północ, aby uratować porwane dzieci. Fantasy łączące światy równoległe, demony-towarzyszów i tajemniczą substancję zwaną Pyłem.',
   351, 4.6, 1230000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 20
 ('Cyberiada',

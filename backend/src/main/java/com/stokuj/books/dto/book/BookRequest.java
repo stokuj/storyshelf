@@ -1,4 +1,4 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.book;
 
 import jakarta.validation.constraints.*;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.stokuj.books.dto;
+package com.stokuj.books.dto.user;
 
 import com.stokuj.books.domain.enums.Role;
 import java.time.LocalDateTime;
