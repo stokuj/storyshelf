@@ -1,4 +1,75 @@
 package com.stokuj.books.controller.api;
 
+import com.stokuj.books.domain.entity.User;
+import com.stokuj.books.domain.entity.UserFollow;
+import com.stokuj.books.exception.ConflictException;
+import com.stokuj.books.exception.ResourceNotFoundException;
+import com.stokuj.books.repository.UserFollowRepository;
+import com.stokuj.books.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/users")
+@PreAuthorize("hasRole('USER')")
 public class UserFollowController {
+
+    private final UserFollowRepository userFollowRepository;
+    private final UserRepository userRepository;
+
+    public UserFollowController(UserFollowRepository userFollowRepository,
+                                UserRepository userRepository) {
+        this.userFollowRepository = userFollowRepository;
+        this.userRepository = userRepository;
+    }
+
+    @PostMapping("/{username}/follow")
+    public ResponseEntity<Void> follow(@PathVariable String username,
+                                       Authentication authentication) {
+        if (userFollowRepository.existsByFollower_EmailAndFollowing_Username(
+                authentication.getName(), username)) {
+            throw new ConflictException("Już obserwujesz tego użytkownika");
+        }
+
+        User follower = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User following = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        UserFollow follow = new UserFollow();
+        follow.setFollower(follower);
+        follow.setFollowing(following);
+        userFollowRepository.save(follow);
+
+        return ResponseEntity.status(201).build();
+    }
+
+    @DeleteMapping("/{username}/follow")
+    public ResponseEntity<Void> unfollow(@PathVariable String username,
+                                         Authentication authentication) {
+        UserFollow follow = userFollowRepository
+                .findByFollower_EmailAndFollowing_Username(authentication.getName(), username)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie obserwujesz tego użytkownika"));
+
+        userFollowRepository.delete(follow);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{username}/followers")
+    public ResponseEntity<List<UserFollow>> getFollowers(@PathVariable String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return ResponseEntity.ok(userFollowRepository.findAllByFollowing_Email(user.getEmail()));
+    }
+
+    @GetMapping("/{username}/following")
+    public ResponseEntity<List<UserFollow>> getFollowing(@PathVariable String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return ResponseEntity.ok(userFollowRepository.findAllByFollower_Email(user.getEmail()));
+    }
 }
