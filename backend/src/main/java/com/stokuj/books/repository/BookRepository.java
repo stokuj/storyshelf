@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookRepository extends JpaRepository<Book, Long> {
-    @Query("SELECT b FROM Book b JOIN b.bookAuthors ba JOIN ba.author a JOIN b.genres g WHERE lower(b.title) LIKE lower(concat('%',:title,'%')) OR lower(a.name) LIKE lower(concat('%',:author,'%')) OR lower(g) LIKE lower(concat('%',:genre,'%'))")
+    @Query("SELECT DISTINCT b FROM Book b LEFT JOIN b.bookAuthors ba LEFT JOIN ba.author a LEFT JOIN b.genres g WHERE lower(b.title) LIKE lower(concat('%',:title,'%')) OR lower(a.name) LIKE lower(concat('%',:author,'%')) OR lower(g) LIKE lower(concat('%',:genre,'%'))")
     List<Book> searchByTitleAuthorOrGenre(String title, String author, String genre);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
