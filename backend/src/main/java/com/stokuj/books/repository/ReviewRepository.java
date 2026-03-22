@@ -1,6 +1,6 @@
 package com.stokuj.books.repository;
 
-import com.stokuj.books.model.entity.Review;
+import com.stokuj.books.domain.entity.Review;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

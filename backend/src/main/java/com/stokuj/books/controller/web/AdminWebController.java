@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.request.AdminBookForm;
-import com.stokuj.books.dto.request.BookRequest;
+import com.stokuj.books.dto.AdminBookForm;
+import com.stokuj.books.dto.BookRequest;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
 import jakarta.validation.Valid;
@@ -134,7 +134,7 @@ public class AdminWebController {
         return request;
     }
 
-    private AdminBookForm toForm(com.stokuj.books.model.entity.Book book) {
+    private AdminBookForm toForm(com.stokuj.books.domain.entity.Book book) {
         AdminBookForm form = new AdminBookForm();
         form.setTitle(book.getTitle());
         form.setAuthor(book.getAuthor());

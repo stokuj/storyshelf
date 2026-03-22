@@ -1,11 +1,11 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.request.AuthRequest;
-import com.stokuj.books.dto.request.LoginRequest;
-import com.stokuj.books.dto.response.AuthResponse;
+import com.stokuj.books.dto.AuthRequest;
+import com.stokuj.books.dto.LoginRequest;
+import com.stokuj.books.dto.AuthResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.UnauthorizedException;
-import com.stokuj.books.model.entity.User;
+import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import com.stokuj.books.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,7 +35,7 @@ public class AuthService {
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(com.stokuj.books.model.enums.Role.USER);
+        user.setRole(com.stokuj.books.domain.enums.Role.USER);
         user.setUsername(request.getUsername());
 
         userRepository.save(user);

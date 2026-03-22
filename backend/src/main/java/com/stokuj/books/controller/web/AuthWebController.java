@@ -1,6 +1,6 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.model.entity.User;
+import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -64,7 +64,7 @@ public class AuthWebController {
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole(com.stokuj.books.model.enums.Role.USER);
+        user.setRole(com.stokuj.books.domain.enums.Role.USER);
         user.setUsername(username);
         userRepository.save(user);
 

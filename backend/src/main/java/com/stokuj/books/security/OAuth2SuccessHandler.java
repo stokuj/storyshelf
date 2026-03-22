@@ -1,7 +1,7 @@
 package com.stokuj.books.security;
 
-import com.stokuj.books.model.entity.User;
-import com.stokuj.books.model.enums.Role;
+import com.stokuj.books.domain.entity.User;
+import com.stokuj.books.domain.enums.Role;
 import com.stokuj.books.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

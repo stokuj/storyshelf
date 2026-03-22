@@ -1,8 +1,8 @@
 package com.stokuj.books.controller.api.admin;
 
-import com.stokuj.books.dto.request.BookPatchRequest;
-import com.stokuj.books.dto.request.BookRequest;
-import com.stokuj.books.model.entity.Book;
+import com.stokuj.books.dto.BookPatchRequest;
+import com.stokuj.books.dto.BookRequest;
+import com.stokuj.books.domain.entity.Book;
 import com.stokuj.books.service.BookChapterService;
 import com.stokuj.books.service.BookService;
 import jakarta.validation.Valid;

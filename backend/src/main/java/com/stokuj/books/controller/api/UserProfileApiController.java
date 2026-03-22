@@ -1,12 +1,12 @@
 package com.stokuj.books.controller.api;
 
-import com.stokuj.books.dto.request.UserProfileUpdateRequest;
-import com.stokuj.books.dto.request.UserProfileVisibilityRequest;
-import com.stokuj.books.dto.response.UserProfileResponse;
-import com.stokuj.books.dto.response.UserSettingsResponse;
+import com.stokuj.books.dto.UserProfileUpdateRequest;
+import com.stokuj.books.dto.UserProfileVisibilityRequest;
+import com.stokuj.books.dto.UserProfileResponse;
+import com.stokuj.books.dto.UserSettingsResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.entity.User;
+import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.service.UserProfileService;
 import jakarta.validation.Valid;
 import java.util.Map;

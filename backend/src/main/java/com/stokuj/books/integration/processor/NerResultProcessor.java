@@ -1,8 +1,8 @@
 package com.stokuj.books.integration.processor;
 
-import com.stokuj.books.model.entity.Book;
-import com.stokuj.books.model.entity.BookChapter;
-import com.stokuj.books.dto.fastapi.NerResult;
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.Chapter;
+import com.stokuj.books.dto.integration.NerResult;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.CharacterRelationRepository;
@@ -37,7 +37,7 @@ public class NerResultProcessor {
     }
 
     @Transactional
-    public void process(BookChapter chapter, NerResult result) {
+    public void process(Chapter chapter, NerResult result) {
         chapter.setNerResult(result);
         chapterRepository.save(chapter);
 
@@ -60,9 +60,9 @@ public class NerResultProcessor {
             if (characterMap.isEmpty()) {
                 return;
             }
-            List<BookChapter> chapters = chapterRepository.findAllByBookIdOrderByChapterNumber(book.getId());
+            List<Chapter> chapters = chapterRepository.findAllByBookIdOrderByChapterNumber(book.getId());
             String fullContent = chapters.stream()
-                    .map(BookChapter::getContent)
+                    .map(Chapter::getContent)
                     .collect(Collectors.joining("\n\n"));
             chapterEventProducer.sendBookForFindPairs(book.getId(), fullContent, characterMap);
         }

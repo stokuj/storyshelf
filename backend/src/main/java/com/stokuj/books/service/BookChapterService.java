@@ -1,8 +1,8 @@
 package com.stokuj.books.service;
 
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.entity.Book;
-import com.stokuj.books.model.entity.BookChapter;
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.Chapter;
 import com.stokuj.books.repository.BookCharacterRepository;
 import com.stokuj.books.repository.BookChapterRepository;
 import com.stokuj.books.repository.BookRepository;
@@ -61,7 +61,7 @@ public class BookChapterService {
         chapterRepository.deleteAllByBookId(bookId);
 
         List<String> parts = splitIntoChapters(fullText);
-        List<BookChapter> chapters = new ArrayList<>();
+        List<Chapter> chapters = new ArrayList<>();
         int chapterNumber = 1;
 
         for (String part : parts) {
@@ -71,7 +71,7 @@ public class BookChapterService {
 
                 if (subPart.isBlank()) continue;
 
-                BookChapter chapter = new BookChapter();
+                Chapter chapter = new Chapter();
                 chapter.setBook(book);
                 chapter.setChapterNumber(chapterNumber++);
                 chapter.setContent(subPart);
@@ -99,11 +99,11 @@ public class BookChapterService {
         bookCharacterRepository.deleteAllByBookId(bookId);
         characterRelationRepository.deleteAllByBookId(bookId);
 
-        for (BookChapter chapter : chapters) {
+        for (Chapter chapter : chapters) {
             chapterEventProducer.sendChapterForAnalysis(chapter.getId(), chapter.getContent());
         }
 
-        for (BookChapter chapter : chapters) {
+        for (Chapter chapter : chapters) {
             if (chapter.getChapterNumber() == 1) {
                 chapterEventProducer.sendChapterForNer(chapter.getId(), chapter.getContent());
             }
@@ -112,7 +112,7 @@ public class BookChapterService {
         return chapters.size();
     }
 
-    public List<BookChapter> getChapters(Long bookId) {
+    public List<Chapter> getChapters(Long bookId) {
         return chapterRepository.findAllByBookIdOrderByChapterNumber(bookId);
     }
 

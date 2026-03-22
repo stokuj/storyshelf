@@ -1,6 +1,6 @@
 package com.stokuj.books.repository;
 
-import com.stokuj.books.model.entity.Character;
+import com.stokuj.books.domain.entity.Character;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,13 +1,13 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.request.UserBookRequest;
-import com.stokuj.books.dto.response.UserBookResponse;
+import com.stokuj.books.dto.UserBookRequest;
+import com.stokuj.books.dto.UserBookResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.entity.Book;
-import com.stokuj.books.model.enums.ReadingStatus;
-import com.stokuj.books.model.entity.User;
-import com.stokuj.books.model.entity.UserBook;
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.enums.ReadingStatus;
+import com.stokuj.books.domain.entity.User;
+import com.stokuj.books.domain.entity.Bookshelf;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.UserBookRepository;
 import com.stokuj.books.repository.UserRepository;
@@ -60,34 +60,34 @@ public class UserBookService {
                 ? request.getStatus()
                 : ReadingStatus.WANT_TO_READ;
 
-        UserBook userBook = new UserBook();
-        userBook.setUser(user);
-        userBook.setBook(book);
-        userBook.setStatus(status);
-        userBookRepository.save(userBook);
+        Bookshelf bookshelf = new Bookshelf();
+        bookshelf.setUser(user);
+        bookshelf.setBook(book);
+        bookshelf.setStatus(status);
+        userBookRepository.save(bookshelf);
 
-        return new UserBookResponse(book, userBook.getStatus(), userBook.getCreatedAt());
+        return new UserBookResponse(book, bookshelf.getStatus(), bookshelf.getCreatedAt());
     }
 
     @Transactional
     public UserBookResponse updateStatus(String email, Long bookId, UserBookRequest request) {
-        UserBook userBook = userBookRepository.findByUserEmailAndBookId(email, bookId)
+        Bookshelf bookshelf = userBookRepository.findByUserEmailAndBookId(email, bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book is not on your shelf"));
 
         if (request == null || request.getStatus() == null) {
             throw new ResourceNotFoundException("Status is required");
         }
 
-        userBook.setStatus(request.getStatus());
-        userBookRepository.save(userBook);
+        bookshelf.setStatus(request.getStatus());
+        userBookRepository.save(bookshelf);
 
-        return new UserBookResponse(userBook.getBook(), userBook.getStatus(), userBook.getCreatedAt());
+        return new UserBookResponse(bookshelf.getBook(), bookshelf.getStatus(), bookshelf.getCreatedAt());
     }
 
     @Transactional
     public void removeFromShelf(String email, Long bookId) {
-        UserBook userBook = userBookRepository.findByUserEmailAndBookId(email, bookId)
+        Bookshelf bookshelf = userBookRepository.findByUserEmailAndBookId(email, bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book is not on your shelf"));
-        userBookRepository.delete(userBook);
+        userBookRepository.delete(bookshelf);
     }
 }

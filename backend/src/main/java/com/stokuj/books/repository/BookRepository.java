@@ -1,6 +1,6 @@
 package com.stokuj.books.repository;
 
-import com.stokuj.books.model.entity.Book;
+import com.stokuj.books.domain.entity.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;

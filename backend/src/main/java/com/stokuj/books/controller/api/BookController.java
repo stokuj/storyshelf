@@ -1,6 +1,6 @@
 package com.stokuj.books.controller.api;
 
-import com.stokuj.books.model.entity.Book;
+import com.stokuj.books.domain.entity.Book;
 import com.stokuj.books.service.BookService;
 import org.springframework.web.bind.annotation.*;
 

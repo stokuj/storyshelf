@@ -1,12 +1,12 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.request.ReviewRequest;
-import com.stokuj.books.dto.response.ReviewResponse;
+import com.stokuj.books.dto.ReviewRequest;
+import com.stokuj.books.dto.ReviewResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.entity.Book;
-import com.stokuj.books.model.entity.Review;
-import com.stokuj.books.model.entity.User;
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.Review;
+import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.ReviewRepository;
 import com.stokuj.books.repository.UserRepository;

@@ -1,8 +1,8 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.request.UserBookRequest;
+import com.stokuj.books.dto.UserBookRequest;
 import com.stokuj.books.exception.ConflictException;
-import com.stokuj.books.model.enums.ReadingStatus;
+import com.stokuj.books.domain.enums.ReadingStatus;
 import com.stokuj.books.service.UserBookService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;

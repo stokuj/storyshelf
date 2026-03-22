@@ -1,6 +1,6 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.model.entity.Character;
+import com.stokuj.books.domain.entity.Character;
 import com.stokuj.books.repository.CharacterRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

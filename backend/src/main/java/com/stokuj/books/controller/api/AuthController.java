@@ -1,8 +1,8 @@
 package com.stokuj.books.controller.api;
 
-import com.stokuj.books.dto.request.AuthRequest;
-import com.stokuj.books.dto.request.LoginRequest;
-import com.stokuj.books.dto.response.AuthResponse;
+import com.stokuj.books.dto.AuthRequest;
+import com.stokuj.books.dto.LoginRequest;
+import com.stokuj.books.dto.AuthResponse;
 import com.stokuj.books.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
