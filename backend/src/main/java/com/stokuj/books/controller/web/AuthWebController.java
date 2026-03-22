@@ -1,11 +1,11 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.domain.entity.User;
-import com.stokuj.books.repository.UserRepository;
+import com.stokuj.books.dto.auth.RegisterRequest;
+import com.stokuj.books.exception.ConflictException;
+import com.stokuj.books.service.AuthService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -18,13 +18,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Validated
 public class AuthWebController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    public AuthWebController(UserRepository userRepository,
-                             PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+    public AuthWebController(AuthService authService) {
+        this.authService = authService;
     }
 
     @GetMapping("/login")
@@ -52,21 +49,13 @@ public class AuthWebController {
             redirectAttributes.addFlashAttribute("registerError", "Username musi mieć 3-30 małych liter (a-z).");
             return "redirect:/register";
         }
-        if (userRepository.findByEmail(email).isPresent()) {
-            redirectAttributes.addFlashAttribute("registerError", "Użytkownik z tym adresem email już istnieje.");
-            return "redirect:/register";
-        }
-        if (userRepository.existsByUsername(username)) {
-            redirectAttributes.addFlashAttribute("registerError", "Username jest już zajęty.");
-            return "redirect:/register";
-        }
 
-        User user = new User();
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setRole(com.stokuj.books.domain.enums.Role.USER);
-        user.setUsername(username);
-        userRepository.save(user);
+        try {
+            authService.registerUser(new RegisterRequest(username, email, password));
+        } catch (ConflictException ex) {
+            redirectAttributes.addFlashAttribute("registerError", ex.getMessage());
+            return "redirect:/register";
+        }
 
         return "redirect:/login?registered";
     }
