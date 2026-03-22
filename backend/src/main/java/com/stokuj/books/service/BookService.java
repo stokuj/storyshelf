@@ -1,5 +1,6 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.domain.enums.AuthorRole;
 import com.stokuj.books.dto.book.BookPatchRequest;
 import com.stokuj.books.dto.book.BookRequest;
 import com.stokuj.books.exception.ResourceNotFoundException;
@@ -122,7 +123,7 @@ public class BookService {
         BookAuthor bookAuthor = new BookAuthor();
         bookAuthor.setBook(book);
         bookAuthor.setAuthor(author);
-        bookAuthor.setRole("AUTHOR");
+        bookAuthor.setRole(AuthorRole.AUTHOR);
         book.getBookAuthors().add(bookAuthor);
     }
 

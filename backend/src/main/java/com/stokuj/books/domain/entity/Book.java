@@ -32,7 +32,7 @@ public class Book {
     private int pageCount;
 
     @ElementCollection
-    @CollectionTable(name = "book_genresbook_genres", joinColumns = @JoinColumn(name = "book_id"))
+    @CollectionTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"))
     @Column(name = "genre")
     private Set<String> genres = new HashSet<>();
 
