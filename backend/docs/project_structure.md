@@ -1,175 +1,136 @@
 com.stokuj.books/
-│
 ├── config/
 │   ├── FlywayConfig.java
 │   └── OpenApiConfig.java
-│
 ├── controller/
 │   ├── advice/
 │   │   └── GlobalExceptionHandler.java
 │   ├── api/
-│   │   ├── admin/
-│   │   │   └── AdminBookApiController.java
 │   │   ├── AuthorController.java
 │   │   ├── BookController.java
-│   │   ├── CharacterApiController.java
-│   │   ├── FollowController.java
-│   │   ├── ReviewApiController.java
-│   │   ├── SearchController.java
+│   │   ├── BookShelfController.java
+│   │   ├── ChapterController.java
+│   │   ├── CharacterController.java
+│   │   ├── ReviewController.java
 │   │   ├── SeriesController.java
-│   │   ├── TagController.java
-│   │   ├── UserBookController.java
-│   │   └── UserProfileApiController.java
+│   │   ├── UserController.java
+│   │   └── UserFollowController.java
 │   ├── integration/
 │   │   └── FastApiCallbackController.java
 │   └── web/
 │       ├── AdminReviewWebController.java
 │       ├── AdminWebController.java
-│       ├── AuthorWebController.java
 │       ├── AuthWebController.java
-│       ├── BookshelfWebController.java
-│       ├── BookWebController.java
 │       ├── CurrentUserModelAdvice.java
 │       ├── HomeController.java
 │       ├── ReviewWebController.java
-│       ├── SeriesWebController.java
+│       ├── UserBookWebController.java
 │       ├── UserProfileWebController.java
 │       └── UserSettingsController.java
-│
 ├── domain/
 │   ├── entity/
 │   │   ├── Author.java
-│   │   ├── Book.java
+│   │   ├── BookAuthor.java
 │   │   ├── BookCharacter.java
-│   │   ├── BookChapter.java
+│   │   ├── Book.java
+│   │   ├── BookTag.java
+│   │   ├── Chapter.java
+│   │   ├── Character.java
 │   │   ├── CharacterRelation.java
 │   │   ├── Review.java
 │   │   ├── Series.java
-│   │   ├── StoryCharacter.java
 │   │   ├── Tag.java
-│   │   ├── User.java
 │   │   ├── UserBook.java
-│   │   └── UserFollow.java
+│   │   ├── UserFollow.java
+│   │   └── User.java
 │   └── enums/
 │       ├── AuthorRole.java
 │       ├── ReadingStatus.java
 │       ├── Role.java
 │       └── SeriesStatus.java
-│
 ├── dto/
-│   ├── author/
-│   │   ├── AuthorRequest.java
-│   │   └── AuthorResponse.java
 │   ├── book/
+│   │   ├── AdminBookForm.java
 │   │   ├── BookPatchRequest.java
-│   │   ├── BookRequest.java
-│   │   ├── BookResponse.java
-│   │   └── BookSummaryResponse.java
-│   ├── character/
-│   │   ├── CharacterRelationResponse.java
-│   │   └── CharacterResponse.java
-│   ├── follow/
-│   │   └── FollowResponse.java
+│   │   └── BookRequest.java
+│   ├── bookshelf/
+│   │   ├── UserBookRequest.java
+│   │   └── UserBookResponse.java
 │   ├── integration/
 │   │   ├── AnalyseResponse.java
 │   │   ├── AnalyseStats.java
 │   │   ├── BookFindPairsResult.java
-│   │   └── NerResult.java
+│   │   ├── NerResult.java
+│   │   └── PairResult.java
 │   ├── review/
 │   │   ├── ReviewRequest.java
 │   │   └── ReviewResponse.java
-│   ├── series/
-│   │   ├── SeriesRequest.java
-│   │   └── SeriesResponse.java
-│   ├── tag/
-│   │   ├── TagRequest.java
-│   │   └── TagResponse.java
 │   └── user/
-│       ├── LoginRequest.java
-│       ├── RegisterRequest.java
-│       ├── UserBookRequest.java
-│       ├── UserBookResponse.java
 │       ├── UserProfileResponse.java
 │       ├── UserProfileUpdateRequest.java
-│       ├── UserProfileVisibilityRequest.java
 │       └── UserSettingsResponse.java
-│
 ├── exception/
 │   ├── ConflictException.java
 │   ├── ResourceNotFoundException.java
 │   └── UnauthorizedException.java
-│
 ├── integration/
 │   ├── kafka/
 │   │   └── ChapterEventProducer.java
 │   └── processor/
 │       ├── NerResultProcessor.java
 │       └── RelationsResultProcessor.java
-│
 ├── repository/
-│   ├── specification/
-│   │   └── BookSpecification.java
 │   ├── AuthorRepository.java
-│   ├── BookCharacterRepository.java
+│   ├── BookAuthorRepository.java
 │   ├── BookChapterRepository.java
+│   ├── BookCharacterRepository.java
 │   ├── BookRepository.java
+│   ├── BookTagRepository.java
 │   ├── CharacterRelationRepository.java
+│   ├── CharacterRepository.java
 │   ├── ReviewRepository.java
 │   ├── SeriesRepository.java
-│   ├── StoryCharacterRepository.java
 │   ├── TagRepository.java
 │   ├── UserBookRepository.java
 │   ├── UserFollowRepository.java
 │   └── UserRepository.java
-│
 ├── security/
 │   ├── FastApiSecretFilter.java
 │   ├── RoleConfig.java
 │   ├── SecurityConfig.java
 │   └── UserDetailsServiceImpl.java
-│
 ├── service/
-│   ├── AuthorService.java
-│   ├── BookCharacterAggregator.java
 │   ├── BookChapterService.java
+│   ├── BookCharacterAggregator.java
 │   ├── BookService.java
+│   ├── CharacterService.java
 │   ├── ReviewService.java
-│   ├── SeriesService.java
-│   ├── StoryCharacterService.java
-│   ├── TagService.java
 │   ├── UserBookService.java
-│   ├── UserFollowService.java
 │   └── UserProfileService.java
-│
 └── SpringShelfApplication.java
 
 src/main/resources/
-├── db/migration/
-│   └── V1__init_schema.sql
-├── templates/
-│   ├── layout/
-│   │   └── base.html
-│   ├── admin-book-form.html
-│   ├── admin-reviews.html
-│   ├── author.html
-│   ├── book.html
-│   ├── bookshelf.html
-│   ├── error.html
-│   ├── home.html
-│   ├── login.html
-│   ├── profile.html
-│   ├── register.html
-│   ├── series.html
-│   └── settings.html
 ├── application-dev.yml
-└── application.yml
+├── application.yml
+├── db/
+│   └── migration/
+│       └── V1__init_schema.sql
+└── templates/
+    ├── admin-book-form.html
+    ├── admin-reviews.html
+    ├── book.html
+    ├── bookshelf.html
+    ├── error.html
+    ├── home.html
+    ├── layout/
+    │   └── base.html
+    ├── login.html
+    ├── profile.html
+    ├── register.html
+    └── settings.html
 
 src/test/java/
-├── service/
-│   ├── AuthorServiceTest.java
-│   ├── BookServiceTest.java
-│   ├── ReviewServiceTest.java
-│   ├── SeriesServiceTest.java
-│   ├── StoryCharacterServiceTest.java
-│   └── UserBookServiceTest.java
-└── SpringShelfApplicationTests.java
+└── com/stokuj/books/
+    └── dto/
+        └── service/
+            └── BookServiceTest.java
