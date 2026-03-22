@@ -103,12 +103,12 @@ CREATE TABLE book_chapters (
                                CONSTRAINT fk_chapters_book FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
 );
 
-CREATE TABLE story_characters (
+CREATE TABLE characters (
                                   id   BIGSERIAL PRIMARY KEY,
                                   name TEXT NOT NULL UNIQUE
 );
 
-CREATE INDEX idx_story_characters_name_ci ON story_characters (lower(name));
+CREATE INDEX idx_characters_name_ci ON characters (lower(name));
 
 CREATE TABLE book_characters (
                                  id             BIGSERIAL PRIMARY KEY,
@@ -117,7 +117,7 @@ CREATE TABLE book_characters (
                                  mention_count  INTEGER NOT NULL DEFAULT 0,
                                  role           TEXT,
                                  CONSTRAINT fk_book_characters_book      FOREIGN KEY (book_id)      REFERENCES books(id)            ON DELETE CASCADE,
-                                 CONSTRAINT fk_book_characters_character FOREIGN KEY (character_id) REFERENCES story_characters(id) ON DELETE CASCADE,
+                                 CONSTRAINT fk_book_characters_character FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
                                  CONSTRAINT uk_book_character UNIQUE (book_id, character_id)
 );
 
@@ -130,8 +130,8 @@ CREATE TABLE character_relations (
                                      evidence   TEXT,
                                      confidence DOUBLE PRECISION,
                                      CONSTRAINT fk_char_relations_book   FOREIGN KEY (book_id)   REFERENCES books(id)            ON DELETE CASCADE,
-                                     CONSTRAINT fk_char_relations_source FOREIGN KEY (source_id) REFERENCES story_characters(id),
-                                     CONSTRAINT fk_char_relations_target FOREIGN KEY (target_id) REFERENCES story_characters(id),
+                                      CONSTRAINT fk_char_relations_source FOREIGN KEY (source_id) REFERENCES characters(id),
+                                      CONSTRAINT fk_char_relations_target FOREIGN KEY (target_id) REFERENCES characters(id),
                                      CONSTRAINT uk_character_relation UNIQUE (book_id, source_id, target_id)
 );
 

@@ -78,7 +78,7 @@ int word_count
 int token_count
 jsonb ner_result
 }
-story_characters {
+ characters {
 bigserial id PK
 text name
 }
@@ -179,7 +179,7 @@ int word_count
 int token_count
 jsonb ner_result
 }
-story_characters {
+ characters {
 bigserial id PK
 text name
 }
@@ -230,9 +230,9 @@ books ||--o{ user_books : "na polkach"
 books ||--o{ reviews : "ma recenzje"
 authors ||--o{ book_authors : "napisal"
 tags ||--o{ book_tags : "przypisany do"
-story_characters ||--o{ book_characters : "pojawia sie w"
-story_characters ||--o{ character_relations : "zrodlo"
-story_characters ||--o{ character_relations : "cel"```
+ characters ||--o{ book_characters : "pojawia sie w"
+ characters ||--o{ character_relations : "zrodlo"
+ characters ||--o{ character_relations : "cel"```
 bigint user_id FK
 bigint book_id FK
 text status
@@ -262,9 +262,9 @@ books ||--o{ user_books : "na polkach"
 books ||--o{ reviews : "ma recenzje"
 authors ||--o{ book_authors : "napisal"
 tags ||--o{ book_tags : "przypisany do"
-story_characters ||--o{ book_characters : "pojawia sie w"
-story_characters ||--o{ character_relations : "zrodlo"
-story_characters ||--o{ character_relations : "cel"```
+ characters ||--o{ book_characters : "pojawia sie w"
+ characters ||--o{ character_relations : "zrodlo"
+ characters ||--o{ character_relations : "cel"```
 erDiagram
   users {
     bigserial id PK
@@ -345,7 +345,7 @@ erDiagram
     int token_count
     jsonb ner_result
   }
-  story_characters {
+   characters {
     bigserial id PK
     text name
   }
@@ -396,8 +396,8 @@ erDiagram
   books ||--o{ reviews : "ma recenzje"
   authors ||--o{ book_authors : "napisal"
   tags ||--o{ book_tags : "przypisany do"
-  story_characters ||--o{ book_characters : "pojawia sie w"
-  story_characters ||--o{ character_relations : "zrodlo"
-  story_characters ||--o{ character_relations : "cel"
+   characters ||--o{ book_characters : "pojawia sie w"
+   characters ||--o{ character_relations : "zrodlo"
+   characters ||--o{ character_relations : "cel"
 
 ```
