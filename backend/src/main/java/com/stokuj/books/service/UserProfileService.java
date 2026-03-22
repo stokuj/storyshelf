@@ -1,5 +1,6 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.dto.user.UserProfileUpdateRequest;
 import com.stokuj.books.dto.user.UserProfileResponse;
 import com.stokuj.books.dto.user.UserSettingsResponse;

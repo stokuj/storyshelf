@@ -1,5 +1,6 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.domain.entity.*;
 import com.stokuj.books.domain.enums.AuthorRole;
 import com.stokuj.books.dto.book.BookPatchRequest;
 import com.stokuj.books.dto.book.BookRequest;

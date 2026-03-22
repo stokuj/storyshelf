@@ -1,5 +1,8 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.Review;
+import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.dto.review.ReviewRequest;
 import com.stokuj.books.dto.review.ReviewResponse;
 import com.stokuj.books.exception.ConflictException;
