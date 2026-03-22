@@ -10,15 +10,6 @@ spring:
       ddl-auto: validate
     show-sql: false
     defer-datasource-initialization: true
-  security:
-    oauth2:
-      client:
-        registration:
-          github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
-            scope: user:email
-            redirect-uri: http://localhost:8080/login/oauth2/code/github
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html
@@ -32,9 +23,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-
-jwt:
-  secret: ${JWT_SECRET:replace-this-dev-secret-with-minimum-32-characters}
 
 server:
   ssl:

@@ -2,10 +2,7 @@ package com.stokuj.books.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,83 +21,17 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
     private final FastApiSecretFilter fastApiSecretFilter;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    public SecurityConfig(JwtFilter jwtFilter, FastApiSecretFilter fastApiSecretFilter, OAuth2SuccessHandler oAuth2SuccessHandler) {
-        this.jwtFilter = jwtFilter;
+    public SecurityConfig(FastApiSecretFilter fastApiSecretFilter) {
         this.fastApiSecretFilter = fastApiSecretFilter;
-        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
-    // -------------------------------------------------------------------------
-    // Łańcuch 1 (DEV): /api/** — wszystko dozwolone, bez JWT
-    // -------------------------------------------------------------------------
     @Bean
-    @Order(1)
-    @Profile("dev")
-    public SecurityFilterChain apiFilterChainDev(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/**")
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .addFilterBefore(fastApiSecretFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    // -------------------------------------------------------------------------
-    // Łańcuch 1 (PROD/LOCAL): /api/** — JWT, STATELESS
-    // -------------------------------------------------------------------------
-    @Bean
-    @Order(1)
-    @Profile("!dev")
-    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/api/**")
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/search").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/*/profile").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("MODERATOR")
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/analyse-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/ner-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/find-pairs-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/relations-result").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(401);
-                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write(
-                                    "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Brak lub niepoprawny token\",\"path\":\""
-                                            + request.getRequestURI() + "\"}");
-                        })
-                )
-                .addFilterBefore(fastApiSecretFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    // -------------------------------------------------------------------------
-    // Łańcuch 2: Web (/**, strony Thymeleaf) — sesja, formLogin, OAuth2
-    // -------------------------------------------------------------------------
-    @Bean
-    @Order(2)
-    public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(Customizer.withDefaults())
                 .headers(headers -> headers
                         .httpStrictTransportSecurity(hsts -> hsts.disable())
                 )
@@ -110,9 +41,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/login", "/register", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/home", "/book/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/profile").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("MODERATOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/analyse-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/ner-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/find-pairs-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/relations-result").permitAll()
                         .requestMatchers(HttpMethod.POST, "/book/*/review").hasRole("USER")
                         .requestMatchers("/profile/**").permitAll()
                         .requestMatchers("/admin/reviews/**").hasRole("MODERATOR")
@@ -135,16 +73,21 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .successHandler(oAuth2SuccessHandler)
-                )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
+                            if (request.getRequestURI().startsWith("/api/")) {
+                                response.setStatus(401);
+                                response.setContentType("application/json");
+                                response.getWriter().write(
+                                        "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Brak lub niepoprawny token\",\"path\":\""
+                                                + request.getRequestURI() + "\"}");
+                                return;
+                            }
                             response.sendRedirect("/login");
                         })
                         .accessDeniedPage("/error?status=403")
-                );
+                )
+                .addFilterBefore(fastApiSecretFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
