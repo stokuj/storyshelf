@@ -7,12 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/shelf")
 @PreAuthorize("hasRole('USER')")
+@Tag(name = "Bookshelf", description = "Operations for users to manage their personal book collections")
 public class BookShelfController {
 
     private final UserBookService userBookService;
@@ -21,11 +25,15 @@ public class BookShelfController {
         this.userBookService = userBookService;
     }
 
+    @Operation(summary = "Get user's bookshelf", description = "Retrieves a list of all books added to the authenticated user's shelf.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved bookshelf")
     @GetMapping
     public ResponseEntity<List<UserBookResponse>> getMyBooks(Authentication authentication) {
         return ResponseEntity.ok(userBookService.getMyBooks(authentication.getName()));
     }
 
+    @Operation(summary = "Add book to shelf", description = "Adds a specific book to the authenticated user's shelf.")
+    @ApiResponse(responseCode = "201", description = "Book added to shelf successfully")
     @PostMapping("/{bookId}")
     public ResponseEntity<UserBookResponse> addToShelf(@PathVariable Long bookId,
                                                        @RequestBody(required = false) UserBookRequest request,
@@ -34,6 +42,8 @@ public class BookShelfController {
                 .body(userBookService.addToShelf(authentication.getName(), bookId, request));
     }
 
+    @Operation(summary = "Update book status on shelf", description = "Updates the reading status or progress of a book on the user's shelf.")
+    @ApiResponse(responseCode = "200", description = "Status updated successfully")
     @PatchMapping("/{bookId}")
     public ResponseEntity<UserBookResponse> updateStatus(@PathVariable Long bookId,
                                                          @RequestBody UserBookRequest request,
@@ -41,6 +51,8 @@ public class BookShelfController {
         return ResponseEntity.ok(userBookService.updateStatus(authentication.getName(), bookId, request));
     }
 
+    @Operation(summary = "Remove book from shelf", description = "Removes a specific book from the authenticated user's shelf.")
+    @ApiResponse(responseCode = "204", description = "Book removed successfully")
     @DeleteMapping("/{bookId}")
     public ResponseEntity<Void> removeFromShelf(@PathVariable Long bookId,
                                                 Authentication authentication) {

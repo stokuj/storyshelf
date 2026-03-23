@@ -8,9 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "Users", description = "Operations related to user profiles and settings")
 public class UserController {
 
     private final UserProfileService userProfileService;
@@ -19,6 +23,9 @@ public class UserController {
         this.userProfileService = userProfileService;
     }
 
+    @Operation(summary = "Get user profile", description = "Retrieves the public profile of a user by their username.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved user profile")
+    @ApiResponse(responseCode = "404", description = "User not found")
     @GetMapping("/{username}")
     public ResponseEntity<UserProfileResponse> getProfile(@PathVariable String username) {
         return ResponseEntity.ok(
@@ -28,6 +35,8 @@ public class UserController {
         );
     }
 
+    @Operation(summary = "Update user profile", description = "Updates the profile information for the authenticated user.")
+    @ApiResponse(responseCode = "200", description = "Profile updated successfully")
     @PutMapping("/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserSettingsResponse> updateProfile(@RequestBody UserProfileUpdateRequest request,
@@ -40,6 +49,8 @@ public class UserController {
         );
     }
 
+    @Operation(summary = "Update profile visibility", description = "Updates the public visibility status of the authenticated user's profile.")
+    @ApiResponse(responseCode = "200", description = "Visibility updated successfully")
     @PatchMapping("/me/visibility")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserSettingsResponse> updateVisibility(@RequestParam boolean profilePublic,

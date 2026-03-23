@@ -18,11 +18,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.stokuj.books.dto.integration.NerResult;
 import com.stokuj.books.integration.processor.NerResultProcessor;
 import com.stokuj.books.integration.processor.RelationsResultProcessor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/fastapi")
+@Tag(name = "Integration (FastAPI)", description = "Webhooks and triggers for asynchronous NLP analysis (Named Entity Recognition, statistics, relations) handled by an external FastAPI worker.")
 public class FastApiCallbackController {
 
     private final BookChapterRepository chapterRepository;
@@ -43,6 +47,9 @@ public class FastApiCallbackController {
         this.relationsResultProcessor = relationsResultProcessor;
     }
 
+    @Operation(summary = "Receive chapter statistics results", description = "Webhook used by FastAPI to save text analysis results (e.g. word count, characters, tokens).")
+    @ApiResponse(responseCode = "200", description = "Statistics updated successfully")
+    @ApiResponse(responseCode = "404", description = "Chapter not found")
     @PatchMapping("/chapters/{chapterId}/analyse-result")
     public ResponseEntity<Void> updateAnalyseResult(@PathVariable Long chapterId,
                                                     @RequestBody AnalyseResponse result) {
@@ -62,6 +69,9 @@ public class FastApiCallbackController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Receive NER (Named Entity Recognition) results", description = "Webhook used by FastAPI to process and save recognized entities (mainly characters) in a chapter.")
+    @ApiResponse(responseCode = "200", description = "NER results processed and saved")
+    @ApiResponse(responseCode = "404", description = "Chapter not found")
     @PatchMapping("/chapters/{chapterId}/ner-result")
     @Transactional
     public ResponseEntity<Void> updateNerResult(@PathVariable Long chapterId,
@@ -75,6 +85,9 @@ public class FastApiCallbackController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Receive character pairs for relation analysis", description = "Webhook used by FastAPI to receive initially identified character pairs in a book.")
+    @ApiResponse(responseCode = "200", description = "Character pairs saved successfully")
+    @ApiResponse(responseCode = "404", description = "Book not found")
     @PatchMapping("/books/{bookId}/find-pairs-result")
     public ResponseEntity<Void> updateBookFindPairsResult(@PathVariable Long bookId,
                                                           @RequestBody BookFindPairsResult result) {
@@ -87,6 +100,9 @@ public class FastApiCallbackController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Receive character relations results", description = "Webhook used by FastAPI to save sentiment/type of relations between characters.")
+    @ApiResponse(responseCode = "200", description = "Character relations saved successfully")
+    @ApiResponse(responseCode = "404", description = "Book not found")
     @PatchMapping("/books/{bookId}/relations-result")
     public ResponseEntity<Void> updateBookRelationsResult(@PathVariable Long bookId,
                                                           @RequestBody Map<String, Object> result) {
@@ -99,6 +115,9 @@ public class FastApiCallbackController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Trigger basic text analysis", description = "Sends an event to a Kafka queue to asynchronously calculate chapter statistics (like word count).")
+    @ApiResponse(responseCode = "202", description = "Analysis task accepted")
+    @ApiResponse(responseCode = "404", description = "Chapter not found")
     @PostMapping("/chapters/{chapterId}/analyse")
     public ResponseEntity<Map<String, Object>> analyseChapter(@PathVariable Long chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
@@ -113,6 +132,9 @@ public class FastApiCallbackController {
         ));
     }
 
+    @Operation(summary = "Trigger NER analysis", description = "Sends an event to a Kafka queue to asynchronously find and match characters in the chapter text.")
+    @ApiResponse(responseCode = "202", description = "NER analysis task accepted")
+    @ApiResponse(responseCode = "404", description = "Chapter not found")
     @PostMapping("/chapters/{chapterId}/ner")
     public ResponseEntity<Map<String, Object>> nerChapter(@PathVariable Long chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
