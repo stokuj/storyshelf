@@ -64,6 +64,24 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 
 ## Changelog
 
+### [0.6.0] - 2026-03-23
+
+API stabilization, validation, and documentation.
+
+#### Added
+
+- Full OpenAPI/Swagger documentation for all REST controllers with clear English descriptions and response codes.
+- Comprehensive input validation using Jakarta Validation (`@Valid`, `@NotBlank`, `@Min`, `@Max`, `@Size`) across all API request DTOs.
+- Structured validation error responses in `GlobalExceptionHandler` (returns 400 Bad Request with field-specific error messages).
+- Complete integration test skeleton structure in `src/test/java/com/stokuj/books/controller/` with `// TODO` items for every API endpoint.
+- New `AuthorRequest` and `SeriesRequest` DTOs to replace raw entity usage in admin controllers.
+
+#### Changed
+
+- Reorganized API package structure: moved user-specific controllers (`UserController`, `UserFollowController`, `BookShelfController`) to `com.stokuj.books.controller.api.user`.
+- Refactored `AdminAuthorController` and `AdminSeriesController` to use DTOs, closing mass-assignment security vulnerabilities.
+- Standardized API response codes and summaries in Swagger UI.
+
 ### [0.5.2] - 2026-03-21
 
 Endpoint routing and package reorganization.
