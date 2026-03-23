@@ -17,7 +17,6 @@ BEGIN;
 -- -----------------------------------------------------------
 INSERT INTO books (
   title,
-  author,
   year,
   isbn,
   description,
@@ -32,144 +31,171 @@ INSERT INTO books (
 VALUES
 -- 1
 ('Wiedźmin: Ostatnie życzenie',
- 'Andrzej Sapkowski',
  1993,
  '9788375780635',
  'Zbiór opowiadań wprowadzający Geralta z Rivii — wiedźmina polującego na potwory. Mroczny świat fantasy osadzony w słowiańskiej mitologii, gdzie granica między dobrem a złem jest niewyraźna.',
   288, 4.6, 312400, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 2
 ('Dune',
- 'Frank Herbert',
  1965,
  '9780441013593',
  'Epicka powieść science-fiction rozgrywająca się na pustynnej planecie Arrakis, jedynym źródle bezcennej przyprawy melanżu. Historia polityki, religii i przetrwania.',
   412, 4.7, 891200, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 3
 ('1984',
- 'George Orwell',
  1949,
  '9780451524935',
  'Dystopia przedstawiająca totalitarne państwo, w którym Wielki Brat obserwuje każdy krok obywateli. Winston Smith próbuje zachować człowieczeństwo w świecie wszechobecnej kontroli.',
   328, 4.7, 3200000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 4
 ('Zbrodnia i kara',
- 'Fiodor Dostojewski',
  1866,
  '9780140449136',
  'Psychologiczna powieść o Raskolnikowie — biednym studencie, który zabija lichwiarę przekonany o własnej wyjątkowości. Studium winy, kary i odkupienia.',
   551, 4.5, 624000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 5
 ('Mistrz i Małgorzata',
- 'Michaił Bułhakow',
  1967,
  '9788308060117',
  'Satyra na sowiecką rzeczywistość lat 30. Diabeł Woland przybywa do Moskwy siejąc chaos. Równolegle toczy się historia Poncjusza Piłata i Jeszui Ha-Nocri.',
   480, 4.8, 445000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 6
 ('Nowy wspaniały świat',
- 'Aldous Huxley',
  1932,
  '9780060850524',
  'Dystopia, w której ludzkość osiągnęła stabilność kosztem wolności i uczuć. Społeczeństwo podzielone na kasty, szczęście zapewniane przez narkotyk soma.',
   311, 4.2, 1180000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 7
 ('Hobbit',
- 'J.R.R. Tolkien',
  1937,
  '9780547928227',
  'Bilbo Baggins — spokojny hobbit — zostaje wciągnięty w przygodę przez czarodzieja Gandalfa. Podróż przez Dzikie Ostępy, spotkanie z trollami, elfami i smokiem Smaug.',
   310, 4.7, 2100000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 8
 ('Solaris',
- 'Stanisław Lem',
  1961,
  '9788308060933',
  'Psycholog Kris Kelvin przybywa na stację orbitalną krążącą nad tajemniczą planetą Solaris. Ocean Solaris materializuje ludzkie wspomnienia i lęki. Filozoficzna refleksja nad granicami poznania.',
   272, 4.5, 198000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 9
 ('Fahrenheit 451',
- 'Ray Bradbury',
  1953,
  '9781451673319',
  'W przyszłości, gdzie posiadanie książek jest przestępstwem, strażak Guy Montag pali je z rozkazu. Stopniowo zaczyna kwestionować sens swojej pracy i świata, w którym żyje.',
   249, 4.4, 1560000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 10
 ('Władca Pierścieni: Drużyna Pierścienia',
- 'J.R.R. Tolkien',
  1954,
  '9780618640157',
  'Frodo Baggins dziedziczy Jedyny Pierścień i wyrusza w niebezpieczną podróż, aby zniszczyć go w Górze Przeznaczenia. Pierwsza część epickiej trylogii fantasy.',
   423, 4.9, 4200000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 11
 ('Sto lat samotności',
- 'Gabriel García Márquez',
  1967,
  '9780060883287',
  'Saga rodziny Buendía w fikcyjnym miasteczku Macondo. Powieść-symbol realizmu magicznego łącząca historię Ameryki Łacińskiej z mityczną wyobraźnią.',
   417, 4.6, 870000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 12
 ('Mały Książę',
- 'Antoine de Saint-Exupéry',
  1943,
  '9780156012195',
  'Pilot rozbija się na Saharze i spotyka małego chłopca przybyłego z odległej asteroidy. Poetycka baśń filozoficzna o miłości, przyjaźni i sensie życia.',
   96, 4.5, 2800000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 13
 ('Harry Potter i Kamień Filozoficzny',
- 'J.K. Rowling',
  1997,
  '9780747532699',
  'Jedenastoletni Harry Potter odkrywa, że jest czarodziejem i zostaje przyjęty do Hogwartu — szkoły magii. Pierwsza część kultowej serii dla młodych dorosłych.',
   309, 4.8, 8900000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 14
 ('Proces',
- 'Franz Kafka',
  1925,
  '9780805209990',
  'Josef K. pewnego ranka zostaje aresztowany nie wiedząc za co. Absurdalna walka jednostki z nieprzeniknioną biurokracją i wymiarem sprawiedliwości bez twarzy.',
   255, 4.3, 389000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 15
 ('Buszujący w zbożu',
- 'J.D. Salinger',
  1951,
  '9780316769174',
  'Holden Caulfield — szesnastoletni buntownik — opuszcza szkołę i błąka się po Nowym Jorku. Kultowa powieść o bólu dorastania, autentyczności i odrzuceniu fałszu dorosłego świata.',
   277, 4.0, 1450000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 16
 ('Diuna: Mesjasz',
- 'Frank Herbert',
  1969,
  '9780593098233',
  'Paul Atreydesa — teraz cesarz znany jako Muad''Dib — mierzy się z konsekwencjami swojego panowania i jihadu, który rozpętał. Mroczna kontynuacja Diuny.',
   331, 4.4, 412000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 17
 ('Noc żywych truposzy — Wywiad z wampirem',
- 'Anne Rice',
  1976,
  '9780345337603',
  'Louis de Pointe du Lac opowiada reporterowi historię swojego życia jako wampir — od XVIII-wiecznej Luizjany po współczesny Paryż. Gotycka powieść o nieśmiertelności i winie.',
   340, 4.1, 567000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 18
 ('Opowieść podręcznej',
- 'Margaret Atwood',
  1985,
  '9780385490818',
  'W teokratycznej Republice Gilead kobiety zostały pozbawione wszelkich praw. Offred — Podręczna — jest zmuszona do rodzenia dzieci dla Dowódców. Przerażająco aktualna dystopia.',
   311, 4.5, 2100000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 19
 ('Ciemne materie: Złoty Kompas',
- 'Philip Pullman',
  1995,
  '9780679879244',
- 'Lyra Belacqua wyrusza na Dalekę Północ, aby uratować porwane dzieci. Fantasy łączące światy równoległe, demony-towarzyszów i tajemniczą substancję zwaną Pyłem.',
+ 'Lyra Belacqua wyrusza na Daleką Północ, aby uratować porwane dzieci. Fantasy łączące światy równoległe, demony-towarzyszów i tajemniczą substancję zwaną Pyłem.',
   351, 4.6, 1230000, 0, 0, CURRENT_DATE, CURRENT_DATE),
 -- 20
 ('Cyberiada',
- 'Stanisław Lem',
  1965,
  '9788308048320',
  'Zbiór humorystycznych opowiadań o konstruktorach robotów — Trurlu i Klapaucjuszu — przemierzających kosmos. Filozofia, satyra i lingwistyczne eksperymenty w błyskotliwym wykonaniu.',
-  295, 4.6, 87000, 0, 0, NULL, NULL, NULL, CURRENT_DATE, CURRENT_DATE);
+  295, 4.6, 87000, 0, 0, CURRENT_DATE, CURRENT_DATE);
+
+-- -----------------------------------------------------------
+--  AUTHORS
+-- -----------------------------------------------------------
+INSERT INTO authors (name) VALUES
+('Andrzej Sapkowski'),
+('Frank Herbert'),
+('George Orwell'),
+('Fiodor Dostojewski'),
+('Michaił Bułhakow'),
+('Aldous Huxley'),
+('J.R.R. Tolkien'),
+('Stanisław Lem'),
+('Ray Bradbury'),
+('Gabriel García Márquez'),
+('Antoine de Saint-Exupéry'),
+('J.K. Rowling'),
+('Franz Kafka'),
+('J.D. Salinger'),
+('Anne Rice'),
+('Margaret Atwood'),
+('Philip Pullman');
+
+-- -----------------------------------------------------------
+--  BOOK_AUTHORS
+-- -----------------------------------------------------------
+INSERT INTO book_authors (book_id, author_id, role) VALUES
+((SELECT id FROM books WHERE isbn = '9788375780635'), (SELECT id FROM authors WHERE name = 'Andrzej Sapkowski'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780441013593'), (SELECT id FROM authors WHERE name = 'Frank Herbert'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780451524935'), (SELECT id FROM authors WHERE name = 'George Orwell'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780140449136'), (SELECT id FROM authors WHERE name = 'Fiodor Dostojewski'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9788308060117'), (SELECT id FROM authors WHERE name = 'Michaił Bułhakow'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780060850524'), (SELECT id FROM authors WHERE name = 'Aldous Huxley'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780547928227'), (SELECT id FROM authors WHERE name = 'J.R.R. Tolkien'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9788308060933'), (SELECT id FROM authors WHERE name = 'Stanisław Lem'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9781451673319'), (SELECT id FROM authors WHERE name = 'Ray Bradbury'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780618640157'), (SELECT id FROM authors WHERE name = 'J.R.R. Tolkien'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780060883287'), (SELECT id FROM authors WHERE name = 'Gabriel García Márquez'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780156012195'), (SELECT id FROM authors WHERE name = 'Antoine de Saint-Exupéry'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780747532699'), (SELECT id FROM authors WHERE name = 'J.K. Rowling'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780805209990'), (SELECT id FROM authors WHERE name = 'Franz Kafka'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780316769174'), (SELECT id FROM authors WHERE name = 'J.D. Salinger'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780593098233'), (SELECT id FROM authors WHERE name = 'Frank Herbert'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780345337603'), (SELECT id FROM authors WHERE name = 'Anne Rice'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780385490818'), (SELECT id FROM authors WHERE name = 'Margaret Atwood'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9780679879244'), (SELECT id FROM authors WHERE name = 'Philip Pullman'), 'AUTHOR'),
+((SELECT id FROM books WHERE isbn = '9788308048320'), (SELECT id FROM authors WHERE name = 'Stanisław Lem'), 'AUTHOR');
 
 -- -----------------------------------------------------------
 --  GENRES  (pobieramy ID przez subquery po ISBN)
@@ -238,85 +264,108 @@ INSERT INTO book_genres (book_id, genre) VALUES
 -- -----------------------------------------------------------
 --  TAGS
 -- -----------------------------------------------------------
-INSERT INTO book_tags (book_id, tag) VALUES
-((SELECT id FROM books WHERE isbn = '9788375780635'), 'wiedźmin'),
-((SELECT id FROM books WHERE isbn = '9788375780635'), 'sapkowski'),
-((SELECT id FROM books WHERE isbn = '9788375780635'), 'polska-fantastyka'),
+INSERT INTO tags (name) VALUES
+('wiedźmin'), ('sapkowski'), ('polska-fantastyka'),
+('herbert'), ('klasyka-sf'), ('pustynna-planeta'),
+('orwell'), ('totalitaryzm'), ('wielki-brat'),
+('dostojewski'), ('rosja'), ('zbrodnia'),
+('bułhakow'), ('diabeł'), ('moskwa'),
+('huxley'), ('utopia'), ('kontrola-społeczna'),
+('tolkien'), ('hobbit'), ('smok'),
+('lem'), ('kontakt'), ('ocean'),
+('bradbury'), ('cenzura'), ('książki'),
+('pierścień'), ('śródziemie'),
+('marquez'), ('realizm-magiczny'), ('saga-rodzinna'),
+('saint-exupery'), ('baśń'), ('filozofia'),
+('rowling'), ('hogwart'), ('magia'),
+('kafka'), ('absurd'), ('biurokracja'),
+('salinger'), ('bunt'), ('dorastanie'),
+('mesjasz'), ('imperium'),
+('anne-rice'), ('wampir'), ('gotyk'),
+('atwood'), ('feminizm'), ('teokracja'),
+('pullman'), ('daemon'), ('światy-równoległe'),
+('roboty'), ('humor')
+ON CONFLICT (name) DO NOTHING;
 
-((SELECT id FROM books WHERE isbn = '9780441013593'), 'herbert'),
-((SELECT id FROM books WHERE isbn = '9780441013593'), 'klasyka-sf'),
-((SELECT id FROM books WHERE isbn = '9780441013593'), 'pustynna-planeta'),
+INSERT INTO book_tags (book_id, tag_id) VALUES
+((SELECT id FROM books WHERE isbn = '9788375780635'), (SELECT id FROM tags WHERE name = 'wiedźmin')),
+((SELECT id FROM books WHERE isbn = '9788375780635'), (SELECT id FROM tags WHERE name = 'sapkowski')),
+((SELECT id FROM books WHERE isbn = '9788375780635'), (SELECT id FROM tags WHERE name = 'polska-fantastyka')),
 
-((SELECT id FROM books WHERE isbn = '9780451524935'), 'orwell'),
-((SELECT id FROM books WHERE isbn = '9780451524935'), 'totalitaryzm'),
-((SELECT id FROM books WHERE isbn = '9780451524935'), 'wielki-brat'),
+((SELECT id FROM books WHERE isbn = '9780441013593'), (SELECT id FROM tags WHERE name = 'herbert')),
+((SELECT id FROM books WHERE isbn = '9780441013593'), (SELECT id FROM tags WHERE name = 'klasyka-sf')),
+((SELECT id FROM books WHERE isbn = '9780441013593'), (SELECT id FROM tags WHERE name = 'pustynna-planeta')),
 
-((SELECT id FROM books WHERE isbn = '9780140449136'), 'dostojewski'),
-((SELECT id FROM books WHERE isbn = '9780140449136'), 'rosja'),
-((SELECT id FROM books WHERE isbn = '9780140449136'), 'zbrodnia'),
+((SELECT id FROM books WHERE isbn = '9780451524935'), (SELECT id FROM tags WHERE name = 'orwell')),
+((SELECT id FROM books WHERE isbn = '9780451524935'), (SELECT id FROM tags WHERE name = 'totalitaryzm')),
+((SELECT id FROM books WHERE isbn = '9780451524935'), (SELECT id FROM tags WHERE name = 'wielki-brat')),
 
-((SELECT id FROM books WHERE isbn = '9788308060117'), 'bułhakow'),
-((SELECT id FROM books WHERE isbn = '9788308060117'), 'diabeł'),
-((SELECT id FROM books WHERE isbn = '9788308060117'), 'moskwa'),
+((SELECT id FROM books WHERE isbn = '9780140449136'), (SELECT id FROM tags WHERE name = 'dostojewski')),
+((SELECT id FROM books WHERE isbn = '9780140449136'), (SELECT id FROM tags WHERE name = 'rosja')),
+((SELECT id FROM books WHERE isbn = '9780140449136'), (SELECT id FROM tags WHERE name = 'zbrodnia')),
 
-((SELECT id FROM books WHERE isbn = '9780060850524'), 'huxley'),
-((SELECT id FROM books WHERE isbn = '9780060850524'), 'utopia'),
-((SELECT id FROM books WHERE isbn = '9780060850524'), 'kontrola-społeczna'),
+((SELECT id FROM books WHERE isbn = '9788308060117'), (SELECT id FROM tags WHERE name = 'bułhakow')),
+((SELECT id FROM books WHERE isbn = '9788308060117'), (SELECT id FROM tags WHERE name = 'diabeł')),
+((SELECT id FROM books WHERE isbn = '9788308060117'), (SELECT id FROM tags WHERE name = 'moskwa')),
 
-((SELECT id FROM books WHERE isbn = '9780547928227'), 'tolkien'),
-((SELECT id FROM books WHERE isbn = '9780547928227'), 'hobbit'),
-((SELECT id FROM books WHERE isbn = '9780547928227'), 'smok'),
+((SELECT id FROM books WHERE isbn = '9780060850524'), (SELECT id FROM tags WHERE name = 'huxley')),
+((SELECT id FROM books WHERE isbn = '9780060850524'), (SELECT id FROM tags WHERE name = 'utopia')),
+((SELECT id FROM books WHERE isbn = '9780060850524'), (SELECT id FROM tags WHERE name = 'kontrola-społeczna')),
 
-((SELECT id FROM books WHERE isbn = '9788308060933'), 'lem'),
-((SELECT id FROM books WHERE isbn = '9788308060933'), 'kontakt'),
-((SELECT id FROM books WHERE isbn = '9788308060933'), 'ocean'),
+((SELECT id FROM books WHERE isbn = '9780547928227'), (SELECT id FROM tags WHERE name = 'tolkien')),
+((SELECT id FROM books WHERE isbn = '9780547928227'), (SELECT id FROM tags WHERE name = 'hobbit')),
+((SELECT id FROM books WHERE isbn = '9780547928227'), (SELECT id FROM tags WHERE name = 'smok')),
 
-((SELECT id FROM books WHERE isbn = '9781451673319'), 'bradbury'),
-((SELECT id FROM books WHERE isbn = '9781451673319'), 'cenzura'),
-((SELECT id FROM books WHERE isbn = '9781451673319'), 'książki'),
+((SELECT id FROM books WHERE isbn = '9788308060933'), (SELECT id FROM tags WHERE name = 'lem')),
+((SELECT id FROM books WHERE isbn = '9788308060933'), (SELECT id FROM tags WHERE name = 'kontakt')),
+((SELECT id FROM books WHERE isbn = '9788308060933'), (SELECT id FROM tags WHERE name = 'ocean')),
 
-((SELECT id FROM books WHERE isbn = '9780618640157'), 'tolkien'),
-((SELECT id FROM books WHERE isbn = '9780618640157'), 'pierścień'),
-((SELECT id FROM books WHERE isbn = '9780618640157'), 'śródziemie'),
+((SELECT id FROM books WHERE isbn = '9781451673319'), (SELECT id FROM tags WHERE name = 'bradbury')),
+((SELECT id FROM books WHERE isbn = '9781451673319'), (SELECT id FROM tags WHERE name = 'cenzura')),
+((SELECT id FROM books WHERE isbn = '9781451673319'), (SELECT id FROM tags WHERE name = 'książki')),
 
-((SELECT id FROM books WHERE isbn = '9780060883287'), 'marquez'),
-((SELECT id FROM books WHERE isbn = '9780060883287'), 'realizm-magiczny'),
-((SELECT id FROM books WHERE isbn = '9780060883287'), 'saga-rodzinna'),
+((SELECT id FROM books WHERE isbn = '9780618640157'), (SELECT id FROM tags WHERE name = 'tolkien')),
+((SELECT id FROM books WHERE isbn = '9780618640157'), (SELECT id FROM tags WHERE name = 'pierścień')),
+((SELECT id FROM books WHERE isbn = '9780618640157'), (SELECT id FROM tags WHERE name = 'śródziemie')),
 
-((SELECT id FROM books WHERE isbn = '9780156012195'), 'saint-exupery'),
-((SELECT id FROM books WHERE isbn = '9780156012195'), 'baśń'),
-((SELECT id FROM books WHERE isbn = '9780156012195'), 'filozofia'),
+((SELECT id FROM books WHERE isbn = '9780060883287'), (SELECT id FROM tags WHERE name = 'marquez')),
+((SELECT id FROM books WHERE isbn = '9780060883287'), (SELECT id FROM tags WHERE name = 'realizm-magiczny')),
+((SELECT id FROM books WHERE isbn = '9780060883287'), (SELECT id FROM tags WHERE name = 'saga-rodzinna')),
 
-((SELECT id FROM books WHERE isbn = '9780747532699'), 'rowling'),
-((SELECT id FROM books WHERE isbn = '9780747532699'), 'hogwart'),
-((SELECT id FROM books WHERE isbn = '9780747532699'), 'magia'),
+((SELECT id FROM books WHERE isbn = '9780156012195'), (SELECT id FROM tags WHERE name = 'saint-exupery')),
+((SELECT id FROM books WHERE isbn = '9780156012195'), (SELECT id FROM tags WHERE name = 'baśń')),
+((SELECT id FROM books WHERE isbn = '9780156012195'), (SELECT id FROM tags WHERE name = 'filozofia')),
 
-((SELECT id FROM books WHERE isbn = '9780805209990'), 'kafka'),
-((SELECT id FROM books WHERE isbn = '9780805209990'), 'absurd'),
-((SELECT id FROM books WHERE isbn = '9780805209990'), 'biurokracja'),
+((SELECT id FROM books WHERE isbn = '9780747532699'), (SELECT id FROM tags WHERE name = 'rowling')),
+((SELECT id FROM books WHERE isbn = '9780747532699'), (SELECT id FROM tags WHERE name = 'hogwart')),
+((SELECT id FROM books WHERE isbn = '9780747532699'), (SELECT id FROM tags WHERE name = 'magia')),
 
-((SELECT id FROM books WHERE isbn = '9780316769174'), 'salinger'),
-((SELECT id FROM books WHERE isbn = '9780316769174'), 'bunt'),
-((SELECT id FROM books WHERE isbn = '9780316769174'), 'dorastanie'),
+((SELECT id FROM books WHERE isbn = '9780805209990'), (SELECT id FROM tags WHERE name = 'kafka')),
+((SELECT id FROM books WHERE isbn = '9780805209990'), (SELECT id FROM tags WHERE name = 'absurd')),
+((SELECT id FROM books WHERE isbn = '9780805209990'), (SELECT id FROM tags WHERE name = 'biurokracja')),
 
-((SELECT id FROM books WHERE isbn = '9780593098233'), 'herbert'),
-((SELECT id FROM books WHERE isbn = '9780593098233'), 'mesjasz'),
-((SELECT id FROM books WHERE isbn = '9780593098233'), 'imperium'),
+((SELECT id FROM books WHERE isbn = '9780316769174'), (SELECT id FROM tags WHERE name = 'salinger')),
+((SELECT id FROM books WHERE isbn = '9780316769174'), (SELECT id FROM tags WHERE name = 'bunt')),
+((SELECT id FROM books WHERE isbn = '9780316769174'), (SELECT id FROM tags WHERE name = 'dorastanie')),
 
-((SELECT id FROM books WHERE isbn = '9780345337603'), 'anne-rice'),
-((SELECT id FROM books WHERE isbn = '9780345337603'), 'wampir'),
-((SELECT id FROM books WHERE isbn = '9780345337603'), 'gotyk'),
+((SELECT id FROM books WHERE isbn = '9780593098233'), (SELECT id FROM tags WHERE name = 'herbert')),
+((SELECT id FROM books WHERE isbn = '9780593098233'), (SELECT id FROM tags WHERE name = 'mesjasz')),
+((SELECT id FROM books WHERE isbn = '9780593098233'), (SELECT id FROM tags WHERE name = 'imperium')),
 
-((SELECT id FROM books WHERE isbn = '9780385490818'), 'atwood'),
-((SELECT id FROM books WHERE isbn = '9780385490818'), 'feminizm'),
-((SELECT id FROM books WHERE isbn = '9780385490818'), 'teokracja'),
+((SELECT id FROM books WHERE isbn = '9780345337603'), (SELECT id FROM tags WHERE name = 'anne-rice')),
+((SELECT id FROM books WHERE isbn = '9780345337603'), (SELECT id FROM tags WHERE name = 'wampir')),
+((SELECT id FROM books WHERE isbn = '9780345337603'), (SELECT id FROM tags WHERE name = 'gotyk')),
 
-((SELECT id FROM books WHERE isbn = '9780679879244'), 'pullman'),
-((SELECT id FROM books WHERE isbn = '9780679879244'), 'daemon'),
-((SELECT id FROM books WHERE isbn = '9780679879244'), 'światy-równoległe'),
+((SELECT id FROM books WHERE isbn = '9780385490818'), (SELECT id FROM tags WHERE name = 'atwood')),
+((SELECT id FROM books WHERE isbn = '9780385490818'), (SELECT id FROM tags WHERE name = 'feminizm')),
+((SELECT id FROM books WHERE isbn = '9780385490818'), (SELECT id FROM tags WHERE name = 'teokracja')),
 
-((SELECT id FROM books WHERE isbn = '9788308048320'), 'lem'),
-((SELECT id FROM books WHERE isbn = '9788308048320'), 'roboty'),
-((SELECT id FROM books WHERE isbn = '9788308048320'), 'humor');
+((SELECT id FROM books WHERE isbn = '9780679879244'), (SELECT id FROM tags WHERE name = 'pullman')),
+((SELECT id FROM books WHERE isbn = '9780679879244'), (SELECT id FROM tags WHERE name = 'daemon')),
+((SELECT id FROM books WHERE isbn = '9780679879244'), (SELECT id FROM tags WHERE name = 'światy-równoległe')),
+
+((SELECT id FROM books WHERE isbn = '9788308048320'), (SELECT id FROM tags WHERE name = 'lem')),
+((SELECT id FROM books WHERE isbn = '9788308048320'), (SELECT id FROM tags WHERE name = 'roboty')),
+((SELECT id FROM books WHERE isbn = '9788308048320'), (SELECT id FROM tags WHERE name = 'humor'));
 
 COMMIT;

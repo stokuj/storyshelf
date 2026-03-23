@@ -1,59 +1,39 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.request.AuthRequest;
-import com.stokuj.books.dto.request.LoginRequest;
-import com.stokuj.books.dto.response.AuthResponse;
+import com.stokuj.books.domain.entity.User;
+import com.stokuj.books.domain.enums.Role;
+import com.stokuj.books.dto.auth.RegisterRequest;
 import com.stokuj.books.exception.ConflictException;
-import com.stokuj.books.exception.UnauthorizedException;
-import com.stokuj.books.model.entity.User;
 import com.stokuj.books.repository.UserRepository;
-import com.stokuj.books.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
     }
 
-    public AuthResponse register(AuthRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new ConflictException("Uzytkownik z tym emailem juz istnieje");
+    @Transactional
+    public User registerUser(RegisterRequest request) {
+        if (userRepository.findByEmail(request.email()).isPresent()) {
+            throw new ConflictException("Użytkownik z tym adresem email już istnieje.");
         }
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new ConflictException("Username jest już zajęty");
+        if (userRepository.existsByUsername(request.username())) {
+            throw new ConflictException("Username jest już zajęty.");
         }
 
         User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(com.stokuj.books.model.enums.Role.USER);
-        user.setUsername(request.getUsername());
-
-        userRepository.save(user);
-
-        String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token);
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setRole(Role.USER);
+        user.setUsername(request.username());
+        return userRepository.save(user);
     }
-
-    public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UnauthorizedException("Nieprawidlowy email lub haslo"));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("Nieprawidlowy email lub haslo");
-        }
-
-        String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token);
-    }
-
 }

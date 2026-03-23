@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.request.ReviewRequest;
-import com.stokuj.books.model.enums.ReadingStatus;
+import com.stokuj.books.dto.review.ReviewRequest;
+import com.stokuj.books.domain.enums.ReadingStatus;
 import com.stokuj.books.repository.BookCharacterRepository;
 import com.stokuj.books.repository.CharacterRelationRepository;
 import com.stokuj.books.service.BookChapterService;

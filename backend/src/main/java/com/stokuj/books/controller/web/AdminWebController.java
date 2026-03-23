@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.request.AdminBookForm;
-import com.stokuj.books.dto.request.BookRequest;
+import com.stokuj.books.dto.book.AdminBookForm;
+import com.stokuj.books.dto.book.BookRequest;
 import com.stokuj.books.service.BookService;
 import com.stokuj.books.service.BookChapterService;
 import jakarta.validation.Valid;
@@ -134,16 +134,16 @@ public class AdminWebController {
         return request;
     }
 
-    private AdminBookForm toForm(com.stokuj.books.model.entity.Book book) {
+    private AdminBookForm toForm(com.stokuj.books.dto.book.BookResponse book) {
         AdminBookForm form = new AdminBookForm();
-        form.setTitle(book.getTitle());
-        form.setAuthor(book.getAuthor());
-        form.setYear(book.getYear());
-        form.setIsbn(book.getIsbn());
-        form.setDescription(book.getDescription());
-        form.setPageCount(book.getPageCount());
-        form.setGenres(joinCsv(book.getGenres()));
-        form.setTags(joinCsv(book.getTags()));
+        form.setTitle(book.title());
+        form.setAuthor(book.author());
+        form.setYear(book.year());
+        form.setIsbn(book.isbn());
+        form.setDescription(book.description());
+        form.setPageCount(book.pageCount());
+        form.setGenres(joinCsv(book.genres()));
+        form.setTags(joinCsv(book.tags()));
         return form;
     }
 

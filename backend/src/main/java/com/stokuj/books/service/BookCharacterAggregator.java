@@ -1,13 +1,13 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.fastapi.NerResult;
-import com.stokuj.books.model.entity.Book;
-import com.stokuj.books.model.entity.BookCharacter;
-import com.stokuj.books.model.entity.Character;
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.BookCharacter;
+import com.stokuj.books.dto.integration.NerResult;
 import com.stokuj.books.repository.BookCharacterRepository;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Service;
+import com.stokuj.books.domain.entity.Character;
 
 @Service
 public class BookCharacterAggregator {
@@ -39,6 +39,7 @@ public class BookCharacterAggregator {
                 bookCharacter = new BookCharacter();
                 bookCharacter.setBook(book);
                 bookCharacter.setCharacter(character);
+                bookCharacter.setRole(null);
                 bookCharacter.setMentionCount(increment);
             } else {
                 bookCharacter.setMentionCount(bookCharacter.getMentionCount() + increment);

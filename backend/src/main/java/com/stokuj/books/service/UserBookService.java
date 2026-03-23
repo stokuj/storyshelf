@@ -1,13 +1,13 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.request.UserBookRequest;
-import com.stokuj.books.dto.response.UserBookResponse;
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.User;
+import com.stokuj.books.domain.entity.UserBook;
+import com.stokuj.books.dto.bookshelf.UserBookRequest;
+import com.stokuj.books.dto.bookshelf.UserBookResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.entity.Book;
-import com.stokuj.books.model.enums.ReadingStatus;
-import com.stokuj.books.model.entity.User;
-import com.stokuj.books.model.entity.UserBook;
+import com.stokuj.books.domain.enums.ReadingStatus;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.UserBookRepository;
 import com.stokuj.books.repository.UserRepository;
@@ -35,13 +35,19 @@ public class UserBookService {
     public List<UserBookResponse> getMyBooks(String email) {
         return userBookRepository.findAllByUserEmailOrderByCreatedAtDesc(email)
                 .stream()
-                .map(ub -> new UserBookResponse(ub.getBook(), ub.getStatus(), ub.getCreatedAt()))
+                .map(ub -> new UserBookResponse(
+                        new UserBookResponse.BookSummary(ub.getBook().getId(), ub.getBook().getTitle(), ub.getBook().getAuthor()), 
+                        ub.getStatus(), 
+                        ub.getCreatedAt()))
                 .toList();
     }
 
     public Optional<UserBookResponse> findByUserAndBook(String email, Long bookId) {
         return userBookRepository.findByUserEmailAndBookId(email, bookId)
-                .map(ub -> new UserBookResponse(ub.getBook(), ub.getStatus(), ub.getCreatedAt()));
+                .map(ub -> new UserBookResponse(
+                        new UserBookResponse.BookSummary(ub.getBook().getId(), ub.getBook().getTitle(), ub.getBook().getAuthor()), 
+                        ub.getStatus(), 
+                        ub.getCreatedAt()));
     }
 
     @Transactional
@@ -66,7 +72,10 @@ public class UserBookService {
         userBook.setStatus(status);
         userBookRepository.save(userBook);
 
-        return new UserBookResponse(book, userBook.getStatus(), userBook.getCreatedAt());
+        return new UserBookResponse(
+                new UserBookResponse.BookSummary(book.getId(), book.getTitle(), book.getAuthor()), 
+                userBook.getStatus(), 
+                userBook.getCreatedAt());
     }
 
     @Transactional
@@ -81,7 +90,10 @@ public class UserBookService {
         userBook.setStatus(request.getStatus());
         userBookRepository.save(userBook);
 
-        return new UserBookResponse(userBook.getBook(), userBook.getStatus(), userBook.getCreatedAt());
+        return new UserBookResponse(
+                new UserBookResponse.BookSummary(userBook.getBook().getId(), userBook.getBook().getTitle(), userBook.getBook().getAuthor()), 
+                userBook.getStatus(), 
+                userBook.getCreatedAt());
     }
 
     @Transactional

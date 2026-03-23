@@ -1,11 +1,11 @@
 package com.stokuj.books.service;
 
-import com.stokuj.books.dto.request.UserProfileUpdateRequest;
-import com.stokuj.books.dto.response.UserProfileResponse;
-import com.stokuj.books.dto.response.UserSettingsResponse;
+import com.stokuj.books.domain.entity.User;
+import com.stokuj.books.dto.user.UserProfileUpdateRequest;
+import com.stokuj.books.dto.user.UserProfileResponse;
+import com.stokuj.books.dto.user.UserSettingsResponse;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.model.entity.User;
 import com.stokuj.books.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;

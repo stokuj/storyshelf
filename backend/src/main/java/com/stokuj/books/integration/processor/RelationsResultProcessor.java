@@ -1,14 +1,14 @@
 package com.stokuj.books.integration.processor;
 
-import com.stokuj.books.dto.fastapi.BookFindPairsResult;
-import com.stokuj.books.model.entity.Book;
-import com.stokuj.books.model.entity.Character;
-import com.stokuj.books.model.entity.CharacterRelation;
+import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.domain.entity.CharacterRelation;
+import com.stokuj.books.dto.integration.BookFindPairsResult;
 import com.stokuj.books.repository.CharacterRelationRepository;
 import com.stokuj.books.service.CharacterService;
 import com.stokuj.books.integration.kafka.ChapterEventProducer;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import com.stokuj.books.domain.entity.Character;
 
 import java.util.List;
 import java.util.Map;

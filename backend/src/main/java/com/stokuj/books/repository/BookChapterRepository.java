@@ -1,11 +1,12 @@
 package com.stokuj.books.repository;
 
+import com.stokuj.books.domain.entity.Chapter;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
-import com.stokuj.books.model.entity.BookChapter;
 
-public interface BookChapterRepository extends JpaRepository<BookChapter, Long> {
-    List<BookChapter> findAllByBookIdOrderByChapterNumber(Long bookId);
+import java.util.List;
+
+public interface BookChapterRepository extends JpaRepository<Chapter, Long> {
     void deleteAllByBookId(Long bookId);
     int countByBookId(Long bookId);
+    List<Chapter> findAllByBookIdOrderByChapterNumber(Long bookId);
 }

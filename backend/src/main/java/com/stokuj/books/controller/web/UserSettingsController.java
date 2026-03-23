@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.web;
 
-import com.stokuj.books.dto.request.UserProfileUpdateRequest;
-import com.stokuj.books.dto.response.UserSettingsResponse;
+import com.stokuj.books.dto.user.UserProfileUpdateRequest;
+import com.stokuj.books.dto.user.UserSettingsResponse;
 import com.stokuj.books.service.UserProfileService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
