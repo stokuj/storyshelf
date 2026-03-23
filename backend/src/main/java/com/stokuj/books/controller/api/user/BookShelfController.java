@@ -1,4 +1,4 @@
-package com.stokuj.books.controller.api;
+package com.stokuj.books.controller.api.user;
 
 import com.stokuj.books.dto.bookshelf.UserBookRequest;
 import com.stokuj.books.dto.bookshelf.UserBookResponse;
