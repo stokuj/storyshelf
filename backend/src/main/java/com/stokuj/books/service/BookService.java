@@ -4,6 +4,7 @@ import com.stokuj.books.domain.entity.*;
 import com.stokuj.books.domain.enums.AuthorRole;
 import com.stokuj.books.dto.book.BookPatchRequest;
 import com.stokuj.books.dto.book.BookRequest;
+import com.stokuj.books.dto.book.BookResponse;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.repository.BookRepository;
 import com.stokuj.books.repository.AuthorRepository;
@@ -29,11 +30,27 @@ public class BookService {
         this.tagRepository = tagRepository;
     }
 
-    public List<Book> getAll() {
-        return bookRepository.findAll();
+    public BookResponse toDto(Book book) {
+        return new BookResponse(
+                book.getId(),
+                book.getTitle(),
+                book.getAuthor(),
+                book.getYear(),
+                book.getIsbn(),
+                book.getDescription(),
+                book.getPageCount(),
+                book.getGenres(),
+                book.getTags(),
+                book.getRating(),
+                book.getRatingsCount()
+        );
     }
 
-    public List<Book> search(String query) {
+    public List<BookResponse> getAll() {
+        return bookRepository.findAll().stream().map(this::toDto).toList();
+    }
+
+    public List<BookResponse> search(String query) {
         if (query == null || query.isBlank()) {
             return getAll();
         }
@@ -43,28 +60,32 @@ public class BookService {
                         trimmed,
                         trimmed,
                         trimmed
-                );
+                ).stream().map(this::toDto).toList();
     }
 
-    public Book getById(Long id) {
+    public Book getEntityById(Long id) {
         return bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
     }
 
-    public Book create(BookRequest request) {
+    public BookResponse getById(Long id) {
+        return toDto(getEntityById(id));
+    }
+
+    public BookResponse create(BookRequest request) {
         Book book = new Book();
         mapRequestToBook(request, book);
-        return bookRepository.save(book);
+        return toDto(bookRepository.save(book));
     }
 
-    public Book update(Long id, BookRequest request) {
-        Book existing = getById(id);
+    public BookResponse update(Long id, BookRequest request) {
+        Book existing = getEntityById(id);
         mapRequestToBook(request, existing);
-        return bookRepository.save(existing);
+        return toDto(bookRepository.save(existing));
     }
 
-    public Book patch(Long id, BookPatchRequest request) {
-        Book existing = getById(id);
+    public BookResponse patch(Long id, BookPatchRequest request) {
+        Book existing = getEntityById(id);
 
         if (request.getTitle() != null) {
             existing.setTitle(request.getTitle());
@@ -91,7 +112,7 @@ public class BookService {
             updateTags(existing, request.getTags());
         }
 
-        return bookRepository.save(existing);
+        return toDto(bookRepository.save(existing));
     }
 
     public void delete(Long id) {

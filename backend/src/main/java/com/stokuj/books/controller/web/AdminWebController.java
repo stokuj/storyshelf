@@ -134,38 +134,17 @@ public class AdminWebController {
         return request;
     }
 
-    private AdminBookForm toForm(com.stokuj.books.domain.entity.Book book) {
+    private AdminBookForm toForm(com.stokuj.books.dto.book.BookResponse book) {
         AdminBookForm form = new AdminBookForm();
-        form.setTitle(book.getTitle());
-        form.setAuthor(getPrimaryAuthorName(book));
-        form.setYear(book.getYear());
-        form.setIsbn(book.getIsbn());
-        form.setDescription(book.getDescription());
-        form.setPageCount(book.getPageCount());
-        form.setGenres(joinCsv(book.getGenres()));
-        form.setTags(joinCsv(extractTagNames(book)));
+        form.setTitle(book.title());
+        form.setAuthor(book.author());
+        form.setYear(book.year());
+        form.setIsbn(book.isbn());
+        form.setDescription(book.description());
+        form.setPageCount(book.pageCount());
+        form.setGenres(joinCsv(book.genres()));
+        form.setTags(joinCsv(book.tags()));
         return form;
-    }
-
-    private String getPrimaryAuthorName(com.stokuj.books.domain.entity.Book book) {
-        if (book.getBookAuthors() == null || book.getBookAuthors().isEmpty()) {
-            return null;
-        }
-        return book.getBookAuthors().stream()
-                .map(bookAuthor -> bookAuthor.getAuthor() != null ? bookAuthor.getAuthor().getName() : null)
-                .filter(name -> name != null && !name.isBlank())
-                .findFirst()
-                .orElse(null);
-    }
-
-    private List<String> extractTagNames(com.stokuj.books.domain.entity.Book book) {
-        if (book.getBookTags() == null || book.getBookTags().isEmpty()) {
-            return List.of();
-        }
-        return book.getBookTags().stream()
-                .map(bookTag -> bookTag.getTag() != null ? bookTag.getTag().getName() : null)
-                .filter(name -> name != null && !name.isBlank())
-                .toList();
     }
 
     private Set<String> parseSet(String raw) {

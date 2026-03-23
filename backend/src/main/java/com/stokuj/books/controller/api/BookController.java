@@ -1,17 +1,18 @@
 package com.stokuj.books.controller.api;
 
-import com.stokuj.books.dto.book.BookPatchRequest;
-import com.stokuj.books.dto.book.BookRequest;
-import com.stokuj.books.domain.entity.Book;
+import com.stokuj.books.dto.book.BookResponse;
 import com.stokuj.books.service.BookService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
+@Tag(name = "Books", description = "Operations related to books management")
 public class BookController {
 
     private final BookService bookService;
@@ -20,38 +21,19 @@ public class BookController {
         this.bookService = bookService;
     }
 
+    @Operation(summary = "Search books by title, author, or genre")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of books")
     @GetMapping
-    public ResponseEntity<List<Book>> search(@RequestParam(required = false) String q) {
+    public ResponseEntity<List<BookResponse>> search(@RequestParam(required = false) String q) {
         return ResponseEntity.ok(bookService.search(q));
     }
 
+    @Operation(summary = "Get a book by its ID")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved the book")
+    @ApiResponse(responseCode = "404", description = "Book not found")
     @GetMapping("/{id}")
-    public ResponseEntity<Book> getById(@PathVariable Long id) {
+    public ResponseEntity<BookResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(bookService.getById(id));
     }
 
-    @PostMapping
-    @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<Book> create(@RequestBody BookRequest request) {
-        return ResponseEntity.status(201).body(bookService.create(request));
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<Book> update(@PathVariable Long id, @RequestBody BookRequest request) {
-        return ResponseEntity.ok(bookService.update(id, request));
-    }
-
-    @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<Book> patch(@PathVariable Long id, @RequestBody BookPatchRequest request) {
-        return ResponseEntity.ok(bookService.patch(id, request));
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        bookService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
 }

@@ -34,3 +34,4 @@ storyweave:
 springdoc:
   swagger-ui:
     path: /docs
+    operations-sorter: method

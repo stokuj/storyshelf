@@ -1,5 +1,7 @@
 package com.stokuj.books.controller.api;
 
+import com.stokuj.books.dto.character.CharacterResponse;
+import com.stokuj.books.dto.character.CharacterRelationResponse;
 import com.stokuj.books.domain.entity.BookCharacter;
 import com.stokuj.books.domain.entity.CharacterRelation;
 import com.stokuj.books.repository.BookCharacterRepository;
@@ -23,12 +25,26 @@ public class CharacterController {
     }
 
     @GetMapping("/characters")
-    public ResponseEntity<List<BookCharacter>> getCharacters(@PathVariable Long bookId) {
-        return ResponseEntity.ok(bookCharacterRepository.findAllByBookIdWithCharacter(bookId));
+    public ResponseEntity<List<CharacterResponse>> getCharacters(@PathVariable Long bookId) {
+        return ResponseEntity.ok(bookCharacterRepository.findAllByBookIdWithCharacter(bookId).stream()
+                .map(bc -> new CharacterResponse(
+                        bc.getCharacter().getId(),
+                        bc.getCharacter().getName(),
+                        bc.getMentionCount(),
+                        bc.getRole()
+                )).toList());
     }
 
     @GetMapping("/relations")
-    public ResponseEntity<List<CharacterRelation>> getRelations(@PathVariable Long bookId) {
-        return ResponseEntity.ok(characterRelationRepository.findAllByBookId(bookId));
+    public ResponseEntity<List<CharacterRelationResponse>> getRelations(@PathVariable Long bookId) {
+        return ResponseEntity.ok(characterRelationRepository.findAllByBookId(bookId).stream()
+                .map(cr -> new CharacterRelationResponse(
+                        cr.getId(),
+                        cr.getSource().getName(),
+                        cr.getTarget().getName(),
+                        cr.getRelation(),
+                        cr.getEvidence(),
+                        cr.getConfidence()
+                )).toList());
     }
 }

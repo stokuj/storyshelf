@@ -1,5 +1,6 @@
 package com.stokuj.books.service;
 
+import com.stokuj.books.dto.chapter.ChapterResponse;
 import com.stokuj.books.domain.entity.Book;
 import com.stokuj.books.domain.entity.Chapter;
 import com.stokuj.books.exception.ResourceNotFoundException;
@@ -112,8 +113,24 @@ public class BookChapterService {
         return chapters.size();
     }
 
-    public List<Chapter> getChapters(Long bookId) {
-        return chapterRepository.findAllByBookIdOrderByChapterNumber(bookId);
+    public List<ChapterResponse> getChapters(Long bookId) {
+        return chapterRepository.findAllByBookIdOrderByChapterNumber(bookId).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    private ChapterResponse toDto(Chapter chapter) {
+        return new ChapterResponse(
+                chapter.getId(),
+                chapter.getBook().getId(),
+                chapter.getChapterNumber() != null ? chapter.getChapterNumber() : 0,
+                chapter.getTitle(),
+                chapter.getAnalysisCompleted() != null ? chapter.getAnalysisCompleted() : false,
+                chapter.getCharCount() != null ? chapter.getCharCount() : 0,
+                chapter.getCharCountClean() != null ? chapter.getCharCountClean() : 0,
+                chapter.getWordCount() != null ? chapter.getWordCount() : 0,
+                chapter.getTokenCount() != null ? chapter.getTokenCount() : 0
+        );
     }
 
     @Transactional

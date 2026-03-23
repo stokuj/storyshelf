@@ -1,16 +1,20 @@
 package com.stokuj.books.controller.api;
 
 import com.stokuj.books.domain.entity.Author;
+import com.stokuj.books.dto.author.AuthorResponse;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.repository.AuthorRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/authors")
+@Tag(name = "Authors", description = "Operations related to authors")
 public class AuthorController {
 
     private final AuthorRepository authorRepository;
@@ -19,40 +23,25 @@ public class AuthorController {
         this.authorRepository = authorRepository;
     }
 
+    private AuthorResponse toDto(Author author) {
+        return new AuthorResponse(author.getId(), author.getName(), author.getBio(), null, author.getBirthDate());
+    }
+
+    @Operation(summary = "Get a list of all authors")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of authors")
     @GetMapping
-    public ResponseEntity<List<Author>> getAll() {
-        return ResponseEntity.ok(authorRepository.findAll());
+    public ResponseEntity<List<AuthorResponse>> getAll() {
+        return ResponseEntity.ok(authorRepository.findAll().stream().map(this::toDto).toList());
     }
 
+    @Operation(summary = "Get an author by ID")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved the author")
+    @ApiResponse(responseCode = "404", description = "Author not found")
     @GetMapping("/{id}")
-    public ResponseEntity<Author> getById(@PathVariable Long id) {
+    public ResponseEntity<AuthorResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(
-                authorRepository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException("Author not found"))
+                toDto(authorRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Author not found")))
         );
-    }
-
-    @PostMapping
-    @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<Author> create(@RequestBody Author author) {
-        return ResponseEntity.status(201).body(authorRepository.save(author));
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<Author> update(@PathVariable Long id, @RequestBody Author request) {
-        Author existing = authorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
-        existing.setName(request.getName());
-        existing.setBio(request.getBio());
-        existing.setBirthDate(request.getBirthDate());
-        return ResponseEntity.ok(authorRepository.save(existing));
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        authorRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }

@@ -1,5 +1,6 @@
 package com.stokuj.books.controller.api;
 
+import com.stokuj.books.dto.follow.FollowResponse;
 import com.stokuj.books.domain.entity.User;
 import com.stokuj.books.domain.entity.UserFollow;
 import com.stokuj.books.exception.ConflictException;
@@ -59,17 +60,23 @@ public class UserFollowController {
         return ResponseEntity.noContent().build();
     }
 
+    private FollowResponse toDto(UserFollow f) {
+        return new FollowResponse(f.getId(), f.getFollower().getUsername(), f.getFollowing().getUsername(), f.getFollowedAt());
+    }
+
     @GetMapping("/followers")
-    public ResponseEntity<List<UserFollow>> getFollowers(@PathVariable String username) {
+    public ResponseEntity<List<FollowResponse>> getFollowers(@PathVariable String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return ResponseEntity.ok(userFollowRepository.findAllByFollowing_Email(user.getEmail()));
+        return ResponseEntity.ok(userFollowRepository.findAllByFollowing_Email(user.getEmail())
+                .stream().map(this::toDto).toList());
     }
 
     @GetMapping("/following")
-    public ResponseEntity<List<UserFollow>> getFollowing(@PathVariable String username) {
+    public ResponseEntity<List<FollowResponse>> getFollowing(@PathVariable String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return ResponseEntity.ok(userFollowRepository.findAllByFollower_Email(user.getEmail()));
+        return ResponseEntity.ok(userFollowRepository.findAllByFollower_Email(user.getEmail())
+                .stream().map(this::toDto).toList());
     }
 }

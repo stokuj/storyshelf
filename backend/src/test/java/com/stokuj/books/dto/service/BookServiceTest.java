@@ -4,6 +4,7 @@ import com.stokuj.books.domain.entity.*;
 import com.stokuj.books.domain.enums.AuthorRole;
 import com.stokuj.books.dto.book.BookPatchRequest;
 import com.stokuj.books.dto.book.BookRequest;
+import com.stokuj.books.dto.book.BookResponse;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.repository.AuthorRepository;
 import com.stokuj.books.repository.BookRepository;
@@ -57,8 +58,8 @@ class BookServiceTest {
         var result = bookService.getById(1L);
 
         // then
-        assertThat(result.getTitle()).isEqualTo("Dune");
-        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Herbert");
+        assertThat(result.title()).isEqualTo("Dune");
+        assertThat(result.author()).isEqualTo("Herbert");
     }
 
     @Test
@@ -90,7 +91,7 @@ class BookServiceTest {
 
         // then
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(Book::getTitle)
+        assertThat(result).extracting(BookResponse::title)
                 .containsExactly("Dune", "Foundation");
     }
 
@@ -132,8 +133,8 @@ class BookServiceTest {
         var result = bookService.create(request);
 
         // then
-        assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getTitle()).isEqualTo("Dune");
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.title()).isEqualTo("Dune");
         verify(bookRepository).save(any(Book.class));
     }
 
@@ -162,8 +163,8 @@ class BookServiceTest {
         var result = bookService.update(1L, request);
 
         // then
-        assertThat(result.getTitle()).isEqualTo("Dune");
-        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Herbert");
+        assertThat(result.title()).isEqualTo("Dune");
+        assertThat(result.author()).isEqualTo("Herbert");
         verify(bookRepository).save(existing);
     }
 
@@ -200,8 +201,8 @@ class BookServiceTest {
         var result = bookService.patch(1L, patchRequest);
 
         // then
-        assertThat(result.getTitle()).isEqualTo("New Title");
-        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Old Author"); // niezmieniony!
+        assertThat(result.title()).isEqualTo("New Title");
+        assertThat(result.author()).isEqualTo("Old Author"); // niezmieniony!
     }
 
     @Test
@@ -220,9 +221,9 @@ class BookServiceTest {
         var result = bookService.patch(1L, new BookPatchRequest()); // wszystko null
 
         // then
-        assertThat(result.getTitle()).isEqualTo("Old Title");
-        assertThat(extractPrimaryAuthorName(result)).isEqualTo("Old Author");
-        assertThat(result.getYear()).isEqualTo(2000);
+        assertThat(result.title()).isEqualTo("Old Title");
+        assertThat(result.author()).isEqualTo("Old Author");
+        assertThat(result.year()).isEqualTo(2000);
     }
 
     @Test
@@ -249,9 +250,9 @@ class BookServiceTest {
         var result = bookService.patch(1L, request);
 
         // then
-        assertThat(result.getTitle()).isEqualTo("New Title");
-        assertThat(extractPrimaryAuthorName(result)).isEqualTo("New Author");
-        assertThat(result.getYear()).isEqualTo(2024);
+        assertThat(result.title()).isEqualTo("New Title");
+        assertThat(result.author()).isEqualTo("New Author");
+        assertThat(result.year()).isEqualTo(2024);
     }
 
     @Test
@@ -291,9 +292,9 @@ class BookServiceTest {
         var result = bookService.patch(1L, request);
 
         // then
-        assertThat(result.getGenres()).containsExactlyInAnyOrder("Sci-Fi", "Adventure");
-        assertThat(extractTagNames(result)).containsExactlyInAnyOrder("classic", "must-read");
-        assertThat(result.getTitle()).isEqualTo("Dune"); // niezmieniony
+        assertThat(result.genres()).containsExactlyInAnyOrder("Sci-Fi", "Adventure");
+        assertThat(result.tags()).containsExactlyInAnyOrder("classic", "must-read");
+        assertThat(result.title()).isEqualTo("Dune"); // niezmieniony
     }
 
     @Test
@@ -318,10 +319,10 @@ class BookServiceTest {
         var result = bookService.patch(1L, request);
 
         // then
-        assertThat(result.getIsbn()).isEqualTo("978-0441013593");
-        assertThat(result.getDescription()).isEqualTo("Nowy opis");
-        assertThat(result.getPageCount()).isEqualTo(412);
-        assertThat(result.getTitle()).isEqualTo("Dune"); // niezmieniony
+        assertThat(result.isbn()).isEqualTo("978-0441013593");
+        assertThat(result.description()).isEqualTo("Nowy opis");
+        assertThat(result.pageCount()).isEqualTo(412);
+        assertThat(result.title()).isEqualTo("Dune"); // niezmieniony
     }
 
     // ========== delete ==========
@@ -364,24 +365,4 @@ class BookServiceTest {
         return bookTag;
     }
 
-    private String extractPrimaryAuthorName(Book book) {
-        if (book.getBookAuthors() == null || book.getBookAuthors().isEmpty()) {
-            return null;
-        }
-        return book.getBookAuthors().stream()
-                .map(bookAuthor -> bookAuthor.getAuthor() != null ? bookAuthor.getAuthor().getName() : null)
-                .filter(name -> name != null && !name.isBlank())
-                .findFirst()
-                .orElse(null);
-    }
-
-    private List<String> extractTagNames(Book book) {
-        if (book.getBookTags() == null || book.getBookTags().isEmpty()) {
-            return List.of();
-        }
-        return book.getBookTags().stream()
-                .map(bookTag -> bookTag.getTag() != null ? bookTag.getTag().getName() : null)
-                .filter(name -> name != null && !name.isBlank())
-                .toList();
-    }
 }
