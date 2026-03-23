@@ -4,12 +4,14 @@ import com.stokuj.books.dto.review.ReviewRequest;
 import com.stokuj.books.dto.review.ReviewResponse;
 import com.stokuj.books.service.ReviewService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -37,7 +39,7 @@ public class ReviewController {
     @PostMapping("/books/{id}/reviews")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ReviewResponse> addReview(@PathVariable Long id,
-                                                    @RequestBody ReviewRequest request,
+                                                    @Valid @RequestBody ReviewRequest request,
                                                     Authentication authentication) {
         return ResponseEntity.status(201)
                 .body(reviewService.addReview(id, authentication.getName(), request));

@@ -3,13 +3,14 @@ package com.stokuj.books.controller.api;
 import com.stokuj.books.dto.bookshelf.UserBookRequest;
 import com.stokuj.books.dto.bookshelf.UserBookResponse;
 import com.stokuj.books.service.UserBookService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class BookShelfController {
     @ApiResponse(responseCode = "201", description = "Book added to shelf successfully")
     @PostMapping("/{bookId}")
     public ResponseEntity<UserBookResponse> addToShelf(@PathVariable Long bookId,
-                                                       @RequestBody(required = false) UserBookRequest request,
+                                                       @Valid @RequestBody(required = false) UserBookRequest request,
                                                        Authentication authentication) {
         return ResponseEntity.status(201)
                 .body(userBookService.addToShelf(authentication.getName(), bookId, request));
@@ -46,7 +47,7 @@ public class BookShelfController {
     @ApiResponse(responseCode = "200", description = "Status updated successfully")
     @PatchMapping("/{bookId}")
     public ResponseEntity<UserBookResponse> updateStatus(@PathVariable Long bookId,
-                                                         @RequestBody UserBookRequest request,
+                                                         @Valid @RequestBody UserBookRequest request,
                                                          Authentication authentication) {
         return ResponseEntity.ok(userBookService.updateStatus(authentication.getName(), bookId, request));
     }

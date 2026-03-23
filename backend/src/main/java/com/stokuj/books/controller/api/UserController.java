@@ -4,13 +4,14 @@ import com.stokuj.books.dto.user.UserProfileResponse;
 import com.stokuj.books.dto.user.UserProfileUpdateRequest;
 import com.stokuj.books.dto.user.UserSettingsResponse;
 import com.stokuj.books.service.UserProfileService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/users")
@@ -39,7 +40,7 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Profile updated successfully")
     @PutMapping("/me")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UserSettingsResponse> updateProfile(@RequestBody UserProfileUpdateRequest request,
+    public ResponseEntity<UserSettingsResponse> updateProfile(@Valid @RequestBody UserProfileUpdateRequest request,
                                                               Authentication authentication) {
         return ResponseEntity.ok(
                 userProfileService.updateProfile(

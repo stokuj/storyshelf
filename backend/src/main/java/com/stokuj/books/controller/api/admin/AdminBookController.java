@@ -7,6 +7,7 @@ import com.stokuj.books.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class AdminBookController {
     @ApiResponse(responseCode = "403", description = "Forbidden - requires MODERATOR role")
     @PostMapping
     @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<BookResponse> create(@RequestBody BookRequest request) {
+    public ResponseEntity<BookResponse> create(@Valid @RequestBody BookRequest request) {
         return ResponseEntity.status(201).body(bookService.create(request));
     }
 
@@ -39,7 +40,7 @@ public class AdminBookController {
     @ApiResponse(responseCode = "404", description = "Book not found")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<BookResponse> update(@PathVariable Long id, @RequestBody BookRequest request) {
+    public ResponseEntity<BookResponse> update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         return ResponseEntity.ok(bookService.update(id, request));
     }
 
@@ -50,7 +51,7 @@ public class AdminBookController {
     @ApiResponse(responseCode = "404", description = "Book not found")
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<BookResponse> patch(@PathVariable Long id, @RequestBody BookPatchRequest request) {
+    public ResponseEntity<BookResponse> patch(@PathVariable Long id, @Valid @RequestBody BookPatchRequest request) {
         return ResponseEntity.ok(bookService.patch(id, request));
     }
 
