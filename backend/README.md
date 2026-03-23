@@ -2,65 +2,15 @@
 
 A book tracking and recommendation app inspired by Goodreads. Built with Java Spring Boot, FastAPI (Python ML microservice), Docker, and GitHub Actions. Features will include OAuth2 authentication, book ratings and reviews, and a recommendation engine. The project documents my learning journey with the Spring ecosystem and event-driven architecture.
 
-## Project structure
+## Documentation
 
-- `src/main/java/` - Spring Boot backend (REST API + page controllers)
-- `src/main/resources/templates/` - Thymeleaf-served frontend
-- `src/main/resources/application.properties` - app and OAuth2 configuration
+For detailed information about the project, please refer to the following documents:
 
-## User Stories
+- [User Stories](docs/user_stories.md) - functional requirements and role definitions.
+- [Project Structure](docs/project_structure.md) - overview of the directory and package layout.
+- [Database Schema](docs/database.md) - Mermaid diagram of the database entities and relationships.
 
-### Current State
-
-#### GUEST
-
-- As a `GUEST` I can register a new account at `/register`.
-- As a `GUEST` I can log in with email/password or GitHub at `/login`.
-- As a `GUEST` I can browse the book catalog at `/`.
-- As a `GUEST` I can view book details at `/book/{id}`.
-- As a `GUEST` I can search for books by title, author or genre at `/`.
-- As a `GUEST` I can view a public user profile at `/profile/{username}`.
-
-#### USER
-
-- As a `USER` I can log out via the navbar.
-- As a `USER` I can add a book to my shelf with a reading status at `/book/{id}`.
-- As a `USER` I can change the reading status of a book on my shelf at `/bookshelf`.
-- As a `USER` I can remove a book from my shelf at `/bookshelf`.
-- As a `USER` I can filter my shelf by reading status at `/bookshelf`.
-- As a `USER` I can upload a .txt file with book content at `/book/{id}` to trigger background analysis.
-- As a `USER` I can view detected characters for a book at `/book/{id}`.
-- As a `USER` I can view character relationships for a book at `/book/{id}`.
-- As a `USER` I can view chapter statistics (word count, token count) at `/book/{id}`.
-- As a `USER` I can rate a book and write a review at `/book/{id}`.
-- As a `USER` I can edit my profile (username, bio, avatar) at `/settings`.
-- As a `USER` I can set my profile as public or private at `/settings`.
-
-### TODO
-
-#### GUEST
-
-- (none)
-
-#### USER
-
-- As a `USER` I can submit a book proposal at `/books/propose`.
-- As a `USER` I can check the status of my proposal (pending / approved / rejected) at `/books/proposals`.
-
-#### MODERATOR
-
-- As a `MODERATOR` I can approve or reject a book proposal at `/admin/proposals`.
-- As a `MODERATOR` I can edit a proposed book before approving it at `/admin/proposals/{id}/edit`.
-- As a `MODERATOR` I can manually trigger analysis for a book at `/admin/books/{id}`.
-- As a `MODERATOR` I can view a private user profile at `/admin/users/{id}`.
-
-#### ADMIN
-
-- As an `ADMIN` I can do everything a `MODERATOR` can.
-- As an `ADMIN` I can manage users (assign roles, ban accounts) at `/admin/users`.
-- As an `ADMIN` I can delete a user account at `/admin/users/{id}`.
-- As an `ADMIN` I can monitor system health (Celery, Kafka, queues) at `/admin/system`.
-- As an `ADMIN` I can delete a book from the catalog at `/admin/books/{id}`.
+---
 
 ## Changelog
 

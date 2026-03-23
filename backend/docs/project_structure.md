@@ -184,3 +184,8 @@ src/test/java/
     └── dto/
         └── service/
             └── BookServiceTest.java
+
+docs/
+├── database.md
+├── project_structure.md
+└── user_stories.md
