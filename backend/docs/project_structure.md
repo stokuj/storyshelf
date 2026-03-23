@@ -1,4 +1,5 @@
 com.stokuj.books/
+├── SpringShelfApplication.java
 ├── config/
 │   ├── FlywayConfig.java
 │   └── OpenApiConfig.java
@@ -6,15 +7,23 @@ com.stokuj.books/
 │   ├── advice/
 │   │   └── GlobalExceptionHandler.java
 │   ├── api/
+│   │   ├── admin/
+│   │   │   ├── AdminAuthorController.java
+│   │   │   ├── AdminBookController.java
+│   │   │   ├── AdminChapterController.java
+│   │   │   ├── AdminReviewController.java
+│   │   │   └── AdminSeriesController.java
+│   │   ├── user/
+│   │   │   ├── BookShelfController.java
+│   │   │   ├── UserController.java
+│   │   │   └── UserFollowController.java
+│   │   ├── AuthApiController.java
 │   │   ├── AuthorController.java
 │   │   ├── BookController.java
-│   │   ├── BookShelfController.java
 │   │   ├── ChapterController.java
 │   │   ├── CharacterController.java
 │   │   ├── ReviewController.java
-│   │   ├── SeriesController.java
-│   │   ├── UserController.java
-│   │   └── UserFollowController.java
+│   │   └── SeriesController.java
 │   ├── integration/
 │   │   └── FastApiCallbackController.java
 │   └── web/
@@ -49,13 +58,28 @@ com.stokuj.books/
 │       ├── Role.java
 │       └── SeriesStatus.java
 ├── dto/
+│   ├── auth/
+│   │   ├── AuthResponse.java
+│   │   ├── LoginRequest.java
+│   │   └── RegisterRequest.java
+│   ├── author/
+│   │   ├── AuthorRequest.java
+│   │   └── AuthorResponse.java
 │   ├── book/
 │   │   ├── AdminBookForm.java
 │   │   ├── BookPatchRequest.java
-│   │   └── BookRequest.java
+│   │   ├── BookRequest.java
+│   │   └── BookResponse.java
 │   ├── bookshelf/
 │   │   ├── UserBookRequest.java
 │   │   └── UserBookResponse.java
+│   ├── chapter/
+│   │   └── ChapterResponse.java
+│   ├── character/
+│   │   ├── CharacterRelationResponse.java
+│   │   └── CharacterResponse.java
+│   ├── follow/
+│   │   └── FollowResponse.java
 │   ├── integration/
 │   │   ├── AnalyseResponse.java
 │   │   ├── AnalyseStats.java
@@ -65,6 +89,9 @@ com.stokuj.books/
 │   ├── review/
 │   │   ├── ReviewRequest.java
 │   │   └── ReviewResponse.java
+│   ├── series/
+│   │   ├── SeriesRequest.java
+│   │   └── SeriesResponse.java
 │   └── user/
 │       ├── UserProfileResponse.java
 │       ├── UserProfileUpdateRequest.java
@@ -99,15 +126,15 @@ com.stokuj.books/
 │   ├── RoleConfig.java
 │   ├── SecurityConfig.java
 │   └── UserDetailsServiceImpl.java
-├── service/
-│   ├── BookChapterService.java
-│   ├── BookCharacterAggregator.java
-│   ├── BookService.java
-│   ├── CharacterService.java
-│   ├── ReviewService.java
-│   ├── UserBookService.java
-│   └── UserProfileService.java
-└── SpringShelfApplication.java
+└── service/
+    ├── AuthService.java
+    ├── BookChapterService.java
+    ├── BookCharacterAggregator.java
+    ├── BookService.java
+    ├── CharacterService.java
+    ├── ReviewService.java
+    ├── UserBookService.java
+    └── UserProfileService.java
 
 src/main/resources/
 ├── application-dev.yml
@@ -116,21 +143,44 @@ src/main/resources/
 │   └── migration/
 │       └── V1__init_schema.sql
 └── templates/
+    ├── layout/
+    │   └── base.html
     ├── admin-book-form.html
     ├── admin-reviews.html
     ├── book.html
     ├── bookshelf.html
     ├── error.html
     ├── home.html
-    ├── layout/
-    │   └── base.html
-    ├── login.html
     ├── profile.html
     ├── register.html
+    ├── login.html
     └── settings.html
 
 src/test/java/
 └── com/stokuj/books/
+    ├── config/
+    │   └── TestSecurityConfig.java
+    ├── controller/
+    │   ├── api/
+    │   │   ├── admin/
+    │   │   │   ├── AdminAuthorControllerIT.java
+    │   │   │   ├── AdminBookControllerIT.java
+    │   │   │   ├── AdminChapterControllerIT.java
+    │   │   │   ├── AdminReviewControllerIT.java
+    │   │   │   └── AdminSeriesControllerIT.java
+    │   │   ├── user/
+    │   │   │   ├── BookShelfControllerIT.java
+    │   │   │   ├── UserControllerIT.java
+    │   │   │   └── UserFollowControllerIT.java
+    │   │   ├── AuthApiControllerIT.java
+    │   │   ├── AuthorControllerIT.java
+    │   │   ├── BookControllerIT.java
+    │   │   ├── ChapterControllerIT.java
+    │   │   ├── CharacterControllerIT.java
+    │   │   ├── ReviewControllerIT.java
+    │   │   └── SeriesControllerIT.java
+    │   └── integration/
+    │       └── FastApiCallbackControllerIT.java
     └── dto/
         └── service/
             └── BookServiceTest.java

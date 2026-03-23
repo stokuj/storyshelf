@@ -30,7 +30,6 @@ erDiagram
     bigserial id PK
     text name
     text bio
-    text avatar_url
     date birth_date
   }
   books {
