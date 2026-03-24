@@ -1,5 +1,7 @@
 # storyweave
+
 An educational project for AI-powered character relationship analysis in books and narratives. Extract entities, map connections, and explore the social graph of any story.
+
 Currently using FastAPI with Docker.
 
 **storyweave** works with [springshelf](https://github.com/stokuj/springshelf)
@@ -93,6 +95,21 @@ sentences = ['By some curious chance one morning long ago in the quiet of the wo
 
 ## Changelog
 
+### [0.9.1] - 2026-03-24
+
+Stability and documentation improvements in `fix-bugs-after-adding-kaffka` branch. Compared to `main`, this version matches changes made in spring backend (project restructuring)
+#### Fixed
+
+- Improved Kafka consumer error handling and message polling stability.
+- Fixed asynchronous relation extraction orchestration (async/sync mismatch).
+
+#### Changed
+
+- Updated technical documentation regarding NER model selection (Transformers vs spaCy).
+- Synchronized package version to 0.9.1 across `pyproject.toml` and metadata.
+- Refined the "Decisions" section to reflect the production usage of the `dbmdz/bert-large-cased` Transformers model.
+
+
 ### [0.9.0] - 2026-03-19
 
 Kafka endpoints and book-level flow.
@@ -105,6 +122,7 @@ Kafka endpoints and book-level flow.
 
 - HTTP endpoints use the same payloads as Kafka.
 - find-pairs and relations moved to book-level endpoints.
+- Confirmed Transformers (`dbmdz/bert-large-cased`) as the final NER engine due to easier containerization and consistent results across environments.
 
 ### [0.8.1] - 2026-03-12
 
@@ -202,7 +220,8 @@ Benchmarked 4 NER models on Chapter 1 of *The Hobbit*:
   → Best quality. Full cast detected, fewest false positives. Selected as production model.
 
 **Conclusion:**  
-`en_core_web_trf` and `dslim/bert-base-NER` are comparable in quality (~12s). `trf` selected for cleaner output.
+`en_core_web_trf` and `dslim/bert-base-NER` are comparable in quality (~12s). `trf` selected for cleaner output.  
+*(Note: This decision was later reverted in v0.6.0 in favor of Transformers due to installation complexity in containerized environments.)*
 
 ---
 
@@ -221,13 +240,14 @@ Benchmarked 3 NER models on Chapter 1 of *The Hobbit*:
   → Selected as the production model despite higher computational cost.
 
 **Conclusion:**  
-`en_core_web_trf` has the best quality so far.
+`en_core_web_trf` has the best quality so far.  
+*(Note: Decision reverted in v0.6.0 in favor of Transformers model.)*
 
 ---
 
 ## Decisions
 
-I decided not to use spaCy at this point because the Transformers model is doing a good job of finding characters.
+I decided not to use spaCy at this point because the Transformers model (`dbmdz/bert-large-cased-finetuned-conll03-english`) is doing a good job of finding characters and is easier to manage within a Docker container.
 
 Writing a good prompt is hard; it will take a lot of time to fine-tune things.
 At this point I can already tell that I need more relation types, or I need better accuracy with the existing ones.
