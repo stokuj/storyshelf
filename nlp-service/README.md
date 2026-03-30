@@ -10,15 +10,13 @@ Currently using FastAPI with Docker.
 ## Endpoints
 
 The API currently exposes 7 endpoints.
-
-- `GET /` - Basic hello route.
 - `GET /health/` - Service health check.
 - `GET /health/celery/` - Celery workers status and active task count.
 - `POST /chapters/{chapterId}/analyse` - Sends chapter analysis to Kafka.
 - `POST /chapters/{chapterId}/ner` - Sends chapter NER to Kafka (Celery does the work).
 - `POST /books/{bookId}/find-pairs` - Sends book find-pairs to Kafka (Celery does the work).
 - `POST /books/{bookId}/relations` - Sends book relations to Kafka (async worker).
-
+<img width="1735" height="846" alt="image" src="https://github.com/user-attachments/assets/6ff43b7c-92e2-469f-ac5c-056a9eebdf59" />
 
 ## Data flow plan
 ```
