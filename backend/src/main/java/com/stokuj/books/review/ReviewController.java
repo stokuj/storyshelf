@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +42,14 @@ public class ReviewController {
                                                     Authentication authentication) {
         return ResponseEntity.status(201)
                 .body(reviewService.addReview(id, authentication.getName(), request));
+    }
+
+    @DeleteMapping("/reviews/{id}")
+    @PreAuthorize("hasRole('MODERATOR')")
+    @Operation(summary = "Delete a review")
+    public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

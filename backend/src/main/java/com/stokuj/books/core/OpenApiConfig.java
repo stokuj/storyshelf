@@ -18,16 +18,28 @@ import org.springframework.context.annotation.Configuration;
 )
 public class OpenApiConfig {
 
+    private static boolean hasPreAuthorize(java.lang.reflect.Method method) {
+        return method.isAnnotationPresent(PreAuthorize.class)
+                || method.getDeclaringClass().isAnnotationPresent(PreAuthorize.class);
+    }
+
+    private static boolean isModeratorSecured(java.lang.reflect.Method method) {
+        if (method.isAnnotationPresent(PreAuthorize.class)
+                && method.getAnnotation(PreAuthorize.class).value().contains("MODERATOR")) {
+            return true;
+        }
+        return method.getDeclaringClass().isAnnotationPresent(PreAuthorize.class)
+                && method.getDeclaringClass().getAnnotation(PreAuthorize.class).value().contains("MODERATOR");
+    }
+
     @Bean
     public GroupedOpenApi guestApi() {
         return GroupedOpenApi.builder()
                 .group("1-guest-api")
                 .displayName("1. Guest API (Public)")
                 .pathsToMatch("/api/**")
-                .pathsToExclude("/api/moderator/**", "/api/fastapi/**")
-                .addOpenApiMethodFilter(method ->
-                        !method.isAnnotationPresent(PreAuthorize.class)
-                                && !method.getDeclaringClass().isAnnotationPresent(PreAuthorize.class))
+                .pathsToExclude("/api/fastapi/**")
+                .addOpenApiMethodFilter(method -> !hasPreAuthorize(method))
                 .build();
     }
 
@@ -37,10 +49,8 @@ public class OpenApiConfig {
                 .group("2-user-api")
                 .displayName("2. User API (Authenticated)")
                 .pathsToMatch("/api/**")
-                .pathsToExclude("/api/moderator/**", "/api/fastapi/**")
-                .addOpenApiMethodFilter(method ->
-                        method.isAnnotationPresent(PreAuthorize.class)
-                                || method.getDeclaringClass().isAnnotationPresent(PreAuthorize.class))
+                .pathsToExclude("/api/fastapi/**")
+                .addOpenApiMethodFilter(method -> hasPreAuthorize(method) && !isModeratorSecured(method))
                 .build();
     }
 
@@ -49,7 +59,9 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("3-moderator-api")
                 .displayName("3. Moderator API")
-                .pathsToMatch("/api/moderator/**")
+                .pathsToMatch("/api/**")
+                .pathsToExclude("/api/fastapi/**")
+                .addOpenApiMethodFilter(OpenApiConfig::isModeratorSecured)
                 .build();
     }
 
