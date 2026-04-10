@@ -1,0 +1,47 @@
+package com.stokuj.books.author;
+
+import com.stokuj.books.author.Author;
+import com.stokuj.books.author.AuthorResponse;
+import com.stokuj.books.core.ResourceNotFoundException;
+import com.stokuj.books.author.AuthorRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/authors")
+@Tag(name = "Authors", description = "Operations related to authors")
+public class AuthorController {
+
+    private final AuthorRepository authorRepository;
+
+    public AuthorController(AuthorRepository authorRepository) {
+        this.authorRepository = authorRepository;
+    }
+
+    private AuthorResponse toDto(Author author) {
+        return new AuthorResponse(author.getId(), author.getName(), author.getBio(), null, author.getBirthDate());
+    }
+
+    @Operation(summary = "Get a list of all authors")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of authors")
+    @GetMapping
+    public ResponseEntity<List<AuthorResponse>> getAll() {
+        return ResponseEntity.ok(authorRepository.findAll().stream().map(this::toDto).toList());
+    }
+
+    @Operation(summary = "Get an author by ID")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved the author")
+    @ApiResponse(responseCode = "404", description = "Author not found")
+    @GetMapping("/{id}")
+    public ResponseEntity<AuthorResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                toDto(authorRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Author not found")))
+        );
+    }
+}

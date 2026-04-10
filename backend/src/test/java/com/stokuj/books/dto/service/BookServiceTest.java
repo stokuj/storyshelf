@@ -1,15 +1,8 @@
-package com.stokuj.books.dto.service;
+package com.stokuj.books.book;
 
-import com.stokuj.books.domain.entity.*;
-import com.stokuj.books.domain.enums.AuthorRole;
-import com.stokuj.books.dto.book.BookPatchRequest;
-import com.stokuj.books.dto.book.BookRequest;
-import com.stokuj.books.dto.book.BookResponse;
-import com.stokuj.books.exception.ResourceNotFoundException;
-import com.stokuj.books.repository.AuthorRepository;
-import com.stokuj.books.repository.BookRepository;
-import com.stokuj.books.repository.TagRepository;
-import com.stokuj.books.service.BookService;
+import com.stokuj.books.author.Author;
+import com.stokuj.books.author.AuthorRepository;
+import com.stokuj.books.core.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
