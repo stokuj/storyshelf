@@ -1,13 +1,13 @@
 package com.stokuj.books.analysis;
 
-import com.stokuj.books.book.Book;
-import com.stokuj.books.book.Chapter;
+import com.stokuj.books.book.book.Book;
+import com.stokuj.books.book.chapter.Chapter;
 import com.stokuj.books.analysis.NerResult;
-import com.stokuj.books.book.BookChapterRepository;
-import com.stokuj.books.book.BookRepository;
-import com.stokuj.books.book.CharacterRelationRepository;
+import com.stokuj.books.book.chapter.BookChapterRepository;
+import com.stokuj.books.book.book.BookRepository;
+import com.stokuj.books.book.character.StoryCharacterRelationRepository;
 import com.stokuj.books.analysis.ChapterEventProducer;
-import com.stokuj.books.book.BookCharacterAggregator;
+import com.stokuj.books.book.character.BookCharacterAggregator;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +20,13 @@ public class NerResultProcessor {
 
     private final BookChapterRepository chapterRepository;
     private final BookRepository bookRepository;
-    private final CharacterRelationRepository characterRelationRepository;
+    private final StoryCharacterRelationRepository characterRelationRepository;
     private final ChapterEventProducer chapterEventProducer;
     private final BookCharacterAggregator bookCharacterAggregator;
 
     public NerResultProcessor(BookChapterRepository chapterRepository,
                               BookRepository bookRepository,
-                              CharacterRelationRepository characterRelationRepository,
+                              StoryCharacterRelationRepository characterRelationRepository,
                               ChapterEventProducer chapterEventProducer,
                               BookCharacterAggregator bookCharacterAggregator) {
         this.chapterRepository = chapterRepository;

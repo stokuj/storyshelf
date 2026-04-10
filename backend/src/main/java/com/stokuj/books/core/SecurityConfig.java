@@ -23,10 +23,10 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final FastApiSecretFilter fastApiSecretFilter;
+    private final AnalysisSecretFilter analysisSecretFilter;
 
-    public SecurityConfig(FastApiSecretFilter fastApiSecretFilter) {
-        this.fastApiSecretFilter = fastApiSecretFilter;
+    public SecurityConfig(AnalysisSecretFilter analysisSecretFilter) {
+        this.analysisSecretFilter = analysisSecretFilter;
     }
 
     @Bean
@@ -50,10 +50,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                         .requestMatchers("/api/shelf/**").hasRole("USER")
                         .requestMatchers("/api/users/*/follow").hasRole("USER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/analyse-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/ner-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/find-pairs-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/relations-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/chapters/*/analyse-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/chapters/*/ner-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/books/*/find-pairs-result").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/books/*/relations-result").permitAll()
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout
@@ -71,7 +71,7 @@ public class SecurityConfig {
                                             + request.getRequestURI() + "\"}");
                         })
                 )
-                .addFilterBefore(fastApiSecretFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(analysisSecretFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

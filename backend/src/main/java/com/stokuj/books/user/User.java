@@ -1,6 +1,6 @@
 package com.stokuj.books.user;
 
-import com.stokuj.books.user.Role;
+import com.stokuj.books.user.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +27,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private UserRole role;
 
     @Column(nullable = false, unique = true)
     private String username;

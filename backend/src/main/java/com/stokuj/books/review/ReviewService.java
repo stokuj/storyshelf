@@ -1,13 +1,13 @@
 package com.stokuj.books.review;
 
-import com.stokuj.books.book.Book;
+import com.stokuj.books.book.book.Book;
 import com.stokuj.books.review.Review;
 import com.stokuj.books.user.User;
 import com.stokuj.books.review.ReviewRequest;
 import com.stokuj.books.review.ReviewResponse;
 import com.stokuj.books.core.ConflictException;
 import com.stokuj.books.core.ResourceNotFoundException;
-import com.stokuj.books.book.BookRepository;
+import com.stokuj.books.book.book.BookRepository;
 import com.stokuj.books.review.ReviewRepository;
 import com.stokuj.books.user.UserRepository;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.stokuj.books.auth;
 
 import com.stokuj.books.user.User;
-import com.stokuj.books.user.Role;
+import com.stokuj.books.user.UserRole;
 import com.stokuj.books.auth.RegisterRequest;
 import com.stokuj.books.core.ConflictException;
 import com.stokuj.books.user.UserRepository;
@@ -32,7 +32,7 @@ public class AuthService {
         User user = new User();
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(Role.USER);
+        user.setRole(UserRole.USER);
         user.setUsername(request.username());
         return userRepository.save(user);
     }

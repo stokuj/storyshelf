@@ -38,7 +38,7 @@ public class OpenApiConfig {
                 .group("1-guest-api")
                 .displayName("1. Guest API (Public)")
                 .pathsToMatch("/api/**")
-                .pathsToExclude("/api/fastapi/**")
+                .pathsToExclude("/api/integration/analysis/**")
                 .addOpenApiMethodFilter(method -> !hasPreAuthorize(method))
                 .build();
     }
@@ -49,7 +49,7 @@ public class OpenApiConfig {
                 .group("2-user-api")
                 .displayName("2. User API (Authenticated)")
                 .pathsToMatch("/api/**")
-                .pathsToExclude("/api/fastapi/**")
+                .pathsToExclude("/api/integration/analysis/**")
                 .addOpenApiMethodFilter(method -> hasPreAuthorize(method) && !isModeratorSecured(method))
                 .build();
     }
@@ -60,7 +60,7 @@ public class OpenApiConfig {
                 .group("3-moderator-api")
                 .displayName("3. Moderator API")
                 .pathsToMatch("/api/**")
-                .pathsToExclude("/api/fastapi/**")
+                .pathsToExclude("/api/integration/analysis/**")
                 .addOpenApiMethodFilter(OpenApiConfig::isModeratorSecured)
                 .build();
     }
@@ -69,8 +69,8 @@ public class OpenApiConfig {
     public GroupedOpenApi integrationApi() {
         return GroupedOpenApi.builder()
                 .group("4-integration-api")
-                .displayName("4. Integration API (FastAPI)")
-                .pathsToMatch("/api/fastapi/**")
+                .displayName("4. Integration API (Analysis)")
+                .pathsToMatch("/api/integration/analysis/**")
                 .build();
     }
 }

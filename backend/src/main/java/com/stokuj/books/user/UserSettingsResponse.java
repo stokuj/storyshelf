@@ -1,6 +1,6 @@
 package com.stokuj.books.user;
 
-import com.stokuj.books.user.Role;
+import com.stokuj.books.user.UserRole;
 import java.time.LocalDateTime;
 
 public record UserSettingsResponse(String username,
@@ -9,5 +9,5 @@ public record UserSettingsResponse(String username,
                                    LocalDateTime memberSince,
                                    boolean profilePublic,
                                    String email,
-                                   Role role) {
+                                   UserRole role) {
 }

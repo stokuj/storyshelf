@@ -1,14 +1,14 @@
 package com.stokuj.books.analysis;
 
-import com.stokuj.books.book.Book;
-import com.stokuj.books.book.CharacterRelation;
+import com.stokuj.books.book.book.Book;
+import com.stokuj.books.book.character.StoryCharacterRelation;
 import com.stokuj.books.analysis.BookFindPairsResult;
-import com.stokuj.books.book.CharacterRelationRepository;
-import com.stokuj.books.book.CharacterService;
+import com.stokuj.books.book.character.StoryCharacterRelationRepository;
+import com.stokuj.books.book.character.StoryCharacterService;
 import com.stokuj.books.analysis.ChapterEventProducer;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import com.stokuj.books.book.Character;
+import com.stokuj.books.book.character.StoryCharacter;
 
 import java.util.List;
 import java.util.Map;
@@ -17,12 +17,12 @@ import java.util.Objects;
 @Component
 public class RelationsResultProcessor {
 
-    private final CharacterRelationRepository characterRelationRepository;
-    private final CharacterService characterService;
+    private final StoryCharacterRelationRepository characterRelationRepository;
+    private final StoryCharacterService characterService;
     private final ChapterEventProducer chapterEventProducer;
 
-    public RelationsResultProcessor(CharacterRelationRepository characterRelationRepository,
-                                    CharacterService characterService,
+    public RelationsResultProcessor(StoryCharacterRelationRepository characterRelationRepository,
+                                    StoryCharacterService characterService,
                                     ChapterEventProducer chapterEventProducer) {
         this.characterRelationRepository = characterRelationRepository;
         this.characterService = characterService;
@@ -42,13 +42,13 @@ public class RelationsResultProcessor {
                 if (sourceName == null || targetName == null) {
                     return;
                 }
-                Character source = characterService.findOrCreate(sourceName);
-                Character target = characterService.findOrCreate(targetName);
-                CharacterRelation relation = characterRelationRepository
+                StoryCharacter source = characterService.findOrCreate(sourceName);
+                StoryCharacter target = characterService.findOrCreate(targetName);
+                StoryCharacterRelation relation = characterRelationRepository
                         .findByBookIdAndSourceIdAndTargetId(book.getId(), source.getId(), target.getId())
                         .orElse(null);
                 if (relation == null) {
-                    relation = new CharacterRelation();
+                    relation = new StoryCharacterRelation();
                     relation.setBook(book);
                     relation.setSource(source);
                     relation.setTarget(target);
@@ -87,12 +87,12 @@ public class RelationsResultProcessor {
                                     if (sourceName == null || targetName == null) {
                                         return;
                                     }
-                                    Character source = characterService.findOrCreate(sourceName);
-                                    Character target = characterService.findOrCreate(targetName);
-                                    CharacterRelation relation = characterRelationRepository
+                                    StoryCharacter source = characterService.findOrCreate(sourceName);
+                                    StoryCharacter target = characterService.findOrCreate(targetName);
+                                    StoryCharacterRelation relation = characterRelationRepository
                                             .findByBookIdAndSourceIdAndTargetId(book.getId(), source.getId(), target.getId())
                                             .orElseGet(() -> {
-                                                CharacterRelation created = new CharacterRelation();
+                                                StoryCharacterRelation created = new StoryCharacterRelation();
                                                 created.setBook(book);
                                                 created.setSource(source);
                                                 created.setTarget(target);

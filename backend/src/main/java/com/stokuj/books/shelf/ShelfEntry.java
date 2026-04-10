@@ -1,4 +1,4 @@
-package com.stokuj.books.review;
+package com.stokuj.books.shelf;
 
 import com.stokuj.books.book.book.Book;
 import com.stokuj.books.user.User;
@@ -10,35 +10,33 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "reviews",
+@Table(name = "user_books",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_review",
-                columnNames = {"book_id", "user_id"}))
-public class Review {
+                name = "uk_user_book",
+                columnNames = {"user_id", "book_id"}))
+public class ShelfEntry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private int rating;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
 
-    @Column(length = 2000)
-    private String content;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ReadingStatus status = ReadingStatus.WANT_TO_READ;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @PrePersist
-    protected void onCreate() {
+    public void prePersist() {
         this.createdAt = Instant.now();
     }
 }
