@@ -1,13 +1,27 @@
-package com.stokuj.books.book;
+package com.stokuj.books.book.book;
 
 import com.stokuj.books.author.Author;
 import com.stokuj.books.author.AuthorRepository;
+import com.stokuj.books.book.tag.BookTag;
+import com.stokuj.books.book.tag.Tag;
+import com.stokuj.books.book.tag.TagRepository;
 import com.stokuj.books.core.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import java.util.Optional;
