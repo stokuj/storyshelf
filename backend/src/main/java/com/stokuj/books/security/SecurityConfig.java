@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final FastApiSecretFilter fastApiSecretFilter;
@@ -42,60 +44,33 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/login", "/register", "/error").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/", "/home", "/book/**").permitAll()
+                        .requestMatchers("/api/users/me/**").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/*/profile").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/authors/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/series/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/books/*/chapters").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/books/*/characters").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/books/*/relations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                         .requestMatchers("/api/shelf/**").hasRole("USER")
-                        .requestMatchers("/api/users/me/**").hasRole("USER")
                         .requestMatchers("/api/users/*/follow").hasRole("USER")
                         .requestMatchers("/api/admin/**").hasRole("MODERATOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/analyse-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastapi/chapters/*/ner-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/find-pairs-result").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/api/fastapi/books/*/relations-result").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/book/*/review").hasRole("USER")
-                        .requestMatchers("/profile/**").permitAll()
-                        .requestMatchers("/admin/reviews/**").hasRole("MODERATOR")
-                        .requestMatchers("/admin/users/**").hasRole("MODERATOR")
-                        .requestMatchers("/admin/system").hasRole("ADMIN")
-                        .requestMatchers("/admin/**").hasRole("MODERATOR")
-                        .requestMatchers("/books/propose", "/settings", "/settings/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error")
-                        .permitAll()
-                )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutUrl("/api/auth/logout")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
-                            if (request.getRequestURI().startsWith("/api/")) {
-                                response.setStatus(401);
-                                response.setContentType("application/json");
-                                response.getWriter().write(
-                                        "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Brak lub niepoprawny token\",\"path\":\""
-                                                + request.getRequestURI() + "\"}");
-                                return;
-                            }
-                            response.sendRedirect("/login");
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Unauthorized access\",\"path\":\""
+                                            + request.getRequestURI() + "\"}");
                         })
-                        .accessDeniedPage("/error?status=403")
                 )
                 .addFilterBefore(fastApiSecretFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -121,9 +96,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

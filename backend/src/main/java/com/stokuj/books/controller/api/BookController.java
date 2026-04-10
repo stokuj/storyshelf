@@ -1,11 +1,15 @@
 package com.stokuj.books.controller.api;
 
+import com.stokuj.books.dto.book.BookDetailResponse;
 import com.stokuj.books.dto.book.BookResponse;
+import com.stokuj.books.service.BookDetailService;
 import com.stokuj.books.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +20,11 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final BookDetailService bookDetailService;
 
-    public BookController(BookService bookService) {
+    public BookController(BookService bookService, BookDetailService bookDetailService) {
         this.bookService = bookService;
+        this.bookDetailService = bookDetailService;
     }
 
     @Operation(summary = "Search books by title, author, or genre")
@@ -34,6 +40,19 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<BookResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(bookService.getById(id));
+    }
+
+    @Operation(summary = "Get complete book details for the frontend")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved aggregated book details")
+    @ApiResponse(responseCode = "404", description = "Book not found")
+    @GetMapping("/{id}/details")
+    public ResponseEntity<BookDetailResponse> getDetails(@PathVariable Long id, Authentication authentication) {
+        String email = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken)
+                ? authentication.getName()
+                : null;
+        return ResponseEntity.ok(bookDetailService.getById(id, email));
     }
 
 }

@@ -36,6 +36,18 @@ public class UserController {
         );
     }
 
+    @Operation(summary = "Get current user settings", description = "Retrieves settings for the authenticated user.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved current user settings")
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<UserSettingsResponse> getMe(Authentication authentication) {
+        return ResponseEntity.ok(
+                userProfileService.toSettingsResponse(
+                        userProfileService.findByEmail(authentication.getName())
+                )
+        );
+    }
+
     @Operation(summary = "Update user profile", description = "Updates the profile information for the authenticated user.")
     @ApiResponse(responseCode = "200", description = "Profile updated successfully")
     @PutMapping("/me")

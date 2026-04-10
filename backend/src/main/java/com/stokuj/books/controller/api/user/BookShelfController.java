@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -41,6 +42,17 @@ public class BookShelfController {
                                                        Authentication authentication) {
         return ResponseEntity.status(201)
                 .body(userBookService.addToShelf(authentication.getName(), bookId, request));
+    }
+
+    @Operation(summary = "Get bookshelf entry for a book", description = "Retrieves the authenticated user's shelf entry for a specific book.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved bookshelf entry")
+    @ApiResponse(responseCode = "404", description = "Book is not on the user's shelf")
+    @GetMapping("/{bookId}")
+    public ResponseEntity<UserBookResponse> getShelfEntry(@PathVariable Long bookId,
+                                                          Authentication authentication) {
+        return userBookService.findByUserAndBook(authentication.getName(), bookId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @Operation(summary = "Update book status on shelf", description = "Updates the reading status or progress of a book on the user's shelf.")
