@@ -1,7 +1,7 @@
 package com.stokuj.books.book.book;
 
 import com.stokuj.books.author.Author;
-import com.stokuj.books.core.ResourceNotFoundException;
+import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.author.AuthorRepository;
 import org.springframework.stereotype.Service;
 

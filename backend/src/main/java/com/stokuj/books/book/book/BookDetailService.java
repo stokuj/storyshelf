@@ -1,17 +1,14 @@
 package com.stokuj.books.book.book;
 
-import com.stokuj.books.book.book.Book;
-import com.stokuj.books.book.book.BookDetailResponse;
-import com.stokuj.books.book.book.BookResponse;
-import com.stokuj.books.shelf.ShelfEntryResponse;
+import com.stokuj.books.bookshelf.ShelfEntryResponse;
 import com.stokuj.books.book.chapter.ChapterResponse;
-import com.stokuj.books.book.character.CharacterRelationResponse;
-import com.stokuj.books.book.character.CharacterResponse;
+import com.stokuj.books.book.character.relation.CharacterRelationResponse;
+import com.stokuj.books.book.character.core.CharacterResponse;
 import com.stokuj.books.review.ReviewResponse;
 import com.stokuj.books.review.ReviewService;
-import com.stokuj.books.shelf.ShelfEntryService;
-import com.stokuj.books.book.character.BookCharacterRepository;
-import com.stokuj.books.book.character.StoryCharacterRelationRepository;
+import com.stokuj.books.bookshelf.ShelfEntryService;
+import com.stokuj.books.book.character.aggregation.BookCharacterRepository;
+import com.stokuj.books.book.character.relation.StoryCharacterRelationRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

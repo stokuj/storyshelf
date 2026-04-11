@@ -3,7 +3,7 @@ package com.stokuj.books.auth;
 import com.stokuj.books.user.User;
 import com.stokuj.books.user.UserRole;
 import com.stokuj.books.auth.RegisterRequest;
-import com.stokuj.books.core.ConflictException;
+import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.user.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

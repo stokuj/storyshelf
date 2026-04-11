@@ -1,9 +1,9 @@
 package com.stokuj.books.book.book;
 
-import com.stokuj.books.shelf.ShelfEntryResponse;
+import com.stokuj.books.bookshelf.ShelfEntryResponse;
 import com.stokuj.books.book.chapter.ChapterResponse;
-import com.stokuj.books.book.character.CharacterRelationResponse;
-import com.stokuj.books.book.character.CharacterResponse;
+import com.stokuj.books.book.character.relation.CharacterRelationResponse;
+import com.stokuj.books.book.character.core.CharacterResponse;
 import com.stokuj.books.review.ReviewResponse;
 
 import java.util.List;

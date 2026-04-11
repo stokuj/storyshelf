@@ -6,7 +6,7 @@ import com.stokuj.books.auth.AuthResponse;
 import com.stokuj.books.auth.LoginRequest;
 import com.stokuj.books.auth.RegisterRequest;
 import com.stokuj.books.auth.AuthService;
-import com.stokuj.books.user.UserProfileService;
+import com.stokuj.books.user.profile.UserProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

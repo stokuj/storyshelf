@@ -2,7 +2,7 @@ package com.stokuj.books.book.chapter;
 
 import com.stokuj.books.book.book.Book;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.stokuj.books.analysis.NerResult;
+import com.stokuj.books.integration.dto.NerResult;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;

@@ -5,7 +5,7 @@ import com.stokuj.books.author.AuthorRepository;
 import com.stokuj.books.book.tag.BookTag;
 import com.stokuj.books.book.tag.Tag;
 import com.stokuj.books.book.tag.TagRepository;
-import com.stokuj.books.core.ResourceNotFoundException;
+import com.stokuj.books.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

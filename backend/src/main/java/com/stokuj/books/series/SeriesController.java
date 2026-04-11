@@ -3,7 +3,7 @@ package com.stokuj.books.series;
 import com.stokuj.books.series.Series;
 import com.stokuj.books.series.SeriesRequest;
 import com.stokuj.books.series.SeriesResponse;
-import com.stokuj.books.core.ResourceNotFoundException;
+import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.series.SeriesRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,14 +1,11 @@
 package com.stokuj.books.book.chapter;
 
-import com.stokuj.books.book.chapter.ChapterResponse;
 import com.stokuj.books.book.book.Book;
-import com.stokuj.books.book.chapter.Chapter;
-import com.stokuj.books.core.ResourceNotFoundException;
-import com.stokuj.books.book.character.BookCharacterRepository;
-import com.stokuj.books.book.chapter.BookChapterRepository;
+import com.stokuj.books.exception.ResourceNotFoundException;
+import com.stokuj.books.book.character.aggregation.BookCharacterRepository;
 import com.stokuj.books.book.book.BookRepository;
-import com.stokuj.books.book.character.StoryCharacterRelationRepository;
-import com.stokuj.books.analysis.ChapterEventProducer;
+import com.stokuj.books.book.character.relation.StoryCharacterRelationRepository;
+import com.stokuj.books.integration.kafka.ChapterEventProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
