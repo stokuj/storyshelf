@@ -69,7 +69,7 @@ Kafka flow and book-level results.
 
 #### Changed
 
-- Manual `POST /api/fastAPI/chapters/{chapterId}/analyse` and `/ner` now send Kafka events and return 202.
+- Chapter analysis and NER are triggered automatically via Kafka during chapter upload.
 - find-pairs and relations results are saved on the book, not on chapters.
 
 ### [0.4.1] - 2026-03-15

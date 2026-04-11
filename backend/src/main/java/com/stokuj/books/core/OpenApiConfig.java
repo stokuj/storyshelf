@@ -65,12 +65,4 @@ public class OpenApiConfig {
                 .build();
     }
 
-    @Bean
-    public GroupedOpenApi integrationApi() {
-        return GroupedOpenApi.builder()
-                .group("4-integration-api")
-                .displayName("4. Integration API (Analysis)")
-                .pathsToMatch("/api/integration/analysis/**")
-                .build();
-    }
 }

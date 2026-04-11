@@ -11,7 +11,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -22,12 +21,6 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    private final AnalysisSecretFilter analysisSecretFilter;
-
-    public SecurityConfig(AnalysisSecretFilter analysisSecretFilter) {
-        this.analysisSecretFilter = analysisSecretFilter;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,10 +43,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
                         .requestMatchers("/api/shelf/**").hasRole("USER")
                         .requestMatchers("/api/users/*/follow").hasRole("USER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/chapters/*/analyse-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/chapters/*/ner-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/books/*/find-pairs-result").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/integration/analysis/books/*/relations-result").permitAll()
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout
@@ -68,10 +57,9 @@ public class SecurityConfig {
                             response.setContentType("application/json");
                             response.getWriter().write(
                                     "{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Unauthorized access\",\"path\":\""
-                                            + request.getRequestURI() + "\"}");
+                                + request.getRequestURI() + "\"}");
                         })
-                )
-                .addFilterBefore(analysisSecretFilter, UsernamePasswordAuthenticationFilter.class);
+                );
 
         return http.build();
     }
