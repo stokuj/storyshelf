@@ -1,6 +1,9 @@
 package com.stokuj.books.book.book;
 
 import com.stokuj.books.author.Author;
+import com.stokuj.books.book.book.dto.BookPatchRequest;
+import com.stokuj.books.book.book.dto.BookRequest;
+import com.stokuj.books.book.book.dto.BookResponse;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.author.AuthorRepository;
 import org.springframework.stereotype.Service;

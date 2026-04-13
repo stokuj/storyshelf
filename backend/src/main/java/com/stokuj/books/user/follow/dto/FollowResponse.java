@@ -1,4 +1,4 @@
-package com.stokuj.books.user.follow;
+package com.stokuj.books.user.follow.dto;
 
 import java.time.Instant;
 

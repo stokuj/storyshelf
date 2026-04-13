@@ -1,5 +1,6 @@
-package com.stokuj.books.bookshelf;
+package com.stokuj.books.bookshelf.dto;
 
+import com.stokuj.books.bookshelf.ReadingStatus;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

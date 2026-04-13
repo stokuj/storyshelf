@@ -1,6 +1,8 @@
 package com.stokuj.books.bookshelf;
 
 import com.stokuj.books.book.book.Book;
+import com.stokuj.books.bookshelf.dto.ShelfEntryRequest;
+import com.stokuj.books.bookshelf.dto.ShelfEntryResponse;
 import com.stokuj.books.user.User;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;

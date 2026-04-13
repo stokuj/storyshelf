@@ -1,9 +1,9 @@
 package com.stokuj.books.book.book;
 
-import com.stokuj.books.book.book.BookDetailResponse;
-import com.stokuj.books.book.book.BookPatchRequest;
-import com.stokuj.books.book.book.BookRequest;
-import com.stokuj.books.book.book.BookResponse;
+import com.stokuj.books.book.book.dto.BookDetailResponse;
+import com.stokuj.books.book.book.dto.BookPatchRequest;
+import com.stokuj.books.book.book.dto.BookRequest;
+import com.stokuj.books.book.book.dto.BookResponse;
 import com.stokuj.books.book.book.BookDetailService;
 import com.stokuj.books.book.book.BookService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,4 +1,4 @@
-package com.stokuj.books.author;
+package com.stokuj.books.author.dto;
 
 public record AuthorResponse(
         Long id,

@@ -46,8 +46,8 @@ erDiagram
     int ner_completed_count
     float rating
     int ratings_count
-    date created_at
-    date updated_at
+    timestamptz created_at
+    timestamptz updated_at
   }
   book_authors {
     bigserial id PK

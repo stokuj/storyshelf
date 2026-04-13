@@ -1,10 +1,12 @@
 package com.stokuj.books.book.book;
 
-import com.stokuj.books.bookshelf.ShelfEntryResponse;
-import com.stokuj.books.book.chapter.ChapterResponse;
-import com.stokuj.books.book.character.relation.CharacterRelationResponse;
-import com.stokuj.books.book.character.core.CharacterResponse;
-import com.stokuj.books.review.ReviewResponse;
+import com.stokuj.books.book.book.dto.BookDetailResponse;
+import com.stokuj.books.book.book.dto.BookResponse;
+import com.stokuj.books.bookshelf.dto.ShelfEntryResponse;
+import com.stokuj.books.book.chapter.dto.ChapterResponse;
+import com.stokuj.books.book.character.relation.dto.CharacterRelationResponse;
+import com.stokuj.books.book.character.core.dto.CharacterResponse;
+import com.stokuj.books.review.dto.ReviewResponse;
 import com.stokuj.books.review.ReviewService;
 import com.stokuj.books.bookshelf.ShelfEntryService;
 import com.stokuj.books.book.character.aggregation.BookCharacterRepository;

@@ -1,4 +1,4 @@
-package com.stokuj.books.auth;
+package com.stokuj.books.auth.dto;
 
 import com.stokuj.books.user.UserRole;
 

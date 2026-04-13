@@ -1,8 +1,8 @@
 package com.stokuj.books.author;
 
 import com.stokuj.books.author.Author;
-import com.stokuj.books.author.AuthorRequest;
-import com.stokuj.books.author.AuthorResponse;
+import com.stokuj.books.author.dto.AuthorRequest;
+import com.stokuj.books.author.dto.AuthorResponse;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.author.AuthorRepository;
 import io.swagger.v3.oas.annotations.Operation;

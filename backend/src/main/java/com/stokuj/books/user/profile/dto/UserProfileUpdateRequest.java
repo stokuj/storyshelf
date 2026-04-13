@@ -1,4 +1,4 @@
-package com.stokuj.books.user.profile;
+package com.stokuj.books.user.profile.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

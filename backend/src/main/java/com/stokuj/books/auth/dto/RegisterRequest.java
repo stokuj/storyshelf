@@ -1,4 +1,4 @@
-package com.stokuj.books.auth;
+package com.stokuj.books.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

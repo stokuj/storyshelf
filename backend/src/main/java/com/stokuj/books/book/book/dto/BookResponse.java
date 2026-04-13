@@ -1,4 +1,4 @@
-package com.stokuj.books.book.book;
+package com.stokuj.books.book.book.dto;
 
 import java.util.List;
 import java.util.Set;

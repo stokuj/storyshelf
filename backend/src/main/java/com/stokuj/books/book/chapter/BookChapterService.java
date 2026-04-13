@@ -1,6 +1,7 @@
 package com.stokuj.books.book.chapter;
 
 import com.stokuj.books.book.book.Book;
+import com.stokuj.books.book.chapter.dto.ChapterResponse;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.book.character.aggregation.BookCharacterRepository;
 import com.stokuj.books.book.book.BookRepository;

@@ -1,4 +1,4 @@
-package com.stokuj.books.book.character.core;
+package com.stokuj.books.book.character.core.dto;
 
 public record CharacterResponse(
         Long id,

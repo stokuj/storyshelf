@@ -1,7 +1,7 @@
 package com.stokuj.books.review;
 
-import com.stokuj.books.review.ReviewRequest;
-import com.stokuj.books.review.ReviewResponse;
+import com.stokuj.books.review.dto.ReviewRequest;
+import com.stokuj.books.review.dto.ReviewResponse;
 import com.stokuj.books.review.ReviewService;
 import org.springframework.http.ResponseEntity;
 import io.swagger.v3.oas.annotations.Operation;

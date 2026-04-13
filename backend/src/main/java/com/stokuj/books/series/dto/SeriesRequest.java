@@ -1,4 +1,4 @@
-package com.stokuj.books.series;
+package com.stokuj.books.series.dto;
 
 import com.stokuj.books.series.SeriesStatus;
 import jakarta.validation.constraints.NotBlank;

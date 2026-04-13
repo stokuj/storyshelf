@@ -1,4 +1,4 @@
-package com.stokuj.books.book.chapter;
+package com.stokuj.books.book.chapter.dto;
 
 public record ChapterResponse(
         Long id,

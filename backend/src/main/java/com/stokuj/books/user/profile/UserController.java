@@ -1,11 +1,17 @@
 package com.stokuj.books.user.profile;
 
+import com.stokuj.books.exception.ResourceNotFoundException;
+import com.stokuj.books.user.User;
+import com.stokuj.books.user.profile.dto.UserProfileResponse;
+import com.stokuj.books.user.profile.dto.UserProfileUpdateRequest;
+import com.stokuj.books.user.profile.dto.UserSettingsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,10 +30,23 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved user profile")
     @ApiResponse(responseCode = "404", description = "User not found")
     @GetMapping("/{username}")
-    public ResponseEntity<UserProfileResponse> getProfile(@PathVariable String username) {
+    public ResponseEntity<UserProfileResponse> getProfile(@PathVariable String username, Authentication authentication) {
+        User user = userProfileService.findByUsername(username);
+
+        boolean authenticated = authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
+        boolean owner = authenticated && authentication.getName().equalsIgnoreCase(user.getEmail());
+        boolean privileged = authenticated && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_MODERATOR".equals(a.getAuthority()));
+
+        if (!user.isProfilePublic() && !owner && !privileged) {
+            throw new ResourceNotFoundException("Użytkownik nie istnieje");
+        }
+
         return ResponseEntity.ok(
                 userProfileService.toPublicResponse(
-                        userProfileService.findByUsername(username)
+                        user
                 )
         );
     }

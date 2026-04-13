@@ -1,4 +1,4 @@
-package com.stokuj.books.author;
+package com.stokuj.books.author.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

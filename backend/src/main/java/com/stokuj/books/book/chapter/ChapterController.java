@@ -1,6 +1,6 @@
 package com.stokuj.books.book.chapter;
 
-import com.stokuj.books.book.chapter.ChapterResponse;
+import com.stokuj.books.book.chapter.dto.ChapterResponse;
 import com.stokuj.books.book.chapter.Chapter;
 import com.stokuj.books.book.chapter.BookChapterService;
 import org.springframework.http.ResponseEntity;

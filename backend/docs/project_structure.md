@@ -1,91 +1,55 @@
 com.stokuj.books/
 ├── SpringShelfApplication.java
-├── analysis/
-│   ├── dto/
-│   │   ├── AnalyseResponse.java
-│   │   ├── AnalyseStats.java
-│   │   ├── BookFindPairsResult.java
-│   │   ├── NerResult.java
-│   │   └── PairResult.java
-│   ├── kafka/
-│   │   ├── AnalysisResultConsumer.java
-│   │   └── ChapterEventProducer.java
-│   └── processor/
-│       ├── NerResultProcessor.java
-│       └── RelationsResultProcessor.java
 ├── auth/
+│   └── dto/
 ├── author/
+│   └── dto/
 ├── book/
 │   ├── book/
+│   │   └── dto/
 │   ├── chapter/
+│   │   └── dto/
 │   ├── character/
+│   │   ├── aggregation/
+│   │   ├── core/
+│   │   │   └── dto/
+│   │   └── relation/
+│   │       └── dto/
 │   └── tag/
+├── bookshelf/
+│   └── dto/
 ├── config/
-│   ├── FlywayConfig.java
-│   ├── KafkaConfig.java
-│   └── OpenApiConfig.java
 ├── exception/
-│   ├── ConflictException.java
-│   ├── GlobalExceptionHandler.java
-│   ├── ResourceNotFoundException.java
-│   └── UnauthorizedException.java
+├── integration/
+│   ├── dto/
+│   ├── kafka/
+│   └── processor/
 ├── review/
+│   └── dto/
 ├── security/
-│   ├── RoleConfig.java
-│   ├── SecurityConfig.java
-│   └── UserDetailsServiceImpl.java
 ├── series/
-├── shelf/
+│   └── dto/
 └── user/
+    ├── follow/
+    │   └── dto/
+    └── profile/
+        └── dto/
 
 src/main/resources/
-├── application-dev.yml
 ├── application.yml
-├── db/
-│   └── migration/
-│       └── V1__init_schema.sql
+├── application-dev.yml
+├── db/migration/
 └── templates/
-    ├── layout/
-    │   └── base.html
-    ├── admin-book-form.html
-    ├── admin-reviews.html
-    ├── book.html
-    ├── bookshelf.html
-    ├── error.html
-    ├── home.html
-    ├── profile.html
-    ├── register.html
-    ├── login.html
-    └── settings.html
 
 src/test/java/
 └── com/stokuj/books/
-    ├── book/
-    │   └── book/
-    │       └── BookServiceTest.java
+    ├── book/book/
     ├── config/
-    │   └── TestSecurityConfig.java
-    └── controller/
-        └── api/
-            ├── admin/
-            │   ├── AdminAuthorControllerIT.java
-            │   ├── AdminBookControllerIT.java
-            │   ├── AdminChapterControllerIT.java
-            │   ├── AdminReviewControllerIT.java
-            │   └── AdminSeriesControllerIT.java
-            ├── user/
-            │   ├── BookShelfControllerIT.java
-            │   ├── UserControllerIT.java
-            │   └── UserFollowControllerIT.java
-            ├── AuthApiControllerIT.java
-            ├── AuthorControllerIT.java
-            ├── BookControllerIT.java
-            ├── ChapterControllerIT.java
-            ├── CharacterControllerIT.java
-            ├── ReviewControllerIT.java
-            └── SeriesControllerIT.java
+    └── controller/api/
 
 docs/
+├── api_endpoints.md
+├── data_flow.md
 ├── database.md
 ├── project_structure.md
 └── user_stories.md

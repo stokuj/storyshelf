@@ -29,8 +29,17 @@ This document describes the functional requirements and goals for different user
 ### MODERATOR
 - As a `MODERATOR`, I can **perform full CRUD** (Create, Read, Update, Delete) on the book catalog.
 - As a `MODERATOR`, I can **manage authors and series** (add new entries, edit existing ones).
-- As a `MODERATOR`, I can **upload book content** (.txt files) to trigger NLP analysis.
-- As a `MODERATOR`, I can **manage chapter data** and clear analysis results.
+- As a `MODERATOR`, I can **upload chapter content** (`.txt`) for a book.
+- As a `MODERATOR`, after upload, I can rely on **automatic NLP pipeline execution** (analyse -> NER -> find-pairs -> relations) handled asynchronously via Kafka and worker services.
+- As a `MODERATOR`, I can **clear chapter content and reset analysis-derived data** for a book when reprocessing is needed.
+
+---
+
+## Acceptance Notes (Current Flow)
+
+- Uploading chapter file to `POST /api/books/{bookId}/chapters` creates chapters and starts asynchronous analysis flow.
+- Book details endpoint (`GET /api/books/{id}/details`) exposes aggregated analysis state and character graph data.
+- User-facing review, shelf, and profile/follow features are independent from NLP execution and remain available while analysis is in progress.
 
 ---
 

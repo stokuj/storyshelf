@@ -1,8 +1,8 @@
 package com.stokuj.books.series;
 
 import com.stokuj.books.series.Series;
-import com.stokuj.books.series.SeriesRequest;
-import com.stokuj.books.series.SeriesResponse;
+import com.stokuj.books.series.dto.SeriesRequest;
+import com.stokuj.books.series.dto.SeriesResponse;
 import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.series.SeriesRepository;
 import org.springframework.http.ResponseEntity;

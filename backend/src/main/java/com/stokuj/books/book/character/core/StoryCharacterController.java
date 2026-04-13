@@ -1,7 +1,8 @@
 package com.stokuj.books.book.character.core;
 
 import com.stokuj.books.book.character.aggregation.BookCharacterRepository;
-import com.stokuj.books.book.character.relation.CharacterRelationResponse;
+import com.stokuj.books.book.character.core.dto.CharacterResponse;
+import com.stokuj.books.book.character.relation.dto.CharacterRelationResponse;
 import com.stokuj.books.book.character.relation.StoryCharacterRelationRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

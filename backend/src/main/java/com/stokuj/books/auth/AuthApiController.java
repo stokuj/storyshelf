@@ -1,10 +1,10 @@
 package com.stokuj.books.auth;
 
 import com.stokuj.books.user.User;
-import com.stokuj.books.auth.AuthMeResponse;
-import com.stokuj.books.auth.AuthResponse;
-import com.stokuj.books.auth.LoginRequest;
-import com.stokuj.books.auth.RegisterRequest;
+import com.stokuj.books.auth.dto.AuthMeResponse;
+import com.stokuj.books.auth.dto.AuthResponse;
+import com.stokuj.books.auth.dto.LoginRequest;
+import com.stokuj.books.auth.dto.RegisterRequest;
 import com.stokuj.books.auth.AuthService;
 import com.stokuj.books.user.profile.UserProfileService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,10 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -65,8 +62,8 @@ public class AuthApiController {
                                               HttpServletRequest httpRequest,
                                               HttpServletResponse httpResponse) {
 
-        UsernamePasswordAuthenticationToken token = 
-                new UsernamePasswordAuthenticationToken(request.username(), request.password());
+        UsernamePasswordAuthenticationToken token =
+                new UsernamePasswordAuthenticationToken(request.email(), request.password());
 
         Authentication authentication = authenticationManager.authenticate(token);
 
@@ -80,7 +77,7 @@ public class AuthApiController {
 
     @Operation(summary = "Get authenticated user session", description = "Returns the current authentication state and basic user data.")
     @ApiResponse(responseCode = "200", description = "Session state returned successfully")
-    @org.springframework.web.bind.annotation.GetMapping("/me")
+    @GetMapping("/me")
     public ResponseEntity<AuthMeResponse> me(Authentication authentication) {
         if (authentication == null
                 || !authentication.isAuthenticated()

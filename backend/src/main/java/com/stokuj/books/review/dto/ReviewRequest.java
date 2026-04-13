@@ -1,4 +1,4 @@
-package com.stokuj.books.review;
+package com.stokuj.books.review.dto;
 
 import lombok.Getter;
 import lombok.Setter;

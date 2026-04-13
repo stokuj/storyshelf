@@ -3,6 +3,7 @@ package com.stokuj.books.user.follow;
 import com.stokuj.books.user.User;
 import com.stokuj.books.exception.ConflictException;
 import com.stokuj.books.exception.ResourceNotFoundException;
+import com.stokuj.books.user.follow.dto.FollowResponse;
 import com.stokuj.books.user.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
