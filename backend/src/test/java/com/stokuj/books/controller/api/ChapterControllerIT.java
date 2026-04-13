@@ -1,6 +1,6 @@
 package com.stokuj.books.controller.api;
 
 public class ChapterControllerIT {
-    // TODO: Dostępność: Sprawdzić, czy lista rozdziałów danej książki (GET /api/books/{bookId}/chapters) jest dostępna publicznie.
-    // TODO: Integracja: Upewnić się, że odpowiedź zawiera poprawne dane o statusie analizy (analysisCompleted).
+    // TODO: Availability: Verify that chapter list for a book (GET /api/books/{bookId}/chapters) is publicly accessible.
+    // TODO: Integration: Ensure the response contains valid analysis status data (analysisCompleted).
 }

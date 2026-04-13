@@ -37,7 +37,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (reviewRepository.findByBookIdAndUserId(bookId, user.getId()).isPresent()) {
-            throw new ConflictException("Recenzja już istnieje");
+            throw new ConflictException("Review already exists");
         }
 
         Review review = new Review();

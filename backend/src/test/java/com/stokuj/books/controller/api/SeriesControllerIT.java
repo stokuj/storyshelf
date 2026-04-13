@@ -1,6 +1,6 @@
 package com.stokuj.books.controller.api;
 
 public class SeriesControllerIT {
-    // TODO: Dostępność: Sprawdzić, czy lista serii (GET /api/series) oraz szczegóły serii po ID są dostępne publicznie (200 OK).
-    // TODO: Błędy: Sprawdzić, czy zapytanie o nieistniejącą serię zwraca 404 Not Found.
+    // TODO: Availability: Verify that series list (GET /api/series) and series details by ID are publicly accessible (200 OK).
+    // TODO: Errors: Verify that requesting a non-existent series returns 404 Not Found.
 }

@@ -25,10 +25,10 @@ public class BookChapterService {
     private final StoryCharacterRelationRepository characterRelationRepository;
     private final ChapterEventProducer chapterEventProducer;
 
-    private static final int MIN_CHAPTER_SIZE = 2000;    // minimalny rozmiar fragmentu
-    private static final int MAX_CHAPTER_SIZE = 50000;   // maksymalny rozmiar fragmentu
+    private static final int MIN_CHAPTER_SIZE = 2000;    // minimum fragment size
+    private static final int MAX_CHAPTER_SIZE = 50000;   // maximum fragment size
 
-    // dopasowuje nagłówki: Chapter, Book, Prologue, Epilogue + liczby (arabic, roman, słowne)
+    // Matches headers: Chapter, Book, Prologue, Epilogue + numbers (arabic, roman, word-based)
     private static final Pattern CHAPTER_PATTERN = Pattern.compile(
             "(?i)^(?:chapter|book|prologue|epilogue)\\s+(?:\\d+|[ivxlcdm]+|" +
                     "one|two|three|four|five|six|seven|eight|nine|ten|" +
@@ -75,7 +75,7 @@ public class BookChapterService {
                 chapter.setChapterNumber(chapterNumber++);
                 chapter.setContent(subPart);
 
-                // tytuł = pierwsza linia oryginalnego rozdziału
+                // Title = first line of the original chapter
                 String firstLine = part.lines().findFirst().orElse("");
                 if (firstLine.length() > 150) firstLine = firstLine.substring(0, 150);
 
@@ -136,7 +136,7 @@ public class BookChapterService {
         chapterRepository.deleteAllByBookId(bookId);
     }
 
-    // dzieli tekst na fragmenty według nagłówków
+    // Splits text into fragments based on headers
     private List<String> splitIntoChapters(String text) {
         String[] lines = text.split("\n");
         List<Integer> chapterLines = new ArrayList<>();
@@ -153,7 +153,7 @@ public class BookChapterService {
 
         List<String> chapters = new ArrayList<>();
 
-        // preambuła przed pierwszym nagłówkiem
+        // Preamble before the first header
         if (chapterLines.getFirst() > 0) {
             String preamble = String.join("\n", Arrays.copyOfRange(lines, 0, chapterLines.getFirst())).strip();
             if (!preamble.isBlank()) {
@@ -168,7 +168,7 @@ public class BookChapterService {
             String part = String.join("\n", Arrays.copyOfRange(lines, start, end)).strip();
             if (part.isBlank()) continue;
 
-            // łącz krótkie fragmenty z poprzednim
+            // Merge short fragments with the previous one
             if (part.length() < MIN_CHAPTER_SIZE && !chapters.isEmpty()) {
                 String merged = chapters.removeLast() + "\n\n" + part;
                 chapters.add(merged);
@@ -180,7 +180,7 @@ public class BookChapterService {
         return chapters;
     }
 
-    // sprawdza, czy linia jest nagłówkiem rozdziału
+    // Checks whether a line is a chapter header
     private boolean isChapterLine(String line) {
         line = line.strip();
         if (line.isEmpty()) return false;
@@ -188,7 +188,7 @@ public class BookChapterService {
         return matcher.matches();
     }
 
-    // dzieli duży rozdział na fragmenty po paragrafach
+    // Splits a large chapter into paragraph-based fragments
     private List<String> splitLargeChapter(String chapterContent) {
         List<String> parts = new ArrayList<>();
         if (chapterContent.length() <= MAX_CHAPTER_SIZE) {

@@ -5,8 +5,7 @@ import com.stokuj.books.auth.dto.AuthMeResponse;
 import com.stokuj.books.auth.dto.AuthResponse;
 import com.stokuj.books.auth.dto.LoginRequest;
 import com.stokuj.books.auth.dto.RegisterRequest;
-import com.stokuj.books.auth.AuthService;
-import com.stokuj.books.user.profile.UserProfileService;
+import com.stokuj.books.user.profile.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -32,16 +31,16 @@ public class AuthApiController {
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
-    private final UserProfileService userProfileService;
+    private final UserService userService;
 
     public AuthApiController(AuthService authService,
                              AuthenticationManager authenticationManager,
                              SecurityContextRepository securityContextRepository,
-                             UserProfileService userProfileService) {
+                             UserService userService) {
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
-        this.userProfileService = userProfileService;
+        this.userService = userService;
     }
 
     @Operation(summary = "Register a new user", description = "Registers a new user with the provided details.")
@@ -85,7 +84,7 @@ public class AuthApiController {
             return ResponseEntity.ok(new AuthMeResponse(false, null, null, null));
         }
 
-        User user = userProfileService.findByEmail(authentication.getName());
+        User user = userService.findByEmail(authentication.getName());
         return ResponseEntity.ok(new AuthMeResponse(true, user.getEmail(), user.getUsername(), user.getRole()));
     }
 }

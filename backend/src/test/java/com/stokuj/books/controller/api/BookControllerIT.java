@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.api;
 
 public class BookControllerIT {
-    // TODO: Wyszukiwanie: Sprawdzić, czy publiczne wyszukiwanie książek (GET /api/books?q=...) działa dla Gościa i zwraca listę BookResponse.
-    // TODO: Detale książki: Sprawdzić, czy pobranie szczegółów książki po ID zwraca status 200 OK.
-    // TODO: Błędy: Zweryfikować, czy próba pobrania nieistniejącej książki zwraca status 404.
+    // TODO: Search: Verify that public book search (GET /api/books?q=...) works for guest users and returns BookResponse list.
+    // TODO: Book details: Verify that fetching book details by ID returns 200 OK.
+    // TODO: Errors: Verify that requesting a non-existent book returns 404.
 }

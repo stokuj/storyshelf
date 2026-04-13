@@ -1,6 +1,6 @@
 package com.stokuj.books.controller.api;
 
 public class CharacterControllerIT {
-    // TODO: Postacie: Sprawdzić, czy lista postaci w książce (GET /api/books/{bookId}/characters) zwraca poprawne dane CharacterResponse.
-    // TODO: Relacje: Sprawdzić, czy endpoint relacji (GET /api/books/{bookId}/relations) zwraca listę CharacterRelationResponse dla Gościa.
+    // TODO: Characters: Verify that character list in a book (GET /api/books/{bookId}/characters) returns valid CharacterResponse data.
+    // TODO: Relations: Verify that relations endpoint (GET /api/books/{bookId}/relations) returns CharacterRelationResponse list for guests.
 }

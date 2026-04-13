@@ -1,9 +1,9 @@
 package com.stokuj.books.controller.api;
 
 public class AuthApiControllerIT {
-    // TODO: Rejestracja - Walidacja: Weryfikacja czy użycie zbyt krótkiego hasła (mniej niż 6 znaków) w RegisterRequest skutkuje czytelnym błędem walidacji (400).
-    // TODO: Rejestracja - Walidacja: Wysłanie niepoprawnego formatu e-mail (bez @) i upewnienie się, że adnotacja @Email prawidłowo go odrzuca.
-    // TODO: Rejestracja - Konkurent: Sprawdzenie, czy obsługa błędu przy rejestracji na już zajęty email rzuca ładny JSON z kodem 409 Conflict.
-    // TODO: Logowanie: Przetestowanie prawidłowego logowania poprawnego użytkownika i wystawienia tokena sesji/ciastka (200 OK).
-    // TODO: Logowanie: Symulacja niepoprawnego loginu/hasła i oczekiwanie kodu 401 Unauthorized.
+    // TODO: Registration - Validation: Verify that too short password (less than 6 chars) in RegisterRequest returns clear validation error (400).
+    // TODO: Registration - Validation: Send invalid email format (without @) and ensure @Email rejects it correctly.
+    // TODO: Registration - Conflict: Verify that registration with already used email returns clean 409 Conflict JSON.
+    // TODO: Login: Test successful login for valid user and session token/cookie issuance (200 OK).
+    // TODO: Login: Simulate invalid login/password and expect 401 Unauthorized.
 }

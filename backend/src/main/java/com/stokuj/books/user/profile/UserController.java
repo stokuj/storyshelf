@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Users", description = "Operations related to user profiles and settings")
 public class UserController {
 
-    private final UserProfileService userProfileService;
+    private final UserService userService;
 
-    public UserController(UserProfileService userProfileService) {
-        this.userProfileService = userProfileService;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @Operation(summary = "Get user profile", description = "Retrieves the public profile of a user by their username.")
@@ -31,7 +31,7 @@ public class UserController {
     @ApiResponse(responseCode = "404", description = "User not found")
     @GetMapping("/{username}")
     public ResponseEntity<UserProfileResponse> getProfile(@PathVariable String username, Authentication authentication) {
-        User user = userProfileService.findByUsername(username);
+        User user = userService.findByUsername(username);
 
         boolean authenticated = authentication != null
                 && authentication.isAuthenticated()
@@ -41,11 +41,11 @@ public class UserController {
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ROLE_MODERATOR".equals(a.getAuthority()));
 
         if (!user.isProfilePublic() && !owner && !privileged) {
-            throw new ResourceNotFoundException("Użytkownik nie istnieje");
+            throw new ResourceNotFoundException("User does not exist");
         }
 
         return ResponseEntity.ok(
-                userProfileService.toPublicResponse(
+                userService.toPublicResponse(
                         user
                 )
         );
@@ -57,8 +57,8 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserSettingsResponse> getMe(Authentication authentication) {
         return ResponseEntity.ok(
-                userProfileService.toSettingsResponse(
-                        userProfileService.findByEmail(authentication.getName())
+                userService.toSettingsResponse(
+                        userService.findByEmail(authentication.getName())
                 )
         );
     }
@@ -70,8 +70,8 @@ public class UserController {
     public ResponseEntity<UserSettingsResponse> updateProfile(@Valid @RequestBody UserProfileUpdateRequest request,
                                                               Authentication authentication) {
         return ResponseEntity.ok(
-                userProfileService.updateProfile(
-                        userProfileService.findByEmail(authentication.getName()),
+                userService.updateProfile(
+                        userService.findByEmail(authentication.getName()),
                         request
                 )
         );
@@ -84,8 +84,8 @@ public class UserController {
     public ResponseEntity<UserSettingsResponse> updateVisibility(@RequestParam boolean profilePublic,
                                                                  Authentication authentication) {
         return ResponseEntity.ok(
-                userProfileService.updateVisibility(
-                        userProfileService.findByEmail(authentication.getName()),
+                userService.updateVisibility(
+                        userService.findByEmail(authentication.getName()),
                         profilePublic
                 )
         );

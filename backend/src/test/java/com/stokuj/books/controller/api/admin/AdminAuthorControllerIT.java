@@ -1,9 +1,9 @@
 package com.stokuj.books.controller.api.admin;
 
 public class AdminAuthorControllerIT {
-    // TODO: Zabezpieczenia: Sprawdzić, czy niezalogowany Gość dostaje błąd 401 przy próbie użycia metody POST (dodanie autora).
-    // TODO: Zabezpieczenia: Sprawdzić, czy zalogowany zwykły USER (bez roli MODERATOR) dostaje błąd 403 Forbidden przy próbie usunięcia autora (DELETE).
-    // TODO: Zabezpieczenia: Sprawdzić, czy MODERATOR ma pełny dostęp i otrzymuje kod 200/201 lub 204.
-    // TODO: Walidacja wejścia: Upewnić się, że przesłanie AuthorRequest z pustym lub nullowym polem 'name' przez Moderatora kończy się statusem 400 Bad Request.
-    // TODO: Walidacja wejścia: Sprawdzić czy przekroczenie limitu wielkości znaków (powyżej 255) z adnotacji @Size zwraca błąd walidacyjny.
+    // TODO: Security: Verify that unauthenticated guest receives 401 when trying POST (add author).
+    // TODO: Security: Verify that authenticated regular USER (without MODERATOR role) receives 403 Forbidden when trying to delete author (DELETE).
+    // TODO: Security: Verify that MODERATOR has full access and receives 200/201 or 204.
+    // TODO: Input validation: Ensure sending AuthorRequest with empty or null 'name' by Moderator results in 400 Bad Request.
+    // TODO: Input validation: Verify that exceeding character limit (over 255) from @Size returns validation error.
 }

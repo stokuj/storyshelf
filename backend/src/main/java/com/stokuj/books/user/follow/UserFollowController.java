@@ -39,7 +39,7 @@ public class UserFollowController {
                                        Authentication authentication) {
         if (userFollowRepository.existsByFollower_EmailAndFollowing_Username(
                 authentication.getName(), username)) {
-            throw new ConflictException("Już obserwujesz tego użytkownika");
+            throw new ConflictException("You are already following this user");
         }
 
         User follower = userRepository.findByEmail(authentication.getName())
@@ -63,7 +63,7 @@ public class UserFollowController {
                                          Authentication authentication) {
         UserFollow follow = userFollowRepository
                 .findByFollower_EmailAndFollowing_Username(authentication.getName(), username)
-                .orElseThrow(() -> new ResourceNotFoundException("Nie obserwujesz tego użytkownika"));
+                .orElseThrow(() -> new ResourceNotFoundException("You are not following this user"));
 
         userFollowRepository.delete(follow);
         return ResponseEntity.noContent().build();

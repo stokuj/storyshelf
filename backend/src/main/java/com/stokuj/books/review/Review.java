@@ -13,7 +13,8 @@ import java.time.Instant;
 @Table(name = "reviews",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_review",
-                columnNames = {"book_id", "user_id"}))
+                columnNames = {"book_id", "user_id"})
+        )
 public class Review {
 
     @Id

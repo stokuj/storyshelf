@@ -24,20 +24,20 @@ public class BookDetailService {
     private final BookCharacterRepository bookCharacterRepository;
     private final StoryCharacterRelationRepository characterRelationRepository;
     private final ReviewService reviewService;
-    private final ShelfEntryService userBookService;
+    private final ShelfEntryService shelfEntryService;
 
     public BookDetailService(BookService bookService,
                              BookChapterService bookChapterService,
                              BookCharacterRepository bookCharacterRepository,
                              StoryCharacterRelationRepository characterRelationRepository,
                              ReviewService reviewService,
-                             ShelfEntryService userBookService) {
+                             ShelfEntryService shelfEntryService) {
         this.bookService = bookService;
         this.bookChapterService = bookChapterService;
         this.bookCharacterRepository = bookCharacterRepository;
         this.characterRelationRepository = characterRelationRepository;
         this.reviewService = reviewService;
-        this.userBookService = userBookService;
+        this.shelfEntryService = shelfEntryService;
     }
 
     public BookDetailResponse getById(Long id, String email) {
@@ -52,7 +52,7 @@ public class BookDetailService {
                 );
         ShelfEntryResponse shelfEntry = email == null
                 ? null
-                : userBookService.findByUserAndBook(email, id).orElse(null);
+                : shelfEntryService.findByUserAndBook(email, id).orElse(null);
 
         List<ChapterResponse> chapters = bookChapterService.getChapters(id);
         List<CharacterResponse> characters = bookCharacterRepository.findAllByBookIdWithCharacter(id).stream()

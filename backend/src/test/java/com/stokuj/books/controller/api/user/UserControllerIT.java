@@ -1,7 +1,7 @@
 package com.stokuj.books.controller.api.user;
 
 public class UserControllerIT {
-    // TODO: Dostępność: Pobieranie publicznego profilu innej osoby (GET /api/users/{username}) dostępne dla każdego.
-    // TODO: Ochrona własnych danych: Aktualizacja (PUT /api/users/me) zmusza do zalogowania. Próba nieautoryzowana daje 401.
-    // TODO: Walidacja: Zmiana profilu wysyła UserProfileUpdateRequest. Test sprawdza, czy próba z nullowym 'username' odrzuci request poprawnym błędem "Username cannot be blank" z adnotacji.
+    // TODO: Availability: Retrieving another user's public profile (GET /api/users/{username}) should be accessible to everyone.
+    // TODO: Personal data protection: Updating profile (PUT /api/users/me) must require authentication. Unauthenticated attempt should return 401.
+    // TODO: Validation: Updating profile with UserProfileUpdateRequest and null 'username' should be rejected with "Username cannot be blank".
 }

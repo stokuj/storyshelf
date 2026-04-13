@@ -50,7 +50,7 @@ public class ShelfEntryService {
     @Transactional
     public ShelfEntryResponse addToShelf(String email, Long bookId, ShelfEntryRequest request) {
         if (shelfEntryRepository.findByUserEmailAndBookId(email, bookId).isPresent()) {
-            throw new ConflictException("Ta ksiazka jest juz na polce");
+            throw new ConflictException("This book is already on your shelf");
         }
 
         User user = userRepository.findByEmail(email)

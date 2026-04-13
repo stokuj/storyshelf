@@ -2,6 +2,9 @@ package com.stokuj.books.book.book;
 
 import com.stokuj.books.author.Author;
 import com.stokuj.books.author.AuthorRepository;
+import com.stokuj.books.book.book.dto.BookPatchRequest;
+import com.stokuj.books.book.book.dto.BookRequest;
+import com.stokuj.books.book.book.dto.BookResponse;
 import com.stokuj.books.book.tag.BookTag;
 import com.stokuj.books.book.tag.Tag;
 import com.stokuj.books.book.tag.TagRepository;
@@ -199,7 +202,7 @@ class BookServiceTest {
 
         var patchRequest = new BookPatchRequest();
         patchRequest.setTitle("New Title");
-        // author = null → nie powinien być nadpisany
+        // author = null -> should not be overwritten
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
         given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
@@ -209,7 +212,7 @@ class BookServiceTest {
 
         // then
         assertThat(result.title()).isEqualTo("New Title");
-        assertThat(result.author()).isEqualTo("Old Author"); // niezmieniony!
+        assertThat(result.author()).isEqualTo("Old Author"); // unchanged!
     }
 
     @Test
@@ -225,7 +228,7 @@ class BookServiceTest {
         given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
 
         // when
-        var result = bookService.patch(1L, new BookPatchRequest()); // wszystko null
+        var result = bookService.patch(1L, new BookPatchRequest()); // all fields null
 
         // then
         assertThat(result.title()).isEqualTo("Old Title");

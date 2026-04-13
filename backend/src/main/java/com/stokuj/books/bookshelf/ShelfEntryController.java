@@ -18,29 +18,29 @@ import java.util.List;
 @RequestMapping("/api/shelf")
 @PreAuthorize("hasRole('USER')")
 @Tag(name = "Bookshelf", description = "Operations for users to manage their personal book collections")
-public class BookShelfController {
+public class ShelfEntryController {
 
-    private final ShelfEntryService userBookService;
+    private final ShelfEntryService shelfEntryService;
 
-    public BookShelfController(ShelfEntryService userBookService) {
-        this.userBookService = userBookService;
+    public ShelfEntryController(ShelfEntryService shelfEntryService) {
+        this.shelfEntryService = shelfEntryService;
     }
 
     @Operation(summary = "Get user's bookshelf", description = "Retrieves a list of all books added to the authenticated user's shelf.")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved bookshelf")
     @GetMapping
     public ResponseEntity<List<ShelfEntryResponse>> getMyBooks(Authentication authentication) {
-        return ResponseEntity.ok(userBookService.getMyBooks(authentication.getName()));
+        return ResponseEntity.ok(shelfEntryService.getMyBooks(authentication.getName()));
     }
 
     @Operation(summary = "Add book to shelf", description = "Adds a specific book to the authenticated user's shelf.")
     @ApiResponse(responseCode = "201", description = "Book added to shelf successfully")
     @PostMapping("/{bookId}")
     public ResponseEntity<ShelfEntryResponse> addToShelf(@PathVariable Long bookId,
-                                                       @Valid @RequestBody(required = false) ShelfEntryRequest request,
-                                                       Authentication authentication) {
+                                                        @Valid @RequestBody(required = false) ShelfEntryRequest request,
+                                                        Authentication authentication) {
         return ResponseEntity.status(201)
-                .body(userBookService.addToShelf(authentication.getName(), bookId, request));
+                .body(shelfEntryService.addToShelf(authentication.getName(), bookId, request));
     }
 
     @Operation(summary = "Get bookshelf entry for a book", description = "Retrieves the authenticated user's shelf entry for a specific book.")
@@ -48,8 +48,8 @@ public class BookShelfController {
     @ApiResponse(responseCode = "404", description = "Book is not on the user's shelf")
     @GetMapping("/{bookId}")
     public ResponseEntity<ShelfEntryResponse> getShelfEntry(@PathVariable Long bookId,
-                                                          Authentication authentication) {
-        return userBookService.findByUserAndBook(authentication.getName(), bookId)
+                                                           Authentication authentication) {
+        return shelfEntryService.findByUserAndBook(authentication.getName(), bookId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
@@ -58,17 +58,17 @@ public class BookShelfController {
     @ApiResponse(responseCode = "200", description = "Status updated successfully")
     @PatchMapping("/{bookId}")
     public ResponseEntity<ShelfEntryResponse> updateStatus(@PathVariable Long bookId,
-                                                         @Valid @RequestBody ShelfEntryRequest request,
-                                                         Authentication authentication) {
-        return ResponseEntity.ok(userBookService.updateStatus(authentication.getName(), bookId, request));
+                                                          @Valid @RequestBody ShelfEntryRequest request,
+                                                          Authentication authentication) {
+        return ResponseEntity.ok(shelfEntryService.updateStatus(authentication.getName(), bookId, request));
     }
 
     @Operation(summary = "Remove book from shelf", description = "Removes a specific book from the authenticated user's shelf.")
     @ApiResponse(responseCode = "204", description = "Book removed successfully")
     @DeleteMapping("/{bookId}")
     public ResponseEntity<Void> removeFromShelf(@PathVariable Long bookId,
-                                                Authentication authentication) {
-        userBookService.removeFromShelf(authentication.getName(), bookId);
+                                                 Authentication authentication) {
+        shelfEntryService.removeFromShelf(authentication.getName(), bookId);
         return ResponseEntity.noContent().build();
     }
 }

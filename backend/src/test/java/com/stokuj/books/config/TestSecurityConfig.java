@@ -1,6 +1,6 @@
 package com.stokuj.books.config;
 
 public class TestSecurityConfig {
-    // TODO: Dodanie klasy konfiguracyjnej opatrzonej @TestConfiguration. 
-    // TODO: Jej celem będzie łatwe nadawanie Mockowanego Użytkownika (np. @WithMockUser) w testach integracyjnych bez konieczności robienia fizycznego flow logowania do bazy w każdym teście.
+    // TODO: Add a configuration class annotated with @TestConfiguration.
+    // TODO: The goal is to easily provide a mocked user (e.g., @WithMockUser) in integration tests without running full database login flow in each test.
 }
