@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from api.services.llm_service import LLMService
-from api.services.llm_service import ALL_RELATIONS_STR, RELATION_SCHEMA
+from api.services.core.llm_engine import LLMService
+from api.services.core.llm_engine import ALL_RELATIONS_STR, RELATION_SCHEMA
 import openai
 
 

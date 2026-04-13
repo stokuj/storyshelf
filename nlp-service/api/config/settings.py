@@ -47,4 +47,3 @@ NER_MIN_OCCURRENCES: int = int(os.getenv("NER_MIN_OCCURRENCES", "5"))
 
 # --- Kafka ---
 KAFKA_BOOTSTRAP_SERVERS: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-SPRINGSHELF_BASE_URL: str = os.getenv("SPRINGSHELF_BASE_URL", "http://localhost:8080")

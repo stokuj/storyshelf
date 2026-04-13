@@ -5,8 +5,8 @@ import threading
 from confluent_kafka import Consumer, KafkaError
 
 from api.config import settings
-from api.services.analyse_service import process_analyse
-from api.services.relations_service import process_book_relations_async
+from api.services import process_analyse
+from api.services import process_book_relations_async
 from api.tasks.find_pairs_task import find_pairs_task
 from api.tasks.ner_task import extract_entities_task
 

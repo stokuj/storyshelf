@@ -31,21 +31,43 @@ from api.routers.ner import router as ner_router
 from api.routers.relations import router as relations_router
 from api.kafka.consumer import ChapterAnalysisConsumer
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start Kafka Consumer
     import api.kafka.consumer as consumer_module
+
     consumer_module.app_event_loop = asyncio.get_event_loop()
     consumer_thread = ChapterAnalysisConsumer()
     consumer_thread.start()
-    
+
     yield
-    
+
     # Stop Kafka Consumer
     consumer_thread.stop()
     consumer_thread.join(timeout=5.0)
 
-app = FastAPI(lifespan=lifespan)
+
+tags_metadata = [
+    {
+        "name": "analyse",
+        "description": "Text statistics and basic linguistic analysis.",
+    },
+    {
+        "name": "ner",
+        "description": "Named Entity Recognition using Transformer models (BERT) to identify characters and locations.",
+    },
+    {
+        "name": "find-pairs",
+        "description": "Logic for identifying character co-occurrences within the text.",
+    },
+    {
+        "name": "relations",
+        "description": "LLM-powered extraction of social and narrative relationships between characters.",
+    },
+]
+
+app = FastAPI(title="StoryWeave API", openapi_tags=tags_metadata, lifespan=lifespan)
 app.state.limiter = limiter
 
 
@@ -105,12 +127,16 @@ app.include_router(ner_router)
 app.include_router(relations_router)
 
 
-@app.get("/")
+@app.get("/", summary="API Root", description="Welcome message and basic service info.")
 def root():
     return {"message": "Hello World"}
 
 
-@app.get("/health/")
+@app.get(
+    "/health/",
+    summary="Service Health",
+    description="Check if the API and basic configurations are running.",
+)
 def health():
     return {
         "status": "ok",
@@ -119,7 +145,11 @@ def health():
     }
 
 
-@app.get("/health/celery/")
+@app.get(
+    "/health/celery/",
+    summary="Worker Status",
+    description="Monitor active Celery workers, their concurrency, and current task load.",
+)
 def health_celery():
     try:
         inspector = celery.control.inspect()

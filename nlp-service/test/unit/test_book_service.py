@@ -1,5 +1,6 @@
 import pytest
-from api.services.book_service import analyse_text, find_sentences_with_both_characters
+from api.services.core.text_stats import analyse_text
+from api.services.core.text_parser import find_sentences_with_both_characters
 
 
 class TestAnalyseText:

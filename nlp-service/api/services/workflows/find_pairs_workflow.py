@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from api.services.book_service import find_sentences_with_both_characters
-from api.services.callback_client import patch_to_spring
+from api.services.core.text_parser import find_sentences_with_both_characters
+from api.kafka.producer import TOPIC_FIND_PAIRS_RESULTS, send_json
 
 
 def process_find_pairs(
@@ -25,10 +25,11 @@ def process_find_pairs(
     """
     result = find_sentences_with_both_characters(content, names)
 
-    if chapter_id is not None:
-        patch_to_spring(chapter_id, "find-pairs-result", {"pairs": result}, resource="chapters")
-
     if book_id is not None:
-        patch_to_spring(book_id, "find-pairs-result", {"pairs": result}, resource="books")
+        send_json(
+            TOPIC_FIND_PAIRS_RESULTS,
+            str(book_id),
+            {"bookId": book_id, "pairs": result},
+        )
 
     return result

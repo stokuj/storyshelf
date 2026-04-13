@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from api.models.model import TextContentRequest
-from api.services.callback_client import patch_to_spring
-from api.services.transformers_service import DEFAULT_NER_MODEL, extract_entities
+from api.kafka.producer import TOPIC_NER_RESULTS, send_json
+from api.services.core.transformers_engine import DEFAULT_NER_MODEL, extract_entities
 
 
 def process_ner(content: str, chapter_id: int | str | None = None) -> dict:
@@ -20,6 +20,10 @@ def process_ner(content: str, chapter_id: int | str | None = None) -> dict:
     result = extract_entities(TextContentRequest(content=content), DEFAULT_NER_MODEL)
 
     if chapter_id is not None:
-        patch_to_spring(chapter_id, "ner-result", result)
+        send_json(
+            TOPIC_NER_RESULTS,
+            str(chapter_id),
+            {"chapterId": chapter_id, "result": result},
+        )
 
     return result

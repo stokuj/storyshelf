@@ -1,7 +1,7 @@
 import logging
 
 from api.config.celery_app import celery
-from api.services.find_pairs_service import process_find_pairs
+from api.services import process_find_pairs
 
 logger = logging.getLogger(__name__)
 

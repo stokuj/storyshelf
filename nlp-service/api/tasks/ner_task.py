@@ -1,7 +1,7 @@
 import logging
 
 from api.config.celery_app import celery
-from api.services.ner_service import process_ner
+from api.services import process_ner
 
 logger = logging.getLogger(__name__)
 

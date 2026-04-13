@@ -4,14 +4,20 @@ import logging
 from fastapi import APIRouter, HTTPException, Request
 from api.models.model import AcceptedResponse, BookRelationsPayload
 from api.middleware.rate_limiter import limiter
-from api.services.relations_service import process_book_relations_async
+from api.services import process_book_relations_async
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/books", tags=["relations"])
 
 
-@router.post("/{bookId}/relations", response_model=AcceptedResponse, status_code=202)
+@router.post(
+    "/{bookId}/relations",
+    summary="Extract character relations",
+    description="Uses an LLM to determine the nature of the relationship between two characters based on provided context sentences.",
+    response_model=AcceptedResponse,
+    status_code=202,
+)
 @limiter.limit("30/minute")
 async def relations(
     request: Request, bookId: int | str, payload: BookRelationsPayload

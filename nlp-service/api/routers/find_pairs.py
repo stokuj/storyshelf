@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 from api.models.model import AcceptedResponse, BookFindPairsPayload
-from api.services.find_pairs_service import process_find_pairs
+from api.services import process_find_pairs
 
 
 logger = logging.getLogger(__name__)
@@ -11,7 +11,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/books", tags=["find-pairs"])
 
 
-@router.post("/{bookId}/find-pairs", response_model=AcceptedResponse, status_code=202)
+@router.post(
+    "/{bookId}/find-pairs",
+    summary="Identify character pairs",
+    description="Scans the text for sentences where two specific characters appear together, preparing data for relationship analysis.",
+    response_model=AcceptedResponse,
+    status_code=202,
+)
 async def find_pairs_endpoint(
     bookId: int | str, payload: BookFindPairsPayload
 ) -> AcceptedResponse:

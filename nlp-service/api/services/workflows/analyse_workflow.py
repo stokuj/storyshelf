@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from api.services.book_service import analyse_text
-from api.services.callback_client import patch_to_spring
+from api.services.core.text_stats import analyse_text
+from api.kafka.producer import TOPIC_ANALYSE_RESULTS, send_json
 
 
 def process_analyse(content: str, chapter_id: int | str | None = None) -> dict:
@@ -19,6 +19,10 @@ def process_analyse(content: str, chapter_id: int | str | None = None) -> dict:
     result = analyse_text(content)
 
     if chapter_id is not None:
-        patch_to_spring(chapter_id, "analyse-result", {"analysis": result})
+        send_json(
+            TOPIC_ANALYSE_RESULTS,
+            str(chapter_id),
+            {"chapterId": chapter_id, "analysis": result},
+        )
 
     return result

@@ -1,11 +1,17 @@
 from fastapi import APIRouter, HTTPException
 from api.models.model import AcceptedResponse, ChapterContentPayload
-from api.services.analyse_service import process_analyse
+from api.services import process_analyse
 
 router = APIRouter(prefix="/chapters", tags=["analyse"])
 
 
-@router.post("/{chapterId}/analyse", response_model=AcceptedResponse, status_code=202)
+@router.post(
+    "/{chapterId}/analyse",
+    summary="Calculate text statistics",
+    description="Synchronously calculates character counts, word counts, and token counts for a given chapter content.",
+    response_model=AcceptedResponse,
+    status_code=202,
+)
 def analyse_text_endpoint(
     chapterId: int | str, payload: ChapterContentPayload
 ) -> AcceptedResponse:

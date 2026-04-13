@@ -1,7 +1,7 @@
 from unittest.mock import patch, MagicMock
 import pytest
-import api.services.transformers_service as tf_service
-from api.services.transformers_service import load_ner_model, DEFAULT_NER_MODEL
+import api.services.core.transformers_engine as tf_service
+from api.services.core.transformers_engine import load_ner_model, DEFAULT_NER_MODEL
 from api.models.model import TextContentRequest
 
 
@@ -19,7 +19,7 @@ class TestLoadNerModel:
     def test_loads_model_successfully(self):
         fake_pipeline = MagicMock()
         with patch(
-            "api.services.transformers_service.pipeline", return_value=fake_pipeline
+            "api.services.core.transformers_engine.pipeline", return_value=fake_pipeline
         ) as mock_pipeline:
             result = load_ner_model(DEFAULT_NER_MODEL)
 
@@ -37,7 +37,7 @@ class TestLoadNerModel:
 
         tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock()
 
-        with patch("api.services.transformers_service.pipeline") as mock_pipeline:
+        with patch("api.services.core.transformers_engine.pipeline") as mock_pipeline:
             result = load_ner_model(DEFAULT_NER_MODEL)
 
         assert result is True
@@ -47,7 +47,7 @@ class TestLoadNerModel:
         """Test that if the model cannot be loaded, it returns False and does not add to the pipelines."""
 
         with patch(
-            "api.services.transformers_service.pipeline",
+            "api.services.core.transformers_engine.pipeline",
             side_effect=OSError("model not found"),
         ):
             result = load_ner_model("nonexistent/model")

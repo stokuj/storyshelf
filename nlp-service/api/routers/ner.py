@@ -6,7 +6,13 @@ from api.tasks.ner_task import extract_entities_task
 router = APIRouter(prefix="/chapters", tags=["ner"])
 
 
-@router.post("/{chapterId}/ner", status_code=202, response_model=AcceptedResponse)
+@router.post(
+    "/{chapterId}/ner",
+    summary="Extract entities (NER)",
+    description="Triggers an asynchronous task to identify characters, locations, and organizations using a pre-trained Transformer model.",
+    status_code=202,
+    response_model=AcceptedResponse,
+)
 @limiter.limit("30/minute")
 def ner_by_content(
     request: Request, chapterId: int | str, payload: ChapterContentPayload
