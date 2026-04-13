@@ -42,3 +42,4 @@ src/main/resources/application-local.properties
 .classpath
 .project
 .factorypath
+.settings/org.eclipse.jdt.core.prefs
