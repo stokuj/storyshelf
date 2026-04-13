@@ -23,7 +23,7 @@ public class AuthService {
     @Transactional
     public User registerUser(RegisterRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new ConflictException("A user with this email address already exists.");
+            throw new ConflictException("Email is already taken.");
         }
         if (userRepository.existsByUsername(request.username())) {
             throw new ConflictException("Username is already taken.");

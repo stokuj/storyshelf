@@ -40,17 +40,11 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
 
-    @Mock
-    BookRepository bookRepository;
+    @Mock BookRepository bookRepository;
+    @Mock AuthorRepository authorRepository;
+    @Mock TagRepository tagRepository;
 
-    @Mock
-    AuthorRepository authorRepository;
-
-    @Mock
-    TagRepository tagRepository;
-
-    @InjectMocks
-    BookService bookService;
+    @InjectMocks BookService bookService;
 
     // ========== getById ==========
 

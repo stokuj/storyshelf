@@ -26,17 +26,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Endpoints for user registration and authentication")
-public class AuthApiController {
+public class AuthController {
 
     private final AuthService authService;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
     private final UserService userService;
 
-    public AuthApiController(AuthService authService,
-                             AuthenticationManager authenticationManager,
-                             SecurityContextRepository securityContextRepository,
-                             UserService userService) {
+    public AuthController(AuthService authService,
+                          AuthenticationManager authenticationManager,
+                          SecurityContextRepository securityContextRepository,
+                          UserService userService) {
         this.authService = authService;
         this.authenticationManager = authenticationManager;
         this.securityContextRepository = securityContextRepository;
