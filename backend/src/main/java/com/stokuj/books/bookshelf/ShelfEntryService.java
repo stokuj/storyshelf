@@ -59,8 +59,8 @@ public class ShelfEntryService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
 
-        ReadingStatus status = (request != null && request.getStatus() != null)
-                ? request.getStatus()
+        ReadingStatus status = (request != null && request.status() != null)
+                ? request.status()
                 : ReadingStatus.WANT_TO_READ;
 
         ShelfEntry shelfEntry = new ShelfEntry();
@@ -80,11 +80,11 @@ public class ShelfEntryService {
         ShelfEntry shelfEntry = shelfEntryRepository.findByUserEmailAndBookId(email, bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book is not on your shelf"));
 
-        if (request == null || request.getStatus() == null) {
+        if (request == null || request.status() == null) {
             throw new ResourceNotFoundException("Status is required");
         }
 
-        shelfEntry.setStatus(request.getStatus());
+        shelfEntry.setStatus(request.status());
         shelfEntryRepository.save(shelfEntry);
 
         return new ShelfEntryResponse(

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public record SeriesRequest(
         @NotBlank(message = "Series name is required")
-        @Size(max = 255, message = "Name cannot exceed 255 characters")
+        @Size(min = 10, max = 255, message = "Name cannot exceed 255 characters")
         String name,
 
         String description,

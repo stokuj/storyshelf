@@ -43,8 +43,8 @@ public class ReviewService {
         Review review = new Review();
         review.setBook(book);
         review.setUser(user);
-        review.setRating(request.getRating());
-        review.setContent(normalizeContent(request.getContent()));
+        review.setRating(request.rating());
+        review.setContent(normalizeContent(request.content()));
         Review saved = reviewRepository.save(review);
 
         updateBookRatings(bookId, book);
