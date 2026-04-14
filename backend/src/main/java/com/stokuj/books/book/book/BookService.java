@@ -8,8 +8,9 @@ import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.author.AuthorRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.stokuj.books.book.tag.Tag;
@@ -108,8 +109,8 @@ public class BookService {
         if (request.genres() != null) {
             existing.setGenres(request.genres());
         }
-        if (request.tagIds() != null) {
-            updateTagsByIds(existing, request.tagIds());
+        if (request.tags() != null) {
+            updateTagsByNames(existing, request.tags());
         }
 
         return toDto(bookRepository.save(existing));
@@ -127,7 +128,7 @@ public class BookService {
         book.setPageCount(request.pageCount());
         book.setGenres(request.genres());
         updateAuthorById(book, request.authorId());
-        updateTagsByIds(book, request.tagIds());
+        updateTagsByNames(book, request.tags());
     }
 
     private void updateAuthorById(Book book, Long authorId) {
@@ -144,21 +145,29 @@ public class BookService {
         book.getBookAuthors().add(bookAuthor);
     }
 
-    private void updateTagsByIds(Book book, Set<Long> tagIds) {
+    private void updateTagsByNames(Book book, Set<String> tagNames) {
         book.getBookTags().clear();
-        if (tagIds == null) {
+        if (tagNames == null) {
             return;
         }
-        Set<Long> normalizedTagIds = new LinkedHashSet<>();
-        for (Long tagId : tagIds) {
-            if (tagId == null) {
+        Map<String, String> normalizedTagNames = new LinkedHashMap<>();
+        for (String tagName : tagNames) {
+            if (tagName == null) {
                 continue;
             }
-            normalizedTagIds.add(tagId);
+            String normalizedTagName = tagName.trim();
+            if (normalizedTagName.isEmpty()) {
+                continue;
+            }
+            normalizedTagNames.putIfAbsent(normalizedTagName.toLowerCase(), normalizedTagName);
         }
-        for (Long tagId : normalizedTagIds) {
-            Tag tag = tagRepository.findById(tagId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Tag not found"));
+        for (String tagName : normalizedTagNames.values()) {
+            Tag tag = tagRepository.findByNameIgnoreCase(tagName)
+                    .orElseGet(() -> {
+                        Tag newTag = new Tag();
+                        newTag.setName(tagName);
+                        return tagRepository.save(newTag);
+                    });
             BookTag bookTag = new BookTag();
             bookTag.setBook(book);
             bookTag.setTag(tag);

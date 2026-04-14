@@ -24,15 +24,14 @@ public record BookRequest(
         int pageCount,
 
         Set<String> genres,
-
-        Set<Long> tagIds
+        Set<String> tags
 ) {
     public BookRequest {
         if (genres == null) {
             genres = new HashSet<>();
         }
-        if (tagIds == null) {
-            tagIds = new HashSet<>();
+        if (tags == null) {
+            tags = new HashSet<>();
         }
     }
 }

@@ -63,9 +63,9 @@ class BookDtoTest {
         }
 
         @Test
-        void shouldDefaultTagIdsToEmptySetWhenNull() {
+        void shouldDefaultTagsToEmptySetWhenNull() {
             BookRequest request = new BookRequest("Dune", 1L, 1965, null, null, 412, null, null);
-            assertThat(request.tagIds()).isNotNull().isEmpty();
+            assertThat(request.tags()).isNotNull().isEmpty();
         }
 
         // --- title ---
@@ -140,7 +140,7 @@ class BookDtoTest {
 
         @Test
         void shouldPassWhenAllFieldsAreValid() {
-            BookPatchRequest request = new BookPatchRequest("Dune", 1L, 1965, "978-0441013593", "A great book.", 412, Set.of("sci-fi"), Set.of(1L));
+            BookPatchRequest request = new BookPatchRequest("Dune", 1L, 1965, "978-0441013593", "A great book.", 412, Set.of("sci-fi"), Set.of("classic"));
             assertThat(validator.validate(request)).isEmpty();
         }
 

@@ -25,6 +25,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -115,15 +116,15 @@ class BookServiceTest {
                     "desc",
                     412,
                     Set.of("Sci-Fi"),
-                    Set.of(100L, 101L)
+                    Set.of("classic", "space")
             );
             Author author = author(10L, "Frank Herbert");
             Tag t1 = tag(100L, "classic");
             Tag t2 = tag(101L, "space");
             given(authorRepository.findById(10L)).willReturn(Optional.of(author));
-            given(tagRepository.findById(100L)).willReturn(Optional.of(t1));
-            given(tagRepository.findById(101L)).willReturn(Optional.of(t2));
-            given(bookRepository.save(org.mockito.ArgumentMatchers.any(Book.class)))
+            given(tagRepository.findByNameIgnoreCase("classic")).willReturn(Optional.of(t1));
+            given(tagRepository.findByNameIgnoreCase("space")).willReturn(Optional.of(t2));
+            given(bookRepository.save(any(Book.class)))
                     .willAnswer(invocation -> invocation.getArgument(0));
 
             BookResponse result = bookService.create(request);
@@ -150,14 +151,20 @@ class BookServiceTest {
         }
 
         @Test
-        void shouldThrowWhenTagMissingOnCreate() {
-            BookRequest request = new BookRequest("Dune", 10L, 1965, null, null, 412, Set.of(), Set.of(777L));
+        void shouldCreateMissingTagsOnCreate() {
+            BookRequest request = new BookRequest("Dune", 10L, 1965, null, null, 412, Set.of(), Set.of("new-tag"));
+            Tag newTag = tag(777L, "new-tag");
             given(authorRepository.findById(10L)).willReturn(Optional.of(author(10L, "Frank Herbert")));
-            given(tagRepository.findById(777L)).willReturn(Optional.empty());
+            given(tagRepository.findByNameIgnoreCase("new-tag")).willReturn(Optional.empty());
+            given(tagRepository.save(any(Tag.class))).willReturn(newTag);
+            given(bookRepository.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-            assertThatThrownBy(() -> bookService.create(request))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage("Tag not found");
+            BookResponse result = bookService.create(request);
+
+            ArgumentCaptor<Tag> tagCaptor = ArgumentCaptor.forClass(Tag.class);
+            verify(tagRepository).save(tagCaptor.capture());
+            assertThat(getField(tagCaptor.getValue(), "name")).isEqualTo("new-tag");
+            assertThat(result.tags()).containsExactly("new-tag");
         }
 
         @Test
@@ -199,10 +206,10 @@ class BookServiceTest {
         @Test
         void shouldPatchAuthorAndTagsWhenProvided() {
             Book existing = book(1L, "Dune", 1965);
-            BookPatchRequest patch = new BookPatchRequest(null, 10L, null, null, null, null, null, Set.of(100L));
+            BookPatchRequest patch = new BookPatchRequest(null, 10L, null, null, null, null, null, Set.of("classic"));
             given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
             given(authorRepository.findById(10L)).willReturn(Optional.of(author(10L, "Frank Herbert")));
-            given(tagRepository.findById(100L)).willReturn(Optional.of(tag(100L, "classic")));
+            given(tagRepository.findByNameIgnoreCase("classic")).willReturn(Optional.of(tag(100L, "classic")));
             given(bookRepository.save(existing)).willReturn(existing);
 
             bookService.patch(1L, patch);

@@ -161,7 +161,7 @@ class BookControllerTest {
 
         @Test
         void shouldCreateBook() {
-            BookRequest request = new BookRequest("Dune", 1L, 1965, null, null, 412, Set.of("Sci-Fi"), Set.of(1L));
+            BookRequest request = new BookRequest("Dune", 1L, 1965, null, null, 412, Set.of("Sci-Fi"), Set.of("classic"));
             BookResponse created = bookResponse(1L, "Dune");
             given(bookService.create(request)).willReturn(created);
 
@@ -173,7 +173,7 @@ class BookControllerTest {
 
         @Test
         void shouldUpdateBook() {
-            BookRequest request = new BookRequest("Dune", 1L, 1965, null, null, 412, Set.of("Sci-Fi"), Set.of(1L));
+            BookRequest request = new BookRequest("Dune", 1L, 1965, null, null, 412, Set.of("Sci-Fi"), Set.of("classic"));
             BookResponse updated = bookResponse(1L, "Dune");
             given(bookService.update(1L, request)).willReturn(updated);
 

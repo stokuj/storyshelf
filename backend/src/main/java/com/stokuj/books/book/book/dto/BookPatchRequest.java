@@ -20,5 +20,5 @@ public record BookPatchRequest(
     Integer pageCount,
 
     Set<String> genres,
-    Set<Long> tagIds
+    Set<String> tags
 ) {}
