@@ -106,6 +106,6 @@ jobs:
           port: 22
           script: |
             cd /opt/storyweave
-            docker compose -f infrastructure/docker-compose.prod.yml pull frontend backend caddy
-            docker compose -f infrastructure/docker-compose.prod.yml up -d --force-recreate frontend backend caddy
-            docker compose -f infrastructure/docker-compose.prod.yml ps
+            docker compose -f docker-compose.prod.yml pull frontend backend caddy
+            docker compose -f docker-compose.prod.yml up -d --force-recreate frontend backend caddy
+            docker compose -f docker-compose.prod.yml ps
