@@ -90,8 +90,8 @@ public class BookService {
         if (request.title() != null) {
             existing.setTitle(request.title());
         }
-        if (request.author() != null) {
-            updateAuthors(existing, request.author());
+        if (request.authorId() != null) {
+            updateAuthorById(existing, request.authorId());
         }
         if (request.year() != null) {
             existing.setYear(request.year());
@@ -108,8 +108,8 @@ public class BookService {
         if (request.genres() != null) {
             existing.setGenres(request.genres());
         }
-        if (request.tags() != null) {
-            updateTags(existing, request.tags());
+        if (request.tagIds() != null) {
+            updateTagsByIds(existing, request.tagIds());
         }
 
         return toDto(bookRepository.save(existing));
@@ -126,22 +126,17 @@ public class BookService {
         book.setDescription(request.description());
         book.setPageCount(request.pageCount());
         book.setGenres(request.genres());
-        updateAuthors(book, request.author());
-        updateTags(book, request.tags());
+        updateAuthorById(book, request.authorId());
+        updateTagsByIds(book, request.tagIds());
     }
 
-    private void updateAuthors(Book book, String authorName) {
+    private void updateAuthorById(Book book, Long authorId) {
         book.getBookAuthors().clear();
-        if (authorName == null || authorName.isBlank()) {
+        if (authorId == null) {
             return;
         }
-        String normalized = authorName.trim();
-        Author author = authorRepository.findByNameIgnoreCase(normalized)
-                .orElseGet(() -> {
-                    Author created = new Author();
-                    created.setName(normalized);
-                    return authorRepository.save(created);
-                });
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
         BookAuthor bookAuthor = new BookAuthor();
         bookAuthor.setBook(book);
         bookAuthor.setAuthor(author);
@@ -149,29 +144,21 @@ public class BookService {
         book.getBookAuthors().add(bookAuthor);
     }
 
-    private void updateTags(Book book, List<String> tags) {
+    private void updateTagsByIds(Book book, Set<Long> tagIds) {
         book.getBookTags().clear();
-        if (tags == null) {
+        if (tagIds == null) {
             return;
         }
-        Set<String> normalizedTags = new LinkedHashSet<>();
-        for (String tagName : tags) {
-            if (tagName == null) {
+        Set<Long> normalizedTagIds = new LinkedHashSet<>();
+        for (Long tagId : tagIds) {
+            if (tagId == null) {
                 continue;
             }
-            String trimmed = tagName.trim();
-            if (trimmed.isEmpty()) {
-                continue;
-            }
-            normalizedTags.add(trimmed);
+            normalizedTagIds.add(tagId);
         }
-        for (String name : normalizedTags) {
-            Tag tag = tagRepository.findByNameIgnoreCase(name)
-                    .orElseGet(() -> {
-                        Tag created = new Tag();
-                        created.setName(name);
-                        return tagRepository.save(created);
-                    });
+        for (Long tagId : normalizedTagIds) {
+            Tag tag = tagRepository.findById(tagId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Tag not found"));
             BookTag bookTag = new BookTag();
             bookTag.setBook(book);
             bookTag.setTag(tag);
