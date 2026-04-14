@@ -87,29 +87,29 @@ public class BookService {
     public BookResponse patch(Long id, BookPatchRequest request) {
         Book existing = getEntityById(id);
 
-        if (request.getTitle() != null) {
-            existing.setTitle(request.getTitle());
+        if (request.title() != null) {
+            existing.setTitle(request.title());
         }
-        if (request.getAuthor() != null) {
-            updateAuthors(existing, request.getAuthor());
+        if (request.author() != null) {
+            updateAuthors(existing, request.author());
         }
-        if (request.getYear() != null) {
-            existing.setYear(request.getYear());
+        if (request.year() != null) {
+            existing.setYear(request.year());
         }
-        if (request.getIsbn() != null) {
-            existing.setIsbn(request.getIsbn());
+        if (request.isbn() != null) {
+            existing.setIsbn(request.isbn());
         }
-        if (request.getDescription() != null) {
-            existing.setDescription(request.getDescription());
+        if (request.description() != null) {
+            existing.setDescription(request.description());
         }
-        if (request.getPageCount() != null) {
-            existing.setPageCount(request.getPageCount());
+        if (request.pageCount() != null) {
+            existing.setPageCount(request.pageCount());
         }
-        if (request.getGenres() != null) {
-            existing.setGenres(request.getGenres());
+        if (request.genres() != null) {
+            existing.setGenres(request.genres());
         }
-        if (request.getTags() != null) {
-            updateTags(existing, request.getTags());
+        if (request.tags() != null) {
+            updateTags(existing, request.tags());
         }
 
         return toDto(bookRepository.save(existing));
@@ -120,14 +120,14 @@ public class BookService {
     }
 
     private void mapRequestToBook(BookRequest request, Book book) {
-        book.setTitle(request.getTitle());
-        book.setYear(request.getYear());
-        book.setIsbn(request.getIsbn());
-        book.setDescription(request.getDescription());
-        book.setPageCount(request.getPageCount());
-        book.setGenres(request.getGenres());
-        updateAuthors(book, request.getAuthor());
-        updateTags(book, request.getTags());
+        book.setTitle(request.title());
+        book.setYear(request.year());
+        book.setIsbn(request.isbn());
+        book.setDescription(request.description());
+        book.setPageCount(request.pageCount());
+        book.setGenres(request.genres());
+        updateAuthors(book, request.author());
+        updateTags(book, request.tags());
     }
 
     private void updateAuthors(Book book, String authorName) {

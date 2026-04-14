@@ -1,31 +1,26 @@
 package com.stokuj.books.book.book.dto;
 
-import java.util.List;
-import java.util.Set;
-import lombok.Getter;
-import lombok.Setter;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+import java.util.List;
+import java.util.Set;
 
-@Getter
-@Setter
-public class BookPatchRequest {
-
+public record BookPatchRequest(
     @Size(max = 255, message = "Title is too long")
-    private String title;
+    String title,
 
     @Size(max = 255, message = "Author name is too long")
-    private String author;
+    String author,
 
     @Min(value = 0, message = "Year must be positive")
-    private Integer year;
+    Integer year,
 
-    private String isbn;
-    private String description;
+    String isbn,
+    String description,
 
     @Min(value = 0, message = "Page count must be positive")
-    private Integer pageCount;
+    Integer pageCount,
 
-    private Set<String> genres;
-    private List<String> tags;
-}
+    Set<String> genres,
+    List<String> tags
+) {}

@@ -2,16 +2,12 @@ package com.stokuj.books.bookshelf.dto;
 
 import com.stokuj.books.bookshelf.ReadingStatus;
 import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
-public class ShelfEntryResponse {
+public record ShelfEntryResponse(
+    BookSummary book,
+    ReadingStatus status,
+    Instant createdAt
+) {
 
     public record BookSummary(Long id, String title, String author) {}
-
-    private BookSummary book;
-    private ReadingStatus status;
-    private Instant createdAt;
 }

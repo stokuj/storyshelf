@@ -1,12 +1,5 @@
 package com.stokuj.books.integration.dto;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-public class BookFindPairsResult {
-
-    private List<PairResult> pairs;
-}
+public record BookFindPairsResult(List<PairResult> pairs) {}

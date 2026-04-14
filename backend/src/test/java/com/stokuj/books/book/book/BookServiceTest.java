@@ -116,12 +116,16 @@ class BookServiceTest {
     @Test
     void shouldCreateBookFromRequest() {
         // given
-        var request = new BookRequest();
-        request.setTitle("Dune");
-        request.setAuthor("Herbert");
-        request.setYear(1965);
-        request.setIsbn("978-0441013593");
-        request.setGenres(Set.of("Sci-Fi"));
+        var request = new BookRequest(
+                "Dune",
+                "Herbert",
+                1965,
+                "978-0441013593",
+                null,
+                0,
+                Set.of("Sci-Fi"),
+                null
+        );
 
         var savedBook = new Book();
         savedBook.setId(1L);
@@ -152,10 +156,16 @@ class BookServiceTest {
         existing.setId(1L);
         existing.setTitle("Old Title");
 
-        var request = new BookRequest();
-        request.setTitle("Dune");
-        request.setAuthor("Herbert");
-        request.setYear(1965);
+        var request = new BookRequest(
+                "Dune",
+                "Herbert",
+                1965,
+                null,
+                null,
+                0,
+                null,
+                null
+        );
 
         given(authorRepository.findByNameIgnoreCase("Herbert"))
                 .willReturn(Optional.of(makeAuthor("Herbert")));
@@ -178,7 +188,16 @@ class BookServiceTest {
         given(bookRepository.findById(99L)).willReturn(Optional.empty());
 
         // when / then
-        assertThatThrownBy(() -> bookService.update(99L, new BookRequest()))
+        assertThatThrownBy(() -> bookService.update(99L, new BookRequest(
+                "Dune",
+                "Herbert",
+                1965,
+                null,
+                null,
+                0,
+                null,
+                null
+        )))
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(bookRepository, never()).save(any());
@@ -194,8 +213,16 @@ class BookServiceTest {
         existing.setTitle("Old Title");
         existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
 
-        var patchRequest = new BookPatchRequest();
-        patchRequest.setTitle("New Title");
+        var patchRequest = new BookPatchRequest(
+                "New Title",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
         // author = null -> should not be overwritten
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
@@ -222,7 +249,7 @@ class BookServiceTest {
         given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
 
         // when
-        var result = bookService.patch(1L, new BookPatchRequest()); // all fields null
+        var result = bookService.patch(1L, new BookPatchRequest(null, null, null, null, null, null, null, null)); // all fields null
 
         // then
         assertThat(result.title()).isEqualTo("Old Title");
@@ -239,10 +266,16 @@ class BookServiceTest {
         existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
         existing.setYear(2000);
 
-        var request = new BookPatchRequest();
-        request.setTitle("New Title");
-        request.setAuthor("New Author");
-        request.setYear(2024);
+        var request = new BookPatchRequest(
+                "New Title",
+                "New Author",
+                2024,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
 
         given(authorRepository.findByNameIgnoreCase("New Author"))
                 .willReturn(Optional.of(makeAuthor("New Author")));
@@ -265,7 +298,7 @@ class BookServiceTest {
         given(bookRepository.findById(99L)).willReturn(Optional.empty());
 
         // when / then
-        assertThatThrownBy(() -> bookService.patch(99L, new BookPatchRequest()))
+        assertThatThrownBy(() -> bookService.patch(99L, new BookPatchRequest(null, null, null, null, null, null, null, null)))
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(bookRepository, never()).save(any());
@@ -280,9 +313,16 @@ class BookServiceTest {
         existing.setGenres(Set.of("Sci-Fi"));
         existing.getBookTags().add(makeBookTag(existing, "classic"));
 
-        var request = new BookPatchRequest();
-        request.setGenres(Set.of("Sci-Fi", "Adventure"));
-        request.setTags(List.of("classic", "must-read"));
+        var request = new BookPatchRequest(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Set.of("Sci-Fi", "Adventure"),
+                List.of("classic", "must-read")
+        );
 
         given(tagRepository.findByNameIgnoreCase("classic"))
                 .willReturn(Optional.of(makeTag("classic")));
@@ -311,10 +351,16 @@ class BookServiceTest {
         existing.setDescription("Stary opis");
         existing.setPageCount(100);
 
-        var request = new BookPatchRequest();
-        request.setIsbn("978-0441013593");
-        request.setDescription("Nowy opis");
-        request.setPageCount(412);
+        var request = new BookPatchRequest(
+                null,
+                null,
+                null,
+                "978-0441013593",
+                "Nowy opis",
+                412,
+                null,
+                null
+        );
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
         given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));

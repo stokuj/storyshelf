@@ -97,8 +97,7 @@ public class AnalysisResultConsumer {
             nerPayload = payload;
         }
 
-        NerResult result = new NerResult();
-        result.setCharacters(asStringIntMap(nerPayload.get("characters")));
+        NerResult result = new NerResult(asStringIntMap(nerPayload.get("characters")));
         nerResultProcessor.process(chapter, result);
     }
 
@@ -120,8 +119,7 @@ public class AnalysisResultConsumer {
             return;
         }
 
-        BookFindPairsResult result = new BookFindPairsResult();
-        result.setPairs(asPairResults(payload.get("pairs")));
+        BookFindPairsResult result = new BookFindPairsResult(asPairResults(payload.get("pairs")));
         relationsResultProcessor.processFindPairsResult(book, result);
     }
 
@@ -212,9 +210,7 @@ public class AnalysisResultConsumer {
                     if (!(pairObj instanceof List<?> pairRaw)) {
                         return null;
                     }
-                    PairResult pairResult = new PairResult();
-                    pairResult.setPair(pairRaw.stream().map(String::valueOf).toList());
-                    return pairResult;
+                    return new PairResult(pairRaw.stream().map(String::valueOf).toList());
                 })
                 .filter(java.util.Objects::nonNull)
                 .toList();
