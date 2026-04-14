@@ -1,31 +1,37 @@
 package com.stokuj.books.book.book.dto;
 
-import java.util.List;
-import java.util.Set;
-import lombok.Getter;
-import lombok.Setter;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-@Getter
-@Setter
-public class BookRequest {
+import java.util.HashSet;
+import java.util.Set;
 
-    @NotBlank(message = "Title is required")
-    private String title;
+public record BookRequest(
+        @NotBlank(message = "Title is required")
+        String title,
 
-    @NotBlank(message = "Author is required")
-    private String author;
+        @NotNull(message = "Author is required")
+        Long authorId,
 
-    @Min(value = 0, message = "Year must be positive")
-    private int year;
+        @Min(value = 1, message = "Year must be a positive number")
+        int year,
 
-    private String isbn;
-    private String description;
+        String isbn,
+        String description,
 
-    @Min(value = 0, message = "Page count must be positive")
-    private int pageCount;
+        @Min(value = 1, message = "Page count must be positive")
+        int pageCount,
 
-    private Set<String> genres;
-    private List<String> tags;
+        Set<String> genres,
+        Set<String> tags
+) {
+    public BookRequest {
+        if (genres == null) {
+            genres = new HashSet<>();
+        }
+        if (tags == null) {
+            tags = new HashSet<>();
+        }
+    }
 }

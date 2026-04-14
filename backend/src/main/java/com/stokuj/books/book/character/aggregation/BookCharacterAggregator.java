@@ -22,10 +22,10 @@ public class BookCharacterAggregator {
     }
 
     public void applyNerResult(Book book, NerResult result) {
-        if (result.getCharacters() == null) {
+        if (result.characters() == null) {
             return;
         }
-        result.getCharacters().forEach((name, count) -> {
+        result.characters().forEach((name, count) -> {
             String normalized = normalizeName(name);
             if (normalized == null) {
                 return;

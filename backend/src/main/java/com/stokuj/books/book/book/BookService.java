@@ -8,8 +8,9 @@ import com.stokuj.books.exception.ResourceNotFoundException;
 import com.stokuj.books.author.AuthorRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.stokuj.books.book.tag.Tag;
@@ -87,29 +88,29 @@ public class BookService {
     public BookResponse patch(Long id, BookPatchRequest request) {
         Book existing = getEntityById(id);
 
-        if (request.getTitle() != null) {
-            existing.setTitle(request.getTitle());
+        if (request.title() != null) {
+            existing.setTitle(request.title());
         }
-        if (request.getAuthor() != null) {
-            updateAuthors(existing, request.getAuthor());
+        if (request.authorId() != null) {
+            updateAuthorById(existing, request.authorId());
         }
-        if (request.getYear() != null) {
-            existing.setYear(request.getYear());
+        if (request.year() != null) {
+            existing.setYear(request.year());
         }
-        if (request.getIsbn() != null) {
-            existing.setIsbn(request.getIsbn());
+        if (request.isbn() != null) {
+            existing.setIsbn(request.isbn());
         }
-        if (request.getDescription() != null) {
-            existing.setDescription(request.getDescription());
+        if (request.description() != null) {
+            existing.setDescription(request.description());
         }
-        if (request.getPageCount() != null) {
-            existing.setPageCount(request.getPageCount());
+        if (request.pageCount() != null) {
+            existing.setPageCount(request.pageCount());
         }
-        if (request.getGenres() != null) {
-            existing.setGenres(request.getGenres());
+        if (request.genres() != null) {
+            existing.setGenres(request.genres());
         }
-        if (request.getTags() != null) {
-            updateTags(existing, request.getTags());
+        if (request.tags() != null) {
+            updateTagsByNames(existing, request.tags());
         }
 
         return toDto(bookRepository.save(existing));
@@ -120,28 +121,23 @@ public class BookService {
     }
 
     private void mapRequestToBook(BookRequest request, Book book) {
-        book.setTitle(request.getTitle());
-        book.setYear(request.getYear());
-        book.setIsbn(request.getIsbn());
-        book.setDescription(request.getDescription());
-        book.setPageCount(request.getPageCount());
-        book.setGenres(request.getGenres());
-        updateAuthors(book, request.getAuthor());
-        updateTags(book, request.getTags());
+        book.setTitle(request.title());
+        book.setYear(request.year());
+        book.setIsbn(request.isbn());
+        book.setDescription(request.description());
+        book.setPageCount(request.pageCount());
+        book.setGenres(request.genres());
+        updateAuthorById(book, request.authorId());
+        updateTagsByNames(book, request.tags());
     }
 
-    private void updateAuthors(Book book, String authorName) {
+    private void updateAuthorById(Book book, Long authorId) {
         book.getBookAuthors().clear();
-        if (authorName == null || authorName.isBlank()) {
+        if (authorId == null) {
             return;
         }
-        String normalized = authorName.trim();
-        Author author = authorRepository.findByNameIgnoreCase(normalized)
-                .orElseGet(() -> {
-                    Author created = new Author();
-                    created.setName(normalized);
-                    return authorRepository.save(created);
-                });
+        Author author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
         BookAuthor bookAuthor = new BookAuthor();
         bookAuthor.setBook(book);
         bookAuthor.setAuthor(author);
@@ -149,28 +145,28 @@ public class BookService {
         book.getBookAuthors().add(bookAuthor);
     }
 
-    private void updateTags(Book book, List<String> tags) {
+    private void updateTagsByNames(Book book, Set<String> tagNames) {
         book.getBookTags().clear();
-        if (tags == null) {
+        if (tagNames == null) {
             return;
         }
-        Set<String> normalizedTags = new LinkedHashSet<>();
-        for (String tagName : tags) {
+        Map<String, String> normalizedTagNames = new LinkedHashMap<>();
+        for (String tagName : tagNames) {
             if (tagName == null) {
                 continue;
             }
-            String trimmed = tagName.trim();
-            if (trimmed.isEmpty()) {
+            String normalizedTagName = tagName.trim();
+            if (normalizedTagName.isEmpty()) {
                 continue;
             }
-            normalizedTags.add(trimmed);
+            normalizedTagNames.putIfAbsent(normalizedTagName.toLowerCase(), normalizedTagName);
         }
-        for (String name : normalizedTags) {
-            Tag tag = tagRepository.findByNameIgnoreCase(name)
+        for (String tagName : normalizedTagNames.values()) {
+            Tag tag = tagRepository.findByNameIgnoreCase(tagName)
                     .orElseGet(() -> {
-                        Tag created = new Tag();
-                        created.setName(name);
-                        return tagRepository.save(created);
+                        Tag newTag = new Tag();
+                        newTag.setName(tagName);
+                        return tagRepository.save(newTag);
                     });
             BookTag bookTag = new BookTag();
             bookTag.setBook(book);

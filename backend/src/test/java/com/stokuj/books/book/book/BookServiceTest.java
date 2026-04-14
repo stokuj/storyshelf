@@ -9,12 +9,16 @@ import com.stokuj.books.book.tag.BookTag;
 import com.stokuj.books.book.tag.Tag;
 import com.stokuj.books.book.tag.TagRepository;
 import com.stokuj.books.exception.ResourceNotFoundException;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,350 +27,259 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
 
-    @Mock BookRepository bookRepository;
-    @Mock AuthorRepository authorRepository;
-    @Mock TagRepository tagRepository;
+    @Mock
+    BookRepository bookRepository;
 
-    @InjectMocks BookService bookService;
+    @Mock
+    AuthorRepository authorRepository;
 
-    // ========== getById ==========
+    @Mock
+    TagRepository tagRepository;
 
-    @Test
-    void shouldReturnBookById() {
-        // given
-        var book = new Book();
-        book.setId(1L);
-        book.setTitle("Dune");
-        book.getBookAuthors().add(makeBookAuthor(book, "Herbert"));
+    @InjectMocks
+    BookService bookService;
 
-        given(bookRepository.findById(1L)).willReturn(Optional.of(book));
+    @Nested
+    class Querying {
 
-        // when
-        var result = bookService.getById(1L);
+        @Test
+        void shouldReturnAllBooks() {
+            Book dune = book(1L, "Dune", 1965);
+            Book foundation = book(2L, "Foundation", 1951);
+            given(bookRepository.findAll()).willReturn(List.of(dune, foundation));
 
-        // then
-        assertThat(result.title()).isEqualTo("Dune");
-        assertThat(result.author()).isEqualTo("Herbert");
+            List<BookResponse> result = bookService.getAll();
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).title()).isEqualTo("Dune");
+            assertThat(result.get(1).title()).isEqualTo("Foundation");
+        }
+
+        @Test
+        void shouldSearchAllWhenQueryIsBlank() {
+            given(bookRepository.findAll()).willReturn(List.of(book(1L, "Dune", 1965)));
+
+            List<BookResponse> result = bookService.search("   ");
+
+            assertThat(result).hasSize(1);
+            verify(bookRepository).findAll();
+        }
+
+        @Test
+        void shouldSearchByTrimmedQuery() {
+            Book dune = book(1L, "Dune", 1965);
+            given(bookRepository.searchByTitleAuthorOrGenre("Dune", "Dune", "Dune")).willReturn(List.of(dune));
+
+            List<BookResponse> result = bookService.search("  Dune  ");
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().title()).isEqualTo("Dune");
+            verify(bookRepository).searchByTitleAuthorOrGenre("Dune", "Dune", "Dune");
+        }
+
+        @Test
+        void shouldGetBookById() {
+            Book dune = book(1L, "Dune", 1965);
+            given(bookRepository.findById(1L)).willReturn(Optional.of(dune));
+
+            BookResponse result = bookService.getById(1L);
+
+            assertThat(result.id()).isEqualTo(1L);
+            assertThat(result.title()).isEqualTo("Dune");
+        }
+
+        @Test
+        void shouldThrowWhenBookNotFound() {
+            given(bookRepository.findById(999L)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookService.getById(999L))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Book not found");
+        }
+    }
+
+    @Nested
+    class CreateAndUpdate {
+
+        @Test
+        void shouldCreateBookWithAuthorAndTags() {
+            BookRequest request = new BookRequest(
+                    "Dune",
+                    10L,
+                    1965,
+                    "isbn",
+                    "desc",
+                    412,
+                    Set.of("Sci-Fi"),
+                    Set.of("classic", "space")
+            );
+            Author author = author(10L, "Frank Herbert");
+            Tag t1 = tag(100L, "classic");
+            Tag t2 = tag(101L, "space");
+            given(authorRepository.findById(10L)).willReturn(Optional.of(author));
+            given(tagRepository.findByNameIgnoreCase("classic")).willReturn(Optional.of(t1));
+            given(tagRepository.findByNameIgnoreCase("space")).willReturn(Optional.of(t2));
+            given(bookRepository.save(any(Book.class)))
+                    .willAnswer(invocation -> invocation.getArgument(0));
+
+            BookResponse result = bookService.create(request);
+
+            ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
+            verify(bookRepository).save(captor.capture());
+            Book saved = captor.getValue();
+            assertThat(getField(saved, "title")).isEqualTo("Dune");
+            assertThat(getField(saved, "year")).isEqualTo(1965);
+            assertThat(getField(saved, "pageCount")).isEqualTo(412);
+            assertThat((List<?>) getField(saved, "bookAuthors")).hasSize(1);
+            assertThat((List<?>) getField(saved, "bookTags")).hasSize(2);
+            assertThat(result.title()).isEqualTo("Dune");
+        }
+
+        @Test
+        void shouldThrowWhenAuthorMissingOnCreate() {
+            BookRequest request = new BookRequest("Dune", 10L, 1965, null, null, 412, Set.of(), Set.of());
+            given(authorRepository.findById(10L)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookService.create(request))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Author not found");
+        }
+
+        @Test
+        void shouldCreateMissingTagsOnCreate() {
+            BookRequest request = new BookRequest("Dune", 10L, 1965, null, null, 412, Set.of(), Set.of("new-tag"));
+            Tag newTag = tag(777L, "new-tag");
+            given(authorRepository.findById(10L)).willReturn(Optional.of(author(10L, "Frank Herbert")));
+            given(tagRepository.findByNameIgnoreCase("new-tag")).willReturn(Optional.empty());
+            given(tagRepository.save(any(Tag.class))).willReturn(newTag);
+            given(bookRepository.save(any(Book.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+            BookResponse result = bookService.create(request);
+
+            ArgumentCaptor<Tag> tagCaptor = ArgumentCaptor.forClass(Tag.class);
+            verify(tagRepository).save(tagCaptor.capture());
+            assertThat(getField(tagCaptor.getValue(), "name")).isEqualTo("new-tag");
+            assertThat(result.tags()).containsExactly("new-tag");
+        }
+
+        @Test
+        void shouldUpdateBook() {
+            Book existing = book(1L, "Old", 1900);
+            BookRequest request = new BookRequest("New", 10L, 1965, null, null, 300, Set.of("Drama"), Set.of());
+            given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+            given(authorRepository.findById(10L)).willReturn(Optional.of(author(10L, "Frank Herbert")));
+            given(bookRepository.save(existing)).willReturn(existing);
+
+            BookResponse result = bookService.update(1L, request);
+
+            assertThat(result.title()).isEqualTo("New");
+            assertThat(getField(existing, "year")).isEqualTo(1965);
+            assertThat((Set<String>) getField(existing, "genres")).contains("Drama");
+        }
+    }
+
+    @Nested
+    class Patch {
+
+        @Test
+        void shouldPatchOnlyProvidedFields() {
+            Book existing = book(1L, "Dune", 1965);
+            setField(existing, "pageCount", 412);
+            setField(existing, "description", "old");
+            BookPatchRequest patch = new BookPatchRequest("Dune Messiah", null, null, null, null, null, null, null);
+            given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+            given(bookRepository.save(existing)).willReturn(existing);
+
+            BookResponse result = bookService.patch(1L, patch);
+
+            assertThat(result.title()).isEqualTo("Dune Messiah");
+            assertThat(getField(existing, "year")).isEqualTo(1965);
+            assertThat(getField(existing, "pageCount")).isEqualTo(412);
+            assertThat(getField(existing, "description")).isEqualTo("old");
+        }
+
+        @Test
+        void shouldPatchAuthorAndTagsWhenProvided() {
+            Book existing = book(1L, "Dune", 1965);
+            BookPatchRequest patch = new BookPatchRequest(null, 10L, null, null, null, null, null, Set.of("classic"));
+            given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+            given(authorRepository.findById(10L)).willReturn(Optional.of(author(10L, "Frank Herbert")));
+            given(tagRepository.findByNameIgnoreCase("classic")).willReturn(Optional.of(tag(100L, "classic")));
+            given(bookRepository.save(existing)).willReturn(existing);
+
+            bookService.patch(1L, patch);
+
+            assertThat((List<?>) getField(existing, "bookAuthors")).hasSize(1);
+            assertThat((List<?>) getField(existing, "bookTags")).hasSize(1);
+        }
+
+        @Test
+        void shouldThrowWhenAuthorMissingOnPatch() {
+            Book existing = book(1L, "Dune", 1965);
+            BookPatchRequest patch = new BookPatchRequest(null, 10L, null, null, null, null, null, null);
+            given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
+            given(authorRepository.findById(10L)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookService.patch(1L, patch))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Author not found");
+        }
     }
 
     @Test
-    void shouldThrowWhenBookNotFound() {
-        // given
-        given(bookRepository.findById(99L)).willReturn(Optional.empty());
+    void shouldDeleteById() {
+        bookService.delete(5L);
 
-        // when / then
-        assertThatThrownBy(() -> bookService.getById(99L))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Book not found");
+        verify(bookRepository).deleteById(5L);
     }
 
-    // ========== getAll ==========
-
-    @Test
-    void shouldReturnAllBooks() {
-        // given
-        var book1 = new Book();
-        book1.setTitle("Dune");
-
-        var book2 = new Book();
-        book2.setTitle("Foundation");
-
-        given(bookRepository.findAll()).willReturn(List.of(book1, book2));
-
-        // when
-        var result = bookService.getAll();
-
-        // then
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(BookResponse::title)
-                .containsExactly("Dune", "Foundation");
+    private Book book(Long id, String title, int year) {
+        Book book = new Book();
+        setField(book, "id", id);
+        setField(book, "title", title);
+        setField(book, "year", year);
+        setField(book, "bookAuthors", new ArrayList<>());
+        setField(book, "bookTags", new ArrayList<>());
+        setField(book, "genres", new java.util.HashSet<>());
+        return book;
     }
 
-    @Test
-    void shouldReturnEmptyListWhenNoBooksExist() {
-        // given
-        given(bookRepository.findAll()).willReturn(List.of());
-
-        // when
-        var result = bookService.getAll();
-
-        // then
-        assertThat(result).isEmpty();
-    }
-
-    // ========== create ==========
-
-    @Test
-    void shouldCreateBookFromRequest() {
-        // given
-        var request = new BookRequest();
-        request.setTitle("Dune");
-        request.setAuthor("Herbert");
-        request.setYear(1965);
-        request.setIsbn("978-0441013593");
-        request.setGenres(Set.of("Sci-Fi"));
-
-        var savedBook = new Book();
-        savedBook.setId(1L);
-        savedBook.setTitle("Dune");
-        savedBook.getBookAuthors().add(makeBookAuthor(savedBook, "Herbert"));
-
-        given(authorRepository.findByNameIgnoreCase("Herbert"))
-                .willReturn(Optional.of(makeAuthor("Herbert")));
-
-        given(bookRepository.save(any(Book.class))).willReturn(savedBook);
-
-        // when
-        var result = bookService.create(request);
-
-        // then
-        assertThat(result.id()).isEqualTo(1L);
-        assertThat(result.title()).isEqualTo("Dune");
-        verify(bookRepository).save(any(Book.class));
-    }
-
-
-    // ========== update ==========
-
-    @Test
-    void shouldUpdateExistingBook() {
-        // given
-        var existing = new Book();
-        existing.setId(1L);
-        existing.setTitle("Old Title");
-
-        var request = new BookRequest();
-        request.setTitle("Dune");
-        request.setAuthor("Herbert");
-        request.setYear(1965);
-
-        given(authorRepository.findByNameIgnoreCase("Herbert"))
-                .willReturn(Optional.of(makeAuthor("Herbert")));
-
-        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
-        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
-
-        // when
-        var result = bookService.update(1L, request);
-
-        // then
-        assertThat(result.title()).isEqualTo("Dune");
-        assertThat(result.author()).isEqualTo("Herbert");
-        verify(bookRepository).save(existing);
-    }
-
-    @Test
-    void shouldThrowWhenUpdatingNonExistentBook() {
-        // given
-        given(bookRepository.findById(99L)).willReturn(Optional.empty());
-
-        // when / then
-        assertThatThrownBy(() -> bookService.update(99L, new BookRequest()))
-                .isInstanceOf(ResourceNotFoundException.class);
-
-        verify(bookRepository, never()).save(any());
-    }
-
-    // ========== patch ==========
-
-    @Test
-    void shouldPatchOnlyProvidedFields() {
-        // given
-        var existing = new Book();
-        existing.setId(1L);
-        existing.setTitle("Old Title");
-        existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
-
-        var patchRequest = new BookPatchRequest();
-        patchRequest.setTitle("New Title");
-        // author = null -> should not be overwritten
-
-        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
-        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
-
-        // when
-        var result = bookService.patch(1L, patchRequest);
-
-        // then
-        assertThat(result.title()).isEqualTo("New Title");
-        assertThat(result.author()).isEqualTo("Old Author"); // unchanged!
-    }
-
-    @Test
-    void shouldNotChangeAnythingWhenPatchRequestIsEmpty() {
-        // given
-        var existing = new Book();
-        existing.setId(1L);
-        existing.setTitle("Old Title");
-        existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
-        existing.setYear(2000);
-
-        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
-        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
-
-        // when
-        var result = bookService.patch(1L, new BookPatchRequest()); // all fields null
-
-        // then
-        assertThat(result.title()).isEqualTo("Old Title");
-        assertThat(result.author()).isEqualTo("Old Author");
-        assertThat(result.year()).isEqualTo(2000);
-    }
-
-    @Test
-    void shouldPatchMultipleFieldsAtOnce() {
-        // given
-        var existing = new Book();
-        existing.setId(1L);
-        existing.setTitle("Old Title");
-        existing.getBookAuthors().add(makeBookAuthor(existing, "Old Author"));
-        existing.setYear(2000);
-
-        var request = new BookPatchRequest();
-        request.setTitle("New Title");
-        request.setAuthor("New Author");
-        request.setYear(2024);
-
-        given(authorRepository.findByNameIgnoreCase("New Author"))
-                .willReturn(Optional.of(makeAuthor("New Author")));
-
-        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
-        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
-
-        // when
-        var result = bookService.patch(1L, request);
-
-        // then
-        assertThat(result.title()).isEqualTo("New Title");
-        assertThat(result.author()).isEqualTo("New Author");
-        assertThat(result.year()).isEqualTo(2024);
-    }
-
-    @Test
-    void shouldThrowWhenPatchingNonExistentBook() {
-        // given
-        given(bookRepository.findById(99L)).willReturn(Optional.empty());
-
-        // when / then
-        assertThatThrownBy(() -> bookService.patch(99L, new BookPatchRequest()))
-                .isInstanceOf(ResourceNotFoundException.class);
-
-        verify(bookRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldPatchGenresAndTags() {
-        // given
-        var existing = new Book();
-        existing.setId(1L);
-        existing.setTitle("Dune");
-        existing.setGenres(Set.of("Sci-Fi"));
-        existing.getBookTags().add(makeBookTag(existing, "classic"));
-
-        var request = new BookPatchRequest();
-        request.setGenres(Set.of("Sci-Fi", "Adventure"));
-        request.setTags(List.of("classic", "must-read"));
-
-        given(tagRepository.findByNameIgnoreCase("classic"))
-                .willReturn(Optional.of(makeTag("classic")));
-        given(tagRepository.findByNameIgnoreCase("must-read"))
-                .willReturn(Optional.of(makeTag("must-read")));
-
-        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
-        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
-
-        // when
-        var result = bookService.patch(1L, request);
-
-        // then
-        assertThat(result.genres()).containsExactlyInAnyOrder("Sci-Fi", "Adventure");
-        assertThat(result.tags()).containsExactlyInAnyOrder("classic", "must-read");
-        assertThat(result.title()).isEqualTo("Dune"); // niezmieniony
-    }
-
-    @Test
-    void shouldPatchIsbnDescriptionAndPageCount() {
-        // given
-        var existing = new Book();
-        existing.setId(1L);
-        existing.setTitle("Dune");
-        existing.setIsbn("000-old");
-        existing.setDescription("Stary opis");
-        existing.setPageCount(100);
-
-        var request = new BookPatchRequest();
-        request.setIsbn("978-0441013593");
-        request.setDescription("Nowy opis");
-        request.setPageCount(412);
-
-        given(bookRepository.findById(1L)).willReturn(Optional.of(existing));
-        given(bookRepository.save(any(Book.class))).willAnswer(inv -> inv.getArgument(0));
-
-        // when
-        var result = bookService.patch(1L, request);
-
-        // then
-        assertThat(result.isbn()).isEqualTo("978-0441013593");
-        assertThat(result.description()).isEqualTo("Nowy opis");
-        assertThat(result.pageCount()).isEqualTo(412);
-        assertThat(result.title()).isEqualTo("Dune"); // niezmieniony
-    }
-
-    // ========== delete ==========
-
-    @Test
-    void shouldDeleteBookById() {
-        // when
-        bookService.delete(1L);
-
-        // then
-        verify(bookRepository).deleteById(1L);
-    }
-
-    private Author makeAuthor(String name) {
+    private Author author(Long id, String name) {
         Author author = new Author();
-        author.setId(1L);
-        author.setName(name);
+        setField(author, "id", id);
+        setField(author, "name", name);
         return author;
     }
 
-    private BookAuthor makeBookAuthor(Book book, String name) {
-        BookAuthor bookAuthor = new BookAuthor();
-        bookAuthor.setBook(book);
-        bookAuthor.setAuthor(makeAuthor(name));
-        bookAuthor.setRole(AuthorRole.AUTHOR);
-        return bookAuthor;
-    }
-
-    private Tag makeTag(String name) {
+    private Tag tag(Long id, String name) {
         Tag tag = new Tag();
-        tag.setId(1L);
-        tag.setName(name);
+        setField(tag, "id", id);
+        setField(tag, "name", name);
         return tag;
     }
 
-    private BookTag makeBookTag(Book book, String name) {
-        BookTag bookTag = new BookTag();
-        bookTag.setBook(book);
-        bookTag.setTag(makeTag(name));
-        return bookTag;
+    private void setField(Object target, String fieldName, Object value) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    private Object getField(Object target, String fieldName) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(target);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

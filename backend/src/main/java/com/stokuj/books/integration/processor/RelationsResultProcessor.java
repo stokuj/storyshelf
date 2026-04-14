@@ -31,9 +31,9 @@ public class RelationsResultProcessor {
 
     @Transactional
     public void processFindPairsResult(Book book, BookFindPairsResult result) {
-        if (result.getPairs() != null) {
-            result.getPairs().forEach(pairResult -> {
-                List<String> pair = pairResult.getPair();
+        if (result.pairs() != null) {
+            result.pairs().forEach(pairResult -> {
+                List<String> pair = pairResult.pair();
                 if (pair == null || pair.size() < 2) {
                     return;
                 }
@@ -57,8 +57,8 @@ public class RelationsResultProcessor {
             });
         }
 
-        if (result.getPairs() != null && !result.getPairs().isEmpty()) {
-            chapterEventProducer.sendBookForRelations(book.getId(), result.getPairs());
+        if (result.pairs() != null && !result.pairs().isEmpty()) {
+            chapterEventProducer.sendBookForRelations(book.getId(), result.pairs());
         }
     }
 
