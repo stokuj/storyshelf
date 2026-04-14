@@ -22,6 +22,18 @@ Run one of the three development variants:
 
 ## Changelog
 
+### [0.7.3] - 2026-04-14
+
+Production and development infrastructure were updated in one release. Development Docker setup was split into 3 files (base, build, pull), and Redpanda Console was added for Kafka monitoring. Production deploy was updated with frontend image build and push in CI, cleaner Caddy routes, and updated Google Compute deploy commands.
+
+### [0.7.2] - 2026-04-13
+
+Unit tests were added for auth, DTOs, controllers, and services. Test coverage for core backend logic was increased, especially for request/response flow and business services. Safer refactoring was enabled because more behavior is now verified automatically.
+
+### [0.7.1] - 2026-04-10
+
+Backend project structure was changed to feature-based folders, so navigation and maintenance were improved. Files were grouped by domain and responsibility, which reduced package chaos in larger modules. Future features can now be added with less cross-package coupling.
+
 ### [0.6.0] - 2026-03-23
 
 API stabilization, validation, and documentation.
