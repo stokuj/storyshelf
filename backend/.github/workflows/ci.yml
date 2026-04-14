@@ -28,6 +28,7 @@ jobs:
           cache: maven
 
       - name: Run tests
+        working-directory: backend
         run: mvn -B test
 
   build-and-push:
@@ -64,7 +65,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./backend
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -84,6 +85,6 @@ jobs:
           port: 22
           script: |
             cd /opt/storyweave
-            docker compose -f docker-compose.prod.yml pull springshelf
-            docker compose -f docker-compose.prod.yml up -d --force-recreate springshelf
-            docker compose -f docker-compose.prod.yml ps
+            docker compose -f infrastructure/docker-compose.prod.yml pull backend
+            docker compose -f infrastructure/docker-compose.prod.yml up -d --force-recreate backend
+            docker compose -f infrastructure/docker-compose.prod.yml ps

@@ -1,29 +1,29 @@
-# Docker Compose configuration for development environment
-# Uses dev services plus builds form ..storyweave . VM has separate docker-compose for production with more services.
+# Docker Compose development configuration
+# Full stack with pulled FastAPI: Storyweave images.
 
 services:
   frontend:
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
     image: booknlp-frontend:local
     container_name: booknlp-frontend
     ports:
       - "5173:5173"
     environment:
-      VITE_API_PROXY_TARGET: http://springshelf:8080
+      VITE_API_PROXY_TARGET: http://backend:8080
     restart: unless-stopped
     depends_on:
-      springshelf:
+      backend:
         condition: service_started
 
-  springshelf:
+  backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     pull_policy: build
     image: springshelf:local
-    container_name: springshelf
+    container_name: backend
     ports:
       - "8080:8080"
     env_file:
@@ -41,23 +41,21 @@ services:
         condition: service_started
 
   storyweave-api:
-    build:
-      context: ../storyweave
-      dockerfile: Dockerfile
-    image: storyweave:local
-    pull_policy: build
+    image: ghcr.io/stokuj/storyweave:main
+    pull_policy: always
     container_name: storyweave-api
     ports:
       - "8000:8000"
     env_file:
       - .env
     environment:
+      APP_ENV: production
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
       HF_HOME: /cache/huggingface
       TRANSFORMERS_CACHE: /cache/huggingface
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRINGSHELF_BASE_URL: http://springshelf:8080
+      SPRINGSHELF_BASE_URL: http://backend:8080
     volumes:
       - hf-cache:/cache/huggingface
     restart: unless-stopped
@@ -68,29 +66,27 @@ services:
         condition: service_started
 
   celery-worker:
-    build:
-      context: ../storyweave
-      dockerfile: Dockerfile
-    image: storyweave:local
-    pull_policy: build
+    image: ghcr.io/stokuj/storyweave:main
+    pull_policy: always
     container_name: storyweave-celery-worker
-    command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=info"]
+    command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=info", "--concurrency=8"]
     env_file:
       - .env
     environment:
+      APP_ENV: production
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
       HF_HOME: /cache/huggingface
       TRANSFORMERS_CACHE: /cache/huggingface
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRINGSHELF_BASE_URL: http://springshelf:8080
+      SPRINGSHELF_BASE_URL: http://backend:8080
     volumes:
       - hf-cache:/cache/huggingface
     restart: unless-stopped
     depends_on:
       redis:
         condition: service_started
-      springshelf:
+      backend:
         condition: service_started
       kafka:
         condition: service_started

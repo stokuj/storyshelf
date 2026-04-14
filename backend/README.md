@@ -6,9 +6,17 @@ A book tracking and recommendation app inspired by Goodreads. Built with Java Sp
 
 For detailed information about the project, please refer to the following documents:
 
-- [User Stories](docs/user_stories.md) - functional requirements and role definitions.
-- [Project Structure](docs/project_structure.md) - overview of the directory and package layout.
-- [Database Schema](docs/database.md) - Mermaid diagram of the database entities and relationships.
+- [User Stories](backend/docs/user_stories.md) - functional requirements and role definitions.
+- [Project Structure](backend/docs/project_structure.md) - overview of the directory and package layout.
+- [Database Schema](backend/docs/database.md) - Mermaid diagram of the database entities and relationships.
+
+## Development Compose
+
+Run one of the three development variants:
+
+- Base (without ML services): `docker compose -f docker-compose.dev.yml up -d`
+- Full with local ML build: `docker compose -f docker-compose.dev.build.yml up -d --build`
+- Full with pulled ML images: `docker compose -f docker-compose.dev.pull.yml up -d`
 
 ---
 
