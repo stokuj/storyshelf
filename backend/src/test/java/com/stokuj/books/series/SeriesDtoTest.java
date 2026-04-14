@@ -67,13 +67,13 @@ class SeriesDtoTest {
         @Test
         void shouldFailWhenNameIsTooShort() {
             SeriesRequest request = new SeriesRequest("Short", null, SeriesStatus.ONGOING);
-            assertThat(validate(request)).contains("name:Name cannot exceed 255 characters");
+            assertThat(validate(request)).contains("name:Name must be between 10 and 255 characters long");
         }
 
         @Test
         void shouldFailWhenNameIsTooLong() {
             SeriesRequest request = new SeriesRequest("a".repeat(256), null, SeriesStatus.ONGOING);
-            assertThat(validate(request)).contains("name:Name cannot exceed 255 characters");
+            assertThat(validate(request)).contains("name:Name must be between 10 and 255 characters long");
         }
 
         @Test
