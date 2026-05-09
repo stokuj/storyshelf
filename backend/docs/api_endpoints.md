@@ -8,8 +8,8 @@ This document describes currently exposed Spring endpoints grouped by business a
 |---|---|---|---|
 | POST | `/api/auth/register` | Public | Register account |
 | POST | `/api/auth/login` | Public | Login (session-based) |
-| GET | `/api/auth/me` | Public/Auth-aware | Return current session identity |
-| POST | `/api/auth/logout` | Authenticated | Logout and invalidate session |
+| GET | `/api/auth/me` | Public | Return current session identity |
+| POST | `/api/auth/logout` | Public | Logout, invalidate session. Returns `200 {"message":"Logged out successfully"}` |
 
 ## Books
 
