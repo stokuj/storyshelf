@@ -1,16 +1,16 @@
 :80 {
     handle /api/docs {
         rewrite * /docs
-        reverse_proxy storyweave-api:8000
+        reverse_proxy nlp-service:8000
     }
 
     handle /api/docs/* {
         uri strip_prefix /api
-        reverse_proxy storyweave-api:8000
+        reverse_proxy nlp-service:8000
     }
 
     handle /openapi.json* {
-        reverse_proxy storyweave-api:8000
+        reverse_proxy nlp-service:8000
     }
 
     handle_path /v3/api-docs* {
@@ -31,7 +31,7 @@
     }
 
     handle_path /storyweave/* {
-        reverse_proxy storyweave-api:8000
+        reverse_proxy nlp-service:8000
     }
 
     handle {
