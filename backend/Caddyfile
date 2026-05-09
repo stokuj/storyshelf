@@ -1,0 +1,50 @@
+:80 {
+    handle /api/docs {
+        rewrite * /docs
+        reverse_proxy storyweave-api:8000
+    }
+
+    handle /api/docs/* {
+        uri strip_prefix /api
+        reverse_proxy storyweave-api:8000
+    }
+
+    handle /openapi.json* {
+        reverse_proxy storyweave-api:8000
+    }
+
+    handle_path /v3/api-docs* {
+        reverse_proxy backend:8080
+    }
+
+    handle_path /swagger-ui/* {
+        reverse_proxy backend:8080
+    }
+
+    handle /docs {
+        rewrite * /swagger-ui/index.html
+        reverse_proxy backend:8080
+    }
+
+    handle_path /api/* {
+        reverse_proxy backend:8080
+    }
+
+    handle_path /storyweave/* {
+        reverse_proxy storyweave-api:8000
+    }
+
+    handle {
+        reverse_proxy frontend:80
+    }
+
+    encode gzip
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+    }
+    log {
+        output stdout
+    }
+}
