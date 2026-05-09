@@ -40,12 +40,13 @@ ls backend/
 ```
 Expected: sees `pom.xml`, `frontend/`, `backend/`, `docs/`, `docker-compose.dev.yml`, `docker-compose.prod.yml`, `Caddyfile`, `.env.example`, `.gitignore`, `README.md`, `.github/`.
 
-- [ ] **Step 4: Verify history is preserved**
+- [ ] **Step 4: Verify full history is preserved (commit count)**
 
 ```bash
-git log --oneline -- backend/ | head -5
+echo "Commits in backend/: $(git log --oneline -- backend/ | wc -l)"
+echo "Commits in original springshelf: $(git -C /home/dv6/GitHub/BookNLP/springshelf log --oneline | wc -l)"
 ```
-Expected: shows recent springshelf commits (e.g., `28b2e48 ok`, `556ba51 Update BookDetailView.vue`).
+Expected: both numbers match (± a few due to merge commits). This proves ALL history was transferred, not just recent commits.
 
 - [ ] **Step 5: Commit (subtree already committed)**
 
@@ -83,12 +84,13 @@ ls nlp-service/
 ```
 Expected: sees `pyproject.toml`, `api/`, `test/`, `docs/`, `Dockerfile`, `docker-compose.dev.yml`, `.env.example`, `.gitignore`, `README.md`, `.github/`, `uv.lock`.
 
-- [ ] **Step 4: Verify history is preserved**
+- [ ] **Step 4: Verify full history is preserved (commit count)**
 
 ```bash
-git log --oneline -- nlp-service/ | head -5
+echo "Commits in nlp-service/: $(git log --oneline -- nlp-service/ | wc -l)"
+echo "Commits in original storyweave: $(git -C /home/dv6/GitHub/BookNLP/storyweave log --oneline | wc -l)"
 ```
-Expected: shows recent storyweave commits (e.g., `be1aacc Fix imports, move files.`, `5e97a4b Update README.md`).
+Expected: both numbers match (± a few due to merge commits). This proves ALL history was transferred, not just recent commits.
 
 ---
 
@@ -1029,6 +1031,61 @@ git commit -m "Remove stale compose/CI/env files from subdirectories (moved to i
 
 ---
 
+### Task 12.5: Replace old READMEs with redirect notes
+
+**Files:**
+- Modify: `backend/README.md` (old SpringShelf README)
+- Modify: `nlp-service/README.md` (old StoryWeave README)
+- Keep: `backend/docs/` and `nlp-service/docs/` (internal documentation, referenced from root README)
+
+- [ ] **Step 1: Replace backend/README.md**
+
+Overwrite `backend/README.md`:
+```bash
+cat > backend/README.md << 'READMEEOF'
+# backend/ — SpringShelf
+
+This directory is part of the **[storyshelf](https://github.com/stokuj/storyshelf)** monorepo.
+
+Java Spring Boot backend for book tracking. For the full project overview, see the [root README](../README.md).
+
+## Internal docs
+
+- [API Endpoints](docs/api_endpoints.md)
+- [Database Schema](docs/database.md)
+- [NLP Data Flow](docs/data_flow.md)
+- [User Stories](docs/user_stories.md)
+- [Project Structure](docs/project_structure.md)
+READMEEOF
+```
+
+- [ ] **Step 2: Replace nlp-service/README.md**
+
+Overwrite `nlp-service/README.md`:
+```bash
+cat > nlp-service/README.md << 'READMEEOF'
+# nlp-service/ — StoryWeave
+
+This directory is part of the **[storyshelf](https://github.com/stokuj/storyshelf)** monorepo.
+
+Python FastAPI microservice for NLP book analysis (NER, character extraction, LLM-based relation extraction). For the full project overview, see the [root README](../README.md).
+
+## Internal docs
+
+- [API Request Examples](docs/REQUEST_EXAMPLES.md)
+- [Testing NER Models](docs/TESTING_NER_MODELS.MD)
+READMEEOF
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add backend/README.md nlp-service/README.md
+git commit -m "Replace old READMEs with redirect notes to root storyshelf README"
+```
+
+---
+
 ### Task 13: Verify everything
 
 - [ ] **Step 1: Verify directory structure**
@@ -1038,15 +1095,33 @@ find . -maxdepth 3 -not -path './.git/*' -not -path './backend/backend/target/*'
 ```
 Expected: structure matches spec — `backend/`, `frontend/`, `nlp-service/`, `infra/` with their subdirs, `Makefile`, `README.md`, `.gitignore`, `.github/`.
 
-- [ ] **Step 2: Verify git history from both repos**
+- [ ] **Step 2: Verify full commit count from both repos**
 
 ```bash
-git log --oneline -- backend/ | head -3
-git log --oneline -- nlp-service/ | head -3
+echo "=== Commits in this monorepo ==="
+echo "backend/:     $(git log --oneline -- backend/  | wc -l)"
+echo "nlp-service/: $(git log --oneline -- nlp-service/ | wc -l)"
+echo ""
+echo "=== Commits in original repos ==="
+echo "springshelf:  $(git -C /home/dv6/GitHub/BookNLP/springshelf log --oneline | wc -l)"
+echo "storyweave:   $(git -C /home/dv6/GitHub/BookNLP/storyweave log --oneline | wc -l)"
 ```
-Expected: both show commits from their original repos.
+Expected: monorepo commit counts match originals (±1-2 for merge commits). If counts differ significantly, the subtree merge was incomplete — re-run Task 1/2.
 
-- [ ] **Step 3: Verify Makefile targets**
+- [ ] **Step 3: Verify old READMEs replaced, docs preserved**
+
+```bash
+echo "=== Old READMEs should be redirects ==="
+head -3 backend/README.md
+head -3 nlp-service/README.md
+echo ""
+echo "=== Internal docs preserved ==="
+ls backend/docs/
+ls nlp-service/docs/
+```
+Expected: READMEs show "part of storyshelf monorepo". Docs directories contain original files.
+
+- [ ] **Step 4: Verify Makefile targets**
 
 ```bash
 make -n dev-up
@@ -1055,7 +1130,7 @@ make -n dev-status
 ```
 Expected: all print the expected `docker compose` commands.
 
-- [ ] **Step 4: Verify compose files validate**
+- [ ] **Step 5: Verify compose files validate**
 
 ```bash
 docker compose -f infra/compose/docker-compose.dev.yml config -q 2>&1
