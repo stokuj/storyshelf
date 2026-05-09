@@ -1,12 +1,10 @@
-# Docker Compose development configuration
-# Full stack with locally built  services.
-
+# Development environment — no Caddy, open ports for local dev
 services:
   frontend:
     build:
-      context: ./frontend
+      context: ../../frontend
       dockerfile: Dockerfile
-    image: booknlp-frontend:local
+    image: storyshelf-frontend:local
     container_name: frontend
     ports:
       - "5173:5173"
@@ -19,15 +17,15 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ../../backend/backend
       dockerfile: Dockerfile
     pull_policy: build
-    image: springshelf:local
+    image: storyshelf-backend:local
     container_name: backend
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - ../../.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-booksdb}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
@@ -40,17 +38,17 @@ services:
       kafka:
         condition: service_started
 
-  storyweave-api:
+  nlp-service:
     build:
-      context: ../storyweave
+      context: ../../nlp-service
       dockerfile: Dockerfile
-    image: storyweave:local
     pull_policy: build
+    image: storyshelf-nlp:local
     container_name: storyweave-api
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ../../.env
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -69,14 +67,14 @@ services:
 
   celery-worker:
     build:
-      context: ../storyweave
+      context: ../../nlp-service
       dockerfile: Dockerfile
-    image: storyweave:local
     pull_policy: build
+    image: storyshelf-nlp:local
     container_name: storyweave-celery-worker
     command: ["uv", "run", "celery", "-A", "api.config.celery_app:celery", "worker", "--loglevel=info"]
     env_file:
-      - .env
+      - ../../.env
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
@@ -89,8 +87,6 @@ services:
     restart: unless-stopped
     depends_on:
       redis:
-        condition: service_started
-      backend:
         condition: service_started
       kafka:
         condition: service_started
