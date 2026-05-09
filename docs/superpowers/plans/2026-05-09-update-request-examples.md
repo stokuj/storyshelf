@@ -1,3 +1,25 @@
+# Update REQUEST_EXAMPLES.md Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Rewrite `nlp-service/docs/REQUEST_EXAMPLES.md` to match the actual API router structure (Chapters/Books groups with ID validation, correct payloads, 202 Accepted responses).
+
+**Architecture:** Single-file documentation update. The new document groups endpoints by routing domain (Health → Chapters → Books), each with correct payload schemas, response structures, and common error documentation.
+
+**Tech Stack:** Markdown documentation, FastAPI/Swagger UI reference
+
+---
+
+### Task 1: Rewrite REQUEST_EXAMPLES.md
+
+**Files:**
+- Modify: `nlp-service/docs/REQUEST_EXAMPLES.md` (full rewrite)
+
+- [ ] **Step 1: Write the new REQUEST_EXAMPLES.md content**
+
+Write the file at `nlp-service/docs/REQUEST_EXAMPLES.md`:
+
+```markdown
 # API Testing Guide -- Swagger UI
 
 This guide shows how to test all endpoints using **Swagger UI** at `http://localhost:8000/docs`
@@ -266,3 +288,27 @@ Use a concrete ID like `1` for testing.
 - **Find Pairs** (`/books/{bookId}/find-pairs`) processes text synchronously but in a thread pool executor.
 - All endpoints require `Content-Type: application/json` (Swagger handles this automatically).
 - For the Celery worker to process tasks, ensure the `celery-worker` container is running.
+```
+
+- [ ] **Step 2: Verify the file was written correctly**
+
+```bash
+wc -l nlp-service/docs/REQUEST_EXAMPLES.md
+```
+
+Expected: roughly 270-290 lines.
+
+- [ ] **Step 3: Verify paths against actual routers**
+
+```bash
+cd nlp-service && rg -n 'router = APIRouter' api/routers/ && rg -n '@app\.(get|post)' api/app.py
+```
+
+Expected output confirms `/chapters`, `/books` prefixes and `/`, `/health/`, `/health/celery/` GET endpoints.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add nlp-service/docs/REQUEST_EXAMPLES.md
+git commit -m "docs: update REQUEST_EXAMPLES.md paths to match actual routers"
+```
