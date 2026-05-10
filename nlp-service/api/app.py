@@ -133,11 +133,13 @@ async def log_requests(request: Request, call_next):
     }
     if 400 <= response.status_code:
         logger.warning(
-            "Request: %(method)s %(path)s -> %(status)s (%(duration_ms)s ms)", extra
+            "Request: %(method)s %(path)s -> %(status)s (%(duration_ms)s ms)",
+            extra=extra,
         )
     else:
         logger.debug(
-            "Request: %(method)s %(path)s -> %(status)s (%(duration_ms)s ms)", extra
+            "Request: %(method)s %(path)s -> %(status)s (%(duration_ms)s ms)",
+            extra=extra,
         )
     return response
 
