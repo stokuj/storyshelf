@@ -98,6 +98,9 @@ public class RelationsResultProcessor {
                                                 created.setTarget(target);
                                                 return created;
                                             });
+                                    if (relation.getRelation() != null && !relation.getRelation().isBlank()) {
+                                        return;
+                                    }
                                     relation.setRelation(blankToNull(asString(rel.get("relation"))));
                                     relation.setEvidence(blankToNull(asString(rel.get("evidence"))));
                                     relation.setConfidence(asDouble(rel.get("confidence")));

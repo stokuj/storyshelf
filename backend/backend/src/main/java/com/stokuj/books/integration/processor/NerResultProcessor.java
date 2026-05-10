@@ -47,10 +47,10 @@ public class NerResultProcessor {
         }
 
         bookCharacterAggregator.applyNerResult(book, result);
-        book.setNerCompletedCount(book.getNerCompletedCount() + 1);
-        bookRepository.save(book);
+        bookRepository.incrementNerCompletedCount(book.getId());
 
-        boolean readyForFindPairs = book.getNerCompletedCount() >= book.getChaptersCount();
+        int expectedCount = book.getNerCompletedCount() + 1;
+        boolean readyForFindPairs = expectedCount >= book.getChaptersCount();
         if (!readyForFindPairs && chapter.getChapterNumber() == 1) {
             readyForFindPairs = true;
         }
