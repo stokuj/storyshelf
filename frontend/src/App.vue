@@ -5,7 +5,7 @@
         <RouterLink to="/" class="btn btn-ghost text-xl font-bold">SpringShelf</RouterLink>
       </div>
 
-      <div class="navbar-end gap-2">
+      <div class="navbar-end gap-2" v-if="authState.initialized">
         <template v-if="authState.authenticated">
           <RouterLink :to="`/profile/${authState.username}`" class="btn btn-ghost btn-sm">Profil</RouterLink>
           <button class="btn btn-outline btn-sm" type="button" @click="handleLogout">Wyloguj</button>
@@ -24,10 +24,15 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { authState, signOut } from './auth'
+import { authState, signOut, refreshAuth } from './auth'
 
 const router = useRouter()
+
+onMounted(async () => {
+  await refreshAuth()
+})
 
 async function handleLogout() {
   await signOut()
