@@ -14,20 +14,24 @@
     }
 
     handle_path /v3/api-docs* {
-        reverse_proxy backend:8080
+        reverse_proxy django:8000
     }
 
     handle_path /swagger-ui/* {
-        reverse_proxy backend:8080
+        reverse_proxy django:8000
     }
 
     handle /docs {
         rewrite * /swagger-ui/index.html
-        reverse_proxy backend:8080
+        reverse_proxy django:8000
+    }
+
+    handle_path /api/internal/* {
+        respond "Forbidden" 403
     }
 
     handle_path /api/* {
-        reverse_proxy backend:8080
+        reverse_proxy django:8000
     }
 
     handle_path /storyweave/* {
