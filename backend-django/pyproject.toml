@@ -14,4 +14,5 @@ dependencies = [
     "gunicorn>=26.0",
     "requests>=2.33",
     "dj-database-url>=3.1",
+    "redis>=5.2",
 ]

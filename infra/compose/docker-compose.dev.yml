@@ -26,7 +26,7 @@ services:
     environment:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-booksdb}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
       CELERY_BROKER_URL: amqp://rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
       NLP_SERVICE_URL: http://nlp-service:8000
@@ -35,8 +35,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    volumes:
-      - ../../backend-django:/app
     command: python manage.py runserver 0.0.0.0:8000
 
   celery-worker:
@@ -45,7 +43,7 @@ services:
     environment:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-booksdb}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
       CELERY_BROKER_URL: amqp://rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
       NLP_SERVICE_URL: http://nlp-service:8000
