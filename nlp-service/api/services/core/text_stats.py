@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import logging
+
 try:
     import tiktoken
 except ImportError:  # pragma: no cover - fallback when optional dep is missing
     tiktoken = None
+
+logger = logging.getLogger(__name__)
 
 TOKENIZER_NAME = "cl100k_base"
 _TOKENIZER = None
@@ -24,6 +28,9 @@ def analyse_text(text: str) -> dict:
     word_count = len(text.split())
     tokenizer = _get_tokenizer()
     if tokenizer is None:
+        logger.warning(
+            "tiktoken not available, using fallback heuristic (len(text) // 4)"
+        )
         token_count = len(text) // 4
     else:
         token_count = len(tokenizer.encode(text))
