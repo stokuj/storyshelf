@@ -56,12 +56,20 @@
         </div>
       </div>
     </div>
+
+    <template v-else>
+      <NotFoundState
+        title="Użytkownik nie znaleziony"
+        message="Profil o podanej nazwie nie istnieje."
+      />
+    </template>
   </section>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import NotFoundState from '../components/NotFoundState.vue'
 import { fetchFollowers, fetchFollowing, fetchUserProfile, followUser, unfollowUser } from '../api'
 import { authState, refreshAuth } from '../auth'
 
@@ -116,7 +124,12 @@ async function loadProfile() {
       following.value = []
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać profilu.'
+    const msg = err instanceof Error ? err.message : ''
+    if (msg.includes('404') || msg.includes('Not Found') || msg.includes('not found')) {
+      profile.value = null
+    } else {
+      error.value = err instanceof Error ? err.message : 'Nie udało się pobrać profilu.'
+    }
   } finally {
     loading.value = false
   }
