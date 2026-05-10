@@ -26,6 +26,8 @@ class IsModerator(permissions.BasePermission):
 
 
 class BookListCreateView(generics.ListCreateAPIView):
+    pagination_class = None  # flat list — frontend expects plain array
+
     def get_serializer_class(self):
         return BookCreateSerializer if self.request.method == "POST" else BookSerializer
 
