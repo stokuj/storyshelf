@@ -3,7 +3,7 @@
     <h1 class="mb-6 text-2xl font-bold">Ustawienia konta</h1>
 
     <div v-if="message" class="alert alert-success mb-4 text-sm">{{ message }}</div>
-    <div v-if="error" class="alert alert-error mb-4 text-sm">{{ error }}</div>
+    <div v-if="error || saveError" class="alert alert-error mb-4 text-sm">{{ saveError || error }}</div>
     <div v-else-if="loading" class="py-20 text-center text-base-content/60">Ładowanie ustawień...</div>
     <div v-else-if="!authState.authenticated" class="alert alert-warning mb-4 text-sm">
       Zaloguj się, aby edytować ustawienia.
@@ -86,13 +86,13 @@ import { onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { fetchCurrentUserSettings, updateCurrentUserSettings, updateCurrentUserVisibility } from '../api'
 import { authState, refreshAuth, signOut } from '../auth'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const router = useRouter()
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const message = ref('')
+const { loading, error, execute } = useAsyncState()
+const { loading: saving, error: saveError, message, execute: executeSave } = useAsyncState()
 const settings = ref(null)
+loading.value = true
 const form = reactive({
   username: '',
   bio: '',
@@ -106,59 +106,37 @@ function syncForm(data) {
 }
 
 async function loadSettings() {
-  loading.value = true
-  error.value = ''
-
-  try {
-    await refreshAuth()
+  await execute(async () => {
     if (!authState.authenticated) {
       settings.value = null
       return
     }
-
     settings.value = await fetchCurrentUserSettings()
     syncForm(settings.value)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać ustawień.'
-  } finally {
-    loading.value = false
-  }
+  }, { fallback: 'Nie udało się pobrać ustawień.' })
 }
 
 async function saveSettings() {
-  saving.value = true
-  error.value = ''
-  message.value = ''
-
-  try {
-    settings.value = await updateCurrentUserSettings({ ...form })
+  const result = await executeSave(async () => {
+    return await updateCurrentUserSettings({ ...form })
+  }, { fallback: 'Nie udało się zapisać ustawień.' })
+  if (result) {
+    settings.value = result
     syncForm(settings.value)
     await refreshAuth()
     message.value = 'Zapisano zmiany profilu.'
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zapisać ustawień.'
-  } finally {
-    saving.value = false
   }
 }
 
 async function toggleVisibility() {
-  if (!settings.value) {
-    return
-  }
-
-  saving.value = true
-  error.value = ''
-  message.value = ''
-
-  try {
-    settings.value = await updateCurrentUserVisibility(!settings.value.profilePublic)
+  if (!settings.value) return
+  const result = await executeSave(async () => {
+    return await updateCurrentUserVisibility(!settings.value.profilePublic)
+  }, { fallback: 'Nie udało się zmienić widoczności.' })
+  if (result) {
+    settings.value = result
     syncForm(settings.value)
     message.value = 'Zmieniono widoczność profilu.'
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zmienić widoczności.'
-  } finally {
-    saving.value = false
   }
 }
 

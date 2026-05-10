@@ -71,16 +71,16 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import NotFoundState from '../components/NotFoundState.vue'
 import { fetchFollowers, fetchFollowing, fetchUserProfile, followUser, unfollowUser } from '../api'
-import { authState, refreshAuth } from '../auth'
+import { authState } from '../auth'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const route = useRoute()
 const profile = ref(null)
 const followers = ref([])
 const following = ref([])
-const loading = ref(true)
-const error = ref('')
-const followError = ref('')
-const followLoading = ref(false)
+const { loading, error, execute } = useAsyncState()
+const { loading: followLoading, error: followError, execute: executeFollow } = useAsyncState()
+loading.value = true
 
 const username = computed(() => (typeof route.params.username === 'string' ? route.params.username : ''))
 
@@ -104,14 +104,13 @@ function formatDate(value) {
 }
 
 async function loadProfile() {
-  loading.value = true
-  error.value = ''
   followError.value = ''
+  const result = await execute(async () => {
+    return await fetchUserProfile(username.value)
+  }, { fallback: 'Nie udało się pobrać profilu.' })
 
-  try {
-    await refreshAuth()
-    profile.value = await fetchUserProfile(username.value)
-
+  if (result) {
+    profile.value = result
     if (authState.authenticated) {
       const [followersData, followingData] = await Promise.all([
         fetchFollowers(username.value),
@@ -123,34 +122,22 @@ async function loadProfile() {
       followers.value = []
       following.value = []
     }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : ''
-    if (msg.includes('404') || msg.includes('Not Found') || msg.includes('not found')) {
-      profile.value = null
-    } else {
-      error.value = err instanceof Error ? err.message : 'Nie udało się pobrać profilu.'
-    }
-  } finally {
-    loading.value = false
+  } else {
+    profile.value = null
   }
 }
 
 async function toggleFollow() {
-  followLoading.value = true
-  followError.value = ''
-
-  try {
+  const ok = await executeFollow(async () => {
     if (isFollowing.value) {
       await unfollowUser(username.value)
     } else {
       await followUser(username.value)
     }
-
+    return true
+  }, { fallback: 'Nie udało się zapisać obserwowania.' })
+  if (ok) {
     followers.value = await fetchFollowers(username.value)
-  } catch (err) {
-    followError.value = err instanceof Error ? err.message : 'Nie udało się zapisać obserwowania.'
-  } finally {
-    followLoading.value = false
   }
 }
 

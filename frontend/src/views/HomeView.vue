@@ -47,25 +47,18 @@
 import { onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { fetchBooks } from '../api'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const route = useRoute()
 const books = ref([])
-const loading = ref(true)
-const error = ref('')
+const { loading, error, execute } = useAsyncState()
+loading.value = true
 
 async function loadBooks() {
   const query = typeof route.query.q === 'string' ? route.query.q : ''
-
-  loading.value = true
-  error.value = ''
-
-  try {
+  await execute(async () => {
     books.value = await fetchBooks(query)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać książek.'
-  } finally {
-    loading.value = false
-  }
+  }, { fallback: 'Nie udało się pobrać książek.' })
 }
 
 onMounted(() => {

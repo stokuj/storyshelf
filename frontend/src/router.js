@@ -80,9 +80,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  if (!authState.initialized) {
-    await refreshAuth()
-  }
+  await refreshAuth()
 
   if (to.meta.requiresAuth && !authState.authenticated) {
     return { path: '/login', query: { next: to.fullPath } }
