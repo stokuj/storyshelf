@@ -31,6 +31,9 @@ uv run python manage.py check              # validate config
 uv run python manage.py migrate            # apply migrations
 uv run python manage.py runserver 0.0.0.0:8000
 
+# Seed test data (20 books, 17 authors, 57 tags)
+uv run python ../infra/scripts/seed.py      # run from backend-django/
+
 # Django tests — run from backend-django/ with DJANGO_ENV=dev
 DJANGO_ENV=dev uv run python manage.py test                    # all tests
 DJANGO_ENV=dev uv run python manage.py test books              # single app
@@ -52,6 +55,9 @@ uv run fastapi dev api/app.py                  # dev server
 npm run dev          # vite dev server (port 5173, proxies /api → localhost:8080)
 npm run build        # vite build
 npm run preview      # serve production build locally
+
+# Seed data in Docker
+docker compose -f infra/compose/docker-compose.dev.yml exec django python ../infra/scripts/seed.py
 
 # ── Production ──────────────────────────────────────────────────
 make prod-up
@@ -120,6 +126,8 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
 - Tailwind CSS + daisyUI for styling
 - `src/composables/useAsyncState.js` for loading/error/success state in views
 - No test framework configured for frontend yet
+- **App.vue must call `refreshAuth()` in `onMounted`** to restore JWT tokens
+  from localStorage on page refresh (F5)
 
 ### Git
 
@@ -139,9 +147,9 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
 - **NLP service module-level API key check**: `llm_service = LLMService()` at
   module level in `llm_engine.py`. Tests must set `OPENROUTER_API_KEY` before
   import (conftest.py does this).
-- **Frontend proxy target**: Vite proxies `/api` to `VITE_API_PROXY_TARGET`
-  (default `http://localhost:8080`). Docker Compose overrides this to
-  `http://django:8000`.
+- **Frontend proxy target**: Vite proxies `/api`, `/admin`, and `/static` to
+  `VITE_API_PROXY_TARGET` (default `http://django:8000`). Docker Compose
+  overrides this to `http://django:8000`.
 - **Trailing slashes in API calls**: the frontend `api.js` appends trailing
   slashes on all paths — Django URL patterns expect them.
 - **NLP integration tests** require external services (Redis, Celery) — they
@@ -150,3 +158,21 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   callbacks from NLP → Django in commit `22acdae`.
 - **The `backend/` directory** is legacy Java code. All active backend work is
   in `backend-django/`.
+- **DRF pagination**: Frontend expects flat arrays, NOT `{count, results}`.
+  Always set `pagination_class = None` on list endpoints consumed by the
+  frontend (books, shelf, reviews, characters, relations, followers, following).
+- **DRF field naming**: Frontend expects `camelCase`. Always map snake_case
+  fields via `serializers.IntegerField(source="snake_name")` or similar.
+- **Docker volume mounts**: Never bind-mount a host directory that contains
+  a `.venv/` (the host Python version may differ). Always add `.venv/` to
+  `.dockerignore`. Use the built image directly in dev compose.
+- **Alpine healthcheck**: Alpine `wget` resolves `localhost` to `::1` (IPv6)
+  but Vite listens on IPv4 only. Use `127.0.0.1` explicitly in healthcheck.
+- **RabbitMQ version**: Pin to `rabbitmq:3-management-alpine`. Version 4
+  deprecates `transient_nonexcl_queues`, breaking Celery 5.6.
+- **NLP Kafka removed**: Kafka consumer/producer replaced with HTTP callbacks
+  to Django (`/api/internal/*`). `confluent-kafka` removed from dependencies.
+- **Seed data**: Use `infra/scripts/seed.py` (idempotent, `get_or_create`).
+  Creates 20 books + 17 authors + 57 tags.
+- **Frontend F5 logout**: `App.vue` calls `refreshAuth()` in `onMounted`.
+  `authState.initialized` gate prevents navbar flash before auth check.
