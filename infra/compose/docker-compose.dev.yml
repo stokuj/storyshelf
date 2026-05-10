@@ -15,7 +15,7 @@ services:
       django:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5173/health"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5173/health"]
       interval: 10s
       timeout: 3s
       retries: 5
