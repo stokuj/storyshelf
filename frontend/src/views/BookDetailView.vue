@@ -211,11 +211,19 @@
       </div>
 
     </template>
+
+    <template v-else>
+      <NotFoundState
+        title="Książka nie istnieje"
+        message="Nie znaleziono książki o podanym identyfikatorze."
+      />
+    </template>
   </section>
 </template>
 
 <script setup>
 import { computed, reactive, onMounted, ref, watch } from 'vue'
+import NotFoundState from '../components/NotFoundState.vue'
 import { RouterLink, useRoute } from 'vue-router'
 import {
   addToBookshelf,
@@ -288,7 +296,12 @@ async function loadDetails() {
     details.value = await fetchBookDetails(route.params.id)
     randomReviews.value = pickRandomReviews(details.value?.reviews || [], 6)
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać szczegółów książki.'
+    const msg = err instanceof Error ? err.message : ''
+    if (msg.includes('404') || msg.includes('Not Found') || msg.includes('not found')) {
+      details.value = null
+    } else {
+      error.value = err instanceof Error ? err.message : 'Nie udało się pobrać szczegółów książki.'
+    }
     randomReviews.value = []
   } finally {
     loading.value = false
