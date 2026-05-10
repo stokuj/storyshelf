@@ -49,14 +49,21 @@ class TestRelationsRoute:
         assert response.status_code == 422
         assert response.json()["detail"] == "bookId is required"
 
-    def test_post_relations_whitespace_name_returns_422(self):
-        """Test that the /relations/ route returns a 422 when a character name is whitespace only."""
+    def test_post_relations_empty_pairs_returns_422(self):
+        """Test that the /relations/ route returns a 422 when pairs list is empty."""
 
-        response = client.post(
-            "/books/1/relations",
-            json={"bookId": 1, "pairs": []},
-        )
-        assert response.status_code == 202
+        with patch(
+            "api.routers.relations.process_book_relations_async",
+            new_callable=AsyncMock,
+        ) as mock_process:
+            mock_process.return_value = {"relations": []}
+            response = client.post(
+                "/books/1/relations",
+                json={"bookId": 1, "pairs": []},
+            )
+        assert response.status_code == 422
+        assert response.json()["detail"] == "pairs list cannot be empty"
+        mock_process.assert_not_called()
 
     def test_post_relations_same_names_returns_422(self):
         """Test that the /relations/ route returns a 422 when both character names are the same."""
