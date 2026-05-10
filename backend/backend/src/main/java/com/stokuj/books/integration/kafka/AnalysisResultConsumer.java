@@ -66,10 +66,20 @@ public class AnalysisResultConsumer {
             return;
         }
 
-        chapter.setCharCount(asInt(analysis.get("char_count"), asInt(analysis.get("charCount"), null)));
-        chapter.setCharCountClean(asInt(analysis.get("char_count_clean"), asInt(analysis.get("charCountClean"), null)));
-        chapter.setWordCount(asInt(analysis.get("word_count"), asInt(analysis.get("wordCount"), null)));
-        chapter.setTokenCount(asInt(analysis.get("token_count"), asInt(analysis.get("tokenCount"), null)));
+        Integer charCount = asInt(analysis.get("char_count"), asInt(analysis.get("charCount"), null));
+        Integer charCountClean = asInt(analysis.get("char_count_clean"), asInt(analysis.get("charCountClean"), null));
+        Integer wordCount = asInt(analysis.get("word_count"), asInt(analysis.get("wordCount"), null));
+        Integer tokenCount = asInt(analysis.get("token_count"), asInt(analysis.get("tokenCount"), null));
+
+        if (charCount == null) log.warn("Missing char_count in analysis result for chapter {}", chapterId);
+        if (charCountClean == null) log.warn("Missing char_count_clean in analysis result for chapter {}", chapterId);
+        if (wordCount == null) log.warn("Missing word_count in analysis result for chapter {}", chapterId);
+        if (tokenCount == null) log.warn("Missing token_count in analysis result for chapter {}", chapterId);
+
+        chapter.setCharCount(charCount);
+        chapter.setCharCountClean(charCountClean);
+        chapter.setWordCount(wordCount);
+        chapter.setTokenCount(tokenCount);
         chapter.setAnalysisCompleted(true);
         chapterRepository.save(chapter);
     }
