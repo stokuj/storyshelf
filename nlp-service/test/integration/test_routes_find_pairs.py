@@ -1,10 +1,12 @@
 from fastapi.testclient import TestClient
+import pytest
 
 from api.app import app
 
 client = TestClient(app)
 
 
+@pytest.mark.integration
 class TestFindPairsRoute:
     def test_post_find_pairs_returns_202(self):
         """Test that the /books/{bookId}/find-pairs route returns 202 with valid input."""

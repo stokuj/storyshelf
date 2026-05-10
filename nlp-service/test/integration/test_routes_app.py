@@ -1,12 +1,14 @@
 from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
+import pytest
 
 from api.app import app
 
 client = TestClient(app)
 
 
+@pytest.mark.integration
 class TestGlobalErrors:
     def test_unhandled_exception_returns_500(self):
         """Test if the global exception handler returns a 500 status code when an unhandled exception occurs."""
@@ -23,6 +25,7 @@ class TestGlobalErrors:
                 assert response.json() == {"detail": "Internal server error"}
 
 
+@pytest.mark.integration
 class TestRoot:
     def test_get_root_returns_200(self):
         """Test if the root endpoint returns a 200 status code and the expected message."""
@@ -35,6 +38,7 @@ class TestRoot:
         assert response.json() == {"message": "Hello World"}
 
 
+@pytest.mark.integration
 class TestHealth:
     def test_get_health_returns_200(self):
         """Test if the /health/ endpoint returns a 200 status code."""
@@ -67,6 +71,7 @@ class TestHealth:
         datetime.fromisoformat(timestamp)
 
 
+@pytest.mark.integration
 class TestHealthCelery:
     def test_health_celery_returns_200_with_workers(self):
         """Test /health/celery/ returns worker info when Celery is available."""

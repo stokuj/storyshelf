@@ -1,11 +1,13 @@
 from fastapi.testclient import TestClient
 from unittest.mock import patch
+import pytest
 
 from api.app import app
 
 client = TestClient(app)
 
 
+@pytest.mark.integration
 class TestAnalyseRoute:
     def test_post_analyse_returns_202(self):
         """Test that the chapter analyse route returns 202 with valid input."""
