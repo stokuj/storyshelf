@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import com.stokuj.books.integration.dto.PairResult;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +55,7 @@ public class ChapterEventProducer {
         kafkaTemplate.send(TOPIC_BOOK_FIND_PAIRS, String.valueOf(bookId), payload);
     }
 
-    public void sendBookForRelations(Long bookId, List<?> pairs) {
+    public void sendBookForRelations(Long bookId, List<PairResult> pairs) {
         log.info("Sending book {} to topic {} for relations", bookId, TOPIC_BOOK_RELATIONS);
 
         Map<String, Object> payload = new HashMap<>();
