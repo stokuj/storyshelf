@@ -35,6 +35,10 @@ frontend/node_modules/
 *.iml
 .vscode/
 .ruff_cache/
+.classpath
+.factorypath
+.project
+.settings/
 
 # Frontend build artifacts
 frontend/dist/
