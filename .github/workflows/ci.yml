@@ -119,7 +119,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USER }}
