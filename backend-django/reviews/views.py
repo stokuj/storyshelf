@@ -20,13 +20,13 @@ class BookReviewListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return (
-            Review.objects.filter(book_id=self.kwargs["book_id"])
+            Review.objects.filter(book_id=self.kwargs["pk"])
             .select_related("user", "book")
             .order_by("-created_at")
         )
 
     def perform_create(self, serializer):
-        book = get_object_or_404(Book, id=self.kwargs["book_id"])
+        book = get_object_or_404(Book, id=self.kwargs["pk"])
         serializer.save(user=self.request.user, book=book)
 
 

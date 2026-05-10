@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 from .models import Book, Chapter, BookAuthor, BookCharacter, CharacterRelation
 from library.models import Author, Tag
+from analysis.tasks import analyse_chapter, ner_chapter
 from .serializers import (
     BookSerializer,
     BookCreateSerializer,
@@ -107,10 +108,14 @@ class ChapterView(APIView):
         for i, content in enumerate(raw_chapters):
             chapter_num = i + 1
             title = content.split("\n")[0][:150] if "\n" in content else content[:150]
-            Chapter.objects.create(
+            chapter = Chapter.objects.create(
                 book=book, chapter_number=chapter_num, title=title, content=content
             )
             chapters_created += 1
+
+            analyse_chapter.delay(chapter.id, content)
+            if chapter_num == 1:
+                ner_chapter.delay(chapter.id, content)
 
         book.chapters_count = chapters_created
         book.save()
