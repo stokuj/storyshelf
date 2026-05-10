@@ -77,7 +77,7 @@ services:
         condition: service_started
 
   rabbitmq:
-    image: rabbitmq:4-management-alpine
+    image: rabbitmq:3-management-alpine
     container_name: storyshelf-rabbitmq
     ports:
       - "127.0.0.1:15672:15672"
