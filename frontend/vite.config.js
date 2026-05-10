@@ -24,6 +24,14 @@ export default defineConfig({
         target: apiProxyTarget,
         changeOrigin: true,
       },
+      '/admin': {
+        target: apiProxyTarget,
+        changeOrigin: true,
+      },
+      '/static': {
+        target: apiProxyTarget,
+        changeOrigin: true,
+      },
     },
   },
 })
