@@ -139,6 +139,7 @@ class UserFollowView(views.APIView):
 class FollowListView(generics.ListAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = FollowSerializer
+    pagination_class = None  # flat list for frontend
     follower_view = False
 
     def get_queryset(self):

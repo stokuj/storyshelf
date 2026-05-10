@@ -22,32 +22,33 @@ class ChapterSerializer(serializers.ModelSerializer):
 class BookCharacterSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source="character.id")
     name = serializers.CharField(source="character.name")
+    mentionCount = serializers.IntegerField(source="mention_count")
 
     class Meta:
         model = BookCharacter
-        fields = ("id", "name", "mention_count", "role")
+        fields = ("id", "name", "mentionCount", "role")
 
 
 class CharacterRelationSerializer(serializers.ModelSerializer):
-    source_character_name = serializers.CharField(source="source.name")
-    target_character_name = serializers.CharField(source="target.name")
+    sourceCharacterName = serializers.CharField(source="source.name")
+    targetCharacterName = serializers.CharField(source="target.name")
 
     class Meta:
         model = CharacterRelation
         fields = (
             "id",
-            "source_character_name",
-            "target_character_name",
+            "sourceCharacterName",
+            "targetCharacterName",
             "relation",
             "evidence",
             "confidence",
         )
 
 
-class BookSerializer(serializers.ModelSerializer):
+class BookListSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.JSONField(default=list)
-    tags_display = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Book
@@ -60,7 +61,7 @@ class BookSerializer(serializers.ModelSerializer):
             "description",
             "page_count",
             "genres",
-            "tags_display",
+            "tags",
             "rating",
             "ratings_count",
         )
@@ -68,7 +69,7 @@ class BookSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         return obj.authors.first().name if obj.authors.exists() else None
 
-    def get_tags_display(self, obj):
+    def get_tags(self, obj):
         return [t.name for t in obj.tags.all()]
 
 
@@ -96,13 +97,8 @@ class BookCreateSerializer(serializers.ModelSerializer):
 class BookDetailSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.JSONField(default=list)
-    tags_display = serializers.SerializerMethodField()
-    analysis_status = serializers.SerializerMethodField()
-    chapters = serializers.SerializerMethodField()
-    characters = serializers.SerializerMethodField()
-    relations = serializers.SerializerMethodField()
-    reviews = serializers.SerializerMethodField()
-    shelf_entry = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
+    ratingsCount = serializers.IntegerField(source="ratings_count")
 
     class Meta:
         model = Book
@@ -115,65 +111,80 @@ class BookDetailSerializer(serializers.ModelSerializer):
             "description",
             "page_count",
             "genres",
-            "tags_display",
+            "tags",
             "rating",
-            "ratings_count",
-            "analysis_status",
-            "chapters",
-            "characters",
-            "relations",
-            "reviews",
-            "shelf_entry",
+            "ratingsCount",
         )
 
     def get_author(self, obj):
         return obj.authors.first().name if obj.authors.exists() else None
 
-    def get_tags_display(self, obj):
+    def get_tags(self, obj):
         return [t.name for t in obj.tags.all()]
 
-    def get_analysis_status(self, obj):
+    def to_representation(self, instance):
+        request = self.context.get("request")
+
+        # Build book object
+        book_data = super().to_representation(instance)
+
+        # Analysis status
         finished = (
-            obj.ner_completed_count >= obj.chapters_count
-            if obj.chapters_count > 0
+            instance.ner_completed_count >= instance.chapters_count
+            if instance.chapters_count > 0
             else False
         )
-        return {
-            "chapters_count": obj.chapters_count,
-            "ner_completed_count": obj.ner_completed_count,
-            "analysis_finished": finished,
+        book_data["analysisStatus"] = {
+            "chaptersCount": instance.chapters_count,
+            "nerCompletedCount": instance.ner_completed_count,
+            "analysisFinished": finished,
         }
 
-    def get_chapters(self, obj):
-        return ChapterSerializer(
-            obj.chapters.order_by("chapter_number"), many=True
-        ).data
+        # Series info (fallbacks for frontend)
+        if instance.serie:
+            book_data["series"] = {"name": instance.serie.name}
+        book_data["seriesName"] = instance.serie.name if instance.serie else None
+        book_data["seriesTitle"] = None
 
-    def get_characters(self, obj):
-        return BookCharacterSerializer(
-            obj.bookcharacter_set.select_related("character"), many=True
-        ).data
-
-    def get_relations(self, obj):
-        return CharacterRelationSerializer(
-            obj.character_relations.select_related("source", "target"), many=True
-        ).data
-
-    def get_reviews(self, obj):
-        from reviews.serializers import ReviewSerializer
-
-        return ReviewSerializer(
-            obj.reviews.select_related("user").order_by("-created_at"), many=True
-        ).data
-
-    def get_shelf_entry(self, obj):
-        request = self.context.get("request")
+        # Shelf entry
+        shelf_entry = None
         if request and request.user.is_authenticated:
             try:
-                entry = obj.shelf_entries.get(user=request.user)
-                from shelf.serializers import ShelfEntrySerializer
-
-                return ShelfEntrySerializer(entry).data
+                entry = instance.shelf_entries.get(user=request.user)
+                shelf_entry = {
+                    "status": entry.status,
+                    "createdAt": entry.created_at.isoformat(),
+                }
             except Exception:
                 pass
-        return None
+
+        # Chapters
+        chapters = ChapterSerializer(
+            instance.chapters.order_by("chapter_number"), many=True
+        ).data
+
+        # Characters
+        characters = BookCharacterSerializer(
+            instance.bookcharacter_set.select_related("character"), many=True
+        ).data
+
+        # Relations
+        relations = CharacterRelationSerializer(
+            instance.character_relations.select_related("source", "target"), many=True
+        ).data
+
+        # Reviews
+        from reviews.serializers import ReviewSerializer
+
+        reviews = ReviewSerializer(
+            instance.reviews.select_related("user").order_by("-created_at"), many=True
+        ).data
+
+        return {
+            "book": book_data,
+            "shelfEntry": shelf_entry,
+            "chapters": chapters,
+            "reviews": reviews,
+            "characters": characters,
+            "relations": relations,
+        }

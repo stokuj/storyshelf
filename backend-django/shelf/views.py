@@ -10,6 +10,7 @@ from .serializers import ShelfEntrySerializer
 class ShelfListView(generics.ListAPIView):
     serializer_class = ShelfEntrySerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None  # flat list for frontend
 
     def get_queryset(self):
         return (

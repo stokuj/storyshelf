@@ -4,8 +4,9 @@ from .models import Review
 
 class ReviewSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
-    book_title = serializers.CharField(source="book.title", read_only=True)
-    book_id = serializers.IntegerField(source="book.id", read_only=True)
+    bookTitle = serializers.CharField(source="book.title", read_only=True)
+    bookId = serializers.IntegerField(source="book.id", read_only=True)
+    createdAt = serializers.DateTimeField(source="created_at", read_only=True)
 
     class Meta:
         model = Review
@@ -14,8 +15,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             "username",
             "rating",
             "content",
-            "created_at",
-            "book_title",
-            "book_id",
+            "createdAt",
+            "bookTitle",
+            "bookId",
         )
-        read_only_fields = ("id", "username", "book_title", "book_id", "created_at")
+        read_only_fields = ("id", "username", "bookTitle", "bookId", "createdAt")

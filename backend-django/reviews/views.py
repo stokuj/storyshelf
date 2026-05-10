@@ -17,6 +17,7 @@ class IsModeratorForDelete(permissions.BasePermission):
 
 class BookReviewListCreateView(generics.ListCreateAPIView):
     serializer_class = ReviewSerializer
+    pagination_class = None  # flat list for frontend
 
     def get_queryset(self):
         return (

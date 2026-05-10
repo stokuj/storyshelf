@@ -8,7 +8,7 @@ from .models import Book, Chapter, BookAuthor, BookCharacter, CharacterRelation
 from library.models import Author, Tag
 from analysis.tasks import analyse_chapter, ner_chapter
 from .serializers import (
-    BookSerializer,
+    BookListSerializer,
     BookCreateSerializer,
     BookDetailSerializer,
     ChapterSerializer,
@@ -29,7 +29,11 @@ class BookListCreateView(generics.ListCreateAPIView):
     pagination_class = None  # flat list — frontend expects plain array
 
     def get_serializer_class(self):
-        return BookCreateSerializer if self.request.method == "POST" else BookSerializer
+        return (
+            BookCreateSerializer
+            if self.request.method == "POST"
+            else BookListSerializer
+        )
 
     def get_permissions(self):
         if self.request.method == "POST":
@@ -61,7 +65,9 @@ class BookListCreateView(generics.ListCreateAPIView):
 
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_serializer_class(self):
-        return BookDetailSerializer if self.request.method == "GET" else BookSerializer
+        return (
+            BookDetailSerializer if self.request.method == "GET" else BookListSerializer
+        )
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -138,6 +144,7 @@ class ChapterView(APIView):
 class BookCharactersView(generics.ListAPIView):
     serializer_class = BookCharacterSerializer
     permission_classes = [permissions.AllowAny]
+    pagination_class = None  # flat list for frontend
 
     def get_queryset(self):
         return BookCharacter.objects.filter(
@@ -148,6 +155,7 @@ class BookCharactersView(generics.ListAPIView):
 class BookRelationsView(generics.ListAPIView):
     serializer_class = CharacterRelationSerializer
     permission_classes = [permissions.AllowAny]
+    pagination_class = None  # flat list for frontend
 
     def get_queryset(self):
         return CharacterRelation.objects.filter(

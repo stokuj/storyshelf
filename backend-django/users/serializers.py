@@ -55,16 +55,21 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    member_since = serializers.DateTimeField(source="created_at", read_only=True)
+    memberSince = serializers.DateTimeField(source="created_at", read_only=True)
+    avatarUrl = serializers.URLField(source="avatar_url", read_only=True)
 
     class Meta:
         model = User
-        fields = ("username", "bio", "avatar_url", "member_since")
-        read_only_fields = ("username", "bio", "avatar_url", "member_since")
+        fields = ("username", "bio", "avatarUrl", "memberSince")
+        read_only_fields = ("username", "bio", "avatarUrl", "memberSince")
 
 
 class UserSettingsSerializer(serializers.ModelSerializer):
-    member_since = serializers.DateTimeField(source="created_at", read_only=True)
+    memberSince = serializers.DateTimeField(source="created_at", read_only=True)
+    avatarUrl = serializers.URLField(
+        source="avatar_url", required=False, allow_blank=True
+    )
+    profilePublic = serializers.BooleanField(source="profile_public")
 
     class Meta:
         model = User
@@ -72,28 +77,22 @@ class UserSettingsSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "bio",
-            "avatar_url",
+            "avatarUrl",
             "role",
-            "profile_public",
-            "member_since",
+            "profilePublic",
+            "memberSince",
         )
-        read_only_fields = ("email", "role", "member_since")
+        read_only_fields = ("email", "role", "memberSince")
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    follower_username = serializers.CharField(
-        source="follower.username", read_only=True
-    )
-    following_username = serializers.CharField(
+    followerUsername = serializers.CharField(source="follower.username", read_only=True)
+    followingUsername = serializers.CharField(
         source="following.username", read_only=True
     )
+    followedAt = serializers.DateTimeField(source="followed_at", read_only=True)
 
     class Meta:
         model = UserFollow
-        fields = ("id", "follower_username", "following_username", "followed_at")
-        read_only_fields = (
-            "id",
-            "follower_username",
-            "following_username",
-            "followed_at",
-        )
+        fields = ("id", "followerUsername", "followingUsername", "followedAt")
+        read_only_fields = ("id", "followerUsername", "followingUsername", "followedAt")
