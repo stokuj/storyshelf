@@ -137,14 +137,6 @@ public class AnalysisResultConsumer {
             throw new IllegalStateException("Book not found for relations result: " + bookId);
         }
 
-        boolean hasResolvedRelations = characterRelationRepository.findAllByBookId(bookId)
-                .stream()
-                .anyMatch(rel -> rel.getRelation() != null && !rel.getRelation().isBlank());
-        if (hasResolvedRelations) {
-            log.info("Skipping duplicate relations result for book {}", bookId);
-            return;
-        }
-
         relationsResultProcessor.processRelationsResult(book, payload);
     }
 
