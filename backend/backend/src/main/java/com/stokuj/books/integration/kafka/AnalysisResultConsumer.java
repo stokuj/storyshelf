@@ -12,7 +12,6 @@ import com.stokuj.books.book.chapter.Chapter;
 import com.stokuj.books.book.character.relation.StoryCharacterRelationRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,6 @@ public class AnalysisResultConsumer {
         this.characterRelationRepository = characterRelationRepository;
     }
 
-    @Transactional
     @KafkaListener(topics = "chapter.analyse.results", groupId = "springshelf-analysis-results")
     public void consumeAnalyseResult(Map<String, Object> payload) {
         Long chapterId = asLong(payload.get("chapterId"));
@@ -53,7 +51,8 @@ public class AnalysisResultConsumer {
 
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null) {
-            throw new IllegalStateException("Chapter not found for analyse result: " + chapterId);
+            log.warn("Chapter not found for analyse result: {}", chapterId);
+            return;
         }
         if (Boolean.TRUE.equals(chapter.getAnalysisCompleted())) {
             log.info("Skipping duplicate analyse result for chapter {}", chapterId);
@@ -84,7 +83,6 @@ public class AnalysisResultConsumer {
         chapterRepository.save(chapter);
     }
 
-    @Transactional
     @KafkaListener(topics = "chapter.ner.results", groupId = "springshelf-analysis-results")
     public void consumeNerResult(Map<String, Object> payload) {
         Long chapterId = asLong(payload.get("chapterId"));
@@ -95,7 +93,8 @@ public class AnalysisResultConsumer {
 
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null) {
-            throw new IllegalStateException("Chapter not found for ner result: " + chapterId);
+            log.warn("Chapter not found for ner result: {}", chapterId);
+            return;
         }
         if (chapter.getNerResult() != null) {
             log.info("Skipping duplicate NER result for chapter {}", chapterId);
@@ -111,7 +110,6 @@ public class AnalysisResultConsumer {
         nerResultProcessor.process(chapter, result);
     }
 
-    @Transactional
     @KafkaListener(topics = "book.find-pairs.results", groupId = "springshelf-analysis-results")
     public void consumeFindPairsResult(Map<String, Object> payload) {
         Long bookId = asLong(payload.get("bookId"));
@@ -122,7 +120,8 @@ public class AnalysisResultConsumer {
 
         Book book = bookRepository.findById(bookId).orElse(null);
         if (book == null) {
-            throw new IllegalStateException("Book not found for find-pairs result: " + bookId);
+            log.warn("Book not found for find-pairs result: {}", bookId);
+            return;
         }
         if (characterRelationRepository.existsByBookId(bookId)) {
             log.info("Skipping duplicate find-pairs result for book {}", bookId);
@@ -133,7 +132,6 @@ public class AnalysisResultConsumer {
         relationsResultProcessor.processFindPairsResult(book, result);
     }
 
-    @Transactional
     @KafkaListener(topics = "book.relations.results", groupId = "springshelf-analysis-results")
     public void consumeRelationsResult(Map<String, Object> payload) {
         Long bookId = asLong(payload.get("bookId"));
@@ -144,7 +142,8 @@ public class AnalysisResultConsumer {
 
         Book book = bookRepository.findById(bookId).orElse(null);
         if (book == null) {
-            throw new IllegalStateException("Book not found for relations result: " + bookId);
+            log.warn("Book not found for relations result: {}", bookId);
+            return;
         }
 
         relationsResultProcessor.processRelationsResult(book, payload);
