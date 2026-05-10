@@ -69,12 +69,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { fetchBookshelf, removeFromBookshelf, updateBookshelfStatus } from '../api'
-import { authState, refreshAuth } from '../auth'
+import { authState } from '../auth'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const activeFilter = ref('ALL')
 const entries = ref([])
-const loading = ref(true)
-const error = ref('')
+const { loading, error, execute } = useAsyncState()
+loading.value = true
 
 const filters = [
   { value: 'ALL', label: 'Wszystkie' },
@@ -96,44 +97,36 @@ const filteredEntries = computed(() => {
 })
 
 async function loadBookshelf() {
-  loading.value = true
-  error.value = ''
-
-  try {
-    await refreshAuth()
+  await execute(async () => {
     if (!authState.authenticated) {
       entries.value = []
       return
     }
-
     entries.value = await fetchBookshelf()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać półki.'
-  } finally {
-    loading.value = false
-  }
+  }, { fallback: 'Nie udało się pobrać półki.' })
 }
 
 async function changeStatus(entry, event) {
   const nextStatus = event.target.value
-
-  try {
-    const updated = await updateBookshelfStatus(entry.book.id, nextStatus)
+  const result = await execute(async () => {
+    return await updateBookshelfStatus(entry.book.id, nextStatus)
+  }, { fallback: 'Nie udało się zmienić statusu.' })
+  if (result) {
     entries.value = entries.value.map((current) =>
-      current.book.id === entry.book.id ? updated : current,
+      current.book.id === entry.book.id ? result : current,
     )
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zmienić statusu.'
+  } else {
     event.target.value = entry.status
   }
 }
 
 async function removeEntry(entry) {
-  try {
+  const ok = await execute(async () => {
     await removeFromBookshelf(entry.book.id)
+    return true
+  }, { fallback: 'Nie udało się usunąć książki z półki.' })
+  if (ok) {
     entries.value = entries.value.filter((current) => current.book.id !== entry.book.id)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się usunąć książki z półki.'
   }
 }
 

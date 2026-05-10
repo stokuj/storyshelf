@@ -232,20 +232,19 @@ import {
   removeFromBookshelf,
   updateBookshelfStatus,
 } from '../api'
-import { authState, refreshAuth } from '../auth'
+import { authState } from '../auth'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const route = useRoute()
 
 // Stan widoku i danych książki
 const details = ref(null)
-const loading = ref(true)
-const error = ref('')
+const { loading, error, execute } = useAsyncState()
+loading.value = true
 
 // Stan komunikatów/akcji użytkownika
-const shelfLoading = ref(false)
-const reviewLoading = ref(false)
-const reviewError = ref('')
-const reviewMessage = ref('')
+const { loading: shelfLoading, execute: executeShelf } = useAsyncState()
+const { loading: reviewLoading, error: reviewError, message: reviewMessage, execute: executeReview } = useAsyncState()
 const randomReviews = ref([])
 
 // Formularz dodawania recenzji
@@ -287,109 +286,70 @@ function pickRandomReviews(reviews, limit = 6) {
 }
 
 async function loadDetails() {
-  // Główne pobieranie danych książki po ID z URL
-  loading.value = true
-  error.value = ''
+  const result = await execute(async () => {
+    return await fetchBookDetails(route.params.id)
+  }, { fallback: 'Nie udało się pobrać szczegółów książki.' })
 
-  try {
-    await refreshAuth()
-    details.value = await fetchBookDetails(route.params.id)
+  if (result) {
+    details.value = result
     randomReviews.value = pickRandomReviews(details.value?.reviews || [], 6)
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : ''
-    if (msg.includes('404') || msg.includes('Not Found') || msg.includes('not found')) {
-      details.value = null
-    } else {
-      error.value = err instanceof Error ? err.message : 'Nie udało się pobrać szczegółów książki.'
-    }
+  } else {
+    details.value = null
     randomReviews.value = []
-  } finally {
-    loading.value = false
   }
 }
 
 async function addShelfEntry() {
-  // Dodanie książki do półki użytkownika
-  shelfLoading.value = true
-  error.value = ''
-
-  try {
+  await executeShelf(async () => {
     details.value.shelfEntry = await addToBookshelf(route.params.id)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się dodać książki do półki.'
-  } finally {
-    shelfLoading.value = false
-  }
+  }, { fallback: 'Nie udało się dodać książki do półki.' })
 }
 
 async function changeShelfStatus(event) {
-  // Zmiana statusu książki na półce (np. WANT_TO_READ -> READING)
-  shelfLoading.value = true
-  error.value = ''
   const previousStatus = details.value?.shelfEntry?.status
+  const result = await executeShelf(async () => {
+    return await updateBookshelfStatus(route.params.id, event.target.value)
+  }, { fallback: 'Nie udało się zmienić statusu książki.' })
 
-  try {
-    details.value.shelfEntry = await updateBookshelfStatus(route.params.id, event.target.value)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zmienić statusu książki.'
+  if (result) {
+    details.value.shelfEntry = result
+  } else {
     event.target.value = previousStatus
-  } finally {
-    shelfLoading.value = false
   }
 }
 
 async function changeShelfStatusByValue(status) {
-  shelfLoading.value = true
-  error.value = ''
-
-  try {
+  await executeShelf(async () => {
     if (details.value?.shelfEntry) {
       details.value.shelfEntry = await updateBookshelfStatus(route.params.id, status)
     } else {
       details.value.shelfEntry = await addToBookshelf(route.params.id, status)
     }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zapisać statusu książki.'
-  } finally {
-    shelfLoading.value = false
-  }
+  }, { fallback: 'Nie udało się zapisać statusu książki.' })
 }
 
 async function removeShelfEntry() {
-  // Usunięcie książki z półki użytkownika
-  shelfLoading.value = true
-  error.value = ''
-
-  try {
+  const result = await executeShelf(async () => {
     await removeFromBookshelf(route.params.id)
-    details.value.shelfEntry = null
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się usunąć książki z półki.'
-  } finally {
-    shelfLoading.value = false
-  }
+    return true
+  }, { fallback: 'Nie udało się usunąć książki z półki.' })
+  if (result) details.value.shelfEntry = null
 }
 
 async function submitReview() {
-  // Dodanie recenzji i dopięcie jej na początku listy
-  reviewLoading.value = true
-  reviewError.value = ''
-  reviewMessage.value = ''
-
-  try {
-    const created = await createBookReview(route.params.id, {
+  const created = await executeReview(async () => {
+    return await createBookReview(route.params.id, {
       rating: reviewForm.rating,
       content: reviewForm.content.trim(),
     })
+  }, { fallback: 'Nie udało się dodać recenzji.' })
+
+  if (created) {
     details.value.reviews = [created, ...(details.value.reviews || [])]
     randomReviews.value = pickRandomReviews(details.value.reviews, 6)
     reviewForm.content = ''
     reviewForm.rating = 5
     reviewMessage.value = 'Dodano recenzję.'
-  } catch (err) {
-    reviewError.value = err instanceof Error ? err.message : 'Nie udało się dodać recenzji.'
-  } finally {
-    reviewLoading.value = false
   }
 }
 

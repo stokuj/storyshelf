@@ -46,36 +46,28 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { loginUser } from '../api'
 import { refreshAuth } from '../auth'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const route = useRoute()
 const router = useRouter()
-const loading = ref(false)
-const error = ref('')
+const { loading, error, execute } = useAsyncState()
 const form = reactive({
   email: '',
   password: '',
 })
 
 async function submitLogin() {
-  loading.value = true
-  error.value = ''
-
-  try {
-    await loginUser({
-      username: form.email,
-      password: form.password,
-    })
-    await refreshAuth()
-    const nextPath = typeof route.query.next === 'string' ? route.query.next : '/'
-    router.push(nextPath)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zalogować.'
-  } finally {
-    loading.value = false
-  }
+  const ok = await execute(async () => {
+    await loginUser({ username: form.email, password: form.password })
+    return true
+  }, { fallback: 'Nie udało się zalogować.' })
+  if (!ok) return
+  await refreshAuth()
+  const nextPath = typeof route.query.next === 'string' ? route.query.next : '/'
+  router.push(nextPath)
 }
 </script>

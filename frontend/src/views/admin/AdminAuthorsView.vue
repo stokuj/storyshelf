@@ -16,8 +16,8 @@
             placeholder="Krótki opis autora"
           ></textarea>
           <div class="md:col-span-3">
-            <button class="btn btn-primary btn-sm" type="submit" :disabled="saving">
-              {{ saving ? 'Zapisywanie...' : 'Dodaj autora' }}
+            <button class="btn btn-primary btn-sm" type="submit" :disabled="savingRowId !== null">
+              {{ savingRowId !== null ? 'Zapisywanie...' : 'Dodaj autora' }}
             </button>
           </div>
         </form>
@@ -52,10 +52,10 @@
                   </td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-primary btn-xs" type="button" :disabled="saving" @click="saveAuthor(author.id)">
+                      <button class="btn btn-primary btn-xs" type="button" :disabled="savingRowId !== null" @click="saveAuthor(author.id)">
                         Zapisz
                       </button>
-                      <button class="btn btn-ghost btn-xs" type="button" :disabled="saving" @click="cancelEdit">
+                      <button class="btn btn-ghost btn-xs" type="button" :disabled="savingRowId !== null" @click="cancelEdit">
                         Anuluj
                       </button>
                     </div>
@@ -67,10 +67,10 @@
                   <td class="max-w-md truncate">{{ author.bio || '-' }}</td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-outline btn-xs" type="button" :disabled="saving" @click="startEdit(author)">
+                      <button class="btn btn-outline btn-xs" type="button" :disabled="savingRowId !== null" @click="startEdit(author)">
                         Edytuj
                       </button>
-                      <button class="btn btn-error btn-xs" type="button" :disabled="saving" @click="removeAuthor(author.id)">
+                      <button class="btn btn-error btn-xs" type="button" :disabled="savingRowId !== null" @click="removeAuthor(author.id)">
                         Usuń
                       </button>
                     </div>
@@ -93,13 +93,13 @@ import {
   fetchAuthors,
   updateModeratorAuthor,
 } from '../../api'
+import { useAsyncState } from '../../composables/useAsyncState'
 
 const authors = ref([])
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const message = ref('')
 const editId = ref(null)
+const savingRowId = ref(null)
+const { loading, error, message, execute } = useAsyncState()
+loading.value = true
 
 const createForm = reactive({
   name: '',
@@ -113,21 +113,10 @@ const editForm = reactive({
   birthDate: '',
 })
 
-function clearFeedback() {
-  error.value = ''
-  message.value = ''
-}
-
 async function loadAuthors() {
-  loading.value = true
-  clearFeedback()
-  try {
+  await execute(async () => {
     authors.value = await fetchAuthors()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać autorów.'
-  } finally {
-    loading.value = false
-  }
+  }, { fallback: 'Nie udało się pobrać autorów.' })
 }
 
 function normalizeAuthorPayload(form) {
@@ -139,19 +128,18 @@ function normalizeAuthorPayload(form) {
 }
 
 async function createAuthor() {
-  saving.value = true
-  clearFeedback()
-  try {
+  savingRowId.value = 'create'
+  const ok = await execute(async () => {
     await createModeratorAuthor(normalizeAuthorPayload(createForm))
+    return true
+  }, { fallback: 'Nie udało się dodać autora.' })
+  savingRowId.value = null
+  if (ok) {
     createForm.name = ''
     createForm.bio = ''
     createForm.birthDate = ''
     message.value = 'Dodano autora.'
     await loadAuthors()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się dodać autora.'
-  } finally {
-    saving.value = false
   }
 }
 
@@ -167,35 +155,30 @@ function cancelEdit() {
 }
 
 async function saveAuthor(authorId) {
-  saving.value = true
-  clearFeedback()
-  try {
+  savingRowId.value = authorId
+  const ok = await execute(async () => {
     await updateModeratorAuthor(authorId, normalizeAuthorPayload(editForm))
+    return true
+  }, { fallback: 'Nie udało się zapisać zmian autora.' })
+  savingRowId.value = null
+  if (ok) {
     editId.value = null
     message.value = 'Zapisano zmiany autora.'
     await loadAuthors()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zapisać zmian autora.'
-  } finally {
-    saving.value = false
   }
 }
 
 async function removeAuthor(authorId) {
-  if (!window.confirm('Czy na pewno usunąć autora?')) {
-    return
-  }
-
-  saving.value = true
-  clearFeedback()
-  try {
+  if (!window.confirm('Czy na pewno usunąć autora?')) return
+  savingRowId.value = authorId
+  const ok = await execute(async () => {
     await deleteModeratorAuthor(authorId)
+    return true
+  }, { fallback: 'Nie udało się usunąć autora.' })
+  savingRowId.value = null
+  if (ok) {
     message.value = 'Usunięto autora.'
     await loadAuthors()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się usunąć autora.'
-  } finally {
-    saving.value = false
   }
 }
 

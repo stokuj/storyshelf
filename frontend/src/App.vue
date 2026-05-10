@@ -24,9 +24,8 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { authState, refreshAuth, signOut } from './auth'
+import { authState, signOut } from './auth'
 
 const router = useRouter()
 
@@ -34,8 +33,4 @@ async function handleLogout() {
   await signOut()
   router.push('/login')
 }
-
-onMounted(() => {
-  refreshAuth()
-})
 </script>

@@ -78,10 +78,10 @@
 import { reactive, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { registerUser } from '../api'
+import { useAsyncState } from '../composables/useAsyncState'
 
 const router = useRouter()
-const loading = ref(false)
-const error = ref('')
+const { loading, error, execute } = useAsyncState()
 const confirmPassword = ref('')
 const form = reactive({
   username: '',
@@ -94,17 +94,11 @@ async function submitRegister() {
     error.value = 'Hasła nie są identyczne.'
     return
   }
-
-  loading.value = true
-  error.value = ''
-
-  try {
+  const ok = await execute(async () => {
     await registerUser(form)
-    router.push('/login?registered=1')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się utworzyć konta.'
-  } finally {
-    loading.value = false
-  }
+    return true
+  }, { fallback: 'Nie udało się utworzyć konta.' })
+  if (!ok) return
+  router.push('/login?registered=1')
 }
 </script>

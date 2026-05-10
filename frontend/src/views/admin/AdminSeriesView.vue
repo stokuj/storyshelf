@@ -20,8 +20,8 @@
             placeholder="Opis serii"
           ></textarea>
           <div class="md:col-span-3">
-            <button class="btn btn-primary btn-sm" type="submit" :disabled="saving">
-              {{ saving ? 'Zapisywanie...' : 'Dodaj serię' }}
+            <button class="btn btn-primary btn-sm" type="submit" :disabled="savingRowId !== null">
+              {{ savingRowId !== null ? 'Zapisywanie...' : 'Dodaj serię' }}
             </button>
           </div>
         </form>
@@ -60,10 +60,10 @@
                   </td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-primary btn-xs" type="button" :disabled="saving" @click="saveSeries(series.id)">
+                      <button class="btn btn-primary btn-xs" type="button" :disabled="savingRowId !== null" @click="saveSeries(series.id)">
                         Zapisz
                       </button>
-                      <button class="btn btn-ghost btn-xs" type="button" :disabled="saving" @click="cancelEdit">
+                      <button class="btn btn-ghost btn-xs" type="button" :disabled="savingRowId !== null" @click="cancelEdit">
                         Anuluj
                       </button>
                     </div>
@@ -77,10 +77,10 @@
                   <td class="max-w-md truncate">{{ series.description || '-' }}</td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-outline btn-xs" type="button" :disabled="saving" @click="startEdit(series)">
+                      <button class="btn btn-outline btn-xs" type="button" :disabled="savingRowId !== null" @click="startEdit(series)">
                         Edytuj
                       </button>
-                      <button class="btn btn-error btn-xs" type="button" :disabled="saving" @click="removeSeries(series.id)">
+                      <button class="btn btn-error btn-xs" type="button" :disabled="savingRowId !== null" @click="removeSeries(series.id)">
                         Usuń
                       </button>
                     </div>
@@ -97,6 +97,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useAsyncState } from '../../composables/useAsyncState'
 import {
   createModeratorSeries,
   deleteModeratorSeries,
@@ -106,10 +107,9 @@ import {
 
 const statusOptions = ['ONGOING', 'COMPLETED', 'CANCELLED', 'HIATUS']
 const seriesList = ref([])
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const message = ref('')
+const savingRowId = ref(null)
+const { loading, error, message, execute } = useAsyncState()
+loading.value = true
 const editId = ref(null)
 
 const createForm = reactive({
@@ -124,11 +124,6 @@ const editForm = reactive({
   status: 'ONGOING',
 })
 
-function clearFeedback() {
-  error.value = ''
-  message.value = ''
-}
-
 function normalizeSeriesPayload(form) {
   return {
     name: form.name.trim(),
@@ -138,31 +133,24 @@ function normalizeSeriesPayload(form) {
 }
 
 async function loadSeries() {
-  loading.value = true
-  clearFeedback()
-  try {
+  await execute(async () => {
     seriesList.value = await fetchSeries()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać serii.'
-  } finally {
-    loading.value = false
-  }
+  }, { fallback: 'Nie udało się pobrać serii.' })
 }
 
 async function createSeries() {
-  saving.value = true
-  clearFeedback()
-  try {
+  savingRowId.value = 'create'
+  const ok = await execute(async () => {
     await createModeratorSeries(normalizeSeriesPayload(createForm))
+    return true
+  }, { fallback: 'Nie udało się dodać serii.' })
+  savingRowId.value = null
+  if (ok) {
     createForm.name = ''
     createForm.description = ''
     createForm.status = 'ONGOING'
     message.value = 'Dodano serię.'
     await loadSeries()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się dodać serii.'
-  } finally {
-    saving.value = false
   }
 }
 
@@ -178,35 +166,30 @@ function cancelEdit() {
 }
 
 async function saveSeries(seriesId) {
-  saving.value = true
-  clearFeedback()
-  try {
+  savingRowId.value = seriesId
+  const ok = await execute(async () => {
     await updateModeratorSeries(seriesId, normalizeSeriesPayload(editForm))
+    return true
+  }, { fallback: 'Nie udało się zapisać zmian serii.' })
+  savingRowId.value = null
+  if (ok) {
     editId.value = null
     message.value = 'Zapisano zmiany serii.'
     await loadSeries()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zapisać zmian serii.'
-  } finally {
-    saving.value = false
   }
 }
 
 async function removeSeries(seriesId) {
-  if (!window.confirm('Czy na pewno usunąć serię?')) {
-    return
-  }
-
-  saving.value = true
-  clearFeedback()
-  try {
+  if (!window.confirm('Czy na pewno usunąć serię?')) return
+  savingRowId.value = seriesId
+  const ok = await execute(async () => {
     await deleteModeratorSeries(seriesId)
+    return true
+  }, { fallback: 'Nie udało się usunąć serii.' })
+  savingRowId.value = null
+  if (ok) {
     message.value = 'Usunięto serię.'
     await loadSeries()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się usunąć serii.'
-  } finally {
-    saving.value = false
   }
 }
 

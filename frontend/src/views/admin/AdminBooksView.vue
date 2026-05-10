@@ -27,8 +27,8 @@
           <input v-model="createForm.genres" class="input input-bordered md:col-span-2" placeholder="Gatunki (oddziel przecinkami)" />
           <input v-model="createForm.tags" class="input input-bordered md:col-span-2" placeholder="Tagi (oddziel przecinkami)" />
           <div class="md:col-span-2">
-            <button class="btn btn-primary btn-sm" type="submit" :disabled="saving">
-              {{ saving ? 'Zapisywanie...' : 'Dodaj książkę' }}
+            <button class="btn btn-primary btn-sm" type="submit" :disabled="savingRowId !== null">
+              {{ savingRowId !== null ? 'Zapisywanie...' : 'Dodaj książkę' }}
             </button>
           </div>
         </form>
@@ -60,11 +60,11 @@
           @change="onContentFileChange"
         />
         <div class="mt-3 flex flex-wrap gap-2">
-          <button class="btn btn-primary btn-sm" type="button" :disabled="saving || !contentBookId || !contentFile" @click="uploadContent">
-            {{ saving ? 'Wysyłanie...' : 'Wyślij plik rozdziałów' }}
+          <button class="btn btn-primary btn-sm" type="button" :disabled="savingRowId !== null || !contentBookId || !contentFile" @click="uploadContent">
+            {{ savingRowId !== null ? 'Wysyłanie...' : 'Wyślij plik rozdziałów' }}
           </button>
-          <button class="btn btn-error btn-sm" type="button" :disabled="saving || !contentBookId" @click="clearContent">
-            {{ saving ? 'Czyszczenie...' : 'Wyczyść rozdziały książki' }}
+          <button class="btn btn-error btn-sm" type="button" :disabled="savingRowId !== null || !contentBookId" @click="clearContent">
+            {{ savingRowId !== null ? 'Czyszczenie...' : 'Wyczyść rozdziały książki' }}
           </button>
         </div>
       </div>
@@ -105,10 +105,10 @@
                   </td>
                   <td>
                     <div class="flex gap-2">
-                      <button class="btn btn-primary btn-xs" type="button" :disabled="saving" @click="saveBook(book.id)">
+                      <button class="btn btn-primary btn-xs" type="button" :disabled="savingRowId !== null" @click="saveBook(book.id)">
                         Zapisz
                       </button>
-                      <button class="btn btn-ghost btn-xs" type="button" :disabled="saving" @click="cancelEdit">
+                      <button class="btn btn-ghost btn-xs" type="button" :disabled="savingRowId !== null" @click="cancelEdit">
                         Anuluj
                       </button>
                     </div>
@@ -125,10 +125,10 @@
                   <td>
                     <div class="flex flex-wrap gap-2">
                       <RouterLink :to="`/book/${book.id}`" class="btn btn-ghost btn-xs">Podgląd</RouterLink>
-                      <button class="btn btn-outline btn-xs" type="button" :disabled="saving" @click="startEdit(book)">
+                      <button class="btn btn-outline btn-xs" type="button" :disabled="savingRowId !== null" @click="startEdit(book)">
                         Edytuj
                       </button>
-                      <button class="btn btn-error btn-xs" type="button" :disabled="saving" @click="removeBook(book.id)">
+                      <button class="btn btn-error btn-xs" type="button" :disabled="savingRowId !== null" @click="removeBook(book.id)">
                         Usuń
                       </button>
                     </div>
@@ -154,12 +154,12 @@ import {
   patchModeratorBook,
   uploadModeratorBookContent,
 } from '../../api'
+import { useAsyncState } from '../../composables/useAsyncState'
 
 const books = ref([])
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const message = ref('')
+const savingRowId = ref(null)
+const { loading, error, message, execute } = useAsyncState()
+loading.value = true
 const editId = ref(null)
 const contentBookId = ref('')
 const contentFile = ref(null)
@@ -193,11 +193,6 @@ function splitCsv(value) {
     .filter(Boolean)
 }
 
-function clearFeedback() {
-  error.value = ''
-  message.value = ''
-}
-
 function normalizeBookPayload(form) {
   return {
     title: form.title.trim(),
@@ -212,22 +207,19 @@ function normalizeBookPayload(form) {
 }
 
 async function loadBooks() {
-  loading.value = true
-  clearFeedback()
-  try {
+  await execute(async () => {
     books.value = await fetchBooks('')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się pobrać książek.'
-  } finally {
-    loading.value = false
-  }
+  }, { fallback: 'Nie udało się pobrać książek.' })
 }
 
 async function createBook() {
-  saving.value = true
-  clearFeedback()
-  try {
+  savingRowId.value = 'create'
+  const ok = await execute(async () => {
     await createModeratorBook(normalizeBookPayload(createForm))
+    return true
+  }, { fallback: 'Nie udało się dodać książki.' })
+  savingRowId.value = null
+  if (ok) {
     createForm.title = ''
     createForm.author = ''
     createForm.year = 0
@@ -238,10 +230,6 @@ async function createBook() {
     createForm.tags = ''
     message.value = 'Dodano książkę.'
     await loadBooks()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się dodać książki.'
-  } finally {
-    saving.value = false
   }
 }
 
@@ -262,35 +250,30 @@ function cancelEdit() {
 }
 
 async function saveBook(bookId) {
-  saving.value = true
-  clearFeedback()
-  try {
+  savingRowId.value = bookId
+  const ok = await execute(async () => {
     await patchModeratorBook(bookId, normalizeBookPayload(editForm))
+    return true
+  }, { fallback: 'Nie udało się zapisać zmian książki.' })
+  savingRowId.value = null
+  if (ok) {
     editId.value = null
     message.value = 'Zapisano zmiany książki.'
     await loadBooks()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się zapisać zmian książki.'
-  } finally {
-    saving.value = false
   }
 }
 
 async function removeBook(bookId) {
-  if (!window.confirm('Czy na pewno usunąć książkę?')) {
-    return
-  }
-
-  saving.value = true
-  clearFeedback()
-  try {
+  if (!window.confirm('Czy na pewno usunąć książkę?')) return
+  savingRowId.value = bookId
+  const ok = await execute(async () => {
     await deleteModeratorBook(bookId)
+    return true
+  }, { fallback: 'Nie udało się usunąć książki.' })
+  savingRowId.value = null
+  if (ok) {
     message.value = 'Usunięto książkę.'
     await loadBooks()
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się usunąć książki.'
-  } finally {
-    saving.value = false
   }
 }
 
@@ -299,40 +282,30 @@ function onContentFileChange(event) {
 }
 
 async function uploadContent() {
-  if (!contentBookId.value || !contentFile.value) {
-    return
-  }
-
-  saving.value = true
-  clearFeedback()
-  try {
+  if (!contentBookId.value || !contentFile.value) return
+  savingRowId.value = 'upload'
+  const ok = await execute(async () => {
     await uploadModeratorBookContent(contentBookId.value, contentFile.value)
+    return true
+  }, { fallback: 'Nie udało się wgrać treści książki.' })
+  savingRowId.value = null
+  if (ok) {
     contentFile.value = null
     message.value = 'Wgrano treść książki i uruchomiono analizę.'
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się wgrać treści książki.'
-  } finally {
-    saving.value = false
   }
 }
 
 async function clearContent() {
-  if (!contentBookId.value) {
-    return
-  }
-  if (!window.confirm('Czy na pewno usunąć wszystkie rozdziały tej książki?')) {
-    return
-  }
-
-  saving.value = true
-  clearFeedback()
-  try {
+  if (!contentBookId.value) return
+  if (!window.confirm('Czy na pewno usunąć wszystkie rozdziały tej książki?')) return
+  savingRowId.value = 'clear'
+  const ok = await execute(async () => {
     await clearModeratorBookContent(contentBookId.value)
+    return true
+  }, { fallback: 'Nie udało się wyczyścić rozdziałów książki.' })
+  savingRowId.value = null
+  if (ok) {
     message.value = 'Wyczyszczono rozdziały książki.'
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Nie udało się wyczyścić rozdziałów książki.'
-  } finally {
-    saving.value = false
   }
 }
 
