@@ -62,7 +62,7 @@ async function request(method, path, body, isFormData = false) {
 }
 
 export function fetchBooks(query = '') {
-  const url = new URL('/api/books', window.location.origin)
+  const url = new URL('/api/books/', window.location.origin)
   if (query.trim()) {
     url.searchParams.set('q', query.trim())
   }
@@ -70,19 +70,19 @@ export function fetchBooks(query = '') {
 }
 
 export function fetchAuthors() {
-  return request('GET', '/api/authors')
+  return request('GET', '/api/authors/')
 }
 
 export function fetchSeries() {
-  return request('GET', '/api/series')
+  return request('GET', '/api/series/')
 }
 
 export function fetchBookDetails(bookId) {
-  return request('GET', `/api/books/${bookId}/details`)
+  return request('GET', `/api/books/${bookId}/details/`)
 }
 
 export function createBookReview(bookId, payload) {
-  return request('POST', `/api/books/${bookId}/reviews`, payload)
+  return request('POST', `/api/books/${bookId}/reviews/`, payload)
 }
 
 export async function loginUser(payload) {
@@ -98,7 +98,7 @@ export async function registerUser(payload) {
 }
 
 export function fetchAuthMe() {
-  return request('GET', '/api/auth/me')
+  return request('GET', '/api/auth/me/')
 }
 
 export async function logoutUser() {
@@ -110,51 +110,51 @@ export async function logoutUser() {
 }
 
 export function fetchBookshelf() {
-  return request('GET', '/api/shelf')
+  return request('GET', '/api/shelf/')
 }
 
 export function fetchBookshelfEntry(bookId) {
-  return request('GET', `/api/shelf/${bookId}`)
+  return request('GET', `/api/shelf/${bookId}/`)
 }
 
 export function addToBookshelf(bookId, status = 'WANT_TO_READ') {
-  return request('POST', `/api/shelf/${bookId}`, { status })
+  return request('POST', `/api/shelf/${bookId}/`, { status })
 }
 
 export function updateBookshelfStatus(bookId, status) {
-  return request('PATCH', `/api/shelf/${bookId}`, { status })
+  return request('PATCH', `/api/shelf/${bookId}/`, { status })
 }
 
 export function removeFromBookshelf(bookId) {
-  return request('DELETE', `/api/shelf/${bookId}`)
+  return request('DELETE', `/api/shelf/${bookId}/`)
 }
 
 export function fetchCurrentUserSettings() {
-  return request('GET', '/api/users/me')
+  return request('GET', '/api/users/me/')
 }
 
 export function fetchUserProfile(username) {
-  return request('GET', `/api/users/${encodeURIComponent(username)}`)
+  return request('GET', `/api/users/${encodeURIComponent(username)}/`)
 }
 
 export function fetchFollowers(username) {
-  return request('GET', `/api/users/${encodeURIComponent(username)}/followers`)
+  return request('GET', `/api/users/${encodeURIComponent(username)}/followers/`)
 }
 
 export function fetchFollowing(username) {
-  return request('GET', `/api/users/${encodeURIComponent(username)}/following`)
+  return request('GET', `/api/users/${encodeURIComponent(username)}/following/`)
 }
 
 export function followUser(username) {
-  return request('POST', `/api/users/${encodeURIComponent(username)}/follow`)
+  return request('POST', `/api/users/${encodeURIComponent(username)}/follow/`)
 }
 
 export function unfollowUser(username) {
-  return request('DELETE', `/api/users/${encodeURIComponent(username)}/follow`)
+  return request('DELETE', `/api/users/${encodeURIComponent(username)}/follow/`)
 }
 
 export function updateCurrentUserSettings(payload) {
-  return request('PUT', '/api/users/me', payload)
+  return request('PUT', '/api/users/me/', payload)
 }
 
 export function updateCurrentUserVisibility(profilePublic) {
@@ -163,51 +163,51 @@ export function updateCurrentUserVisibility(profilePublic) {
 }
 
 export function createModeratorBook(payload) {
-  return request('POST', '/api/books', payload)
+  return request('POST', '/api/books/', payload)
 }
 
 export function patchModeratorBook(bookId, payload) {
-  return request('PATCH', `/api/books/${bookId}`, payload)
+  return request('PATCH', `/api/books/${bookId}/`, payload)
 }
 
 export function deleteModeratorBook(bookId) {
-  return request('DELETE', `/api/books/${bookId}`)
+  return request('DELETE', `/api/books/${bookId}/`)
 }
 
 export function uploadModeratorBookContent(bookId, file) {
   const formData = new FormData()
   formData.append('file', file)
-  return request('POST', `/api/books/${bookId}/chapters`, formData, true)
+  return request('POST', `/api/books/${bookId}/chapters/`, formData, true)
 }
 
 export function clearModeratorBookContent(bookId) {
-  return request('DELETE', `/api/books/${bookId}/chapters`)
+  return request('DELETE', `/api/books/${bookId}/chapters/`)
 }
 
 export function deleteModeratorReview(reviewId) {
-  return request('DELETE', `/api/reviews/${reviewId}`)
+  return request('DELETE', `/api/reviews/${reviewId}/`)
 }
 
 export function createModeratorAuthor(payload) {
-  return request('POST', '/api/authors', payload)
+  return request('POST', '/api/authors/', payload)
 }
 
 export function updateModeratorAuthor(authorId, payload) {
-  return request('PUT', `/api/authors/${authorId}`, payload)
+  return request('PUT', `/api/authors/${authorId}/`, payload)
 }
 
 export function deleteModeratorAuthor(authorId) {
-  return request('DELETE', `/api/authors/${authorId}`)
+  return request('DELETE', `/api/authors/${authorId}/`)
 }
 
 export function createModeratorSeries(payload) {
-  return request('POST', '/api/series', payload)
+  return request('POST', '/api/series/', payload)
 }
 
 export function updateModeratorSeries(seriesId, payload) {
-  return request('PUT', `/api/series/${seriesId}`, payload)
+  return request('PUT', `/api/series/${seriesId}/`, payload)
 }
 
 export function deleteModeratorSeries(seriesId) {
-  return request('DELETE', `/api/series/${seriesId}`)
+  return request('DELETE', `/api/series/${seriesId}/`)
 }
