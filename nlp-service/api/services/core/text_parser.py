@@ -3,7 +3,9 @@ from __future__ import annotations
 from itertools import combinations
 import re
 
-SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+SENTENCE_SPLIT_RE = re.compile(
+    r"(?:(?<!\bMr\.)(?<!\bMrs\.)(?<!\bMs\.)(?<!\bDr\.)(?<!\bProf\.)(?<!\bJr\.)(?<!\bSr\.)(?<!\bSt\.)(?<!\bvs\.))(?<=[.!?])\s+"
+)
 
 
 def find_sentences_with_both_characters(

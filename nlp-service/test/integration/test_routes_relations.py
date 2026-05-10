@@ -1,10 +1,12 @@
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
+import pytest
 from api.app import app
 
 client = TestClient(app)
 
 
+@pytest.mark.integration
 class TestRelationsRoute:
     def test_post_relations_returns_202(self):
         """Test that the /books/{bookId}/relations route returns 202 with valid input."""

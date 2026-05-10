@@ -8,8 +8,8 @@ from api.app import app
 client = TestClient(app)
 
 
+@pytest.mark.integration
 class TestNerRoute:
-    @pytest.mark.integration
     def test_post_ner_returns_202(self):
         """Test that the chapter ner route returns a 202 status code when given valid input."""
 
@@ -17,7 +17,10 @@ class TestNerRoute:
             mock.return_value = SimpleNamespace(id="test-task-id")
             response = client.post(
                 "/chapters/1/ner",
-                json={"chapterId": 1, "content": "Frodo and Sam walked through the Shire."},
+                json={
+                    "chapterId": 1,
+                    "content": "Frodo and Sam walked through the Shire.",
+                },
             )
         assert response.status_code == 202
 

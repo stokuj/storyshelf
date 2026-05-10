@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
+import pytest
 
 from api.app import app
 from api.middleware.rate_limiter import limiter
@@ -22,6 +23,7 @@ def rate_limit_key(value: str):
         limiter._key_func = original_key_func
 
 
+@pytest.mark.integration
 class TestRateLimitsRelations:
     def test_relations_rate_limit_exceeded_returns_429(self):
         payload = {
@@ -45,6 +47,7 @@ class TestRateLimitsRelations:
                 assert response.status_code == 429
 
 
+@pytest.mark.integration
 class TestRateLimitsNer:
     def test_ner_rate_limit_exceeded_returns_429(self):
         payload = {"chapterId": 1, "content": "Frodo and Sam walked through the Shire."}

@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +118,31 @@ app.add_middleware(
     allow_methods=settings.CORS_ALLOW_METHODS,
     allow_headers=settings.CORS_ALLOW_HEADERS,
 )
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = time.time() - start
+    extra = {
+        "method": request.method,
+        "path": request.url.path,
+        "status": response.status_code,
+        "duration_ms": round(duration * 1000, 2),
+    }
+    if 400 <= response.status_code:
+        logger.warning(
+            "Request: %(method)s %(path)s -> %(status)s (%(duration_ms)s ms)",
+            extra=extra,
+        )
+    else:
+        logger.debug(
+            "Request: %(method)s %(path)s -> %(status)s (%(duration_ms)s ms)",
+            extra=extra,
+        )
+    return response
+
 
 #####################################################
 ### Include Routers
