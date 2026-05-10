@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
@@ -80,11 +81,12 @@ class UserProfileView(generics.RetrieveAPIView):
     def get_object(self):
         user = super().get_object()
         if not user.profile_public and user != self.request.user:
-            self.permission_denied(self.request)
+            raise Http404("No User matches the given query.")
         return user
 
 
 class UserSettingsView(generics.RetrieveUpdateAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSettingsSerializer
 
     def get_object(self):
@@ -92,6 +94,8 @@ class UserSettingsView(generics.RetrieveUpdateAPIView):
 
 
 class UserVisibilityView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
     def patch(self, request):
         public = request.query_params.get("profilePublic", "true").lower() == "true"
         request.user.profile_public = public
