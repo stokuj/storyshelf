@@ -30,23 +30,11 @@ from api.routers.analyse import router as analyse_router
 from api.routers.find_pairs import router as find_pairs_router
 from api.routers.ner import router as ner_router
 from api.routers.relations import router as relations_router
-from api.kafka.consumer import ChapterAnalysisConsumer
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start Kafka Consumer
-    import api.kafka.consumer as consumer_module
-
-    consumer_module.app_event_loop = asyncio.get_event_loop()
-    consumer_thread = ChapterAnalysisConsumer()
-    consumer_thread.start()
-
     yield
-
-    # Stop Kafka Consumer
-    consumer_thread.stop()
-    consumer_thread.join(timeout=5.0)
 
 
 tags_metadata = [

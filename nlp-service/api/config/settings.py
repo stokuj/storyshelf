@@ -45,5 +45,8 @@ NER_MODEL: str = os.getenv(
 )
 NER_MIN_OCCURRENCES: int = int(os.getenv("NER_MIN_OCCURRENCES", "5"))
 
-# --- Kafka ---
+# --- Kafka --- (unused — replaced by HTTP callbacks to Django)
 KAFKA_BOOTSTRAP_SERVERS: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+
+# --- Callback ---
+CALLBACK_BASE_URL: str = os.getenv("CALLBACK_BASE_URL", "http://django:8000")

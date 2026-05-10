@@ -1,0 +1,29 @@
+from django.db import models
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=255)
+    bio = models.TextField(blank=True, default="")
+    birth_date = models.DateField(null=True, blank=True)
+
+
+class Serie(models.Model):  # "Series" clashes with Django test internals
+    class Status(models.TextChoices):
+        ONGOING = "ONGOING"
+        COMPLETED = "COMPLETED"
+        CANCELLED = "CANCELLED"
+        HIATUS = "HIATUS"
+
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
+    status = models.CharField(
+        max_length=20, choices=Status.choices, null=True, blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "series"
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=100, unique=True)

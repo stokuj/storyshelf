@@ -62,7 +62,7 @@ const form = reactive({
 
 async function submitLogin() {
   const ok = await execute(async () => {
-    await loginUser({ username: form.email, password: form.password })
+    await loginUser({ email: form.email, password: form.password })
     return true
   }, { fallback: 'Nie udało się zalogować.' })
   if (!ok) return
