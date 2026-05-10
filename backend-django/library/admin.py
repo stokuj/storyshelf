@@ -11,6 +11,7 @@ class AuthorAdmin(admin.ModelAdmin):
 @admin.register(Serie)
 class SeriesAdmin(admin.ModelAdmin):
     list_display = ("name", "status")
+    search_fields = ("name",)
 
 
 @admin.register(Tag)
