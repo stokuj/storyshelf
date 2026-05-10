@@ -6,11 +6,6 @@ import RegisterView from './views/RegisterView.vue'
 import BookshelfView from './views/BookshelfView.vue'
 import ProfileView from './views/ProfileView.vue'
 import SettingsView from './views/SettingsView.vue'
-import AdminLayoutView from './views/admin/AdminLayoutView.vue'
-import AdminBooksView from './views/admin/AdminBooksView.vue'
-import AdminAuthorsView from './views/admin/AdminAuthorsView.vue'
-import AdminSeriesView from './views/admin/AdminSeriesView.vue'
-import { authState, refreshAuth } from './auth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -50,47 +45,7 @@ const router = createRouter({
       name: 'settings',
       component: SettingsView,
     },
-    {
-      path: '/admin',
-      component: AdminLayoutView,
-      meta: { requiresAuth: true, requiresModerator: true },
-      children: [
-        {
-          path: '',
-          redirect: '/admin/books',
-        },
-        {
-          path: 'books',
-          name: 'admin-books',
-          component: AdminBooksView,
-        },
-        {
-          path: 'authors',
-          name: 'admin-authors',
-          component: AdminAuthorsView,
-        },
-        {
-          path: 'series',
-          name: 'admin-series',
-          component: AdminSeriesView,
-        },
-      ],
-    },
   ],
-})
-
-router.beforeEach(async (to) => {
-  await refreshAuth()
-
-  if (to.meta.requiresAuth && !authState.authenticated) {
-    return { path: '/login', query: { next: to.fullPath } }
-  }
-
-  if (to.meta.requiresModerator && authState.role !== 'MODERATOR') {
-    return { path: '/' }
-  }
-
-  return true
 })
 
 export default router

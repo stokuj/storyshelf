@@ -1,50 +1,64 @@
-async function parseError(response) {
-  const contentType = response.headers.get('content-type') || ''
+let accessToken = localStorage.getItem('access_token')
 
-  if (contentType.includes('application/json')) {
-    const data = await response.json().catch(() => null)
-    if (data?.message) {
-      return data.message
-    }
-    if (data?.error) {
-      return data.error
-    }
-  }
-
-  const text = await response.text().catch(() => '')
-  return text || `Request failed with status ${response.status}`
+export function setTokens(access, refresh) {
+  accessToken = access
+  localStorage.setItem('access_token', access)
+  localStorage.setItem('refresh_token', refresh)
 }
 
-async function request(path, options = {}) {
-  const isFormData = options.body instanceof FormData
-  const mergedHeaders = {
-    ...(options.headers || {}),
-  }
+export function clearTokens() {
+  accessToken = null
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+}
 
-  if (!isFormData && !('Content-Type' in mergedHeaders)) {
-    mergedHeaders['Content-Type'] = 'application/json'
-  }
+async function refreshAccessToken() {
+  const refresh = localStorage.getItem('refresh_token')
+  if (!refresh) throw new Error('no refresh token')
+  const res = await fetch('/api/auth/refresh/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh }),
+  })
+  if (!res.ok) throw new Error('refresh failed')
+  const data = await res.json()
+  setTokens(data.access, data.refresh)
+  return data.access
+}
 
-  const response = await fetch(path, {
-    credentials: 'include',
-    headers: mergedHeaders,
-    ...options,
+async function request(method, path, body, isFormData = false) {
+  const headers = {}
+  if (!isFormData) headers['Content-Type'] = 'application/json'
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
+
+  let res = await fetch(path, {
+    method,
+    headers,
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   })
 
-  if (!response.ok) {
-    throw new Error(await parseError(response))
+  if (res.status === 401 && accessToken) {
+    try {
+      await refreshAccessToken()
+      headers['Authorization'] = `Bearer ${accessToken}`
+      res = await fetch(path, {
+        method,
+        headers,
+        body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+      })
+    } catch {
+      clearTokens()
+      throw new Error('Session expired')
+    }
   }
 
-  if (response.status === 204) {
-    return null
+  if (res.status === 204) return null
+  const data = await res.json()
+  if (!res.ok) {
+    const msg = data.detail || data.message || data.error || res.statusText
+    throw new Error(msg)
   }
-
-  const contentType = response.headers.get('content-type') || ''
-  if (!contentType.includes('application/json')) {
-    return null
-  }
-
-  return response.json()
+  return data
 }
 
 export function fetchBooks(query = '') {
@@ -52,193 +66,148 @@ export function fetchBooks(query = '') {
   if (query.trim()) {
     url.searchParams.set('q', query.trim())
   }
-
-  return request(url.pathname + url.search, { method: 'GET' })
+  return request('GET', url.pathname + url.search)
 }
 
 export function fetchAuthors() {
-  return request('/api/authors', { method: 'GET' })
+  return request('GET', '/api/authors')
 }
 
 export function fetchSeries() {
-  return request('/api/series', { method: 'GET' })
+  return request('GET', '/api/series')
 }
 
 export function fetchBookDetails(bookId) {
-  return request(`/api/books/${bookId}/details`, { method: 'GET' })
+  return request('GET', `/api/books/${bookId}/details`)
 }
 
 export function createBookReview(bookId, payload) {
-  return request(`/api/books/${bookId}/reviews`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
+  return request('POST', `/api/books/${bookId}/reviews`, payload)
 }
 
-export function loginUser(payload) {
-  return request('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
+export async function loginUser(payload) {
+  const data = await request('POST', '/api/auth/login/', payload)
+  setTokens(data.access, data.refresh)
+  return data
 }
 
-export function registerUser(payload) {
-  return request('/api/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
+export async function registerUser(payload) {
+  const data = await request('POST', '/api/auth/register/', payload)
+  setTokens(data.access, data.refresh)
+  return data
 }
 
 export function fetchAuthMe() {
-  return request('/api/auth/me', { method: 'GET' })
+  return request('GET', '/api/auth/me')
 }
 
-export function logoutUser() {
-  return request('/api/auth/logout', { method: 'POST' })
+export async function logoutUser() {
+  try {
+    await request('POST', '/api/auth/logout/', { refresh: localStorage.getItem('refresh_token') })
+  } finally {
+    clearTokens()
+  }
 }
 
 export function fetchBookshelf() {
-  return request('/api/shelf', { method: 'GET' })
+  return request('GET', '/api/shelf')
 }
 
 export function fetchBookshelfEntry(bookId) {
-  return request(`/api/shelf/${bookId}`, { method: 'GET' })
+  return request('GET', `/api/shelf/${bookId}`)
 }
 
 export function addToBookshelf(bookId, status = 'WANT_TO_READ') {
-  return request(`/api/shelf/${bookId}`, {
-    method: 'POST',
-    body: JSON.stringify({ status }),
-  })
+  return request('POST', `/api/shelf/${bookId}`, { status })
 }
 
 export function updateBookshelfStatus(bookId, status) {
-  return request(`/api/shelf/${bookId}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ status }),
-  })
+  return request('PATCH', `/api/shelf/${bookId}`, { status })
 }
 
 export function removeFromBookshelf(bookId) {
-  return request(`/api/shelf/${bookId}`, { method: 'DELETE' })
+  return request('DELETE', `/api/shelf/${bookId}`)
 }
 
 export function fetchCurrentUserSettings() {
-  return request('/api/users/me', { method: 'GET' })
+  return request('GET', '/api/users/me')
 }
 
 export function fetchUserProfile(username) {
-  return request(`/api/users/${encodeURIComponent(username)}`, { method: 'GET' })
+  return request('GET', `/api/users/${encodeURIComponent(username)}`)
 }
 
 export function fetchFollowers(username) {
-  return request(`/api/users/${encodeURIComponent(username)}/followers`, { method: 'GET' })
+  return request('GET', `/api/users/${encodeURIComponent(username)}/followers`)
 }
 
 export function fetchFollowing(username) {
-  return request(`/api/users/${encodeURIComponent(username)}/following`, { method: 'GET' })
+  return request('GET', `/api/users/${encodeURIComponent(username)}/following`)
 }
 
 export function followUser(username) {
-  return request(`/api/users/${encodeURIComponent(username)}/follow`, { method: 'POST' })
+  return request('POST', `/api/users/${encodeURIComponent(username)}/follow`)
 }
 
 export function unfollowUser(username) {
-  return request(`/api/users/${encodeURIComponent(username)}/follow`, { method: 'DELETE' })
+  return request('DELETE', `/api/users/${encodeURIComponent(username)}/follow`)
 }
 
 export function updateCurrentUserSettings(payload) {
-  return request('/api/users/me', {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  })
+  return request('PUT', '/api/users/me', payload)
 }
 
 export function updateCurrentUserVisibility(profilePublic) {
   const value = profilePublic ? 'true' : 'false'
-  return request(`/api/users/me/visibility?profilePublic=${value}`, {
-    method: 'PATCH',
-  })
+  return request('PATCH', `/api/users/me/visibility?profilePublic=${value}`)
 }
 
 export function createModeratorBook(payload) {
-  return request('/api/books', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
+  return request('POST', '/api/books', payload)
 }
 
 export function patchModeratorBook(bookId, payload) {
-  return request(`/api/books/${bookId}`, {
-    method: 'PATCH',
-    body: JSON.stringify(payload),
-  })
+  return request('PATCH', `/api/books/${bookId}`, payload)
 }
 
 export function deleteModeratorBook(bookId) {
-  return request(`/api/books/${bookId}`, {
-    method: 'DELETE',
-  })
+  return request('DELETE', `/api/books/${bookId}`)
 }
 
 export function uploadModeratorBookContent(bookId, file) {
   const formData = new FormData()
   formData.append('file', file)
-
-  return request(`/api/books/${bookId}/chapters`, {
-    method: 'POST',
-    body: formData,
-  })
+  return request('POST', `/api/books/${bookId}/chapters`, formData, true)
 }
 
 export function clearModeratorBookContent(bookId) {
-  return request(`/api/books/${bookId}/chapters`, {
-    method: 'DELETE',
-  })
+  return request('DELETE', `/api/books/${bookId}/chapters`)
 }
 
 export function deleteModeratorReview(reviewId) {
-  return request(`/api/reviews/${reviewId}`, {
-    method: 'DELETE',
-  })
+  return request('DELETE', `/api/reviews/${reviewId}`)
 }
 
 export function createModeratorAuthor(payload) {
-  return request('/api/authors', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
+  return request('POST', '/api/authors', payload)
 }
 
 export function updateModeratorAuthor(authorId, payload) {
-  return request(`/api/authors/${authorId}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  })
+  return request('PUT', `/api/authors/${authorId}`, payload)
 }
 
 export function deleteModeratorAuthor(authorId) {
-  return request(`/api/authors/${authorId}`, {
-    method: 'DELETE',
-  })
+  return request('DELETE', `/api/authors/${authorId}`)
 }
 
 export function createModeratorSeries(payload) {
-  return request('/api/series', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
+  return request('POST', '/api/series', payload)
 }
 
 export function updateModeratorSeries(seriesId, payload) {
-  return request(`/api/series/${seriesId}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  })
+  return request('PUT', `/api/series/${seriesId}`, payload)
 }
 
 export function deleteModeratorSeries(seriesId) {
-  return request(`/api/series/${seriesId}`, {
-    method: 'DELETE',
-  })
+  return request('DELETE', `/api/series/${seriesId}`)
 }
