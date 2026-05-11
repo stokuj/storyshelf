@@ -1,8 +1,28 @@
+# Dependencies
 node_modules
+
+# Build output
 dist
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+
+# Git
 .git
 .gitignore
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.DS_Store
+
+# Vite cache
+.vite

@@ -11,7 +11,17 @@
     </div>
 
     <div v-if="error" class="alert alert-error mb-6 text-sm">{{ error }}</div>
-    <div v-else-if="loading" class="py-20 text-center text-base-content/60">Ładowanie katalogu...</div>
+
+    <div v-else-if="loading" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      <div v-for="n in 12" :key="`skeleton-${n}`" class="card bg-base-100 shadow">
+        <div class="skeleton aspect-[2/3] rounded-t-box"></div>
+        <div class="card-body p-3 space-y-2">
+          <div class="skeleton h-4 w-3/4"></div>
+          <div class="skeleton h-3 w-1/2"></div>
+          <div class="skeleton h-6 w-full"></div>
+        </div>
+      </div>
+    </div>
 
     <template v-else>
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
@@ -30,7 +40,7 @@
           </RouterLink>
 
           <div class="card-body p-3">
-            <div class="badge badge-sm badge-ghost">Vue</div>
+            <div v-if="book.genres?.length" class="badge badge-sm badge-ghost">{{ book.genres[0] }}</div>
             <RouterLink class="btn btn-xs btn-outline btn-primary mt-1 w-full" :to="`/book/${book.id}`">Szczegóły</RouterLink>
           </div>
         </div>

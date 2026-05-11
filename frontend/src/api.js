@@ -1,15 +1,15 @@
-let accessToken = localStorage.getItem('access_token')
-
 export function setTokens(access, refresh) {
-  accessToken = access
   localStorage.setItem('access_token', access)
   localStorage.setItem('refresh_token', refresh)
 }
 
 export function clearTokens() {
-  accessToken = null
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
+}
+
+function getAccessToken() {
+  return localStorage.getItem('access_token')
 }
 
 async function refreshAccessToken() {
@@ -29,18 +29,24 @@ async function refreshAccessToken() {
 async function request(method, path, body, isFormData = false) {
   const headers = {}
   if (!isFormData) headers['Content-Type'] = 'application/json'
+  const accessToken = getAccessToken()
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
 
-  let res = await fetch(path, {
-    method,
-    headers,
-    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
-  })
+  let res
+  try {
+    res = await fetch(path, {
+      method,
+      headers,
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    })
+  } catch {
+    throw new Error('Brak połączenia z serwerem.')
+  }
 
   if (res.status === 401 && accessToken) {
     try {
       await refreshAccessToken()
-      headers['Authorization'] = `Bearer ${accessToken}`
+      headers['Authorization'] = `Bearer ${getAccessToken()}`
       res = await fetch(path, {
         method,
         headers,
@@ -67,14 +73,6 @@ export function fetchBooks(query = '') {
     url.searchParams.set('q', query.trim())
   }
   return request('GET', url.pathname + url.search)
-}
-
-export function fetchAuthors() {
-  return request('GET', '/api/authors/')
-}
-
-export function fetchSeries() {
-  return request('GET', '/api/series/')
 }
 
 export function fetchBookDetails(bookId) {
@@ -111,10 +109,6 @@ export async function logoutUser() {
 
 export function fetchBookshelf() {
   return request('GET', '/api/shelf/')
-}
-
-export function fetchBookshelfEntry(bookId) {
-  return request('GET', `/api/shelf/${bookId}/`)
 }
 
 export function addToBookshelf(bookId, status = 'WANT_TO_READ') {
@@ -159,55 +153,7 @@ export function updateCurrentUserSettings(payload) {
 
 export function updateCurrentUserVisibility(profilePublic) {
   const value = profilePublic ? 'true' : 'false'
-  return request('PATCH', `/api/users/me/visibility?profilePublic=${value}`)
+  return request('PATCH', `/api/users/me/visibility/?profilePublic=${value}`)
 }
 
-export function createModeratorBook(payload) {
-  return request('POST', '/api/books/', payload)
-}
 
-export function patchModeratorBook(bookId, payload) {
-  return request('PATCH', `/api/books/${bookId}/`, payload)
-}
-
-export function deleteModeratorBook(bookId) {
-  return request('DELETE', `/api/books/${bookId}/`)
-}
-
-export function uploadModeratorBookContent(bookId, file) {
-  const formData = new FormData()
-  formData.append('file', file)
-  return request('POST', `/api/books/${bookId}/chapters/`, formData, true)
-}
-
-export function clearModeratorBookContent(bookId) {
-  return request('DELETE', `/api/books/${bookId}/chapters/`)
-}
-
-export function deleteModeratorReview(reviewId) {
-  return request('DELETE', `/api/reviews/${reviewId}/`)
-}
-
-export function createModeratorAuthor(payload) {
-  return request('POST', '/api/authors/', payload)
-}
-
-export function updateModeratorAuthor(authorId, payload) {
-  return request('PUT', `/api/authors/${authorId}/`, payload)
-}
-
-export function deleteModeratorAuthor(authorId) {
-  return request('DELETE', `/api/authors/${authorId}/`)
-}
-
-export function createModeratorSeries(payload) {
-  return request('POST', '/api/series/', payload)
-}
-
-export function updateModeratorSeries(seriesId, payload) {
-  return request('PUT', `/api/series/${seriesId}/`, payload)
-}
-
-export function deleteModeratorSeries(seriesId) {
-  return request('DELETE', `/api/series/${seriesId}/`)
-}
