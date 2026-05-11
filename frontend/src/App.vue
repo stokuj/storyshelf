@@ -59,16 +59,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { authState, signOut, refreshAuth } from './auth'
+import { authState, signOut } from './auth'
 
 const router = useRouter()
 const menuOpen = ref(false)
-
-onMounted(async () => {
-  await refreshAuth()
-})
 
 async function handleLogout() {
   await signOut()

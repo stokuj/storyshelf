@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authState } from './auth'
+import { authState, refreshAuth } from './auth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -56,7 +56,10 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  if (!authState.initialized) {
+    await refreshAuth()
+  }
   if (to.meta.requiresAuth && !authState.authenticated) {
     next({ name: 'login', query: { next: to.fullPath } })
   } else {

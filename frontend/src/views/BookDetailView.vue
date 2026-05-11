@@ -354,19 +354,6 @@ async function addShelfEntry() {
   }, { fallback: 'Nie udało się dodać książki do półki.' })
 }
 
-async function changeShelfStatus(event) {
-  const previousStatus = details.value?.shelfEntry?.status
-  const result = await executeShelf(async () => {
-    return await updateBookshelfStatus(route.params.id, event.target.value)
-  }, { fallback: 'Nie udało się zmienić statusu książki.' })
-
-  if (result) {
-    details.value.shelfEntry = result
-  } else {
-    event.target.value = previousStatus
-  }
-}
-
 async function changeShelfStatusByValue(status) {
   await executeShelf(async () => {
     if (details.value?.shelfEntry) {
