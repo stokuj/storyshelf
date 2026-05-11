@@ -1,15 +1,15 @@
-let accessToken = localStorage.getItem('access_token')
-
 export function setTokens(access, refresh) {
-  accessToken = access
   localStorage.setItem('access_token', access)
   localStorage.setItem('refresh_token', refresh)
 }
 
 export function clearTokens() {
-  accessToken = null
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
+}
+
+function getAccessToken() {
+  return localStorage.getItem('access_token')
 }
 
 async function refreshAccessToken() {
@@ -29,18 +29,24 @@ async function refreshAccessToken() {
 async function request(method, path, body, isFormData = false) {
   const headers = {}
   if (!isFormData) headers['Content-Type'] = 'application/json'
+  const accessToken = getAccessToken()
   if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
 
-  let res = await fetch(path, {
-    method,
-    headers,
-    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
-  })
+  let res
+  try {
+    res = await fetch(path, {
+      method,
+      headers,
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    })
+  } catch {
+    throw new Error('Brak połączenia z serwerem.')
+  }
 
   if (res.status === 401 && accessToken) {
     try {
       await refreshAccessToken()
-      headers['Authorization'] = `Bearer ${accessToken}`
+      headers['Authorization'] = `Bearer ${getAccessToken()}`
       res = await fetch(path, {
         method,
         headers,
@@ -147,7 +153,7 @@ export function updateCurrentUserSettings(payload) {
 
 export function updateCurrentUserVisibility(profilePublic) {
   const value = profilePublic ? 'true' : 'false'
-  return request('PATCH', `/api/users/me/visibility?profilePublic=${value}`)
+  return request('PATCH', `/api/users/me/visibility/?profilePublic=${value}`)
 }
 
 
