@@ -1,7 +1,8 @@
 .PHONY: dev-up dev-down dev-status dev-build prod-up prod-down prod-status prod-logs
 
-COMPOSE_DIR = infra/compose
-ENV_FILE = ../../.env
+ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+COMPOSE_DIR := $(ROOT_DIR)infra/compose
+ENV_FILE := $(ROOT_DIR).env
 DEV_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml
 PROD_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml
 
