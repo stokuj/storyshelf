@@ -1,7 +1,6 @@
-import re
-
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import User, UserFollow
@@ -12,6 +11,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         regex=r"^[a-z]{3,30}$",
         max_length=30,
+        validators=[UniqueValidator(queryset=User.objects.all())],
     )
 
     class Meta:
