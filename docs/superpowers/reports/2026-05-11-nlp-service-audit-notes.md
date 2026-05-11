@@ -432,3 +432,200 @@ Problems:
 | MEDIUM   | Prompt sanitization incomplete — Unicode homoglyphs and bypass techniques not covered | `llm_engine.py:51-58` |
 | LOW      | Tokenizer heuristic `len(text)//4` inaccurate for non-English text | `text_stats.py:31-34` |
 
+---
+
+# NLP Service Audit — Task 4: Async Execution, Celery & Callback Delivery
+
+## Step 1 — Celery Task Registration and Worker Init
+
+**Scan output:**
+
+```
+nlp-service/api/config/celery_app.py:5:from api.services.core.transformers_engine import DEFAULT_NER_MODEL, load_ner_model
+nlp-service/api/config/celery_app.py:10:    broker=CELERY_BROKER_URL,
+nlp-service/api/config/celery_app.py:11:    backend=CELERY_RESULT_BACKEND,
+nlp-service/api/config/celery_app.py:12:    include=["api.tasks.ner_task", "api.tasks.find_pairs_task"],
+nlp-service/api/config/celery_app.py:16:@worker_process_init.connect
+nlp-service/api/config/celery_app.py:18:    load_ner_model(DEFAULT_NER_MODEL)
+nlp-service/api/tasks/ner_task.py:9:@celery.task(name="api.ner.extract_entities_task")
+nlp-service/api/tasks/find_pairs_task.py:9:@celery.task(name="api.find_pairs.process_find_pairs_task")
+```
+
+**Status:** DONE_WITH_CONCERNS
+
+| Item | Finding |
+|------|---------|
+| `include` list | `celery_app.py:12` includes only `ner_task` and `find_pairs_task`. `analyse` and `relations` endpoints bypass Celery entirely — using `asyncio.to_thread` and `asyncio.create_task` respectively. This is by design (see Task 1 architecture table) but means only 2/4 endpoints get persistent task storage and retry. |
+| `worker_process_init` | `celery_app.py:16-18` registers a `@worker_process_init.connect` handler that calls `load_ner_model(DEFAULT_NER_MODEL)`. Per Task 3 Step 3, `load_ner_model` returns `False` on failure with no exception — the worker starts successfully but every subsequent NER task returns an empty `{}` result, posted to Django via callback. |
+| Task registration | `ner_task.py:9` registers `api.ner.extract_entities_task` — delegates to `process_ner`, catches exceptions, logs and re-raises (allowing Celery retry). `find_pairs_task.py:9` registers `api.find_pairs.process_find_pairs_task` — same pattern. Both correctly re-raise after logging. |
+| Settings injection | `celery_app.py:10-11` reads `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` from the settings module (env-var-sourced). No `config_from_object` call — settings are passed directly to the `Celery()` constructor. |
+
+**Concern — NER model load failure at worker init is silent: Severity MEDIUM**
+
+If the NER model file is missing or corrupted, the worker starts normally but every NER task returns `{}`. The `/health/celery/` endpoint (Task 1) only checks broker connectivity, not model readiness. No health check validates that `_NER_PIPELINES` is populated.
+
+**Recommendation:** Add a `worker_process_init` check that logs a critical error and/or fails the worker startup if `load_ner_model` returns `False`. Add a `/health/ner-model/` endpoint that returns the number of loaded NER pipelines.
+
+## Step 2 — Fire-and-Forget Execution Audit
+
+**Scan output:**
+
+```
+nlp-service/api/routers/analyse.py:25:    await asyncio.to_thread(process_analyse, payload.content, chapter_id=chapterId)
+nlp-service/api/routers/ner.py:25:    extract_entities_task.delay(payload.content, chapter_id=chapterId)
+nlp-service/api/routers/find_pairs.py:31:    future = loop.run_in_executor(
+nlp-service/api/routers/relations.py:32:    task = asyncio.create_task(process_book_relations_async(pairs, bookId))
+```
+
+**Status:** DONE_WITH_CONCERNS
+
+| Endpoint | File:Line | Mechanism | Task ID to client? | Internal task ID? | Failure reported to client? | Failure reported internally? |
+|----------|-----------|-----------|:---:|:---:|:---:|:---:|
+| analyse | `analyse.py:25` | `await asyncio.to_thread` | No | No | Yes — exception propagates through `await`, FastAPI returns 5xx | Via middleware `log_requests` (Task 1) |
+| ner | `ner.py:25` | `extract_entities_task.delay()` | No | Yes (Celery) | No — 202 returned before task runs | Celery worker logs + broker dead-letter |
+| find-pairs | `find_pairs.py:31` | `run_in_executor` | No | No (future unreferenced) | No — 202 returned immediately | `add_done_callback` logs error only |
+| relations | `relations.py:32` | `asyncio.create_task` | No | No (task unreferenced) | No — 202 returned immediately | `add_done_callback` logs error only |
+
+### Finding: Three out of four endpoints are unobservable fire-and-forget — Severity: HIGH
+
+The `ner`, `find-pairs`, and `relations` endpoints all return HTTP 202 before any work is performed. If the background work fails:
+
+| Endpoint | What the client sees | What actually happened |
+|----------|---------------------|----------------------|
+| `ner` | 202 Accepted | Celery task may have crashed silently; result never delivered |
+| `find-pairs` | 202 Accepted | Executor thread may have thrown; only a log line records the failure |
+| `relations` | 202 Accepted | `asyncio.gather` may have failed partially or completely; only a log line |
+
+The `analyse` endpoint is the exception — it uses `await asyncio.to_thread`, so it blocks until completion and exceptions propagate to the HTTP response. But this means it also blocks the request thread, failing to deliver on the 202 "Accepted" contract (already noted in Task 2).
+
+**Recommendation:** Return a job/execution ID in the 202 response for all endpoints. Add a `GET /jobs/{jobId}/status` endpoint that exposes Celery task state (`PENDING`/`STARTED`/`SUCCESS`/`FAILURE`) for `ner`, and track executor/coroutine status in a lightweight in-memory store (or Redis) for `find-pairs` and `relations`. The `analyse` endpoint should either truly fire-and-forget (remove `await`) or return 200 with the result synchronously.
+
+## Step 3 — Callback Retries and Failure Propagation
+
+**Status:** DONE_WITH_CONCERNS
+
+**Failure path trace (`nlp-service/api/kafka/producer.py:24-43`):**
+
+```
+send_json(topic, key, payload)           [line 37]
+  → _post_callback(url, payload)         [line 41]
+     → for attempt in range(3):          [line 25]
+        → httpx.post(url, json=payload, timeout=30)  [line 27]
+        → response.raise_for_status()    [line 28]
+        → return                         [line 29]  ← success
+     → on final failure: raise           [line 34]  ← re-raises to send_json
+  → except Exception:                    [line 42]
+     → logger.exception("Callback to %s failed after retries", url)  [line 43]
+     → return None                       ← implicit
+```
+
+The retry strategy in `_post_callback`:
+- 3 total attempts
+- Backoff: `2**attempt` seconds (1s → 2s → 4s, total ~7 seconds)
+- Timeout: 30 seconds per request (total worst-case ~97 seconds for all retries)
+- Only network-level errors and non-2xx HTTP responses trigger retry
+
+### Finding: Callback failure is logged but never surfaced to the caller — Severity: HIGH
+
+Every workflow function calls `send_json()` and ignores its return value (which is always `None`):
+
+| File | Line | Call |
+|------|------|------|
+| `nlp-service/api/services/workflows/analyse_workflow.py` | 22 | `send_json(TOPIC_ANALYSE_RESULTS, str(chapter_id), ...)` |
+| `nlp-service/api/services/workflows/ner_workflow.py` | 23 | `send_json(TOPIC_NER_RESULTS, str(chapter_id), ...)` |
+| `nlp-service/api/services/workflows/find_pairs_workflow.py` | 29 | `send_json(TOPIC_FIND_PAIRS_RESULTS, str(book_id), ...)` |
+| `nlp-service/api/services/workflows/relations_workflow.py` | 114 | `send_json(TOPIC_RELATIONS_RESULTS, str(book_id), result)` |
+
+After `send_json` fails:
+1. The exception is caught and logged at `producer.py:43`.
+2. The workflow function continues and **returns the computed result** — but that result is discarded (unused by fire-and-forget callers).
+3. The Django backend **never receives** the NLP output.
+4. The client received HTTP 202 and has no way to know the data was lost.
+5. No dead-letter queue, no retry queue, no local file — the result is gone permanently.
+
+**Compounding problem:** The workflow functions call `send_json` AFTER doing all the computational work (NER, LLM extraction, text analysis). This means:
+- If the callback fails, the expensive NLP work was wasted.
+- If Django is down for maintenance, ALL NLP results during that window are silently lost.
+- There is no replay mechanism — the results are computed in-memory and discarded.
+
+**Recommendation:**
+1. Use Celery tasks for all callbacks — this gives persistent storage (broker), automatic retry, and `CELERY_RESULT_BACKEND` tracking.
+2. At minimum, write failed callbacks to a dead-letter log file as JSON lines for manual replay.
+3. Consider calling `send_json` BEFORE heavy computation (fire-and-forget with pre-acknowledgement) or make the callback idempotent and annotate each result with a UUID for deduplication on the Django side.
+4. Add a `/health/django-reachable/` endpoint that tests callback connectivity and fails the NLP service health check if Django is unreachable.
+
+## Step 4 — Async/Sync Boundary Risks
+
+**Status:** DONE_WITH_CONCERNS
+
+### `find_pairs.py:31` — Default ThreadPoolExecutor exhaustion — Severity: MEDIUM
+
+```python
+future = loop.run_in_executor(
+    None, process_find_pairs, payload.content, names, None, bookId
+)
+```
+
+- `run_in_executor(None, ...)` uses the default `ThreadPoolExecutor` (created by `asyncio.get_running_loop().set_default_executor()` or auto-created with `max_workers = min(32, os.cpu_count() + 4)`).
+- `process_find_pairs` calls `send_json` → `httpx.post` (synchronous HTTP call). This blocks a thread for up to 97 seconds (3 retries × ~30s timeout).
+- Under concurrent load, threads are occupied by blocked HTTP callbacks rather than actual work. If all threads are blocked on callbacks, new requests queue indefinitely.
+
+**Risk scenario:** 5 concurrent `find-pairs` requests on a 4-core machine (max_workers=8). All 8 threads could be occupied by `process_find_pairs` calls waiting on `httpx.post` timeouts. Subsequent requests block until a thread frees.
+
+### `relations.py:32` — Unobserved `asyncio.gather` failures — Severity: HIGH
+
+```python
+task = asyncio.create_task(process_book_relations_async(pairs, bookId))
+```
+
+Inside `process_book_relations_async` (`relations_workflow.py:111`):
+
+```python
+results = await asyncio.gather(*[extract_one(p) for p in pairs])
+```
+
+- If any `extract_one` coroutine raises (e.g., LLM API error propagates uncaught), `asyncio.gather` with default `return_exceptions=False` re-raises the first exception, cancelling remaining tasks.
+- The exception propagates out of `process_book_relations_async` → caught by `_log_task_result` (`relations.py:34-38`) → logged. No callback sent (line 114 never reached if `gather` raises before it).
+- The HTTP response has already returned `202 Accepted`. The client has no indication that zero relations were extracted and no callback was delivered.
+- If `return_exceptions=True` were used, partial results could still be sent — but it's not.
+
+Additionally, the `extract_one` inner function (line 101) parses LLM output with `json.loads` and wraps `JSONDecodeError` as `{"raw": raw_string}` — per Task 3 Step 4, this may store unparseable data in the callback. When combined with `asyncio.gather`'s default exception behavior, a single malformed LLM response could prevent all results from being delivered.
+
+### `analyse.py:25` — Blocking await defeats 202 semantics — Severity: MEDIUM
+
+Already documented in Task 2 Step 2. Re-noting here because it crosses the async/sync boundary:
+
+```python
+await asyncio.to_thread(process_analyse, payload.content, chapter_id=chapterId)
+```
+
+- `asyncio.to_thread` offloads the synchronous `process_analyse` to a thread pool thread.
+- `await` blocks the async handler until the thread completes.
+- This means the HTTP response is NOT sent until `process_analyse` finishes — including its `send_json` callback.
+- If `process_analyse` takes > the HTTP client timeout, the client gets a connection error despite the work completing successfully on the server.
+- The 202 status code is misleading — the caller expects "Accepted, processing continues" but receives "Accepted, processing already finished."
+
+### Cross-cutting observation — No async timeout or cancellation — Severity: LOW
+
+None of the four endpoints set timeouts or handle `asyncio.CancelledError`:
+- `find-pairs`: No `loop.run_in_executor` timeout parameter. A stuck `process_find_pairs` hangs indefinitely.
+- `relations`: No `asyncio.wait_for` around `create_task`. If `process_book_relations_async` hangs (e.g., LLM timeout), the task leaks and no error is ever logged (the done callback never fires).
+- `analyse`: No timeout on `asyncio.to_thread`. If `process_analyse` hangs, the request hangs.
+- `ner`: Celery handles Celery-level timeouts (`task_soft_time_limit`) but this is not configured in `celery_app.py`.
+
+**Recommendation:** Set `CELERY_TASK_SOFT_TIME_LIMIT` and `CELERY_TASK_TIME_LIMIT` in Celery config. Wrap `asyncio.create_task` with `asyncio.wait_for` with a generous timeout (e.g., 300s). Use `asyncio.gather(..., return_exceptions=True)` in `process_book_relations_async` so partial results are collected even when individual pair extraction fails.
+
+---
+
+## Task 4 — Severity Summary
+
+| Severity | Finding | File(s) |
+|----------|---------|---------|
+| HIGH | Three fire-and-forget endpoints (ner, find-pairs, relations) provide zero failure feedback to clients | `ner.py:25`, `find_pairs.py:31`, `relations.py:32` |
+| HIGH | Callback failures silently discard NLP results — no dead-letter queue, no replay mechanism | `kafka/producer.py:37-43`, all 4 workflow files |
+| HIGH | `asyncio.gather` default exception behavior cancels remaining tasks; partial results lost | `relations_workflow.py:111` |
+| MEDIUM | NER model load failure at worker init is silent — worker starts, tasks return `{}` | `celery_app.py:18`, `transformers_engine.py:20-41` |
+| MEDIUM | Default ThreadPoolExecutor can exhaust under concurrent find-pairs + callback latency | `find_pairs.py:31` |
+| MEDIUM | `analyse.py` blocks on `await asyncio.to_thread` — 202 status is misleading | `analyse.py:25` |
+| LOW | No async timeout/cancellation handling on any endpoint | `find_pairs.py:31`, `relations.py:32`, `analyse.py:25` |
+
