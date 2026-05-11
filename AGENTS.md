@@ -126,8 +126,9 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
 - Tailwind CSS + daisyUI for styling
 - `src/composables/useAsyncState.js` for loading/error/success state in views
 - No test framework configured for frontend yet
-- **App.vue must call `refreshAuth()` in `onMounted`** to restore JWT tokens
-  from localStorage on page refresh (F5)
+- **Router handles auth initialization**: `router.beforeEach` calls `refreshAuth()`
+  on first navigation if `authState.initialized` is false. App.vue does NOT need
+  `onMounted` for this — the router guard handles it before any route renders.
 
 ### Git
 
@@ -174,9 +175,20 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   to Django (`/api/internal/*`). `confluent-kafka` removed from dependencies.
 - **Seed data**: Use `infra/scripts/seed.py` (idempotent, `get_or_create`).
   Creates 20 books + 17 authors + 57 tags.
-- **Frontend F5 logout**: `App.vue` calls `refreshAuth()` in `onMounted`.
-  `authState.initialized` gate prevents navbar flash before auth check.
 - **Frontend Docker rebuild**: The frontend Dockerfile copies files at build time
   (`COPY . .`) — no volume mount. Host changes require `make dev-build` +
   `make dev-up` to take effect in the running container. For quick local
   verification without Docker, use `cd frontend && npm run build`.
+- **Testing from a worktree**: Docker compose builds frontend from the main
+  worktree context. To test changes from a secondary worktree, rebuild manually:
+  ```bash
+  docker build -t storyshelf-frontend:local /path/to/worktree/frontend/
+  docker compose -f infra/compose/docker-compose.dev.yml up -d frontend
+  ```
+- **Nginx location priority**: When combining prefix proxy locations (`/api/`)
+  with regex asset locations (`~*`), use `location ^~ /api/` to give the prefix
+  higher priority than the regex pattern. Without `^~`, an asset request to
+  `/api/something.js` would match the regex cache location instead of the proxy.
+- **Frontend auth init**: The `beforeEach` guard calls `await refreshAuth()` if
+  `authState.initialized` is false. This ensures `authenticated` is checked
+  before `requiresAuth` routes reject the user on F5.
