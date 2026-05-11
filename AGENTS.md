@@ -107,8 +107,9 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
 - **Django URLs**: all paths end with trailing slash
 - **Django views**: class-based (generics), custom permission classes defined
   inline in views.py, `pagination_class = None` where frontend expects flat arrays
-- **Django tests**: `tests/` subdirectory per app, `__init__.py` only (no test
-  content yet — tests are planned)
+- **Django tests**: `tests/` subdirectory per app, `APITestCase` + `force_authenticate`
+  for non-auth endpoints, real JWT flow for auth endpoints. Shared fixtures via
+  `config/test_helpers.py`. Run with `DJANGO_ENV=dev uv run python manage.py test`.
 - **NLP tests**: `test/unit/` and `test/integration/`, mark integration tests
   with `@pytest.mark.integration`, conftest sets `OPENROUTER_API_KEY=fake-key`
 - **Formatting**: no formatter configured yet. Ruff cache exists in `.ruff_cache/`
@@ -192,3 +193,22 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
 - **Frontend auth init**: The `beforeEach` guard calls `await refreshAuth()` if
   `authState.initialized` is false. This ensures `authenticated` is checked
   before `requiresAuth` routes reject the user on F5.
+- **`RegexField` in serializers bypasses model validators**: Declaring a field
+  explicitly as `RegexField` (or any non-model field type) overrides the model's
+  `validators` (including `UniqueValidator`). Always add `UniqueValidator` and
+  any other model-level validators manually when using non-model field types.
+- **Non-model serializer fields need `write_only=True`**: Fields consumed only
+  in `perform_create`/`perform_update` (removed from `validated_data` before
+  model creation) must have `write_only=True`, otherwise DRF passes them to
+  `Model.objects.create()` causing an unexpected keyword argument error.
+- **Internal callbacks need `get_object_or_404`**: Callback endpoints
+  (`analysis/callbacks.py`) must use `get_object_or_404` instead of bare
+  `.get()` on ORM queries — a nonexistent foreign ID gives a controlled 404
+  instead of a 500 from `DoesNotExist`.
+- **`data.get(...) or data.get(...)` loses falsy values**: When reading optional
+  fields from `request.data`, `or` converts `0`, `""`, `[]` to `None`. Check
+  key existence with `"key" in data` (ternary) or `data.get("key", None)` for
+  nullable fields.
+- **Celery tasks in dev require mock in tests**: `CELERY_TASK_ALWAYS_EAGER=True`
+  runs tasks synchronously in-process but they try to connect to real external
+  services (NLP). Use `@patch("path.to.task.delay")` to mock them in tests.
