@@ -1,57 +1,72 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from './views/HomeView.vue'
-import BookDetailView from './views/BookDetailView.vue'
-import LoginView from './views/LoginView.vue'
-import RegisterView from './views/RegisterView.vue'
-import BookshelfView from './views/BookshelfView.vue'
-import ProfileView from './views/ProfileView.vue'
-import SettingsView from './views/SettingsView.vue'
-import NotFoundView from './views/NotFoundView.vue'
+import { authState } from './auth'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior: () => ({ top: 0 }),
   routes: [
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('./views/HomeView.vue'),
+      meta: { title: 'Katalog książek' },
     },
     {
       path: '/book/:id',
       name: 'book-detail',
-      component: BookDetailView,
+      component: () => import('./views/BookDetailView.vue'),
+      meta: { title: 'Szczegóły książki' },
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginView,
+      component: () => import('./views/LoginView.vue'),
+      meta: { title: 'Zaloguj się' },
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterView,
+      component: () => import('./views/RegisterView.vue'),
+      meta: { title: 'Utwórz konto' },
     },
     {
       path: '/bookshelf',
       name: 'bookshelf',
-      component: BookshelfView,
+      component: () => import('./views/BookshelfView.vue'),
+      meta: { title: 'Moja półka', requiresAuth: true },
     },
     {
       path: '/profile/:username',
       name: 'profile',
-      component: ProfileView,
+      component: () => import('./views/ProfileView.vue'),
+      meta: { title: 'Profil' },
     },
     {
       path: '/settings',
       name: 'settings',
-      component: SettingsView,
+      component: () => import('./views/SettingsView.vue'),
+      meta: { title: 'Ustawienia', requiresAuth: true },
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
-      component: NotFoundView,
+      component: () => import('./views/NotFoundView.vue'),
+      meta: { title: 'Nie znaleziono' },
     },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !authState.authenticated) {
+    next({ name: 'login', query: { next: to.fullPath } })
+  } else {
+    next()
+  }
+})
+
+router.afterEach((to) => {
+  const title = to.meta.title
+  document.title = title ? `StoryShelf — ${title}` : 'StoryShelf'
 })
 
 export default router

@@ -22,6 +22,7 @@
     </div>
 
     <div v-if="error" class="alert alert-error mb-6 text-sm">{{ error }}</div>
+    <div v-if="mutateError" class="alert alert-warning mb-6 text-sm">{{ mutateError }}</div>
     <div v-else-if="loading" class="py-20 text-center text-base-content/60">Ładowanie półki...</div>
     <div v-else-if="!authState.authenticated" class="alert alert-warning mb-6 text-sm">
       Zaloguj się, aby zobaczyć swoją półkę.
@@ -75,6 +76,7 @@ import { useAsyncState } from '../composables/useAsyncState'
 const activeFilter = ref('ALL')
 const entries = ref([])
 const { loading, error, execute } = useAsyncState()
+const { loading: mutating, error: mutateError, execute: executeMutate } = useAsyncState()
 loading.value = true
 
 const filters = [
@@ -108,7 +110,7 @@ async function loadBookshelf() {
 
 async function changeStatus(entry, event) {
   const nextStatus = event.target.value
-  const result = await execute(async () => {
+  const result = await executeMutate(async () => {
     return await updateBookshelfStatus(entry.book.id, nextStatus)
   }, { fallback: 'Nie udało się zmienić statusu.' })
   if (result) {
@@ -121,7 +123,7 @@ async function changeStatus(entry, event) {
 }
 
 async function removeEntry(entry) {
-  const ok = await execute(async () => {
+  const ok = await executeMutate(async () => {
     await removeFromBookshelf(entry.book.id)
     return true
   }, { fallback: 'Nie udało się usunąć książki z półki.' })
