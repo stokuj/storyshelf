@@ -3,7 +3,19 @@
 
     <!-- Komunikaty globalne: blad i sukces po akcjach na polce -->
     <div v-if="error" class="alert alert-error mb-6 text-sm">{{ error }}</div>
-    <div v-else-if="loading" class="py-20 text-center text-base-content/60">Ładowanie szczegółów książki...</div>
+
+    <div v-else-if="loading" class="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-8">
+      <div class="md:col-span-1 flex flex-col gap-3">
+        <div class="skeleton mx-auto w-3/4 aspect-[2/3] rounded-xl"></div>
+        <div class="skeleton h-10 w-full rounded-xl"></div>
+      </div>
+      <div class="md:col-span-3 flex flex-col gap-4">
+        <div class="skeleton h-8 w-1/2"></div>
+        <div class="skeleton h-6 w-1/3"></div>
+        <div class="skeleton h-4 w-1/4"></div>
+        <div class="skeleton h-32 w-full"></div>
+      </div>
+    </div>
 
     <template v-else-if="details">
 
@@ -25,7 +37,7 @@
           </div>
 
           <!-- Status czytania -->
-          <div class="rounded-xl bg-base-100 shadow-sm p-3 flex flex-col gap-1">
+          <div class="rounded-xl bg-base-100 shadow-sm p-3 flex flex-col gap-2">
             <select
               class="select select-bordered select-sm w-full"
               :value="details.shelfEntry?.status || 'WANT_TO_READ'"
@@ -36,6 +48,15 @@
               <option value="READING">Czytam</option>
               <option value="READ">Przeczytana</option>
             </select>
+            <button
+              v-if="details.shelfEntry"
+              type="button"
+              class="btn btn-ghost btn-xs text-error"
+              :disabled="shelfLoading"
+              @click="removeShelfEntry"
+            >
+              Usuń z półki
+            </button>
           </div>
 
         </div>
@@ -106,42 +127,76 @@
 
       <!-- nie zmieniaj kodu poniżej tej linii -->
 
-      <!-- Recenzje czytelników (losowe, układ lewo/prawo) -->
-      <div class="card mt-8 bg-base-100 shadow-sm">
+      <!-- Formularz recenzji -->
+      <div v-if="authState.authenticated" class="card mt-8 bg-base-100 shadow-sm">
+        <div class="card-body p-5">
+          <h2 class="card-title text-base mb-3">Napisz recenzję</h2>
+          <div v-if="reviewError" class="alert alert-error mb-3 text-sm">{{ reviewError }}</div>
+          <div v-if="reviewMessage" class="alert alert-success mb-3 text-sm">{{ reviewMessage }}</div>
+          <form class="space-y-3" @submit.prevent="submitReview">
+            <div class="flex items-center gap-2">
+              <span class="text-sm">Ocena:</span>
+              <div class="rating rating-sm">
+                <input
+                  v-for="star in 5"
+                  :key="`review-form-star-${star}`"
+                  type="radio"
+                  class="mask mask-star-2 bg-orange-400"
+                  :value="star"
+                  v-model="reviewForm.rating"
+                />
+              </div>
+            </div>
+            <textarea
+              v-model="reviewForm.content"
+              class="textarea textarea-bordered w-full"
+              rows="3"
+              placeholder="Twoja opinia o książce..."
+            />
+            <button
+              type="submit"
+              class="btn btn-primary btn-sm"
+              :disabled="reviewLoading"
+            >
+              {{ reviewLoading ? 'Wysyłanie...' : 'Dodaj recenzję' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Recenzje czytelników -->
+      <div class="card mt-4 bg-base-100 shadow-sm">
         <div class="card-body p-5">
           <div class="flex items-center justify-between gap-2 mb-1">
-            <h2 class="card-title text-base">💬 Recenzje czytelników</h2>
-            <div class="badge badge-neutral badge-outline">{{ randomReviews.length }}</div>
+            <h2 class="card-title text-base">Recenzje czytelników</h2>
+            <div class="badge badge-neutral badge-outline">{{ sortedReviews.length }}</div>
           </div>
 
-          <div v-if="randomReviews.length" class="space-y-1 mt-2">
+          <div v-if="sortedReviews.length" class="space-y-3 mt-2">
             <div
-              v-for="(review, index) in randomReviews"
-              :key="review.id || `random-review-${index}`"
-              class="chat"
-              :class="index % 2 === 0 ? 'chat-start' : 'chat-end'"
+              v-for="review in sortedReviews"
+              :key="review.id"
+              class="border border-base-200 rounded-lg p-3"
             >
-              <div class="chat-header text-xs text-base-content/50 mb-0.5">
-                {{ review.username || 'Anonim' }}
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold">{{ review.username || 'Anonim' }}</span>
+                <span v-if="review.createdAt" class="text-xs text-base-content/40">
+                  {{ formatDate(review.createdAt) }}
+                </span>
               </div>
-              <div class="chat-bubble chat-bubble-primary max-w-2xl">
-                <div class="mb-1" v-if="review.rating">
-                  <div class="rating rating-xs">
-                    <input
-                      v-for="star in 5"
-                      :key="`random-review-${review.id || index}-star-${star}`"
-                      type="radio"
-                      class="mask mask-star-2 bg-orange-400"
-                      :checked="star <= review.rating"
-                      disabled
-                    />
-                  </div>
+              <div v-if="review.rating" class="mb-1">
+                <div class="rating rating-xs">
+                  <input
+                    v-for="star in 5"
+                    :key="`review-${review.id}-star-${star}`"
+                    type="radio"
+                    class="mask mask-star-2 bg-orange-400"
+                    :checked="star <= review.rating"
+                    disabled
+                  />
                 </div>
-                <p class="text-sm leading-relaxed">{{ review.content || 'Brak treści.' }}</p>
               </div>
-              <div class="chat-footer text-xs text-base-content/40 mt-0.5" v-if="review.createdAt">
-                {{ formatDate(review.createdAt) }}
-              </div>
+              <p class="text-sm leading-relaxed text-base-content/80">{{ review.content || 'Brak treści.' }}</p>
             </div>
           </div>
 
@@ -245,7 +300,7 @@ loading.value = true
 // Stan komunikatów/akcji użytkownika
 const { loading: shelfLoading, execute: executeShelf } = useAsyncState()
 const { loading: reviewLoading, error: reviewError, message: reviewMessage, execute: executeReview } = useAsyncState()
-const randomReviews = ref([])
+const sortedReviews = ref([])
 
 // Formularz dodawania recenzji
 const reviewForm = reactive({
@@ -269,20 +324,14 @@ function formatDate(value) {
   }).format(new Date(value))
 }
 
-function pickRandomReviews(reviews, limit = 6) {
+function sortReviews(reviews, limit = 6) {
   if (!Array.isArray(reviews) || !reviews.length) {
     return []
   }
 
-  const shuffled = [...reviews]
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1))
-    const temp = shuffled[i]
-    shuffled[i] = shuffled[j]
-    shuffled[j] = temp
-  }
-
-  return shuffled.slice(0, limit)
+  return [...reviews]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, limit)
 }
 
 async function loadDetails() {
@@ -292,10 +341,10 @@ async function loadDetails() {
 
   if (result) {
     details.value = result
-    randomReviews.value = pickRandomReviews(details.value?.reviews || [], 6)
+    sortedReviews.value = sortReviews(details.value?.reviews || [], 6)
   } else {
     details.value = null
-    randomReviews.value = []
+    sortedReviews.value = []
   }
 }
 
@@ -346,7 +395,7 @@ async function submitReview() {
 
   if (created) {
     details.value.reviews = [created, ...(details.value.reviews || [])]
-    randomReviews.value = pickRandomReviews(details.value.reviews, 6)
+    sortedReviews.value = sortReviews(details.value.reviews, 6)
     reviewForm.content = ''
     reviewForm.rating = 5
     reviewMessage.value = 'Dodano recenzję.'
