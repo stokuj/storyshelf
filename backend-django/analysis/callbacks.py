@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models import F
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,17 +13,27 @@ class AnalyseResultView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, chapter_id):
-        chapter = Chapter.objects.select_related("book").get(id=chapter_id)
+        chapter = get_object_or_404(
+            Chapter.objects.select_related("book"), id=chapter_id
+        )
         if chapter.analysis_completed:
             return Response(status=status.HTTP_200_OK)
 
         data = request.data
-        chapter.char_count = data.get("char_count") or data.get("charCount")
-        chapter.char_count_clean = data.get("char_count_clean") or data.get(
-            "charCountClean"
+        chapter.char_count = (
+            data["char_count"] if "char_count" in data else data.get("charCount")
         )
-        chapter.word_count = data.get("word_count") or data.get("wordCount")
-        chapter.token_count = data.get("token_count") or data.get("tokenCount")
+        chapter.char_count_clean = (
+            data["char_count_clean"]
+            if "char_count_clean" in data
+            else data.get("charCountClean")
+        )
+        chapter.word_count = (
+            data["word_count"] if "word_count" in data else data.get("wordCount")
+        )
+        chapter.token_count = (
+            data["token_count"] if "token_count" in data else data.get("tokenCount")
+        )
         chapter.analysis_completed = True
         chapter.save()
         return Response(status=status.HTTP_200_OK)

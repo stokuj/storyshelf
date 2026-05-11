@@ -51,12 +51,30 @@ class AnalyseResultTest(InternalEndpointMixin, AuthTestHelper, APITestCase):
         self.assertEqual(self.chapter.char_count, 50)
 
     def test_post_nonexistent_chapter_returns_500(self):
-        with self.assertRaises(Chapter.DoesNotExist):
-            self.client.post(
-                "/api/internal/chapters/99999/analyse-result/",
-                {"char_count": 1},
-                format="json",
-            )
+        resp = self.client.post(
+            "/api/internal/chapters/99999/analyse-result/",
+            {"char_count": 1},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_post_zero_values_are_preserved(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "char_count": 0,
+                "char_count_clean": 0,
+                "word_count": 0,
+                "token_count": 0,
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.chapter.refresh_from_db()
+        self.assertEqual(self.chapter.char_count, 0)
+        self.assertEqual(self.chapter.char_count_clean, 0)
+        self.assertEqual(self.chapter.word_count, 0)
+        self.assertEqual(self.chapter.token_count, 0)
 
     def test_post_blocked_without_docker_ip(self):
         old = self.client.defaults.pop("REMOTE_ADDR", None)

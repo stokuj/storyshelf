@@ -203,6 +203,9 @@ class LogoutTest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["message"], "Logged out successfully")
 
+        resp = self.client.post(self.url, {"refresh": refresh})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
     def test_post_no_refresh_still_succeeds_200(self):
         resp = self.client.post(self.url, {})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
