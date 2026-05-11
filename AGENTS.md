@@ -16,6 +16,12 @@ Four services in `infra/compose/docker-compose.dev.yml`: `frontend`, `django`,
 `celery-worker`, `nlp-service`. Backing services: `db` (Postgres 16), `rabbitmq`,
 `redis`.
 
+**Target architecture:** `ARCHITECTURE.md` — NLP service removed, NER/LLM runs
+directly in Celery workers with queue routing (ner/llm), DLX, Flower. Global
+entity model: BookCharacter, BookPlace, BookOrganization (name UNIQUE, no
+junction tables). CharacterRelationship per book between global characters.
+Migration plan: `docs/superpowers/plans/2026-05-11-target-architecture-migration.md`.
+
 `backend/` is legacy Java Spring Boot — all current work is in `backend-django/`.
 
 ## Commands
