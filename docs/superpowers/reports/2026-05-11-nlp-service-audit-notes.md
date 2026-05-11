@@ -629,3 +629,177 @@ None of the four endpoints set timeouts or handle `asyncio.CancelledError`:
 | MEDIUM | `analyse.py` blocks on `await asyncio.to_thread` — 202 status is misleading | `analyse.py:25` |
 | LOW | No async timeout/cancellation handling on any endpoint | `find_pairs.py:31`, `relations.py:32`, `analyse.py:25` |
 
+---
+
+# NLP Service Audit — Task 5: Test Coverage Map, Gap Analysis, Isolation Audit
+
+## Step 1 — Unit Test AST Scan
+
+```
+test/unit/test_book_service.py:
+  class TestAnalyseText
+  class TestFindSentencesWithBothCharacters
+    test: test_analyse_text_counts_basic
+    test: test_analyse_text_empty_string
+    test: test_analyse_text_multiple_spaces
+    test: test_analyse_text_only_spaces
+    test: test_analyse_text_unicode_chars
+    test: test_analyse_text_newlines_and_tabs
+    test: test_analyse_text_punctuation
+    test: test_analyse_test_numbers
+    test: test_unicode_names_match
+    test: test_names_with_spaces_match
+    test: test_special_characters_in_names_match
+    test: test_returns_empty_when_no_sentences
+    test: test_returns_empty_when_no_characters
+    test: test_returns_empty_when_one_character
+    test: test_finds_pair_in_same_sentence
+    test: test_returns_empty_when_never_together
+    test: test_include_empty_returns_pair_with_no_sentences
+    test: test_case_insensitive_matching
+    test: test_three_characters_pairs
+    test: test_sentence_with_three_characters_included
+    test: test_substring_name_false_positive
+
+test/unit/test_transformers_service.py:
+  class TestLoadNerModel
+  class TestExtractEntities
+    test: test_loads_model_successfully
+    test: test_returns_true_when_already_loaded
+    test: test_returns_false_when_model_missing
+    test: test_returns_empty_when_model_missing
+    test: test_extracts_entities_successfully
+    test: test_counts_duplicate_entities
+    test: test_orders_entities_by_frequency
+    test: test_ignores_empty_word
+    test: test_handles_empty_output
+    test: test_maps_person_aliases
+
+test/unit/test_llm_service.py:
+  class TestExtractRelations
+  class TestRelationSchema
+    test: test_returns_json_string
+    test: test_uses_constructor_model
+    test: test_prompt_contains_pair_and_sentences
+    test: test_returns_empty_on_auth_error
+    test: test_returns_empty_on_rate_limit
+    test: test_returns_empty_on_timeout
+    test: test_returns_empty_on_connection_error
+    test: test_returns_empty_when_content_none
+    test: test_all_relations_contains_schema_keys
+```
+
+### Integration test inventory
+
+| File | Classes / Tests |
+|------|----------------|
+| test_routes_app.py | TestGlobalErrors (test_unhandled_exception_returns_500), TestRoot (2 tests), TestHealth (3 tests), TestHealthCelery (3 tests) |
+| test_routes_analyse.py | TestAnalyseRoute (3 tests: 202, missing content 422, whitespace 422) |
+| test_routes_ner.py | TestNerRoute (3 tests: 202, missing content 422, whitespace 422) |
+| test_routes_find_pairs.py | TestFindPairsRoute (4 tests: 202, missing content 422, missing characters 202, whitespace 422) |
+| test_routes_relations.py | TestRelationsRoute (6 tests: 202, missing sentences 422, missing name1 422, missing name2 422, empty pairs 422, same names 422) |
+| test_rate_limits.py | TestRateLimitsRelations (1 test: 429 after 30 requests), TestRateLimitsNer (1 test: 429 after 30 requests) |
+
+## Test coverage gaps
+
+| Test file | Code paths covered | Code paths NOT covered |
+|-----------|-------------------|----------------------|
+| test_book_service.py | text_stats.analyse_text (8 edge cases), text_parser.find_sentences_with_both_characters (14 cases incl. substring false positives, Unicode, empty inputs) | tokenizer fallback when tiktoken missing (len(text)//4 heuristic untested), sentence regex edge cases (nested quotes, broken punctuation) |
+| test_transformers_service.py | load_ner_model (success, already-loaded, missing), extract_entities (success, ordering, duplicates, empty output, person-alias mapping) | actual HuggingFace pipeline inference (always mocked), concurrency (thread safety of _NER_PIPELINES dict), worker_process_init signal handler |
+
+| test_routes_app.py | root GET (200 + hello string), health GET (200, status=ok, ISO timestamp), health/celery (200 with/without workers, 503 on connection error) | graceful shutdown, real Celery broker connection failure (uses MagicMock patching `celery.control.inspect`) |
+| test_routes_analyse.py | 202 on valid content, 422 on missing content, 422 on whitespace content | async callback delivery (send_json via httpx.post), exception propagation from process_analyse, non-whitespace but meaningless content (e.g., "..." or "abc") |
+| test_routes_ner.py | 202 on valid content, 422 on missing content, 422 on whitespace content | Celery task actual execution (task.delay is mocked), callback delivery via send_json, chapter_id None vs int handling |
+| test_routes_find_pairs.py | 202 on valid content, 422 on missing content, 202 on missing characters, 422 on whitespace content | run_in_executor exceptions (only done_callback is tested via mock), callback delivery, empty characters producing empty pairs |
+| test_routes_relations.py | 202 on valid input, 422 on mismatched IDs, 422 on empty pairs, 422 on missing name1/name2/sentences | async.coroutine failures inside process_book_relations_async, callback delivery via send_json, invalid pair element (single element, wrong types), `asyncio.gather` exception propagation |
+| test_rate_limits.py | 429 after ~30 requests on relations, 429 after ~30 requests on ner | rate limit behavior on analyse and find-pairs (no limits configured), key rotation/expiry, burst vs sustained rate behavior |
+
+### Unit test coverage by source module
+
+| Source module | Unit test file | Tests | Functions/classes tested |
+|---------------|---------------|:-----:|-------------------------|
+| text_stats.py | test_book_service.py | 8 | analyse_text (only; _get_tokenizer and sentence_count not directly tested) |
+| text_parser.py | test_book_service.py | 14 | find_sentences_with_both_characters (only; _split_sentences, _extract_pairs not tested in isolation) |
+| transformers_engine.py | test_transformers_service.py | 10 | load_ner_model (3), extract_entities (7); DEFAULT_NER_MODEL, _NER_PIPELINES referenced throughout |
+| llm_engine.py | test_llm_service.py | 9 | extract_relations async (8), RELATION_SCHEMA (1); extract_relations_sync, _sanitize, _get_prompt, _parse_response not tested directly |
+
+**Note:** `text_workflow.py`, `find_pairs_workflow.py`, `analyse_workflow.py`, `ner_workflow.py`, `relations_workflow.py` have zero unit tests — only exercised indirectly via integration tests.
+
+## Step 2 — Critical untested behaviors
+
+1. **Callback HTTP failure** — no test verifies what happens when `CALLBACK_BASE_URL` is unreachable (Django down, wrong URL). All integration tests mock `send_json` or never check its result. `kafka/producer.py:37-43` catches all exceptions silently — this path is never exercised.
+2. **LLM returns non-JSON** — no test verifies the `json.JSONDecodeError → {"raw": ...}` fallback in `relations_workflow.py:82`. All LLM tests mock `openai.OpenAI` to return valid JSON strings.
+3. **NER model unavailable at runtime** — only tested in unit with mocked pipeline. Integration test (`test_routes_ner.py:13`) mocks `extract_entities_task.delay` entirely; actual pipeline loading failure after worker startup is untested.
+4. **Concurrent fire-and-forget** — no test verifies behavior under load (e.g., 50 concurrent `find_pairs` requests sharing the same default ThreadPoolExecutor, or 50 concurrent `relations` requests with `asyncio.create_task` coroutines).
+5. **Worker restart with stale state** — no test verifies `_NER_PIPELINES` is cleared on worker restart. The mock-based unit tests manually clear it; in production, a Celery worker restart re-imports the module and the `worker_process_init` signal re-loads, but interleaving of old and new workers during a rolling restart is untested.
+6. **Token counting without tiktoken** — fallback `len(text) // 4` in `text_stats.py:33-34` is tested only indirectly (tiktoken is always installed in CI/dev environments). If deployed without tiktoken, the heuristic produces systematically inaccurate counts for non-English text.
+7. **`_sanitize` prompt injection bypass** — no test verifies sanitization against adversarial inputs (Unicode homoglyphs, zero-width characters, markdown code fence injection, SYSTEM/USER/ASSISTANT role redirection). `llm_engine.py:51-58` is exercised only as part of the full `extract_relations` flow with clean inputs.
+8. **`asyncio.gather` with `return_exceptions=False` (default)** — no test verifies behavior when one coroutine in `relations_workflow.py:111` raises. All mocked LLM calls return successfully; a single LLM failure in a batch of 5 pairs would cancel all remaining extractions and prevent any callback from being sent.
+
+## Step 3 — Test Isolation Audit
+
+### Isolation output
+
+```
+nlp-service/test/conftest.py:5:os.environ.setdefault("OPENROUTER_API_KEY", "fake-key")
+nlp-service/test/conftest.py:6:os.environ.setdefault("NER_MIN_OCCURRENCES", "1")
+nlp-service/test/unit/test_transformers_service.py:9:@pytest.fixture(autouse=True)
+nlp-service/test/unit/test_transformers_service.py:10:def clear_pipelines():
+nlp-service/test/unit/test_transformers_service.py:13:    tf_service._NER_PIPELINES.clear()
+nlp-service/test/unit/test_transformers_service.py:15:    tf_service._NER_PIPELINES.clear()
+nlp-service/test/unit/test_transformers_service.py:27:        assert tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] is fake_pipeline
+nlp-service/test/unit/test_transformers_service.py:38:        tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock()
+nlp-service/test/unit/test_transformers_service.py:56:        assert "nonexistent/model" not in tf_service._NER_PIPELINES
+nlp-service/test/unit/test_transformers_service.py:77:        tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+nlp-service/test/unit/test_transformers_service.py:105:        tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+nlp-service/test/unit/test_transformers_service.py:129:        tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+nlp-service/test/unit/test_transformers_service.py:148:        tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+nlp-service/test/unit/test_transformers_service.py:163:        tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(return_value=[])
+nlp-service/test/unit/test_transformers_service.py:182:        tf_service._NER_PIPELINES[DEFAULT_NER_MODEL] = MagicMock(
+```
+
+### Isolation confirmation
+
+- **`conftest.py:5`** — `OPENROUTER_API_KEY` setdefault before any test module import. Prevents `LLMService()` from failing at module level in `llm_engine.py`. Uses `setdefault` (not `environ[...] = `) so pre-existing values in CI are preserved. Correct.
+- **`conftest.py:6`** — `NER_MIN_OCCURRENCES=1` setdefault ensures NER tests use the lowest threshold. Correct for testing.
+- **`test_transformers_service.py:9-15`** — `clear_pipelines` autouse fixture resets `_NER_PIPELINES` before AND after every test. Mutation scope is this module only (no yield). Since `extract_entities` checks `_NER_PIPELINES[DEFAULT_NER_MODEL]` on every call, this prevents test order dependency. Correct.
+- **No other test module uses `autouse`** — this means tests in `test_book_service.py`, `test_llm_service.py`, and all integration test files may leak global state:
+  - `test_llm_service.py` does **not** mock `LLMService` at module level — it imports `llm_engine.py` which instantiates `LLMService()` at import time. The `fake-key` prevents import failure, but the singleton `llm_service` module-level instance is shared across all LLM tests.
+  - `test_book_service.py` does **not** import `llm_engine.py` directly, so no cross-contamination with LLM tests.
+  - Integration tests use `TestClient` with `FastAPI()` from `api.app:app`, which imports everything via `app.py`. All integration tests share the same `llm_service` singleton and `_NER_PIPELINES` dict.
+
+**Isolation risk — Severity: MEDIUM**
+
+The `LLMService` singleton at `llm_engine.py` module level (import-time side effect per Task 1 Step 3) means all tests that trigger a `llm_engine` import share the same `llm_service.llm_client` and `llm_service.llm_client_async` objects. Tests mock via `patch("api.services.core.llm_engine.llm_service.llm_client_async", ...)` which replaces the attribute on the singleton, but if one test leaves a partially-consumed mock generator, a subsequent test may get unexpected behavior.
+
+Additionally, `_NER_PIPELINES` is only auto-cleared in `test_transformers_service.py`. If integration tests (`test_routes_ner.py`) ever stop mocking `extract_entities_task.delay` and instead let the actual `process_ner` flow run, they would share `_NER_PIPELINES` state with unit tests — a test ordering bug.
+
+**Recommendation:** Add a `conftest.py`-level autouse fixture that clears `_NER_PIPELINES` before every test (not just in `test_transformers_service.py`), and consider a `conftest.py` `autouse` fixture that resets `llm_service.llm_client_async` to its `AsyncMock` default before each test that touches LLM code. Alternatively, convert `LLMService` to a lazy singleton (instantiate on first use instead of at import time) as recommended in Task 1.
+
+## Step 4 — Coverage Summary
+
+### Overall assessment — Status: DONE_WITH_CONCERNS
+
+| Dimension | Coverage | Gaps |
+|-----------|:--------:|------|
+| Unit: text stats + parser | 22 tests | Tokenizer fallback, regex edge cases beyond covered patterns |
+| Unit: transformers engine | 10 tests | All mocked — zero real model inference tested |
+| Unit: LLM service | 9 tests | All mocked — `extract_relations_sync`, `_sanitize`, JSON fallback, prompt injection untested |
+| Unit: workflows | 0 tests | None of the 5 workflow functions has a dedicated unit test |
+| Integration: HTTP routes | 20 tests | Callback delivery never verified, background task failures never simulated |
+| Integration: rate limits | 2 tests | Only ner+relations tested; find-pairs and analyse limits absent |
+| Integration: error handling | 3 tests | Only 500 handler, missing content 422, whitespace 422 — no timeout, no malformed JSON, no overload |
+
+### Test count by severity of untested behaviors
+
+| Untested behavior | Severity | Test cost (effort) |
+|------------------|:--------:|:--------:|
+| Callback HTTP failure path | HIGH | Low — mock httpx.post to raise ConnectError |
+| LLM non-JSON response fallback | HIGH | Low — mock LLM to return `"```json\n{...}\n```"` |
+| NER model unavailable at runtime | HIGH | Medium — needs Celery integration test |
+| `asyncio.gather` exception cancellation | HIGH | Low — mock one extract_one to raise |
+| Prompt injection bypass via `_sanitize` | MEDIUM | Low — parameterized test of adversarial strings |
+| Worker restart stale state | MEDIUM | High — needs multi-process Celery test |
+| Tokenizer heuristic without tiktoken | LOW | Low — mock `tiktoken` import to fail |
+| ThreadPoolExecutor exhaustion | MEDIUM | High — needs load testing framework |
+
