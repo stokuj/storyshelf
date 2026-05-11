@@ -117,6 +117,7 @@ async function loadSettings() {
 }
 
 async function saveSettings() {
+  const previousUsername = settings.value?.username
   const result = await executeSave(async () => {
     return await updateCurrentUserSettings({ ...form })
   }, { fallback: 'Nie udało się zapisać ustawień.' })
@@ -124,6 +125,9 @@ async function saveSettings() {
     settings.value = result
     syncForm(settings.value)
     await refreshAuth()
+    if (result.username && result.username !== previousUsername) {
+      router.replace(`/profile/${result.username}`)
+    }
     message.value = 'Zapisano zmiany profilu.'
   }
 }
