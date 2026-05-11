@@ -76,7 +76,7 @@ export function fetchBooks(query = '') {
 }
 
 export function fetchBookDetails(bookId) {
-  return request('GET', `/api/books/${bookId}/details/`)
+  return request('GET', `/api/books/${bookId}/`)
 }
 
 export function createBookReview(bookId, payload) {

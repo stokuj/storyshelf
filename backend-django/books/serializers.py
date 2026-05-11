@@ -74,7 +74,7 @@ class BookListSerializer(serializers.ModelSerializer):
 
 
 class BookCreateSerializer(serializers.ModelSerializer):
-    author_id = serializers.IntegerField()
+    author_id = serializers.IntegerField(write_only=True)
     genres = serializers.JSONField(default=list)
     tags = serializers.ListField(
         child=serializers.CharField(), write_only=True, default=list

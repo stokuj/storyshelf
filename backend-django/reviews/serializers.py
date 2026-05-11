@@ -20,3 +20,13 @@ class ReviewSerializer(serializers.ModelSerializer):
             "bookId",
         )
         read_only_fields = ("id", "username", "bookTitle", "bookId", "createdAt")
+
+    def validate(self, data):
+        user = self.context["request"].user
+        book_id = self.context["view"].kwargs["pk"]
+        if (
+            self.instance is None
+            and Review.objects.filter(user=user, book_id=book_id).exists()
+        ):
+            raise serializers.ValidationError("You have already reviewed this book.")
+        return data

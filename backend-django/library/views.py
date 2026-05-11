@@ -17,6 +17,7 @@ class AuthorListCreateView(generics.ListCreateAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [IsModeratorOrReadOnly]
+    pagination_class = None
 
 
 class AuthorRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
@@ -29,6 +30,7 @@ class SeriesListCreateView(generics.ListCreateAPIView):
     queryset = Serie.objects.all()
     serializer_class = SeriesSerializer
     permission_classes = [IsModeratorOrReadOnly]
+    pagination_class = None
 
 
 class SeriesRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
