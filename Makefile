@@ -1,27 +1,37 @@
 .PHONY: dev-up dev-down dev-status dev-build prod-up prod-down prod-status prod-logs
 
 COMPOSE_DIR = infra/compose
+ENV_FILE = ../../.env
+DEV_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml
+PROD_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml
 
 dev-up:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml up -d
+	$(DEV_COMPOSE) --env-file $(ENV_FILE) up -d
+	@printf '\n%s\n' 'Dev services:'
+	@printf '%s\n' '  frontend: http://localhost:5173'
+	@printf '%s\n' '  nlp-service: http://localhost:8000'
+	@printf '%s\n' '  rabbitmq UI: http://127.0.0.1:15672'
+	@printf '%s\n' '  django: internal only (proxy via frontend)'
+	@printf '\n%s\n' 'Current status:'
+	@$(MAKE) --no-print-directory dev-status
 
 dev-down:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml down
+	$(DEV_COMPOSE) --env-file $(ENV_FILE) down
 
 dev-status:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml ps
+	$(DEV_COMPOSE) --env-file $(ENV_FILE) ps --format "table {{.Name}}\t{{.Service}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}"
 
 dev-build:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml build
+	$(DEV_COMPOSE) --env-file $(ENV_FILE) build
 
 prod-up:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml up -d
+	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) up -d
 
 prod-down:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml down
+	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) down
 
 prod-status:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml ps
+	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) ps --format "table {{.Name}}\t{{.Service}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}"
 
 prod-logs:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml logs -f
+	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) logs -f
