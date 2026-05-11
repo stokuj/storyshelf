@@ -42,8 +42,8 @@ Frontend talks to Backend via REST. Backend communicates with NLP Service asynch
 
 ## Documentation
 
-- [API Endpoints](backend/docs/api_endpoints.md)
-- [Database Schema](backend/docs/database.md)
-- [NLP Data Flow](backend/docs/data_flow.md)
-- [User Stories](backend/docs/user_stories.md)
-- [NLP Testing Guide](nlp-service/docs/REQUEST_EXAMPLES.md)
+- [API Endpoints](docs/backend/api_endpoints.md)
+- [Database Schema](docs/backend/database.md)
+- [NLP Data Flow](docs/backend/data_flow.md)
+- [User Stories](docs/backend/user_stories.md)
+- [NLP Testing Guide](docs/nlp-service/request_examples.md)

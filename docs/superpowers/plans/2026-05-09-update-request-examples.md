@@ -1,8 +1,8 @@
-# Update REQUEST_EXAMPLES.md Implementation Plan
+# Update request_examples.md Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rewrite `nlp-service/docs/REQUEST_EXAMPLES.md` to match the actual API router structure (Chapters/Books groups with ID validation, correct payloads, 202 Accepted responses).
+**Goal:** Rewrite `docs/nlp-service/request_examples.md` to match the actual API router structure (Chapters/Books groups with ID validation, correct payloads, 202 Accepted responses).
 
 **Architecture:** Single-file documentation update. The new document groups endpoints by routing domain (Health → Chapters → Books), each with correct payload schemas, response structures, and common error documentation.
 
@@ -10,14 +10,14 @@
 
 ---
 
-### Task 1: Rewrite REQUEST_EXAMPLES.md
+### Task 1: Rewrite request_examples.md
 
 **Files:**
-- Modify: `nlp-service/docs/REQUEST_EXAMPLES.md` (full rewrite)
+- Modify: `docs/nlp-service/request_examples.md` (full rewrite)
 
-- [ ] **Step 1: Write the new REQUEST_EXAMPLES.md content**
+- [ ] **Step 1: Write the new request_examples.md content**
 
-Write the file at `nlp-service/docs/REQUEST_EXAMPLES.md`:
+Write the file at `docs/nlp-service/request_examples.md`:
 
 ```markdown
 # API Testing Guide -- Swagger UI
@@ -293,7 +293,7 @@ Use a concrete ID like `1` for testing.
 - [ ] **Step 2: Verify the file was written correctly**
 
 ```bash
-wc -l nlp-service/docs/REQUEST_EXAMPLES.md
+wc -l docs/nlp-service/request_examples.md
 ```
 
 Expected: roughly 270-290 lines.
@@ -309,6 +309,6 @@ Expected output confirms `/chapters`, `/books` prefixes and `/`, `/health/`, `/h
 - [ ] **Step 4: Commit**
 
 ```bash
-git add nlp-service/docs/REQUEST_EXAMPLES.md
-git commit -m "docs: update REQUEST_EXAMPLES.md paths to match actual routers"
+git add docs/nlp-service/request_examples.md
+git commit -m "docs: update request_examples.md paths to match actual routers"
 ```

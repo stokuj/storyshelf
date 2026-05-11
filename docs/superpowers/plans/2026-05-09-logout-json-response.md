@@ -183,7 +183,7 @@ git commit -m "test: add integration test for logout JSON response"
 ### Task 3: Update api_endpoints.md
 
 **Files:**
-- Modify: `backend/docs/api_endpoints.md:12`
+- Modify: `docs/backend/api_endpoints.md:12`
 
 - [ ] **Step 1: Update the logout row**
 
@@ -213,12 +213,12 @@ With:
 
 - [ ] **Step 2: Verify the file looks correct**
 
-Run: `cat backend/docs/api_endpoints.md`
+Run: `cat docs/backend/api_endpoints.md`
 Expected: Lines 11-12 show the updated documentation
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add backend/docs/api_endpoints.md
+git add docs/backend/api_endpoints.md
 git commit -m "docs: update logout endpoint description with JSON response format"
 ```

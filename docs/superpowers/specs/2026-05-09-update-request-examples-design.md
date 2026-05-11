@@ -1,12 +1,12 @@
-# Design: Update REQUEST_EXAMPLES.md paths to match actual routers
+# Design: Update request_examples.md paths to match actual routers
 
 ## Summary
 
-`nlp-service/docs/REQUEST_EXAMPLES.md` references endpoint paths that no longer exist in the codebase. The document must be rewritten to reflect the current API structure where routes use `/chapters/{chapterId}/` and `/books/{bookId}/` prefixed paths.
+`docs/nlp-service/request_examples.md` references endpoint paths that no longer exist in the codebase. The document must be rewritten to reflect the current API structure where routes use `/chapters/{chapterId}/` and `/books/{bookId}/` prefixed paths.
 
 ## Current State
 
-REQUEST_EXAMPLES.md documents these non-existent paths:
+`request_examples.md` documents these non-existent paths:
 - `POST /analyse/`
 - `POST /find-pairs/`
 - `POST /ner/`
@@ -106,7 +106,7 @@ All examples use concrete ID values (`1` or `42`) for both URL and payload so us
 
 ## Verification
 
-- Compare every path in REQUEST_EXAMPLES.md against the router files (`analyse.py`, `ner.py`, `find_pairs.py`, `relations.py`, `app.py`)
+- Compare every path in `request_examples.md` against the router files (`analyse.py`, `ner.py`, `find_pairs.py`, `relations.py`, `app.py`)
 - Verify payload schemas match `api/models/model.py`
 - Verify response codes match actual endpoint behavior (202 for POSTs)
 - Run integration tests: `pytest nlp-service/test/integration/`

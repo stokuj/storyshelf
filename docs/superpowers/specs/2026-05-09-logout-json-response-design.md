@@ -32,7 +32,7 @@ Add `.logoutSuccessHandler(...)` to the existing `.logout()` configuration block
 )
 ```
 
-### 2. `backend/docs/api_endpoints.md` — Update logout row
+### 2. `docs/backend/api_endpoints.md` — Update logout row
 
 Change line 12 from:
 

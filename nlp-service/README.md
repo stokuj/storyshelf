@@ -6,5 +6,5 @@ Python FastAPI microservice for NLP book analysis (NER, character extraction, LL
 
 ## Internal docs
 
-- [API Request Examples](docs/REQUEST_EXAMPLES.md)
-- [Testing NER Models](docs/TESTING_NER_MODELS.MD)
+- [API Request Examples](docs/request_examples.md)
+- [Testing NER Models](docs/testing_ner_models.md)

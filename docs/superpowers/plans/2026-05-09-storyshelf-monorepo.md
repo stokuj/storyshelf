@@ -981,11 +981,11 @@ Frontend talks to Backend via REST. Backend communicates with NLP Service asynch
 
 ## Documentation
 
-- [API Endpoints](backend/docs/api_endpoints.md)
-- [Database Schema](backend/docs/database.md)
-- [NLP Data Flow](backend/docs/data_flow.md)
-- [User Stories](backend/docs/user_stories.md)
-- [NLP Testing Guide](nlp-service/docs/REQUEST_EXAMPLES.md)
+- [API Endpoints](docs/backend/api_endpoints.md)
+- [Database Schema](docs/backend/database.md)
+- [NLP Data Flow](docs/backend/data_flow.md)
+- [User Stories](docs/backend/user_stories.md)
+- [NLP Testing Guide](docs/nlp-service/request_examples.md)
 ```
 
 - [ ] **Step 2: Commit**
@@ -1036,7 +1036,7 @@ git commit -m "Remove stale compose/CI/env files from subdirectories (moved to i
 **Files:**
 - Modify: `backend/README.md` (old SpringShelf README)
 - Modify: `nlp-service/README.md` (old StoryWeave README)
-- Keep: `backend/docs/` and `nlp-service/docs/` (internal documentation, referenced from root README)
+- Keep: `docs/backend/` and `docs/nlp-service/` (internal documentation, referenced from root README)
 
 - [ ] **Step 1: Replace backend/README.md**
 
@@ -1072,8 +1072,8 @@ Python FastAPI microservice for NLP book analysis (NER, character extraction, LL
 
 ## Internal docs
 
-- [API Request Examples](docs/REQUEST_EXAMPLES.md)
-- [Testing NER Models](docs/TESTING_NER_MODELS.MD)
+- [API Request Examples](docs/request_examples.md)
+- [Testing NER Models](docs/testing_ner_models.md)
 READMEEOF
 ```
 
@@ -1116,8 +1116,8 @@ head -3 backend/README.md
 head -3 nlp-service/README.md
 echo ""
 echo "=== Internal docs preserved ==="
-ls backend/docs/
-ls nlp-service/docs/
+ls docs/backend/
+ls docs/nlp-service/
 ```
 Expected: READMEs show "part of storyshelf monorepo". Docs directories contain original files.
 
