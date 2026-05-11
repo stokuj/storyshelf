@@ -176,3 +176,7 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   Creates 20 books + 17 authors + 57 tags.
 - **Frontend F5 logout**: `App.vue` calls `refreshAuth()` in `onMounted`.
   `authState.initialized` gate prevents navbar flash before auth check.
+- **Frontend Docker rebuild**: The frontend Dockerfile copies files at build time
+  (`COPY . .`) — no volume mount. Host changes require `make dev-build` +
+  `make dev-up` to take effect in the running container. For quick local
+  verification without Docker, use `cd frontend && npm run build`.
