@@ -804,3 +804,170 @@ Additionally, `_NER_PIPELINES` is only auto-cleared in `test_transformers_servic
 | Tokenizer heuristic without tiktoken | LOW | Low — mock `tiktoken` import to fail |
 | ThreadPoolExecutor exhaustion | MEDIUM | High — needs load testing framework |
 
+============================= test session starts ==============================
+platform linux -- Python 3.13.12, pytest-9.0.2, pluggy-1.6.0 -- /home/dv6/GitHub/storyshelf/nlp-service/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/dv6/GitHub/storyshelf/nlp-service
+configfile: pyproject.toml
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 40 items
+
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_counts_basic ============================= test session starts ==============================
+platform linux -- Python 3.13.12, pytest-9.0.2, pluggy-1.6.0 -- /home/dv6/GitHub/storyshelf/nlp-service/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/dv6/GitHub/storyshelf/nlp-service
+configfile: pyproject.toml
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... PASSED [  2%]
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_empty_string PASSED [  5%]
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_multiple_spaces PASSED [  7%]
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_only_spaces PASSED [ 10%]
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_unicode_chars PASSED [ 12%]
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_newlines_and_tabs PASSED [ 15%]
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_punctuation PASSED [ 17%]
+test/unit/test_book_service.py::TestAnalyseText::test_analyse_test_numbers PASSED [ 20%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_unicode_names_match PASSED [ 22%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_names_with_spaces_match PASSED [ 25%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_special_characters_in_names_match PASSED [ 27%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_returns_empty_when_no_sentences PASSED [ 30%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_returns_empty_when_no_characters PASSED [ 32%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_returns_empty_when_one_character PASSED [ 35%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_finds_pair_in_same_sentence PASSED [ 37%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_returns_empty_when_never_together PASSED [ 40%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_include_empty_returns_pair_with_no_sentences PASSED [ 42%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_case_insensitive_matching PASSED [ 45%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_three_characters_pairs PASSED [ 47%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_sentence_with_three_characters_included PASSED [ 50%]
+test/unit/test_book_service.py::TestFindSentencesWithBothCharacters::test_substring_name_false_positive PASSED [ 52%]
+test/unit/test_llm_service.py::TestExtractRelations::test_returns_json_string PASSED [ 55%]
+test/unit/test_llm_service.py::TestExtractRelations::test_uses_constructor_model PASSED [ 57%]
+test/unit/test_llm_service.py::TestExtractRelations::test_prompt_contains_pair_and_sentences PASSED [ 60%]
+test/unit/test_llm_service.py::TestExtractRelations::test_returns_empty_on_auth_error PASSED [ 62%]
+test/unit/test_llm_service.py::TestExtractRelations::test_returns_empty_on_rate_limit PASSED [ 65%]
+test/unit/test_llm_service.py::TestExtractRelations::test_returns_empty_on_timeout PASSED [ 67%]
+test/unit/test_llm_service.py::TestExtractRelations::test_returns_empty_on_connection_error PASSED [ 70%]
+test/unit/test_llm_service.py::TestExtractRelations::test_returns_empty_when_content_none PASSED [ 72%]
+test/unit/test_llm_service.py::TestRelationSchema::test_all_relations_contains_schema_keys PASSED [ 75%]
+test/unit/test_transformers_service.py::TestLoadNerModel::test_loads_model_successfully PASSED [ 77%]
+test/unit/test_transformers_service.py::TestLoadNerModel::test_returns_true_when_already_loaded PASSED [ 80%]
+test/unit/test_transformers_service.py::TestLoadNerModel::test_returns_false_when_model_missing PASSED [ 82%]
+test/unit/test_transformers_service.py::TestExtractEntities::test_returns_empty_when_model_missing PASSED [ 85%]
+test/unit/test_transformers_service.py::TestExtractEntities::test_extracts_entities_successfully PASSED [ 87%]
+test/unit/test_transformers_service.py::TestExtractEntities::test_counts_duplicate_entities PASSED [ 90%]
+test/unit/test_transformers_service.py::TestExtractEntities::test_orders_entities_by_frequency PASSED [ 92%]
+test/unit/test_transformers_service.py::TestExtractEntities::test_ignores_empty_word PASSED [ 95%]
+test/unit/test_transformers_service.py::TestExtractEntities::test_handles_empty_output PASSED [ 97%]
+test/unit/test_transformers_service.py::TestExtractEntities::test_maps_person_aliases PASSED [100%]
+
+============================== 40 passed in 6.80s ==============================
+collected 28 items / 28 deselected / 0 selected
+
+============================ 28 deselected in 4.11s ============================
+============================= test session starts ==============================
+platform linux -- Python 3.13.12, pytest-9.0.2, pluggy-1.6.0 -- /home/dv6/GitHub/storyshelf/nlp-service/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/dv6/GitHub/storyshelf/nlp-service
+configfile: pyproject.toml
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 28 items
+
+test/integration/test_routes_app.py::TestGlobalErrors::test_unhandled_exception_returns_500 PASSED [  3%]
+test/integration/test_routes_app.py::TestRoot::test_get_root_returns_200 PASSED [  7%]
+test/integration/test_routes_app.py::TestRoot::test_get_root_returns_hello_world PASSED [ 10%]
+test/integration/test_routes_app.py::TestHealth::test_get_health_returns_200 PASSED [ 14%]
+test/integration/test_routes_app.py::TestHealth::test_get_health_returns_status_ok PASSED [ 17%]
+test/integration/test_routes_app.py::TestHealth::test_get_health_includes_required_fields PASSED [ 21%]
+test/integration/test_routes_app.py::TestHealth::test_get_health_timestamp_is_iso PASSED [ 25%]
+test/integration/test_routes_app.py::TestHealthCelery::test_health_celery_returns_200_with_workers PASSED [ 28%]
+test/integration/test_routes_app.py::TestHealthCelery::test_health_celery_returns_200_without_workers PASSED [ 32%]
+test/integration/test_routes_app.py::TestHealthCelery::test_health_celery_returns_503_on_connection_error PASSED [ 35%]
+test/integration/test_routes_analyse.py::TestAnalyseRoute::test_post_analyse_returns_202 PASSED [ 39%]
+test/integration/test_routes_analyse.py::TestAnalyseRoute::test_post_analyse_missing_content_returns_422 PASSED [ 42%]
+test/integration/test_routes_analyse.py::TestAnalyseRoute::test_post_analyse_whitespace_content_returns_422 PASSED [ 46%]
+test/integration/test_routes_ner.py::TestNerRoute::test_post_ner_returns_202 PASSED [ 50%]
+test/integration/test_routes_ner.py::TestNerRoute::test_post_ner_missing_content_returns_422 PASSED [ 53%]
+test/integration/test_routes_ner.py::TestNerRoute::test_post_ner_whitespace_content_returns_422 PASSED [ 57%]
+test/integration/test_routes_find_pairs.py::TestFindPairsRoute::test_post_find_pairs_returns_202 PASSED [ 60%]
+test/integration/test_routes_find_pairs.py::TestFindPairsRoute::test_post_find_pairs_missing_content_returns_422 PASSED [ 64%]
+test/integration/test_routes_find_pairs.py::TestFindPairsRoute::test_post_find_pairs_missing_names_returns_202 PASSED [ 67%]
+test/integration/test_routes_find_pairs.py::TestFindPairsRoute::test_post_find_pairs_whitespace_content_returns_422 PASSED [ 71%]
+test/integration/test_routes_relations.py::TestRelationsRoute::test_post_relations_returns_202 PASSED [ 75%]
+test/integration/test_routes_relations.py::TestRelationsRoute::test_post_relations_missing_sentences_returns_422 PASSED [ 78%]
+test/integration/test_routes_relations.py::TestRelationsRoute::test_post_relations_missing_name1_returns_422 PASSED [ 82%]
+test/integration/test_routes_relations.py::TestRelationsRoute::test_post_relations_missing_name2_returns_422 PASSED [ 85%]
+test/integration/test_routes_relations.py::TestRelationsRoute::test_post_relations_empty_pairs_returns_422 PASSED [ 89%]
+test/integration/test_routes_relations.py::TestRelationsRoute::test_post_relations_same_names_returns_422 PASSED [ 92%]
+test/integration/test_rate_limits.py::TestRateLimitsRelations::test_relations_rate_limit_exceeded_returns_429 PASSED [ 96%]
+test/integration/test_rate_limits.py::TestRateLimitsNer::test_ner_rate_limit_exceeded_returns_429 PASSED [100%]
+
+============================= 28 passed in 31.43s ==============================
+title: StoryWeave API
+routes: 11
+LLM client initialized with provided key
+
+---
+
+# NLP Service Audit — Task 6: Focused Verification Checks
+
+## Status: DONE
+
+All 4 verification steps passed without failures.
+
+## Step 1 — Unit Test Suite
+
+**Result: 40 passed, 0 failed** (6.80s)
+
+| Module | Tests | Status |
+|--------|:-----:|:------:|
+| test_book_service.py (text stats + parser) | 21 | PASSED |
+| test_llm_service.py (LLM relations + schema) | 8 | PASSED |
+| test_transformers_service.py (NER model + entities) | 10 | PASSED |
+
+No regressions. All mocked unit tests execute cleanly.
+
+## Step 2 — Integration Test Suite
+
+**Result: 28 passed, 0 failed** (31.43s)
+
+Note: Required `-m ""` override because `pyproject.toml` sets `addopts = "-m 'not integration'"`. Without the override, all 28 tests were deselected.
+
+| File | Tests | Status |
+|------|:-----:|:------:|
+| test_routes_app.py (root, health, errors) | 10 | PASSED |
+| test_routes_analyse.py | 3 | PASSED |
+| test_routes_ner.py | 3 | PASSED |
+| test_routes_find_pairs.py | 4 | PASSED |
+| test_routes_relations.py | 6 | PASSED |
+| test_rate_limits.py | 2 | PASSED |
+
+All HTTP endpoints return expected status codes (202, 422, 429, 500, 200).
+
+## Step 3 — Import-Time Startup Check
+
+```
+title: StoryWeave API
+routes: 11
+```
+
+**Passed.** Title matches expected value. 11 routes registered — matches the surface area inventory from Task 1. No import errors.
+
+## Step 4 — Module-Level Env Reads
+
+```
+LLM client initialized with provided key
+```
+
+**Passed.** Confirms that `OPENROUTER_API_KEY` is read at module import time by `api/services/core/llm_engine.py` and correctly propagated to the OpenAI async client.
+
+## Findings
+
+**Finding 6.1 — Integration test marker overrides needed (LOW)**
+
+`pyproject.toml` line 45: `addopts = "-m 'not integration'"` causes all integration tests to be deselected when run by filename. Running integration tests requires `-m ""` override. This is by design (integration tests need external services), but the task instructions assumed filename-only selection would be sufficient. No code change needed — documented as a usage note.
+
+## Files Changed
+
+- `docs/superpowers/reports/2026-05-11-nlp-service-audit-notes.md` — appended test output + Task 6 summary
