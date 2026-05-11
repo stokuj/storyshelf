@@ -30,7 +30,7 @@
           </RouterLink>
 
           <div class="card-body p-3">
-            <div class="badge badge-sm badge-ghost">Vue</div>
+            <div v-if="book.genres?.length" class="badge badge-sm badge-ghost">{{ book.genres[0] }}</div>
             <RouterLink class="btn btn-xs btn-outline btn-primary mt-1 w-full" :to="`/book/${book.id}`">Szczegóły</RouterLink>
           </div>
         </div>

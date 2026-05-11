@@ -2,11 +2,12 @@
   <div class="min-h-screen bg-base-200">
     <nav class="navbar bg-base-100 px-4 shadow-sm">
       <div class="navbar-start">
-        <RouterLink to="/" class="btn btn-ghost text-xl font-bold">SpringShelf</RouterLink>
+        <RouterLink to="/" class="btn btn-ghost text-xl font-bold">StoryShelf</RouterLink>
       </div>
 
       <div class="navbar-end gap-2" v-if="authState.initialized">
         <template v-if="authState.authenticated">
+          <RouterLink to="/bookshelf" class="btn btn-ghost btn-sm">Moja półka</RouterLink>
           <RouterLink :to="`/profile/${authState.username}`" class="btn btn-ghost btn-sm">Profil</RouterLink>
           <button class="btn btn-outline btn-sm" type="button" @click="handleLogout">Wyloguj</button>
         </template>

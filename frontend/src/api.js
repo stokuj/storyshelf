@@ -69,14 +69,6 @@ export function fetchBooks(query = '') {
   return request('GET', url.pathname + url.search)
 }
 
-export function fetchAuthors() {
-  return request('GET', '/api/authors/')
-}
-
-export function fetchSeries() {
-  return request('GET', '/api/series/')
-}
-
 export function fetchBookDetails(bookId) {
   return request('GET', `/api/books/${bookId}/details/`)
 }
@@ -111,10 +103,6 @@ export async function logoutUser() {
 
 export function fetchBookshelf() {
   return request('GET', '/api/shelf/')
-}
-
-export function fetchBookshelfEntry(bookId) {
-  return request('GET', `/api/shelf/${bookId}/`)
 }
 
 export function addToBookshelf(bookId, status = 'WANT_TO_READ') {
@@ -162,52 +150,4 @@ export function updateCurrentUserVisibility(profilePublic) {
   return request('PATCH', `/api/users/me/visibility?profilePublic=${value}`)
 }
 
-export function createModeratorBook(payload) {
-  return request('POST', '/api/books/', payload)
-}
 
-export function patchModeratorBook(bookId, payload) {
-  return request('PATCH', `/api/books/${bookId}/`, payload)
-}
-
-export function deleteModeratorBook(bookId) {
-  return request('DELETE', `/api/books/${bookId}/`)
-}
-
-export function uploadModeratorBookContent(bookId, file) {
-  const formData = new FormData()
-  formData.append('file', file)
-  return request('POST', `/api/books/${bookId}/chapters/`, formData, true)
-}
-
-export function clearModeratorBookContent(bookId) {
-  return request('DELETE', `/api/books/${bookId}/chapters/`)
-}
-
-export function deleteModeratorReview(reviewId) {
-  return request('DELETE', `/api/reviews/${reviewId}/`)
-}
-
-export function createModeratorAuthor(payload) {
-  return request('POST', '/api/authors/', payload)
-}
-
-export function updateModeratorAuthor(authorId, payload) {
-  return request('PUT', `/api/authors/${authorId}/`, payload)
-}
-
-export function deleteModeratorAuthor(authorId) {
-  return request('DELETE', `/api/authors/${authorId}/`)
-}
-
-export function createModeratorSeries(payload) {
-  return request('POST', '/api/series/', payload)
-}
-
-export function updateModeratorSeries(seriesId, payload) {
-  return request('PUT', `/api/series/${seriesId}/`, payload)
-}
-
-export function deleteModeratorSeries(seriesId) {
-  return request('DELETE', `/api/series/${seriesId}/`)
-}

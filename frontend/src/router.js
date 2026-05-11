@@ -6,6 +6,7 @@ import RegisterView from './views/RegisterView.vue'
 import BookshelfView from './views/BookshelfView.vue'
 import ProfileView from './views/ProfileView.vue'
 import SettingsView from './views/SettingsView.vue'
+import NotFoundView from './views/NotFoundView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -44,6 +45,11 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: SettingsView,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView,
     },
   ],
 })
