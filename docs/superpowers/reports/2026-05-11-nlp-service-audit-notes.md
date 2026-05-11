@@ -97,21 +97,21 @@ nlp-service/api/config/settings.py:52:CALLBACK_BASE_URL: str = os.getenv("CALLBA
 
 ## Step 1 — Payload Field Access vs. Model Definitions
 
-### analyse.py (ChapterContentPayload)
+### nlp-service/api/routers/analyse.py (ChapterContentPayload)
 ```
 line 20: payload.content        → model: content (str, max 100k)           ✓
 line 22: payload.chapterId      → model: chapterId (int|str)               ✓
 line 25: payload.content        → same field                               ✓
 ```
 
-### ner.py (ChapterContentPayload)
+### nlp-service/api/routers/ner.py (ChapterContentPayload)
 ```
 line 20: payload.content        → model: content (str, max 100k)           ✓
 line 22: payload.chapterId      → model: chapterId (int|str)               ✓
 line 25: payload.content        → same field                               ✓
 ```
 
-### find_pairs.py (BookFindPairsPayload)
+### nlp-service/api/routers/find_pairs.py (BookFindPairsPayload)
 ```
 line 24: payload.content        → model: content (str, max 100k)           ✓
 line 26: payload.bookId         → model: bookId (int|str)                  ✓
@@ -119,7 +119,7 @@ line 29: payload.characters     → model: characters (dict[str,int])        ✓
 line 32: payload.content        → same field                               ✓
 ```
 
-### relations.py (BookRelationsPayload)
+### nlp-service/api/routers/relations.py (BookRelationsPayload)
 ```
 line 25: payload.bookId         → model: bookId (int|str)                  ✓
 line 28: payload.pairs          → model: pairs (list[PairSentences])       ✓
@@ -132,38 +132,40 @@ line 31: pair.model_dump()      → iterates list[PairSentences]             ✓
 
 | Endpoint              | File               | Line | Declaration                         |
 |-----------------------|--------------------|------|-------------------------------------|
-| analyse               | analyse.py         | 14   | response_model=AcceptedResponse     |
-| analyse               | analyse.py         | 15   | status_code=202                     |
-| analyse (error)       | analyse.py         | 21   | HTTPException status_code=422       |
-| analyse (error)       | analyse.py         | 23   | HTTPException status_code=422       |
-| ner                   | ner.py             | 13   | status_code=202                     |
-| ner                   | ner.py             | 14   | response_model=AcceptedResponse     |
-| ner (error)           | ner.py             | 21   | HTTPException status_code=422       |
-| ner (error)           | ner.py             | 23   | HTTPException status_code=422       |
-| find-pairs            | find_pairs.py      | 18   | response_model=AcceptedResponse     |
-| find-pairs            | find_pairs.py      | 19   | status_code=202                     |
-| find-pairs (error)    | find_pairs.py      | 25   | HTTPException status_code=422       |
-| find-pairs (error)    | find_pairs.py      | 27   | HTTPException status_code=422       |
-| relations             | relations.py       | 18   | response_model=AcceptedResponse     |
-| relations             | relations.py       | 19   | status_code=202                     |
-| relations (error)     | relations.py       | 26   | HTTPException status_code=422       |
-| relations (error)     | relations.py       | 29   | HTTPException status_code=422       |
+| analyse               | nlp-service/api/routers/analyse.py         | 14   | response_model=AcceptedResponse     |
+| analyse               | nlp-service/api/routers/analyse.py         | 15   | status_code=202                     |
+| analyse (error)       | nlp-service/api/routers/analyse.py         | 21   | HTTPException status_code=422       |
+| analyse (error)       | nlp-service/api/routers/analyse.py         | 23   | HTTPException status_code=422       |
+| ner                   | nlp-service/api/routers/ner.py             | 13   | status_code=202                     |
+| ner                   | nlp-service/api/routers/ner.py             | 14   | response_model=AcceptedResponse     |
+| ner (error)           | nlp-service/api/routers/ner.py             | 21   | HTTPException status_code=422       |
+| ner (error)           | nlp-service/api/routers/ner.py             | 23   | HTTPException status_code=422       |
+| find-pairs            | nlp-service/api/routers/find_pairs.py      | 18   | response_model=AcceptedResponse     |
+| find-pairs            | nlp-service/api/routers/find_pairs.py      | 19   | status_code=202                     |
+| find-pairs (error)    | nlp-service/api/routers/find_pairs.py      | 25   | HTTPException status_code=422       |
+| find-pairs (error)    | nlp-service/api/routers/find_pairs.py      | 27   | HTTPException status_code=422       |
+| relations             | nlp-service/api/routers/relations.py       | 18   | response_model=AcceptedResponse     |
+| relations             | nlp-service/api/routers/relations.py       | 19   | status_code=202                     |
+| relations (error)     | nlp-service/api/routers/relations.py       | 26   | HTTPException status_code=422       |
+| relations (error)     | nlp-service/api/routers/relations.py       | 29   | HTTPException status_code=422       |
 
 All four endpoints declare `response_model=AcceptedResponse` with `status_code=202`. Error paths use `HTTPException(status_code=422)`. ✓
 
-### Concern: `analyse` endpoint blocks before responding despite 202
+### Concern: `analyse` endpoint blocks before responding despite 202 — **Severity: MEDIUM**
 
-`analyse.py:25` uses `await asyncio.to_thread(process_analyse, ...)` before returning. This means the HTTP request blocks until `process_analyse` completes, even though the endpoint advertises status 202 (Accepted — implying processing continues asynchronously). If `process_analyse` takes significant time, the connection may time out before the response is sent. The other three endpoints correctly return 202 before the background work finishes.
+`nlp-service/api/routers/analyse.py:25` uses `await asyncio.to_thread(process_analyse, ...)` before returning. This means the HTTP request blocks until `process_analyse` completes, even though the endpoint advertises status 202 (Accepted — implying processing continues asynchronously). If `process_analyse` takes significant time, the connection may time out before the response is sent. The other three endpoints correctly return 202 before the background work finishes.
 
-### Concern: No error feedback from background execution
+### Concern: No error feedback from background execution — **Severity: HIGH**
 
-`find_pairs.py:31-32` uses `run_in_executor` with a `future.add_done_callback` that only logs errors — the client gets a 202 regardless of whether the executor actually succeeds. Same pattern in `relations.py:32-40` with `asyncio.create_task` + logging callback. The client has no way to know if the background work started successfully beyond the task/executor submission not raising an immediate exception.
+`nlp-service/api/routers/find_pairs.py:31-32` uses `run_in_executor` with a `future.add_done_callback` that only logs errors — the client gets a 202 regardless of whether the executor actually succeeds. Same pattern in `nlp-service/api/routers/relations.py:32-40` with `asyncio.create_task` + logging callback. The client has no way to know if the background work started successfully beyond the task/executor submission not raising an immediate exception.
+
+**Recommendation:** Return a job ID in the 202 response and add a `GET /jobs/{jobId}/status` endpoint for clients to poll completion status. Alternatively, accept an optional webhook URL in the request body and POST status updates (success/failure/result) back to the caller. The job-status approach is simpler and aligns with standard async API patterns.
 
 ## Step 3 — Rate Limiting Placement
 
 ```
-relations.py:21:  @limiter.limit("30/minute")
-ner.py:16:        @limiter.limit("30/minute")
+nlp-service/api/routers/relations.py:21:  @limiter.limit("30/minute")
+nlp-service/api/routers/ner.py:16:        @limiter.limit("30/minute")
 ```
 
 Only `relations` and `ner` are rate-limited. `analyse` and `find-pairs` have no rate limits.
@@ -179,9 +181,9 @@ Only `relations` and `ner` are rate-limited. `analyse` and `find-pairs` have no 
 
 ## Step 4 — Edge Case Validation Gaps
 
-### find_pairs.py — Silent acceptance of empty characters
+### find_pairs.py — Silent acceptance of empty characters — **Severity: LOW**
 
-`find_pairs.py:29`:
+`nlp-service/api/routers/find_pairs.py:29`:
 ```python
 names = list((payload.characters or {}).keys())
 ```
@@ -190,9 +192,9 @@ The endpoint rejects empty `content` (line 24) but silently accepts empty `chara
 - Reject the request with 422 when `characters` is empty, OR
 - Return 200 immediately (no work to do).
 
-### relations.py — No per-element validation on pairs
+### relations.py — No per-element validation on pairs — **Severity: MEDIUM**
 
-`relations.py:27-29`:
+`nlp-service/api/routers/relations.py:27-29`:
 ```python
 if not payload.pairs:
     raise HTTPException(status_code=422, detail="pairs list cannot be empty")
@@ -211,3 +213,14 @@ This validates that `pairs` is non-empty at the list level, but does not validat
 A pair with one element: `{"pair": ["Alice"], "sentences": ["..."]}` would pass validation and be sent to the LLM, likely producing garbage output at API cost. Similarly, empty `sentences` would waste an LLM call.
 
 **Recommended:** Add `min_length=2, max_length=2` constraint on `PairSentences.pair` and `min_length=1` on `PairSentences.sentences` in the model, OR validate in the router before dispatching.
+
+---
+
+## Task 2 — Severity Summary
+
+| Severity | Finding                                                                 | File(s)                                      |
+|----------|-------------------------------------------------------------------------|----------------------------------------------|
+| HIGH     | No error feedback from background execution                             | `find_pairs.py`, `relations.py`             |
+| MEDIUM   | `analyse` blocks before responding despite 202                          | `analyse.py`                                 |
+| MEDIUM   | No per-element validation on `pairs`                                    | `relations.py`                               |
+| LOW      | Silent acceptance of empty characters                                   | `find_pairs.py`                              |
