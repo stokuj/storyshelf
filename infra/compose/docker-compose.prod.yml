@@ -36,6 +36,7 @@ services:
   celery-ner:
     image: ghcr.io/stokuj/storyshelf-django:main
     container_name: storyshelf-celery-ner
+    restart: unless-stopped
     env_file:
       - ../../.env
     environment:
@@ -52,6 +53,7 @@ services:
   celery-llm:
     image: ghcr.io/stokuj/storyshelf-django:main
     container_name: storyshelf-celery-llm
+    restart: unless-stopped
     env_file:
       - ../../.env
     environment:
@@ -68,6 +70,7 @@ services:
   flower:
     image: mher/flower:2.0
     container_name: storyshelf-flower
+    restart: unless-stopped
     expose:
       - "5555"
     environment:
@@ -79,6 +82,7 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: storyshelf-rabbitmq
+    restart: unless-stopped
     volumes:
       - ../rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     environment:

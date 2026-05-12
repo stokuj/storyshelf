@@ -24,7 +24,10 @@
     {
       "name": "dead_letter",
       "vhost": "/",
-      "durable": true
+      "durable": true,
+      "arguments": {
+        "x-message-ttl": 604800000
+      }
     }
   ],
   "bindings": [

@@ -1,18 +1,5 @@
 :80 {
-    handle /api/docs {
-        rewrite * /docs
-        reverse_proxy nlp-service:8000
-    }
-
-    handle /api/docs/* {
-        uri strip_prefix /api
-        reverse_proxy nlp-service:8000
-    }
-
-    handle /openapi.json* {
-        reverse_proxy nlp-service:8000
-    }
-
+    tls internal
     handle_path /v3/api-docs* {
         reverse_proxy django:8000
     }
@@ -32,10 +19,6 @@
 
     handle_path /api/* {
         reverse_proxy django:8000
-    }
-
-    handle_path /storyweave/* {
-        reverse_proxy nlp-service:8000
     }
 
     handle {

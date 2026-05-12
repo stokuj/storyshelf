@@ -34,6 +34,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
 
   celery-ner:
@@ -45,6 +46,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
       CELERY_BROKER_URL: amqp://rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+    restart: unless-stopped
     depends_on:
       - django
       - rabbitmq
@@ -59,6 +61,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
       CELERY_BROKER_URL: amqp://rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+    restart: unless-stopped
     depends_on:
       - django
       - rabbitmq

@@ -10,8 +10,8 @@ dev-up:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) up -d
 	@printf '\n%s\n' 'Dev services:'
 	@printf '%s\n' '  frontend: http://localhost:5173'
-	@printf '%s\n' '  nlp-service: http://localhost:8000'
 	@printf '%s\n' '  rabbitmq UI: http://127.0.0.1:15672'
+	@printf '%s\n' '  flower: http://localhost:5555'
 	@printf '%s\n' '  django: internal only (proxy via frontend)'
 	@printf '\n%s\n' 'Current status:'
 	@$(MAKE) --no-print-directory dev-status

@@ -1,0 +1,90 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+      - name: Run ruff
+        working-directory: backend-django
+        run: uv run ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: booksdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secret-key
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DJANGO_ENV: dev
+      DATABASE_URL: postgres://postgres:secret-key@localhost:5432/booksdb
+      DJANGO_SECRET_KEY: test-secret-key-for-ci
+      OPENROUTER_API_KEY: sk-dummy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+      - name: Run Django tests
+        working-directory: backend-django
+        run: uv run python manage.py test --noinput
+
+  build-and-push:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend-django
+          file: backend-django/Dockerfile
+          push: true
+          tags: ghcr.io/stokuj/storyshelf-django:main
+      - uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile.prod
+          push: true
+          tags: ghcr.io/stokuj/storyshelf-frontend:main
+
+  # deploy:
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy to VPS
+  #       uses: appleboy/ssh-action@v1
+  #       with:
+  #         host: ${{ secrets.VPS_HOST }}
+  #         username: ${{ secrets.VPS_USER }}
+  #         key: ${{ secrets.VPS_SSH_KEY }}
+  #         script: |
+  #           cd /opt/storyshelf
+  #           docker compose pull
+  #           docker compose up -d
