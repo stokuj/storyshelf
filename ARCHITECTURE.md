@@ -5,8 +5,8 @@
 | Layer              | Technology                                                        |
 |--------------------|-------------------------------------------------------------------|
 | Frontend           | Vue 3 + Vite (Nginx w produkcji)                                  |
-| Backend            | Django 5 + Django REST Framework                                  |
-| Auth               | JWT — access token w pamięci Pinia, refresh token w HttpOnly cookie |
+| Backend            | Django 6 + Django REST Framework                                  |
+| Auth               | JWT — access token w pamięci (reactive singleton), refresh token w HttpOnly cookie |
 | Message broker     | RabbitMQ (z dead letter exchange)                                 |
 | Result backend     | Redis                                                             |
 | Async workers      | Celery                                                            |
@@ -39,7 +39,7 @@ services:
 
 ```
 Vue 3 (Nginx)
-    │  JWT: access token → Pinia (pamięć)
+    │  JWT: access token → reactive singleton (pamięć)
     │       refresh token → HttpOnly cookie
     ▼
 Caddy  (SSL termination, /api/* → django, /* → vue)
@@ -68,12 +68,12 @@ Flower ──► monitoring celery-ner + celery-llm
 
 ### Auth
 - JWT via `djangorestframework-simplejwt`
-- Access token: krótkotrwały, tylko w pamięci Pinia (nie localStorage)
+- Access token: krótkotrwały, tylko w pamięci (reactive singleton, nie localStorage)
 - Refresh token: długotrwały, HttpOnly cookie (CSRF-protected)
 - Endpointy: `register`, `login`, `token/refresh`, `logout`
 
 ### Books
-- Model `Book`: tytuł, opis, okładka, `avg_rating`
+- Model `Book`: tytuł, opis, `avg_rating`
 - Relacje: `Author` (M2M), `Genre` (M2M)
 - Źródło danych: OpenLibrary API (import skryptem) + Django Admin (ręcznie)
 - Brak modelu `Edition` — jedna encja `Book` per dzieło; dedulikacja przy imporcie
@@ -83,9 +83,10 @@ Flower ──► monitoring celery-ner + celery-llm
 - `avg_rating` na `Book` aktualizowany sygnałem Django (`post_save` / `post_delete` na `Review`)
 - Trigger NER/LLM: ręcznie przez admina via Django Admin action
 
-### UserBook
+### ShelfEntry
 - Statusy: `want_to_read` | `reading` | `read`
 - Pola: `start_date`, `finish_date`, `personal_rating`
+- `unique_together(user, book)` — jeden wpis na użytkownika na książkę
 
 ---
 
@@ -133,13 +134,14 @@ User
  └── Review ──► Book
 
 Book
- ├── Author (M2M)
- ├── Genre (M2M)
- ├── Tag (M2M)
+ ├── Serie ──► FK "library.Serie" (null, SET_NULL)
+ ├── Author (M2M through BookAuthor)
+ ├── Genre (M2M through BookGenre)
+ ├── Tag (M2M through BookTag)
  ├── Chapter ──► text, ner_pending (JSONB, tmp), analysis stats
  └── CharacterRelationship (FK from_character, to_character, book)
 
-BookCharacter (global, name UNIQUE, mention_count)
+BookCharacter (global, name UNIQUE, mention_count — nie filtrowane per książka)
 BookPlace (global, name UNIQUE, mention_count)
 BookOrganization (global, name UNIQUE, mention_count)
 
@@ -176,7 +178,7 @@ git push
 | JSONB dla NER/LLM              | PostgreSQL JSONB                   | Elastyczny schemat dla nieregularnych danych AI bez dodatkowego store'u       |
 | Brak modelu Edition            | Jedna `Book` per dzieło            | Upraszcza MVP; dedulikacja obsługiwana na warstwie importu                   |
 | Trigger NER/LLM ręczny         | Django Admin action                | Eliminuje niekontrolowane wywołania async na wczesnym etapie                 |
-| Access token w pamięci         | Pinia (nie localStorage)           | Odporność na XSS; refresh w HttpOnly cookie chroni przed CSRF                |
+| Access token w pamięci         | Vue reactive singleton (nie localStorage) | Odporność na XSS; refresh w HttpOnly cookie chroni przed CSRF                |
 | Dead Letter Queue              | RabbitMQ DLX                       | Failed taski nie znikają po cichu; umożliwia inspekcję i ponowienie          |
 
 ---
