@@ -25,7 +25,6 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         USER = "USER"
-        MODERATOR = "MODERATOR"
         ADMIN = "ADMIN"
 
     email = models.EmailField(unique=True)
@@ -45,12 +44,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class UserFollow(models.Model):
-    follower = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="following_set"
-    )
-    following = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="follower_set"
-    )
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following_set")
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower_set")
     followed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
