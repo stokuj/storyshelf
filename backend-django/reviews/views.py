@@ -1,17 +1,16 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
+
 from books.models import Book
+
 from .models import Review
 from .serializers import ReviewSerializer
 
 
-class IsModeratorForDelete(permissions.BasePermission):
+class IsAdminForDelete(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method == "DELETE":
-            return request.user.is_authenticated and request.user.role in (
-                "MODERATOR",
-                "ADMIN",
-            )
+            return request.user.is_authenticated and request.user.role == "ADMIN"
         return True
 
 
@@ -34,4 +33,4 @@ class BookReviewListCreateView(generics.ListCreateAPIView):
 class ReviewDeleteView(generics.DestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated, IsModeratorForDelete]
+    permission_classes = [permissions.IsAuthenticated, IsAdminForDelete]
