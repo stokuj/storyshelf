@@ -129,17 +129,25 @@ Flower ──► monitoring celery-ner + celery-llm
 
 ```
 User
- ├── UserBook (status, personal_rating, start_date, end_date) ──► Book
+ ├── ShelfEntry (status, personal_rating, start_date, finish_date) ──► Book
  └── Review ──► Book
 
 Book
  ├── Author (M2M)
  ├── Genre (M2M)
- ├── BookSummary   (JSONB — wynik LLM)
- └── NERResult     (JSONB — encje z opisu książki)
+ ├── Tag (M2M)
+ ├── Chapter ──► text, ner_pending (JSONB, tmp), analysis stats
+ └── CharacterRelationship (FK from_character, to_character, book)
 
-Review
- └── NERResult     (JSONB — encje z tekstu recenzji)
+BookCharacter (global, name UNIQUE, mention_count)
+BookPlace (global, name UNIQUE, mention_count)
+BookOrganization (global, name UNIQUE, mention_count)
+
+CharacterRelationship
+ ├── from_character ──► BookCharacter
+ ├── to_character ──► BookCharacter
+ ├── relation_type (24 typy)
+ └── book ──► Book
 ```
 
 ---

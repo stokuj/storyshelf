@@ -3,7 +3,7 @@ from django.db import IntegrityError
 
 
 class TestBookCharacter:
-    def test_create(self, django_db_setup):
+    def test_create(self, db):
         from analysis.models import BookCharacter
 
         c = BookCharacter.objects.create(name="Frodo", mention_count=5)
@@ -11,14 +11,14 @@ class TestBookCharacter:
         assert c.mention_count == 5
         assert c.description is None
 
-    def test_name_unique(self, django_db_setup):
+    def test_name_unique(self, db):
         from analysis.models import BookCharacter
 
         BookCharacter.objects.create(name="Gandalf")
         with pytest.raises(IntegrityError):
             BookCharacter.objects.create(name="Gandalf")
 
-    def test_mention_count_default(self, django_db_setup):
+    def test_mention_count_default(self, db):
         from analysis.models import BookCharacter
 
         c = BookCharacter.objects.create(name="Sam")
@@ -26,7 +26,7 @@ class TestBookCharacter:
 
 
 class TestCharacterRelationship:
-    def test_create(self, django_db_setup, book, character_a, character_b):
+    def test_create(self, db, book, character_a, character_b):
         from analysis.models import CharacterRelationship
 
         r = CharacterRelationship.objects.create(
@@ -37,7 +37,7 @@ class TestCharacterRelationship:
         )
         assert r.relation_type == "friend_of"
 
-    def test_unique_together(self, django_db_setup, book, character_a, character_b):
+    def test_unique_together(self, db, book, character_a, character_b):
         from analysis.models import CharacterRelationship
 
         CharacterRelationship.objects.create(
@@ -56,13 +56,13 @@ class TestCharacterRelationship:
 
 
 class TestChapterNerPending:
-    def test_ner_pending_nullable(self, django_db_setup, book):
+    def test_ner_pending_nullable(self, db, book):
         from books.models import Chapter
 
         c = Chapter.objects.create(book=book, chapter_number=1, text="test")
         assert c.ner_pending is None
 
-    def test_ner_pending_stores_json(self, django_db_setup, book):
+    def test_ner_pending_stores_json(self, db, book):
         from books.models import Chapter
 
         c = Chapter.objects.create(
