@@ -1,26 +1,26 @@
 # StoryShelf
 
-Full-stack book tracking and literary analysis platform. Django REST API + Vue 3 SPA +
-FastAPI NLP microservice, orchestrated via Docker Compose.
+Full-stack book tracking and literary analysis platform. Django REST API + Vue 3 SPA,
+orchestrated via Docker Compose. NER and LLM engines run inside Celery workers.
 
 ## Architecture
 
 ```
 Browser → Vite dev proxy (5173) → Django (8000) → PostgreSQL
-                                  → RabbitMQ → Celery workers → NLP service (8000)
+                                  → RabbitMQ → celery-ner (prefork) / celery-llm (gevent)
                                   → Redis
-         ↔ NLP service (8000) — character extraction, relation analysis
+         ↔ Flower (5555) — Celery monitoring
 ```
 
-Four services in `infra/compose/docker-compose.dev.yml`: `frontend`, `django`,
-`celery-worker`, `nlp-service`. Backing services: `db` (Postgres 16), `rabbitmq`,
-`redis`.
+Service containers in `infra/compose/docker-compose.dev.yml`: `frontend`,
+`django`, `celery-ner`, `celery-llm`, `flower`. Backing services: `db`
+(Postgres 16), `rabbitmq` (3-management-alpine), `redis`.
 
-**Target architecture:** `ARCHITECTURE.md` — NLP service removed, NER/LLM runs
-directly in Celery workers with queue routing (ner/llm), DLX, Flower. Global
-entity model: BookCharacter, BookPlace, BookOrganization (name UNIQUE, no
-junction tables). CharacterRelationship per book between global characters.
-Migration plan: `docs/superpowers/plans/2026-05-11-target-architecture-migration.md`.
+Architecture decisions: `ARCHITECTURE.md`. Entity models: `BookCharacter`,
+`BookPlace`, `BookOrganization` (name UNIQUE, no junction tables),
+`CharacterRelationship` (per book between global characters). Chapter NER
+results are temporary JSON in `Chapter.ner_pending`, cleared after
+`merge_book_ner` upserts into global tables.
 
 `backend/` is legacy Java Spring Boot — all current work is in `backend-django/`.
 
@@ -49,13 +49,9 @@ DJANGO_ENV=dev uv run python manage.py test books.tests.test_views.BookDetailTes
 DJANGO_ENV=dev DATABASE_URL=postgres://postgres:secret-key@localhost:5432/booksdb \
   uv run python manage.py test
 
-# ── NLP service (nlp-service/) ──────────────────────────────────
-uv run pytest                                  # unit tests only (default)
-uv run pytest -m integration                   # integration tests
-uv run pytest test/unit/test_book_service.py   # single file
-uv run pytest test/unit/test_book_service.py::TestAnalyseText::test_analyse_text_counts_basic  # single test
-
-uv run fastapi dev api/app.py                  # dev server
+# ── Django celery/monitoring ────────────────────────────────────
+make dev-up                                        # starts celery-ner, celery-llm, flower too
+# Flower dashboard at http://localhost:5555
 
 # ── Frontend (frontend/) ────────────────────────────────────────
 npm run dev          # vite dev server (port 5173, proxies /api → localhost:8080)
@@ -92,7 +88,6 @@ All services read from `.env` at repo root. Key vars:
 | `DJANGO_ENV` | yes | `dev` |
 | `DATABASE_URL` | yes | `postgres://postgres:secret-key@db:5432/booksdb` |
 | `CELERY_BROKER_URL` | yes | `amqp://rabbitmq:5672//` |
-| `NLP_SERVICE_URL` | yes | `http://nlp-service:8000` |
 | `LLM_MODEL` | no | `qwen/qwen3.5-35b-a3b` |
 | `NER_MODEL` | no | `dbmdz/bert-large-cased-finetuned-conll03-english` |
 
@@ -115,8 +110,8 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   inline in views.py, `pagination_class = None` where frontend expects flat arrays
 - **Django tests**: `tests/` subdirectory per app, `__init__.py` only (no test
   content yet — tests are planned)
-- **NLP tests**: `test/unit/` and `test/integration/`, mark integration tests
-  with `@pytest.mark.integration`, conftest sets `OPENROUTER_API_KEY=fake-key`
+- **NLP tests**: `tests/` subdirectory per analysis app, conftest sets
+  `OPENROUTER_API_KEY=fake-key`. Run with `DJANGO_ENV=dev uv run python -m pytest analysis/tests/`
 - **Formatting**: no formatter configured yet. Ruff cache exists in `.ruff_cache/`
   but both `pyproject.toml` files lack `[tool.ruff]` sections. Add one when
   introducing linting.
@@ -159,8 +154,6 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   overrides this to `http://django:8000`.
 - **Trailing slashes in API calls**: the frontend `api.js` appends trailing
   slashes on all paths — Django URL patterns expect them.
-- **NLP integration tests** require external services (Redis, Celery) — they
-  are excluded by default via `pytest` config `addopts = "-m 'not integration'"`.
 - **No Kafka**: README still mentions Kafka but it was replaced with HTTP
   callbacks from NLP → Django in commit `22acdae`.
 - **The `backend/` directory** is legacy Java code. All active backend work is
@@ -198,3 +191,19 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
 - **Frontend auth init**: The `beforeEach` guard calls `await refreshAuth()` if
   `authState.initialized` is false. This ensures `authenticated` is checked
   before `requiresAuth` routes reject the user on F5.
+- **Celery worker pools**: `celery-ner` uses `--pool prefork` (CPU-bound BERT),
+  `celery-llm` uses `--pool gevent` (I/O-bound OpenRouter). Tasks are routed via
+  `CELERY_TASK_ROUTES`: analysis/stats/ner/merge → `ner` queue,
+  `relations_for_book` → `llm` queue.
+- **Flower**: Monitoring dashboard at `http://localhost:5555`, shows both worker
+  pools. Started automatically with `make dev-up`.
+- **RabbitMQ DLX**: Dead letter exchange defined in `infra/rabbitmq/definitions.json`.
+  Failed tasks (after max retries) land in `dead_letter` queue. Inspect via
+  RabbitMQ management UI (`http://localhost:15672`).
+- **Entity models**: `BookCharacter`, `BookPlace`, `BookOrganization` have
+  `name UNIQUE` — no junction tables. Characters per book queried from global
+  pool. `CharacterRelationship` has `book` FK for per-book scoping.
+- **Chapter ner_pending**: Temporary JSON field cleared after `merge_book_ner`
+  upserts into global entity tables and clears `chapter.text`.
+- **NER_MIN_OCCURRENCES**: Env var (default 5) filters low-frequency entities.
+  When testing `extract_entities`, mock or set to 1 to test with small inputs.
