@@ -5,7 +5,7 @@ User = get_user_model()
 
 
 @pytest.fixture
-def django_db_setup(db):
+def django_db_setup():
     pass
 
 
