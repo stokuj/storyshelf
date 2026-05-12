@@ -49,6 +49,10 @@ DJANGO_ENV=dev uv run python manage.py test books.tests.test_views.BookDetailTes
 DJANGO_ENV=dev DATABASE_URL=postgres://postgres:secret-key@localhost:5432/booksdb \
   uv run python manage.py test
 
+# ── Django linting ──────────────────────────────────────────────
+uv run ruff check .                                 # lint backend-django/
+uv run ruff check --fix .                           # auto-fix lint issues
+
 # ── Django celery/monitoring ────────────────────────────────────
 make dev-up                                        # starts celery-ner, celery-llm, flower too
 # Flower dashboard at http://localhost:5555
@@ -57,6 +61,8 @@ make dev-up                                        # starts celery-ner, celery-l
 npm run dev          # vite dev server (port 5173, proxies /api → localhost:8080)
 npm run build        # vite build
 npm run preview      # serve production build locally
+npm test             # vitest (jsdom environment)
+npm run test:watch   # vitest in watch mode
 
 # Seed data in Docker
 docker compose -f infra/compose/docker-compose.dev.yml exec django python ../infra/scripts/seed.py
@@ -69,7 +75,7 @@ make prod-logs
 ## Setup
 
 ```bash
-cp infra/.env.example .env
+cp .env.example .env
 # edit .env — at minimum set OPENROUTER_API_KEY for NLP features
 make dev-up
 ```
@@ -112,9 +118,9 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   content yet — tests are planned)
 - **NLP tests**: `tests/` subdirectory per analysis app, conftest sets
   `OPENROUTER_API_KEY=fake-key`. Run with `DJANGO_ENV=dev uv run python -m pytest analysis/tests/`
-- **Formatting**: no formatter configured yet. Ruff cache exists in `.ruff_cache/`
-  but both `pyproject.toml` files lack `[tool.ruff]` sections. Add one when
-  introducing linting.
+- **Formatting**: Ruff configured in `backend-django/pyproject.toml` with
+  `select = ["E", "F", "I", "N"]`, line-length=100, target-version=py313.
+  Run `uv run ruff check .` from backend-django/.
 
 ### Frontend (Vue 3)
 
@@ -124,9 +130,10 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   helper which handles JWT tokens and silent refresh on 401
 - Auth state in `src/auth.js` as a reactive singleton
 - UI strings in Polish
-- Tailwind CSS + daisyUI for styling
+- Tailwind CSS + daisyUI (themes: `light`, `dark`)
 - `src/composables/useAsyncState.js` for loading/error/success state in views
-- No test framework configured for frontend yet
+- Shared components: `AlertMessage.vue`, `LoadingSpinner.vue`, `BookCard.vue` in `src/components/`
+- Tests: Vitest + jsdom (`npm test`), test files in `__tests__/` subdirectories
 - **Router handles auth initialization**: `router.beforeEach` calls `refreshAuth()`
   on first navigation if `authState.initialized` is false. App.vue does NOT need
   `onMounted` for this — the router guard handles it before any route renders.
@@ -207,3 +214,13 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   upserts into global entity tables and clears `chapter.text`.
 - **NER_MIN_OCCURRENCES**: Env var (default 5) filters low-frequency entities.
   When testing `extract_entities`, mock or set to 1 to test with small inputs.
+- **Genre model**: `Genre` lives in `library/models.py`, `BookGenre` through table
+  in `books/models.py`. Frontend expects `genres` as array of strings from
+  API — serializers use `SerializerMethodField` for this.
+- **CI/CD**: Pipeline in `.github/workflows/ci.yml` (ruff lint, Django tests,
+  Docker build, push to GHCR). Deploy step is commented out — ready to enable.
+- **Caddy HTTPS**: Prod Caddyfile uses `tls internal` (self-signed). For
+  production with real certs, replace with Let's Encrypt configuration.
+- **Root `.dockerignore`** now exists — docker builds from subdirectories
+  (frontend/, backend-django/) also have their own `.dockerignore`.
+- **`infra/.env.example` removed** — use only root `.env.example`.
