@@ -17,12 +17,9 @@ from .serializers import (
 )
 
 
-class IsModerator(permissions.BasePermission):
+class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role in (
-            "MODERATOR",
-            "ADMIN",
-        )
+        return request.user.is_authenticated and request.user.role == "ADMIN"
 
 
 class BookListCreateView(generics.ListCreateAPIView):
@@ -33,7 +30,7 @@ class BookListCreateView(generics.ListCreateAPIView):
 
     def get_permissions(self):
         if self.request.method == "POST":
-            return [permissions.IsAuthenticated(), IsModerator()]
+            return [permissions.IsAuthenticated(), IsAdmin()]
         return [permissions.AllowAny()]
 
     def get_queryset(self):
@@ -70,7 +67,7 @@ class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == "GET":
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated(), IsModerator()]
+        return [permissions.IsAuthenticated(), IsAdmin()]
 
     def get_queryset(self):
         return Book.objects.prefetch_related(
@@ -92,7 +89,7 @@ class ChapterView(APIView):
     def get_permissions(self):
         if self.request.method == "GET":
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated(), IsModerator()]
+        return [permissions.IsAuthenticated(), IsAdmin()]
 
     def get(self, request, book_id):
         chapters = Chapter.objects.filter(book_id=book_id).order_by("chapter_number")
