@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Book, Chapter
+from analysis.models import BookCharacter, CharacterRelationship
 
 
 class ChapterSerializer(serializers.ModelSerializer):
@@ -17,6 +18,28 @@ class ChapterSerializer(serializers.ModelSerializer):
             "token_count",
         )
         read_only_fields = ("book_id", "analysis_completed")
+
+
+class BookCharacterSerializer(serializers.ModelSerializer):
+    mentionCount = serializers.IntegerField(source="mention_count")
+
+    class Meta:
+        model = BookCharacter
+        fields = ("id", "name", "description", "mentionCount")
+
+
+class CharacterRelationSerializer(serializers.ModelSerializer):
+    sourceCharacterName = serializers.CharField(source="from_character.name")
+    targetCharacterName = serializers.CharField(source="to_character.name")
+
+    class Meta:
+        model = CharacterRelationship
+        fields = (
+            "id",
+            "sourceCharacterName",
+            "targetCharacterName",
+            "relation_type",
+        )
 
 
 class BookListSerializer(serializers.ModelSerializer):
@@ -137,11 +160,18 @@ class BookDetailSerializer(serializers.ModelSerializer):
             instance.chapters.order_by("chapter_number"), many=True
         ).data
 
-        # Characters (TODO: rewire in follow-up task)
-        characters = []
+        # Characters
+        characters = BookCharacterSerializer(
+            BookCharacter.objects.all(), many=True
+        ).data
 
-        # Relations (TODO: rewire in follow-up task)
-        relations = []
+        # Relations
+        relations = CharacterRelationSerializer(
+            instance.character_relationships.select_related(
+                "from_character", "to_character"
+            ),
+            many=True,
+        ).data
 
         # Reviews
         from reviews.serializers import ReviewSerializer

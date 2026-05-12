@@ -6,12 +6,14 @@ from rest_framework.views import APIView
 
 from .models import Book, Chapter, BookAuthor
 from library.models import Author, Tag
-from analysis.tasks import analyse_chapter, ner_chapter
+from analysis.models import BookCharacter, CharacterRelationship
 from .serializers import (
     BookListSerializer,
     BookCreateSerializer,
     BookDetailSerializer,
     ChapterSerializer,
+    BookCharacterSerializer,
+    CharacterRelationSerializer,
 )
 
 
@@ -75,6 +77,12 @@ class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Book.objects.prefetch_related(
             Prefetch("chapters", queryset=Chapter.objects.order_by("chapter_number")),
+            Prefetch(
+                "character_relationships",
+                queryset=CharacterRelationship.objects.select_related(
+                    "from_character", "to_character"
+                ),
+            ),
             Prefetch("reviews"),
             "authors",
             "tags",
@@ -111,10 +119,6 @@ class ChapterView(APIView):
             )
             chapters_created += 1
 
-            analyse_chapter.delay(chapter.id, content)
-            if chapter_num == 1:
-                ner_chapter.delay(chapter.id, content)
-
         book.chapters_count = chapters_created
         book.save()
         return Response(
@@ -128,22 +132,25 @@ class ChapterView(APIView):
         book.chapters_count = 0
         book.ner_completed_count = 0
         book.save()
+        CharacterRelationship.objects.filter(book_id=book_id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class BookCharactersView(generics.ListAPIView):
-    serializer_class = None  # TODO: rewire to CharacterRelationship
+    serializer_class = BookCharacterSerializer
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
     def get_queryset(self):
-        return Book.objects.none()
+        return BookCharacter.objects.all()
 
 
 class BookRelationsView(generics.ListAPIView):
-    serializer_class = None  # TODO: rewire to CharacterRelationship
+    serializer_class = CharacterRelationSerializer
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
     def get_queryset(self):
-        return Book.objects.none()
+        return CharacterRelationship.objects.filter(
+            book_id=self.kwargs["book_id"]
+        ).select_related("from_character", "to_character")

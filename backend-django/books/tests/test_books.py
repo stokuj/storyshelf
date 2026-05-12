@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -179,11 +177,7 @@ class ChapterTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, [])
 
-    @patch("books.views.analyse_chapter.delay")
-    @patch("books.views.ner_chapter.delay")
-    def test_post_upload_chapters_as_moderator_returns_201(
-        self, mock_ner, mock_analyse
-    ):
+    def test_post_upload_chapters_as_moderator_returns_201(self):
         self.client.force_authenticate(user=self.moderator)
         content = "Chapter One Content\n\nChapter Two Content"
         file = SimpleUploadedFile("book.txt", content.encode("utf-8"))
