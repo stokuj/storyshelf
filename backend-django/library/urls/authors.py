@@ -1,7 +1,7 @@
 from django.urls import path
-from library.views import AuthorListCreateView, AuthorRetrieveUpdateDestroyView
+from library.views import AuthorListView, AuthorRetrieveView
 
 urlpatterns = [
-    path("", AuthorListCreateView.as_view()),
-    path("<int:pk>/", AuthorRetrieveUpdateDestroyView.as_view()),
+    path("", AuthorListView.as_view()),
+    path("<int:pk>/", AuthorRetrieveView.as_view()),
 ]

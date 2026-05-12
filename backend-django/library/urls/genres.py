@@ -1,7 +1,7 @@
 from django.urls import path
-from library.views import GenreListCreateView, GenreRetrieveUpdateDestroyView
+from library.views import GenreListView, GenreRetrieveView
 
 urlpatterns = [
-    path("", GenreListCreateView.as_view()),
-    path("<int:pk>/", GenreRetrieveUpdateDestroyView.as_view()),
+    path("", GenreListView.as_view()),
+    path("<int:pk>/", GenreRetrieveView.as_view()),
 ]

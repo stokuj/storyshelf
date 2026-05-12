@@ -1,7 +1,7 @@
 from django.urls import path
-from library.views import SeriesListCreateView, SeriesRetrieveUpdateDestroyView
+from library.views import SeriesListView, SeriesRetrieveView
 
 urlpatterns = [
-    path("", SeriesListCreateView.as_view()),
-    path("<int:pk>/", SeriesRetrieveUpdateDestroyView.as_view()),
+    path("", SeriesListView.as_view()),
+    path("<int:pk>/", SeriesRetrieveView.as_view()),
 ]

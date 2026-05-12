@@ -4,47 +4,40 @@ from .models import Author, Genre, Serie
 from .serializers import AuthorSerializer, GenreSerializer, SeriesSerializer
 
 
-class IsAdminOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return request.user.is_authenticated and request.user.role == "ADMIN"
-
-
-class AuthorListCreateView(generics.ListCreateAPIView):
+class AuthorListView(generics.ListAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [permissions.AllowAny]
     pagination_class = None
 
 
-class AuthorRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class AuthorRetrieveView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [permissions.AllowAny]
 
 
-class SeriesListCreateView(generics.ListCreateAPIView):
+class SeriesListView(generics.ListAPIView):
     queryset = Serie.objects.all()
     serializer_class = SeriesSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [permissions.AllowAny]
     pagination_class = None
 
 
-class SeriesRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class SeriesRetrieveView(generics.RetrieveAPIView):
     queryset = Serie.objects.all()
     serializer_class = SeriesSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [permissions.AllowAny]
 
 
-class GenreListCreateView(generics.ListCreateAPIView):
+class GenreListView(generics.ListAPIView):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [permissions.AllowAny]
     pagination_class = None
 
 
-class GenreRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class GenreRetrieveView(generics.RetrieveAPIView):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [permissions.AllowAny]
