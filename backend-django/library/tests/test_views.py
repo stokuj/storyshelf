@@ -22,8 +22,8 @@ class AuthorListCreateTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, [])
 
-    def test_post_create_author_as_moderator_returns_201(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_post_create_author_as_admin_returns_201(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post(
             "/api/authors/",
             {
@@ -44,7 +44,7 @@ class AuthorListCreateTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_create_author_missing_name_returns_400(self):
-        self.client.force_authenticate(user=self.moderator)
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post("/api/authors/", {})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -64,8 +64,8 @@ class AuthorDetailTest(AuthTestHelper, APITestCase):
         resp = self.client.get("/api/authors/99999/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_put_update_as_moderator_returns_200(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_put_update_as_admin_returns_200(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.put(
             f"/api/authors/{self.author.id}/",
             {"name": "Updated Author", "bio": "Updated bio"},
@@ -74,8 +74,8 @@ class AuthorDetailTest(AuthTestHelper, APITestCase):
         self.author.refresh_from_db()
         self.assertEqual(self.author.name, "Updated Author")
 
-    def test_delete_as_moderator_returns_204(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_delete_as_admin_returns_204(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.delete(f"/api/authors/{self.author.id}/")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Author.objects.filter(id=self.author.id).exists())
@@ -97,8 +97,8 @@ class SeriesListCreateTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(resp.data), 1)
 
-    def test_post_create_series_as_moderator_returns_201(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_post_create_series_as_admin_returns_201(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post(
             "/api/series/",
             {
@@ -119,7 +119,7 @@ class SeriesListCreateTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_create_series_missing_name_returns_400(self):
-        self.client.force_authenticate(user=self.moderator)
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post("/api/series/", {})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -139,8 +139,8 @@ class SeriesDetailTest(AuthTestHelper, APITestCase):
         resp = self.client.get("/api/series/99999/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_put_update_as_moderator_returns_200(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_put_update_as_admin_returns_200(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.put(
             f"/api/series/{self.serie.id}/",
             {"name": "Updated Series", "description": "Updated"},
@@ -149,8 +149,8 @@ class SeriesDetailTest(AuthTestHelper, APITestCase):
         self.serie.refresh_from_db()
         self.assertEqual(self.serie.name, "Updated Series")
 
-    def test_delete_as_moderator_returns_204(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_delete_as_admin_returns_204(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.delete(f"/api/series/{self.serie.id}/")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Serie.objects.filter(id=self.serie.id).exists())

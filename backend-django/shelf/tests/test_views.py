@@ -10,9 +10,7 @@ class ShelfListTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        cls.book = Book.objects.create(
-            title="Shelf Book", isbn="s001", page_count=100, year=2023
-        )
+        cls.book = Book.objects.create(title="Shelf Book", isbn="s001", page_count=100, year=2023)
 
     def test_get_shelf_authenticated_returns_200(self):
         ShelfEntry.objects.create(user=self.user, book=self.book, status="READING")
@@ -34,9 +32,7 @@ class ShelfListTest(AuthTestHelper, APITestCase):
 
     def test_shelf_entries_isolated_per_user(self):
         ShelfEntry.objects.create(user=self.user, book=self.book, status="READ")
-        ShelfEntry.objects.create(
-            user=self.moderator, book=self.book, status="WANT_TO_READ"
-        )
+        ShelfEntry.objects.create(user=self.admin, book=self.book, status="WANT_TO_READ")
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/shelf/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -48,20 +44,14 @@ class ShelfEntryTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        cls.book = Book.objects.create(
-            title="Entry Book", isbn="s002", page_count=100, year=2023
-        )
+        cls.book = Book.objects.create(title="Entry Book", isbn="s002", page_count=100, year=2023)
 
     def test_post_create_entry_returns_201(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.post(
-            f"/api/shelf/{self.book.id}/", {"status": "WANT_TO_READ"}
-        )
+        resp = self.client.post(f"/api/shelf/{self.book.id}/", {"status": "WANT_TO_READ"})
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(resp.data["status"], "WANT_TO_READ")
-        self.assertTrue(
-            ShelfEntry.objects.filter(user=self.user, book=self.book).exists()
-        )
+        self.assertTrue(ShelfEntry.objects.filter(user=self.user, book=self.book).exists())
 
     def test_post_create_entry_default_status_returns_201(self):
         self.client.force_authenticate(user=self.user)
@@ -108,9 +98,7 @@ class ShelfEntryTest(AuthTestHelper, APITestCase):
         self.client.force_authenticate(user=self.user)
         resp = self.client.delete(f"/api/shelf/{self.book.id}/")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(
-            ShelfEntry.objects.filter(user=self.user, book=self.book).exists()
-        )
+        self.assertFalse(ShelfEntry.objects.filter(user=self.user, book=self.book).exists())
 
     def test_delete_entry_unauthenticated_returns_401(self):
         ShelfEntry.objects.create(user=self.user, book=self.book, status="READ")
@@ -118,7 +106,7 @@ class ShelfEntryTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_cannot_access_other_user_entry(self):
-        ShelfEntry.objects.create(user=self.moderator, book=self.book, status="READ")
+        ShelfEntry.objects.create(user=self.admin, book=self.book, status="READ")
         self.client.force_authenticate(user=self.user)
         resp = self.client.get(f"/api/shelf/{self.book.id}/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
@@ -128,9 +116,7 @@ class ShelfResponseStructureTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        cls.book = Book.objects.create(
-            title="Struct Book", isbn="s003", page_count=100, year=2023
-        )
+        cls.book = Book.objects.create(title="Struct Book", isbn="s003", page_count=100, year=2023)
 
     def test_response_uses_camelcase_keys(self):
         ShelfEntry.objects.create(user=self.user, book=self.book, status="READING")

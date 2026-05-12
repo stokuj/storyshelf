@@ -12,14 +12,10 @@ class BookListTest(AuthTestHelper, APITestCase):
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
         cls.author = Author.objects.create(name="Test Author")
-        cls.book1 = Book.objects.create(
-            title="First Book", isbn="111", page_count=200, year=2023
-        )
+        cls.book1 = Book.objects.create(title="First Book", isbn="111", page_count=200, year=2023)
         cls.book1.authors.add(cls.author)
         cls.book1.tags.set([])
-        cls.book2 = Book.objects.create(
-            title="Second Book", isbn="222", page_count=300, year=2024
-        )
+        cls.book2 = Book.objects.create(title="Second Book", isbn="222", page_count=300, year=2024)
         cls.book2.authors.add(cls.author)
         cls.book2.tags.set([])
 
@@ -40,8 +36,8 @@ class BookListTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, [])
 
-    def test_post_create_book_as_moderator_returns_201(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_post_create_book_as_admin_returns_201(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post(
             "/api/books/",
             {
@@ -82,12 +78,12 @@ class BookListTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_post_create_book_missing_author_returns_400(self):
-        self.client.force_authenticate(user=self.moderator)
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post("/api/books/", {"title": "No Author"})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_create_book_nonexistent_author_returns_404(self):
-        self.client.force_authenticate(user=self.moderator)
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post(
             "/api/books/",
             {
@@ -103,9 +99,7 @@ class BookDetailTest(AuthTestHelper, APITestCase):
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
         cls.author = Author.objects.create(name="Detail Author")
-        cls.book = Book.objects.create(
-            title="Detail Book", isbn="444", page_count=250, year=2023
-        )
+        cls.book = Book.objects.create(title="Detail Book", isbn="444", page_count=250, year=2023)
         cls.book.authors.add(cls.author)
         cls.book.tags.set([])
 
@@ -123,8 +117,8 @@ class BookDetailTest(AuthTestHelper, APITestCase):
         resp = self.client.get("/api/books/99999/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_put_update_book_as_moderator_returns_200(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_put_update_book_as_admin_returns_200(self):
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.put(
             f"/api/books/{self.book.id}/",
             {
@@ -139,9 +133,9 @@ class BookDetailTest(AuthTestHelper, APITestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    def test_delete_book_as_moderator_returns_204(self):
+    def test_delete_book_as_admin_returns_204(self):
         book = Book.objects.create(title="To Delete", isbn="555")
-        self.client.force_authenticate(user=self.moderator)
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.delete(f"/api/books/{book.id}/")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Book.objects.filter(id=book.id).exists())
@@ -168,17 +162,15 @@ class ChapterTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        cls.book = Book.objects.create(
-            title="Chapter Book", isbn="777", page_count=100, year=2023
-        )
+        cls.book = Book.objects.create(title="Chapter Book", isbn="777", page_count=100, year=2023)
 
     def test_get_chapters_empty_returns_200_empty(self):
         resp = self.client.get(f"/api/books/{self.book.id}/chapters/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, [])
 
-    def test_post_upload_chapters_as_moderator_returns_201(self):
-        self.client.force_authenticate(user=self.moderator)
+    def test_post_upload_chapters_as_admin_returns_201(self):
+        self.client.force_authenticate(user=self.admin)
         content = "Chapter One Content\n\nChapter Two Content"
         file = SimpleUploadedFile("book.txt", content.encode("utf-8"))
         resp = self.client.post(
@@ -197,15 +189,13 @@ class ChapterTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post_upload_no_file_returns_400(self):
-        self.client.force_authenticate(user=self.moderator)
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.post(f"/api/books/{self.book.id}/chapters/")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_delete_chapters_as_moderator_returns_204(self):
-        Chapter.objects.create(
-            book=self.book, chapter_number=1, title="C1", text="text"
-        )
-        self.client.force_authenticate(user=self.moderator)
+    def test_delete_chapters_as_admin_returns_204(self):
+        Chapter.objects.create(book=self.book, chapter_number=1, title="C1", text="text")
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.delete(f"/api/books/{self.book.id}/chapters/")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Chapter.objects.filter(book=self.book).count(), 0)
@@ -215,9 +205,7 @@ class BookCharactersTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        cls.book = Book.objects.create(
-            title="Char Book", isbn="888", page_count=100, year=2023
-        )
+        cls.book = Book.objects.create(title="Char Book", isbn="888", page_count=100, year=2023)
 
     def test_get_characters_empty_returns_200(self):
         resp = self.client.get(f"/api/books/{self.book.id}/characters/")
@@ -229,9 +217,7 @@ class BookRelationsTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        cls.book = Book.objects.create(
-            title="Rel Book", isbn="999", page_count=100, year=2023
-        )
+        cls.book = Book.objects.create(title="Rel Book", isbn="999", page_count=100, year=2023)
 
     def test_get_relations_empty_returns_200(self):
         resp = self.client.get(f"/api/books/{self.book.id}/relations/")

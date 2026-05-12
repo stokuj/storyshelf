@@ -10,9 +10,7 @@ class BookReviewListCreateTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        cls.book = Book.objects.create(
-            title="Review Book", isbn="r001", page_count=100, year=2023
-        )
+        cls.book = Book.objects.create(title="Review Book", isbn="r001", page_count=100, year=2023)
 
     def test_get_reviews_empty_returns_200(self):
         resp = self.client.get(f"/api/books/{self.book.id}/reviews/")
@@ -20,9 +18,7 @@ class BookReviewListCreateTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.data, [])
 
     def test_get_reviews_with_data_returns_200(self):
-        Review.objects.create(
-            user=self.user, book=self.book, rating=4, content="Good book"
-        )
+        Review.objects.create(user=self.user, book=self.book, rating=4, content="Good book")
         resp = self.client.get(f"/api/books/{self.book.id}/reviews/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
@@ -39,9 +35,7 @@ class BookReviewListCreateTest(AuthTestHelper, APITestCase):
             },
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            Review.objects.filter(book=self.book, user=self.user).count(), 1
-        )
+        self.assertEqual(Review.objects.filter(book=self.book, user=self.user).count(), 1)
 
     def test_post_create_review_unauthenticated_returns_401(self):
         resp = self.client.post(
@@ -110,16 +104,11 @@ class ReviewDeleteTest(AuthTestHelper, APITestCase):
             user=self.user, book=self.book, rating=4, content="Nice"
         )
 
-    def test_delete_review_as_moderator_returns_204(self):
-        self.client.force_authenticate(user=self.moderator)
-        resp = self.client.delete(f"/api/reviews/{self.review.id}/")
-        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Review.objects.filter(id=self.review.id).exists())
-
     def test_delete_review_as_admin_returns_204(self):
         self.client.force_authenticate(user=self.admin)
         resp = self.client.delete(f"/api/reviews/{self.review.id}/")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Review.objects.filter(id=self.review.id).exists())
 
     def test_delete_review_as_regular_user_returns_403(self):
         self.client.force_authenticate(user=self.user)
@@ -131,7 +120,7 @@ class ReviewDeleteTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_nonexistent_review_returns_404(self):
-        self.client.force_authenticate(user=self.moderator)
+        self.client.force_authenticate(user=self.admin)
         resp = self.client.delete("/api/reviews/99999/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 

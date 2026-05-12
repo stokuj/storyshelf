@@ -11,12 +11,6 @@ class AuthTestHelper:
             username="testuser",
             password="password123",
         )
-        cls.moderator = User.objects.create_user(
-            email="mod@test.com",
-            username="moderator",
-            password="password123",
-            role="MODERATOR",
-        )
         cls.admin = User.objects.create_user(
             email="admin@test.com",
             username="admin",
