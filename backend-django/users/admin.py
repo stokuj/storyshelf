@@ -9,12 +9,11 @@ class UserAdmin(BaseUserAdmin):
     list_display = (
         "email",
         "username",
-        "role",
         "profile_public",
         "is_active",
         "created_at",
     )
-    list_filter = ("role", "profile_public", "is_active")
+    list_filter = ("profile_public", "is_active")
     search_fields = ("email", "username")
     ordering = ("-created_at",)
 
@@ -22,7 +21,7 @@ class UserAdmin(BaseUserAdmin):
         (None, {"fields": ("email", "username", "password")}),
         (
             "Profile",
-            {"fields": ("bio", "avatar_url", "role", "profile_public")},
+            {"fields": ("bio", "avatar_url", "profile_public")},
         ),
         (
             "Permissions",
@@ -49,7 +48,6 @@ class UserAdmin(BaseUserAdmin):
                     "username",
                     "password1",
                     "password2",
-                    "role",
                     "profile_public",
                     "is_active",
                     "is_staff",

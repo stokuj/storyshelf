@@ -23,13 +23,8 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    class Role(models.TextChoices):
-        USER = "USER"
-        ADMIN = "ADMIN"
-
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True)
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.USER)
     bio = models.TextField(max_length=500, blank=True, default="")
     avatar_url = models.URLField(blank=True, default="")
     profile_public = models.BooleanField(default=True)
