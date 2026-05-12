@@ -1,7 +1,7 @@
 <template>
   <section class="max-w-lg mx-auto">
-    <div v-if="error" class="alert alert-error mb-4 text-sm">{{ error }}</div>
-    <div v-else-if="loading" class="py-20 text-center text-base-content/60">Ładowanie profilu...</div>
+    <AlertMessage v-if="error" :message="error" class="mb-4" />
+    <LoadingSpinner v-else-if="loading" text="Ładowanie profilu..." />
 
     <div v-else-if="profile" class="card bg-base-100 shadow">
       <div class="card-body">
@@ -51,9 +51,7 @@
           <RouterLink v-else to="/login" class="btn btn-primary btn-sm">Zaloguj się, aby obserwować</RouterLink>
         </div>
 
-        <div v-if="authState.authenticated && followError" class="alert alert-warning mt-4 text-sm">
-          {{ followError }}
-        </div>
+        <AlertMessage v-if="authState.authenticated && followError" type="warning" :message="followError" class="mt-4" />
       </div>
     </div>
 
@@ -70,6 +68,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import NotFoundState from '../components/NotFoundState.vue'
+import AlertMessage from '../components/AlertMessage.vue'
+import LoadingSpinner from '../components/LoadingSpinner.vue'
 import { fetchFollowers, fetchFollowing, fetchUserProfile, followUser, unfollowUser } from '../api'
 import { authState } from '../auth'
 import { useAsyncState } from '../composables/useAsyncState'

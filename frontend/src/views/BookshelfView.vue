@@ -21,12 +21,10 @@
       </button>
     </div>
 
-    <div v-if="error" class="alert alert-error mb-6 text-sm">{{ error }}</div>
-    <div v-if="mutateError" class="alert alert-warning mb-6 text-sm">{{ mutateError }}</div>
-    <div v-else-if="loading" class="py-20 text-center text-base-content/60">Ładowanie półki...</div>
-    <div v-else-if="!authState.authenticated" class="alert alert-warning mb-6 text-sm">
-      Zaloguj się, aby zobaczyć swoją półkę.
-    </div>
+    <AlertMessage v-if="error" :message="error" class="mb-6" />
+    <AlertMessage v-if="mutateError" type="warning" :message="mutateError" class="mb-6" />
+    <LoadingSpinner v-else-if="loading" text="Ładowanie półki..." />
+    <AlertMessage v-else-if="!authState.authenticated" type="warning" message="Zaloguj się, aby zobaczyć swoją półkę." class="mb-6" />
 
     <div v-else-if="filteredEntries.length" class="flex flex-col gap-3">
       <div v-for="entry in filteredEntries" :key="entry.id" class="card bg-base-100 shadow-sm transition-shadow hover:shadow">
@@ -72,6 +70,8 @@ import { RouterLink } from 'vue-router'
 import { fetchBookshelf, removeFromBookshelf, updateBookshelfStatus } from '../api'
 import { authState } from '../auth'
 import { useAsyncState } from '../composables/useAsyncState'
+import AlertMessage from '../components/AlertMessage.vue'
+import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const activeFilter = ref('ALL')
 const entries = ref([])

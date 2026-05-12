@@ -2,7 +2,7 @@
   <section class="mt-8 max-w-sm mx-auto">
     <h1 class="mb-6 text-center text-2xl font-bold">Utwórz konto</h1>
 
-    <div v-if="error" class="alert alert-error mb-4 text-sm">{{ error }}</div>
+    <AlertMessage v-if="error" :message="error" class="mb-4" />
 
     <div class="card bg-base-100 shadow">
       <div class="card-body">
@@ -79,6 +79,7 @@ import { reactive, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { registerUser } from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
+import AlertMessage from '../components/AlertMessage.vue'
 
 const router = useRouter()
 const { loading, error, execute } = useAsyncState()

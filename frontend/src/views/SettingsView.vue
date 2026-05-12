@@ -2,12 +2,10 @@
   <section class="max-w-lg mx-auto">
     <h1 class="mb-6 text-2xl font-bold">Ustawienia konta</h1>
 
-    <div v-if="message" class="alert alert-success mb-4 text-sm">{{ message }}</div>
-    <div v-if="error || saveError" class="alert alert-error mb-4 text-sm">{{ saveError || error }}</div>
-    <div v-else-if="loading" class="py-20 text-center text-base-content/60">Ładowanie ustawień...</div>
-    <div v-else-if="!authState.authenticated" class="alert alert-warning mb-4 text-sm">
-      Zaloguj się, aby edytować ustawienia.
-    </div>
+    <AlertMessage v-if="message" type="success" :message="message" class="mb-4" />
+    <AlertMessage v-if="error || saveError" :message="saveError || error" class="mb-4" />
+    <LoadingSpinner v-else-if="loading" text="Ładowanie ustawień..." />
+    <AlertMessage v-else-if="!authState.authenticated" type="warning" message="Zaloguj się, aby edytować ustawienia." class="mb-4" />
 
     <div v-else-if="settings" class="card bg-base-100 shadow">
       <div class="card-body">
@@ -87,6 +85,8 @@ import { RouterLink, useRouter } from 'vue-router'
 import { fetchCurrentUserSettings, updateCurrentUserSettings, updateCurrentUserVisibility } from '../api'
 import { authState, refreshAuth, signOut } from '../auth'
 import { useAsyncState } from '../composables/useAsyncState'
+import AlertMessage from '../components/AlertMessage.vue'
+import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const router = useRouter()
 const { loading, error, execute } = useAsyncState()

@@ -2,20 +2,9 @@
   <section class="mx-auto max-w-6xl">
 
     <!-- Komunikaty globalne: blad i sukces po akcjach na polce -->
-    <div v-if="error" class="alert alert-error mb-6 text-sm">{{ error }}</div>
+    <AlertMessage v-if="error" :message="error" class="mb-6" />
 
-    <div v-else-if="loading" class="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-8">
-      <div class="md:col-span-1 flex flex-col gap-3">
-        <div class="skeleton mx-auto w-3/4 aspect-[2/3] rounded-xl"></div>
-        <div class="skeleton h-10 w-full rounded-xl"></div>
-      </div>
-      <div class="md:col-span-3 flex flex-col gap-4">
-        <div class="skeleton h-8 w-1/2"></div>
-        <div class="skeleton h-6 w-1/3"></div>
-        <div class="skeleton h-4 w-1/4"></div>
-        <div class="skeleton h-32 w-full"></div>
-      </div>
-    </div>
+    <LoadingSpinner v-else-if="loading" text="Ładowanie książki..." />
 
     <template v-else-if="details">
 
@@ -131,8 +120,8 @@
       <div v-if="authState.authenticated" class="card mt-8 bg-base-100 shadow-sm">
         <div class="card-body p-5">
           <h2 class="card-title text-base mb-3">Napisz recenzję</h2>
-          <div v-if="reviewError" class="alert alert-error mb-3 text-sm">{{ reviewError }}</div>
-          <div v-if="reviewMessage" class="alert alert-success mb-3 text-sm">{{ reviewMessage }}</div>
+          <AlertMessage v-if="reviewError" :message="reviewError" class="mb-3" />
+          <AlertMessage v-if="reviewMessage" type="success" :message="reviewMessage" class="mb-3" />
           <form class="space-y-3" @submit.prevent="submitReview">
             <div class="flex items-center gap-2">
               <span class="text-sm">Ocena:</span>
@@ -279,6 +268,8 @@
 <script setup>
 import { computed, reactive, onMounted, ref, watch } from 'vue'
 import NotFoundState from '../components/NotFoundState.vue'
+import AlertMessage from '../components/AlertMessage.vue'
+import LoadingSpinner from '../components/LoadingSpinner.vue'
 import { RouterLink, useRoute } from 'vue-router'
 import {
   addToBookshelf,

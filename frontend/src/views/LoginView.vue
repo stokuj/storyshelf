@@ -2,10 +2,8 @@
   <section class="mt-8 max-w-sm mx-auto">
     <h1 class="mb-6 text-center text-2xl font-bold">Zaloguj się</h1>
 
-    <div v-if="route.query.registered" class="alert alert-success mb-4 text-sm">
-      Konto zostało utworzone. Możesz się zalogować.
-    </div>
-    <div v-if="error" class="alert alert-error mb-4 text-sm">{{ error }}</div>
+    <AlertMessage v-if="route.query.registered" type="success" message="Konto zostało utworzone. Możesz się zalogować." class="mb-4" />
+    <AlertMessage v-if="error" :message="error" class="mb-4" />
 
     <div class="card bg-base-100 shadow">
       <div class="card-body">
@@ -51,6 +49,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { loginUser } from '../api'
 import { refreshAuth } from '../auth'
 import { useAsyncState } from '../composables/useAsyncState'
+import AlertMessage from '../components/AlertMessage.vue'
 
 const route = useRoute()
 const router = useRouter()

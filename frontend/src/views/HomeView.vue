@@ -10,7 +10,7 @@
       </div>
     </div>
 
-    <div v-if="error" class="alert alert-error mb-6 text-sm">{{ error }}</div>
+    <AlertMessage v-if="error" :message="error" class="mb-6" />
 
     <div v-else-if="loading" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       <div v-for="n in 12" :key="`skeleton-${n}`" class="card bg-base-100 shadow">
@@ -25,25 +25,7 @@
 
     <template v-else>
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        <div
-          v-for="book in books"
-          :key="book.id"
-          class="card bg-base-100 shadow transition-shadow hover:shadow-md"
-        >
-          <RouterLink :to="`/book/${book.id}`" class="block">
-            <div class="flex aspect-[2/3] items-end rounded-t-box bg-gradient-to-br from-primary/20 to-secondary/20 p-3">
-              <div>
-                <p class="line-clamp-2 text-sm font-semibold">{{ book.title }}</p>
-                <p class="mt-1 text-xs text-base-content/60">{{ book.author || 'Autor nieznany' }}</p>
-              </div>
-            </div>
-          </RouterLink>
-
-          <div class="card-body p-3">
-            <div v-if="book.genres?.length" class="badge badge-sm badge-ghost">{{ book.genres[0] }}</div>
-            <RouterLink class="btn btn-xs btn-outline btn-primary mt-1 w-full" :to="`/book/${book.id}`">Szczegóły</RouterLink>
-          </div>
-        </div>
+        <BookCard v-for="book in books" :key="book.id" :book="book" />
       </div>
 
       <div v-if="!books.length" class="py-20 text-center">
@@ -55,9 +37,11 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { fetchBooks } from '../api'
 import { useAsyncState } from '../composables/useAsyncState'
+import AlertMessage from '../components/AlertMessage.vue'
+import BookCard from '../components/BookCard.vue'
 
 const route = useRoute()
 const books = ref([])
