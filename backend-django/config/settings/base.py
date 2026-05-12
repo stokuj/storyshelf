@@ -39,7 +39,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "analysis.middleware.InternalEndpointMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -113,7 +112,6 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_DEFAULT_RETRY_DELAY = 10
 CELERY_TASK_MAX_RETRIES = 3
 
-NLP_SERVICE_URL = os.getenv("NLP_SERVICE_URL", "http://nlp-service:8000")
 
 CORS_ALLOW_ALL_ORIGINS = False
 

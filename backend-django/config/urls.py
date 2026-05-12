@@ -11,7 +11,6 @@ urlpatterns = [
     path("api/authors/", include("library.urls.authors")),
     path("api/series/", include("library.urls.series")),
     path("api/reviews/", include("reviews.urls")),
-    path("api/internal/", include("analysis.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
