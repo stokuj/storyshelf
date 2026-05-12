@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Author, Serie, Tag
+from .models import Author, Genre, Serie, Tag
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -22,3 +22,9 @@ class SeriesSerializer(serializers.ModelSerializer):
 
     def get_cover_url(self, obj):
         return None
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = ("id", "name")

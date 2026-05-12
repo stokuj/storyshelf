@@ -44,7 +44,7 @@ class CharacterRelationSerializer(serializers.ModelSerializer):
 
 class BookListSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
-    genres = serializers.JSONField(default=list)
+    genres = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
 
     class Meta:
@@ -66,16 +66,17 @@ class BookListSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         return obj.authors.first().name if obj.authors.exists() else None
 
+    def get_genres(self, obj):
+        return [g.name for g in obj.genres.all()]
+
     def get_tags(self, obj):
         return [t.name for t in obj.tags.all()]
 
 
 class BookCreateSerializer(serializers.ModelSerializer):
     author_id = serializers.IntegerField(write_only=True)
-    genres = serializers.JSONField(default=list)
-    tags = serializers.ListField(
-        child=serializers.CharField(), write_only=True, default=list
-    )
+    genres = serializers.ListField(child=serializers.CharField(), write_only=True, default=list)
+    tags = serializers.ListField(child=serializers.CharField(), write_only=True, default=list)
 
     class Meta:
         model = Book
@@ -93,7 +94,7 @@ class BookCreateSerializer(serializers.ModelSerializer):
 
 class BookDetailSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
-    genres = serializers.JSONField(default=list)
+    genres = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     ratingsCount = serializers.IntegerField(source="ratings_count")
 
@@ -115,6 +116,9 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
     def get_author(self, obj):
         return obj.authors.first().name if obj.authors.exists() else None
+
+    def get_genres(self, obj):
+        return [g.name for g in obj.genres.all()]
 
     def get_tags(self, obj):
         return [t.name for t in obj.tags.all()]
@@ -156,20 +160,14 @@ class BookDetailSerializer(serializers.ModelSerializer):
                 pass
 
         # Chapters
-        chapters = ChapterSerializer(
-            instance.chapters.order_by("chapter_number"), many=True
-        ).data
+        chapters = ChapterSerializer(instance.chapters.order_by("chapter_number"), many=True).data
 
         # Characters
-        characters = BookCharacterSerializer(
-            BookCharacter.objects.all(), many=True
-        ).data
+        characters = BookCharacterSerializer(BookCharacter.objects.all(), many=True).data
 
         # Relations
         relations = CharacterRelationSerializer(
-            instance.character_relationships.select_related(
-                "from_character", "to_character"
-            ),
+            instance.character_relationships.select_related("from_character", "to_character"),
             many=True,
         ).data
 

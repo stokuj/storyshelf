@@ -39,7 +39,7 @@ class Book(models.Model):
     updated_at = models.DateField(auto_now=True)
     authors = models.ManyToManyField("library.Author", through="BookAuthor")
     tags = models.ManyToManyField("library.Tag", through="BookTag")
-    genres = models.JSONField(default=list)
+    genres = models.ManyToManyField("library.Genre", through="BookGenre", related_name="books")
 
 
 class BookAuthor(models.Model):
@@ -57,3 +57,11 @@ class BookTag(models.Model):
 
     class Meta:
         unique_together = ("book", "tag")
+
+
+class BookGenre(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="book_genres")
+    genre = models.ForeignKey("library.Genre", on_delete=models.CASCADE, related_name="book_genres")
+
+    class Meta:
+        unique_together = ["book", "genre"]

@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions
-from .models import Author, Serie
-from .serializers import AuthorSerializer, SeriesSerializer
+from .models import Author, Genre, Serie
+from .serializers import AuthorSerializer, GenreSerializer, SeriesSerializer
 
 
 class IsModeratorOrReadOnly(permissions.BasePermission):
@@ -36,4 +36,17 @@ class SeriesListCreateView(generics.ListCreateAPIView):
 class SeriesRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Serie.objects.all()
     serializer_class = SeriesSerializer
+    permission_classes = [IsModeratorOrReadOnly]
+
+
+class GenreListCreateView(generics.ListCreateAPIView):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = [IsModeratorOrReadOnly]
+    pagination_class = None
+
+
+class GenreRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
     permission_classes = [IsModeratorOrReadOnly]

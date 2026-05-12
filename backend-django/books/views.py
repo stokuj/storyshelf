@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Book, Chapter, BookAuthor
-from library.models import Author, Tag
+from library.models import Author, Genre, Tag
 from analysis.models import BookCharacter, CharacterRelationship
 from .serializers import (
     BookListSerializer,
@@ -29,11 +29,7 @@ class BookListCreateView(generics.ListCreateAPIView):
     pagination_class = None  # flat list — frontend expects plain array
 
     def get_serializer_class(self):
-        return (
-            BookCreateSerializer
-            if self.request.method == "POST"
-            else BookListSerializer
-        )
+        return BookCreateSerializer if self.request.method == "POST" else BookListSerializer
 
     def get_permissions(self):
         if self.request.method == "POST":
@@ -41,23 +37,27 @@ class BookListCreateView(generics.ListCreateAPIView):
         return [permissions.AllowAny()]
 
     def get_queryset(self):
-        qs = Book.objects.select_related("serie").prefetch_related("authors", "tags")
+        qs = Book.objects.select_related("serie").prefetch_related("authors", "tags", "genres")
         q = self.request.query_params.get("q", "")
         if q:
             q_lower = q.lower()
             qs = qs.filter(
                 Q(title__icontains=q_lower)
                 | Q(bookauthor__author__name__icontains=q_lower)
-                | Q(genres__icontains=q_lower)
+                | Q(genres__name__icontains=q_lower)
             ).distinct()
         return qs
 
     def perform_create(self, serializer):
         author_id = serializer.validated_data.pop("author_id")
+        genre_names = serializer.validated_data.pop("genres", [])
         tags_list = serializer.validated_data.pop("tags", [])
         author = get_object_or_404(Author, id=author_id)
         book = serializer.save()
         BookAuthor.objects.create(book=book, author=author)
+        for genre_name in genre_names:
+            genre, _ = Genre.objects.get_or_create(name=genre_name)
+            book.genres.add(genre)
         for tag_name in tags_list:
             tag, _ = Tag.objects.get_or_create(name=tag_name)
             book.tags.add(tag)
@@ -65,9 +65,7 @@ class BookListCreateView(generics.ListCreateAPIView):
 
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_serializer_class(self):
-        return (
-            BookDetailSerializer if self.request.method == "GET" else BookListSerializer
-        )
+        return BookDetailSerializer if self.request.method == "GET" else BookListSerializer
 
     def get_permissions(self):
         if self.request.method == "GET":
@@ -86,6 +84,7 @@ class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
             Prefetch("reviews"),
             "authors",
             "tags",
+            "genres",
         )
 
 
@@ -103,9 +102,7 @@ class ChapterView(APIView):
         book = get_object_or_404(Book, id=book_id)
         uploaded_file = request.FILES.get("file")
         if not uploaded_file:
-            return Response(
-                {"detail": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
 
         text = uploaded_file.read().decode("utf-8")
         raw_chapters = [c.strip() for c in text.split("\n\n") if c.strip()]
@@ -151,6 +148,6 @@ class BookRelationsView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        return CharacterRelationship.objects.filter(
-            book_id=self.kwargs["book_id"]
-        ).select_related("from_character", "to_character")
+        return CharacterRelationship.objects.filter(book_id=self.kwargs["book_id"]).select_related(
+            "from_character", "to_character"
+        )

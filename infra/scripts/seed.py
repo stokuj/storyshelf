@@ -20,7 +20,7 @@ import django
 django.setup()
 
 from books.models import Book, BookAuthor
-from library.models import Author, Tag
+from library.models import Author, Genre, Tag
 
 SEED_BOOKS = [
     {
@@ -269,6 +269,7 @@ SEED_BOOKS = [
 def seed():
     books_created = 0
     authors_created = 0
+    genres_created = 0
     tags_created = 0
 
     for entry in SEED_BOOKS:
@@ -285,7 +286,6 @@ def seed():
                 "page_count": entry["page_count"],
                 "rating": entry["rating"],
                 "ratings_count": entry["ratings_count"],
-                "genres": entry["genres"],
             },
         )
         if b_new:
@@ -295,6 +295,12 @@ def seed():
             book=book, author=author, defaults={"role": "AUTHOR"}
         )
 
+        for genre_name in entry["genres"]:
+            genre, g_new = Genre.objects.get_or_create(name=genre_name)
+            if g_new:
+                genres_created += 1
+            book.genres.add(genre)
+
         for tag_name in entry["tags"]:
             tag, t_new = Tag.objects.get_or_create(name=tag_name)
             if t_new:
@@ -302,10 +308,12 @@ def seed():
             book.tags.add(tag)
 
     print(
-        f"Seeded {books_created} books, {authors_created} authors, {tags_created} tags"
+        f"Seeded {books_created} books, {authors_created} authors, "
+        f"{genres_created} genres, {tags_created} tags"
     )
     print(
-        f"Total: {Book.objects.count()} books, {Author.objects.count()} authors, {Tag.objects.count()} tags"
+        f"Total: {Book.objects.count()} books, {Author.objects.count()} authors, "
+        f"{Genre.objects.count()} genres, {Tag.objects.count()} tags"
     )
 
 
