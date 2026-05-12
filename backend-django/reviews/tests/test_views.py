@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 from config.test_helpers import AuthTestHelper
 from books.models import Book
 from reviews.models import Review
+from users.models import User
 
 
 class BookReviewListCreateTest(AuthTestHelper, APITestCase):
@@ -104,15 +105,19 @@ class ReviewDeleteTest(AuthTestHelper, APITestCase):
             user=self.user, book=self.book, rating=4, content="Nice"
         )
 
-    def test_delete_review_as_admin_returns_204(self):
-        self.client.force_authenticate(user=self.admin)
+    def test_delete_own_review_returns_204(self):
+        self.client.force_authenticate(user=self.user)
         resp = self.client.delete(f"/api/reviews/{self.review.id}/")
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Review.objects.filter(id=self.review.id).exists())
 
-    def test_delete_review_as_regular_user_returns_403(self):
+    def test_delete_other_users_review_returns_403(self):
+        other = User.objects.create_user(
+            email="other@test.com", username="otheruser", password="password123"
+        )
+        other_review = Review.objects.create(user=other, book=self.book, rating=3, content="Other")
         self.client.force_authenticate(user=self.user)
-        resp = self.client.delete(f"/api/reviews/{self.review.id}/")
+        resp = self.client.delete(f"/api/reviews/{other_review.id}/")
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_review_unauthenticated_returns_401(self):
@@ -120,7 +125,7 @@ class ReviewDeleteTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_delete_nonexistent_review_returns_404(self):
-        self.client.force_authenticate(user=self.admin)
+        self.client.force_authenticate(user=self.user)
         resp = self.client.delete("/api/reviews/99999/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 

@@ -66,9 +66,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserSettingsSerializer(serializers.ModelSerializer):
     memberSince = serializers.DateTimeField(source="created_at", read_only=True)
-    avatarUrl = serializers.URLField(
-        source="avatar_url", required=False, allow_blank=True
-    )
+    avatarUrl = serializers.URLField(source="avatar_url", required=False, allow_blank=True)
     profilePublic = serializers.BooleanField(source="profile_public")
 
     class Meta:
@@ -78,18 +76,15 @@ class UserSettingsSerializer(serializers.ModelSerializer):
             "email",
             "bio",
             "avatarUrl",
-            "role",
             "profilePublic",
             "memberSince",
         )
-        read_only_fields = ("email", "role", "memberSince")
+        read_only_fields = ("email", "memberSince")
 
 
 class FollowSerializer(serializers.ModelSerializer):
     followerUsername = serializers.CharField(source="follower.username", read_only=True)
-    followingUsername = serializers.CharField(
-        source="following.username", read_only=True
-    )
+    followingUsername = serializers.CharField(source="following.username", read_only=True)
     followedAt = serializers.DateTimeField(source="followed_at", read_only=True)
 
     class Meta:

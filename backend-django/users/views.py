@@ -59,7 +59,6 @@ class AuthMeView(views.APIView):
                     "authenticated": True,
                     "email": request.user.email,
                     "username": request.user.username,
-                    "role": request.user.role,
                 }
             )
         return Response(
@@ -67,7 +66,6 @@ class AuthMeView(views.APIView):
                 "authenticated": False,
                 "email": None,
                 "username": None,
-                "role": None,
             }
         )
 
@@ -124,9 +122,7 @@ class UserFollowView(views.APIView):
 
     def delete(self, request, username):
         target = get_object_or_404(User, username=username)
-        follow = UserFollow.objects.filter(
-            follower=request.user, following=target
-        ).first()
+        follow = UserFollow.objects.filter(follower=request.user, following=target).first()
         if not follow:
             return Response(
                 {"detail": "You are not following this user"},

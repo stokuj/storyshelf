@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 from config.test_helpers import AuthTestHelper
 from books.models import Book
 from shelf.models import ShelfEntry
+from users.models import User
 
 
 class ShelfListTest(AuthTestHelper, APITestCase):
@@ -31,8 +32,11 @@ class ShelfListTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.data, [])
 
     def test_shelf_entries_isolated_per_user(self):
+        other = User.objects.create_user(
+            email="other@test.com", username="otheruser", password="password123"
+        )
         ShelfEntry.objects.create(user=self.user, book=self.book, status="READ")
-        ShelfEntry.objects.create(user=self.admin, book=self.book, status="WANT_TO_READ")
+        ShelfEntry.objects.create(user=other, book=self.book, status="WANT_TO_READ")
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/shelf/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -106,7 +110,10 @@ class ShelfEntryTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_cannot_access_other_user_entry(self):
-        ShelfEntry.objects.create(user=self.admin, book=self.book, status="READ")
+        other = User.objects.create_user(
+            email="other@test.com", username="otheruser", password="password123"
+        )
+        ShelfEntry.objects.create(user=other, book=self.book, status="READ")
         self.client.force_authenticate(user=self.user)
         resp = self.client.get(f"/api/shelf/{self.book.id}/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

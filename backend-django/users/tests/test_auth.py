@@ -24,9 +24,7 @@ class RegisterTest(APITestCase):
         self.assertTrue(User.objects.filter(email="new@test.com").exists())
 
     def test_post_duplicate_email_returns_400(self):
-        User.objects.create_user(
-            email="dup@test.com", username="dupuser", password="pw"
-        )
+        User.objects.create_user(email="dup@test.com", username="dupuser", password="pw")
         resp = self.client.post(
             self.url,
             {
@@ -238,7 +236,6 @@ class AuthMeTest(APITestCase):
         self.assertTrue(resp.data["authenticated"])
         self.assertEqual(resp.data["email"], "me@test.com")
         self.assertEqual(resp.data["username"], "meuser")
-        self.assertEqual(resp.data["role"], "USER")
 
     def test_get_unauthenticated_returns_200_with_false(self):
         resp = self.client.get(self.url)
