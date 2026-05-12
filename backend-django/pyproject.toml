@@ -15,4 +15,10 @@ dependencies = [
     "requests>=2.33",
     "dj-database-url>=3.1",
     "redis>=5.2",
+    "torch>=2.10",
+    "transformers>=4.57",
+    "openai>=1.0",
+    "tiktoken>=0.7",
+    "gevent>=24",
+    "flower>=2.0",
 ]
