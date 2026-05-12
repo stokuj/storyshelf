@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Book, Chapter, BookCharacter, CharacterRelation
+from .models import Book, Chapter
 
 
 class ChapterSerializer(serializers.ModelSerializer):
@@ -19,32 +19,6 @@ class ChapterSerializer(serializers.ModelSerializer):
         read_only_fields = ("book_id", "analysis_completed")
 
 
-class BookCharacterSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source="character.id")
-    name = serializers.CharField(source="character.name")
-    mentionCount = serializers.IntegerField(source="mention_count")
-
-    class Meta:
-        model = BookCharacter
-        fields = ("id", "name", "mentionCount", "role")
-
-
-class CharacterRelationSerializer(serializers.ModelSerializer):
-    sourceCharacterName = serializers.CharField(source="source.name")
-    targetCharacterName = serializers.CharField(source="target.name")
-
-    class Meta:
-        model = CharacterRelation
-        fields = (
-            "id",
-            "sourceCharacterName",
-            "targetCharacterName",
-            "relation",
-            "evidence",
-            "confidence",
-        )
-
-
 class BookListSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.JSONField(default=list)
@@ -62,7 +36,7 @@ class BookListSerializer(serializers.ModelSerializer):
             "page_count",
             "genres",
             "tags",
-            "rating",
+            "avg_rating",
             "ratings_count",
         )
 
@@ -112,7 +86,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
             "page_count",
             "genres",
             "tags",
-            "rating",
+            "avg_rating",
             "ratingsCount",
         )
 
@@ -163,15 +137,11 @@ class BookDetailSerializer(serializers.ModelSerializer):
             instance.chapters.order_by("chapter_number"), many=True
         ).data
 
-        # Characters
-        characters = BookCharacterSerializer(
-            instance.bookcharacter_set.select_related("character"), many=True
-        ).data
+        # Characters (TODO: rewire in follow-up task)
+        characters = []
 
-        # Relations
-        relations = CharacterRelationSerializer(
-            instance.character_relations.select_related("source", "target"), many=True
-        ).data
+        # Relations (TODO: rewire in follow-up task)
+        relations = []
 
         # Reviews
         from reviews.serializers import ReviewSerializer

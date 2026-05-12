@@ -22,3 +22,9 @@ dependencies = [
     "gevent>=24",
     "flower>=2.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-django>=4.12.0",
+]

@@ -4,7 +4,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Book, Chapter, BookAuthor, BookCharacter, CharacterRelation
+from .models import Book, Chapter, BookAuthor
 from library.models import Author, Tag
 from analysis.tasks import analyse_chapter, ner_chapter
 from .serializers import (
@@ -12,8 +12,6 @@ from .serializers import (
     BookCreateSerializer,
     BookDetailSerializer,
     ChapterSerializer,
-    BookCharacterSerializer,
-    CharacterRelationSerializer,
 )
 
 
@@ -77,14 +75,6 @@ class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         return Book.objects.prefetch_related(
             Prefetch("chapters", queryset=Chapter.objects.order_by("chapter_number")),
-            Prefetch(
-                "bookcharacter_set",
-                queryset=BookCharacter.objects.select_related("character"),
-            ),
-            Prefetch(
-                "character_relations",
-                queryset=CharacterRelation.objects.select_related("source", "target"),
-            ),
             Prefetch("reviews"),
             "authors",
             "tags",
@@ -117,7 +107,7 @@ class ChapterView(APIView):
             chapter_num = i + 1
             title = content.split("\n")[0][:150] if "\n" in content else content[:150]
             chapter = Chapter.objects.create(
-                book=book, chapter_number=chapter_num, title=title, content=content
+                book=book, chapter_number=chapter_num, title=title, text=content
             )
             chapters_created += 1
 
@@ -142,22 +132,18 @@ class ChapterView(APIView):
 
 
 class BookCharactersView(generics.ListAPIView):
-    serializer_class = BookCharacterSerializer
+    serializer_class = None  # TODO: rewire to CharacterRelationship
     permission_classes = [permissions.AllowAny]
-    pagination_class = None  # flat list for frontend
+    pagination_class = None
 
     def get_queryset(self):
-        return BookCharacter.objects.filter(
-            book_id=self.kwargs["book_id"]
-        ).select_related("character")
+        return Book.objects.none()
 
 
 class BookRelationsView(generics.ListAPIView):
-    serializer_class = CharacterRelationSerializer
+    serializer_class = None  # TODO: rewire to CharacterRelationship
     permission_classes = [permissions.AllowAny]
-    pagination_class = None  # flat list for frontend
+    pagination_class = None
 
     def get_queryset(self):
-        return CharacterRelation.objects.filter(
-            book_id=self.kwargs["book_id"]
-        ).select_related("source", "target")
+        return Book.objects.none()

@@ -209,7 +209,7 @@ class ChapterTest(AuthTestHelper, APITestCase):
 
     def test_delete_chapters_as_moderator_returns_204(self):
         Chapter.objects.create(
-            book=self.book, chapter_number=1, title="C1", content="text"
+            book=self.book, chapter_number=1, title="C1", text="text"
         )
         self.client.force_authenticate(user=self.moderator)
         resp = self.client.delete(f"/api/books/{self.book.id}/chapters/")

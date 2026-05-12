@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -18,6 +19,11 @@ class ShelfEntry(models.Model):
     )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.WANT_TO_READ
+    )
+    start_date = models.DateField(null=True, blank=True)
+    finish_date = models.DateField(null=True, blank=True)
+    personal_rating = models.IntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
