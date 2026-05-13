@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from pathlib import Path
+
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -121,4 +122,8 @@ CELERY_TASK_ROUTES = {
 
 CORS_ALLOW_ALL_ORIGINS = False
 
-SPECTACULAR_SETTINGS = {"TITLE": "StoryShelf API", "VERSION": "1.0.0"}
+SPECTACULAR_SETTINGS = {
+    "TITLE": "StoryShelf API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}

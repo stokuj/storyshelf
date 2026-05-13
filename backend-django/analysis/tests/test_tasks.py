@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch
 
 
@@ -94,8 +93,8 @@ class TestNerChapter:
 
 class TestMergeBookNer:
     def test_upserts_entities(self, db, book):
-        from books.models import Chapter
         from analysis.models import BookCharacter, BookPlace
+        from books.models import Chapter
 
         Chapter.objects.create(
             book=book,
@@ -140,11 +139,11 @@ class TestMergeBookNer:
         assert ch.ner_pending is None
 
     def test_increments_existing_mention_count(self, db, book):
-        from books.models import Chapter
         from analysis.models import BookCharacter
+        from books.models import Chapter
 
         BookCharacter.objects.create(name="Frodo", mention_count=5)
-        ch = Chapter.objects.create(
+        Chapter.objects.create(
             book=book,
             chapter_number=1,
             text="old",

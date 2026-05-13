@@ -2,10 +2,18 @@ from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
 
 from .models import Review
-from .serializers import ReviewSerializer, ReviewCreateSerializer
+from .serializers import ReviewCreateSerializer, ReviewSerializer
 
 
 class ReviewListCreateView(generics.ListCreateAPIView):
+    """
+    GET: Płaska lista recenzji, sortowana od najnowszej.
+         Filtry: ?book_id=<id> — recenzje danej książki;
+         ?user_id=<id> — recenzje danego użytkownika.
+    POST: Utwórz recenzję (wymaga logowania). Jedno konto może wystawić max 1 recenzję per książka.
+          Po zapisie sygnał Django automatycznie aktualizuje Book.avg_rating i Book.ratings_count.
+    """
+
     pagination_class = None
 
     def get_permissions(self):
@@ -33,6 +41,12 @@ class ReviewListCreateView(generics.ListCreateAPIView):
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET: Szczegóły recenzji — publiczne.
+    PUT/PATCH: Edycja recenzji — tylko autor recenzji.
+    DELETE: Usunięcie recenzji — tylko autor recenzji. Sygnał przelicza avg_rating książki.
+    """
+
     serializer_class = ReviewSerializer
     queryset = Review.objects.select_related("user", "book").all()
 

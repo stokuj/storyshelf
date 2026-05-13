@@ -1,10 +1,9 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 
 class TestLoadNerModel:
     def test_load_with_mock_pipeline(self):
-        with patch("analysis.ner_engine.pipeline") as mock_pipeline:
+        with patch("analysis.ner_engine.pipeline"):
             from analysis.ner_engine import load_ner_model
 
             result = load_ner_model("test-model")

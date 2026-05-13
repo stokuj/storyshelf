@@ -16,17 +16,21 @@ from users.serializers import (
 
 
 class RegisterView(generics.CreateAPIView):
+    """Rejestracja nowego użytkownika. Pola: email, username, password."""
+
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class LoginView(views.APIView):
+    """Logowanie. Zwraca access token i refresh token. Pola: email, password."""
+
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
@@ -36,6 +40,8 @@ class LoginView(views.APIView):
 
 
 class LogoutView(views.APIView):
+    """Wylogowanie. Unieważnia refresh token (blacklist). Pole: refresh."""
+
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
@@ -50,6 +56,8 @@ class LogoutView(views.APIView):
 
 
 class AuthMeView(views.APIView):
+    """Zwraca stan sesji: authenticated, email, username. Używane do inicjalizacji auth w SPA."""
+
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request):
@@ -71,6 +79,11 @@ class AuthMeView(views.APIView):
 
 
 class UserProfileView(generics.RetrieveAPIView):
+    """
+    Publiczny profil użytkownika po username. Zwraca 404 jeśli profil jest prywatny
+    i requestujący nie jest właścicielem.
+    """
+
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserProfileSerializer
     lookup_field = "username"
@@ -84,6 +97,8 @@ class UserProfileView(generics.RetrieveAPIView):
 
 
 class UserSettingsView(generics.RetrieveUpdateAPIView):
+    """GET/PUT/PATCH ustawień zalogowanego użytkownika: username, bio, avatar_url."""
+
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSettingsSerializer
 
@@ -92,6 +107,8 @@ class UserSettingsView(generics.RetrieveUpdateAPIView):
 
 
 class UserVisibilityView(views.APIView):
+    """PATCH ?profilePublic=true|false — przełącza widoczność profilu zalogowanego użytkownika."""
+
     permission_classes = (permissions.IsAuthenticated,)
 
     def patch(self, request):
@@ -102,6 +119,12 @@ class UserVisibilityView(views.APIView):
 
 
 class UserFollowView(views.APIView):
+    """
+    POST: Obserwuj użytkownika o podanym username.
+          400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
+    DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
+    """
+
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, username):
@@ -133,6 +156,11 @@ class UserFollowView(views.APIView):
 
 
 class FollowListView(generics.ListAPIView):
+    """
+    Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym username.
+    follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
+    """
+
     permission_classes = (permissions.AllowAny,)
     serializer_class = FollowSerializer
     pagination_class = None  # flat list for frontend
