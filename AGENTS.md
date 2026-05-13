@@ -114,10 +114,13 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
 - **Django URLs**: all paths end with trailing slash
 - **Django views**: class-based (generics), custom permission classes defined
   inline in views.py, `pagination_class = None` where frontend expects flat arrays
-- **Django tests**: `tests/` subdirectory per app, `__init__.py` only (no test
-  content yet — tests are planned)
-- **NLP tests**: `tests/` subdirectory per analysis app, conftest sets
-  `OPENROUTER_API_KEY=fake-key`. Run with `DJANGO_ENV=dev uv run python -m pytest analysis/tests/`
+- **Django tests**: `tests/` subdirectory per app. Tests exist in:
+  `backend-django/books/tests/`, `backend-django/users/tests/`,
+  `backend-django/shelf/tests/`, `backend-django/library/tests/`,
+  `backend-django/reviews/tests/`, `backend-django/analysis/tests/`
+- **NLP tests**: `tests/` subdirectory per analysis app,
+  `test_llm_engine.py:setup_env` sets `OPENROUTER_API_KEY=fake-key`.
+  Run with `DJANGO_ENV=dev uv run python -m pytest analysis/tests/`
 - **Formatting**: Ruff configured in `backend-django/pyproject.toml` with
   `select = ["E", "F", "I", "N"]`, line-length=100, target-version=py313.
   Run `uv run ruff check .` from backend-django/.
@@ -161,10 +164,11 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   overrides this to `http://django:8000`.
 - **Trailing slashes in API calls**: the frontend `api.js` appends trailing
   slashes on all paths — Django URL patterns expect them.
-- **No Kafka**: README still mentions Kafka but it was replaced with HTTP
-  callbacks from NLP → Django in commit `22acdae`.
-- **The `backend/` directory** is legacy Java code. All active backend work is
-  in `backend-django/`.
+- **No Kafka**: Kafka was replaced with HTTP callbacks from NLP → Django in
+  commit `22acdae`. Legacy docs removed.
+- **The `backend/` directory** was legacy Java code and has been removed.
+  Legacy env vars and `.gitignore` references have also been cleaned up.
+  All backend work is in `backend-django/`.
 - **DRF pagination**: Frontend expects flat arrays, NOT `{count, results}`.
   Always set `pagination_class = None` on list endpoints consumed by the
   frontend (books, shelf, reviews, characters, relations, followers, following).
@@ -177,6 +181,7 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   but Vite listens on IPv4 only. Use `127.0.0.1` explicitly in healthcheck.
 - **RabbitMQ version**: Pin to `rabbitmq:3-management-alpine`. Version 4
   deprecates `transient_nonexcl_queues`, breaking Celery 5.6.
+- **RabbitMQ definitions.json**: Must include `"vhosts": [{"name": "/"}]` before any queue/exchange definitions. Without it, RabbitMQ 3.x crashes on startup with "Please create virtual host '/' prior to importing definitions."
 - **NLP Kafka removed**: Kafka consumer/producer replaced with HTTP callbacks
   to Django (`/api/internal/*`). `confluent-kafka` removed from dependencies.
 - **Seed data**: Use `infra/scripts/seed.py` (idempotent, `get_or_create`).
