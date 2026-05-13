@@ -90,6 +90,7 @@ class SeriesResponseStructureTest(AuthTestHelper, APITestCase):
     def test_series_response_has_cover_url(self):
         resp = self.client.get(f"/api/series/{self.serie.id}/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn("cover_url", resp.data)
 
 
 class AuthorNameUniqueTest(TestCase):
