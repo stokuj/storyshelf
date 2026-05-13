@@ -1,7 +1,7 @@
 [project]
 name = "storyshelf"
 version = "0.1.0"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "django>=6.0,<6.1",
     "djangorestframework>=3.17",
@@ -14,7 +14,7 @@ dependencies = [
     "dj-database-url>=3.1",
     "redis>=5.2",
     "torch>=2.10",
-    "transformers>=4.57",
+    "spacy>=3.7",
     "openai>=1.0",
     "tiktoken>=0.7",
     "gevent>=24",
@@ -27,6 +27,14 @@ dev = [
     "pytest-cov>=6.0",
     "ruff>=0.15.12",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
 
 [tool.ruff]
 line-length = 100
