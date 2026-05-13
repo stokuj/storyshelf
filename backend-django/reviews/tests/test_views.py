@@ -112,6 +112,14 @@ class ReviewCreateTest(AuthTestHelper, APITestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_post_review_nonexistent_book_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.post(
+            "/api/reviews/",
+            {"bookId": 99999, "rating": 3, "content": "Ghost book"},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class ReviewRetrieveTest(AuthTestHelper, APITestCase):
     @classmethod
