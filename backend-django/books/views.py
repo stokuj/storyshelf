@@ -1,17 +1,9 @@
 from django.db.models import Prefetch, Q
 from rest_framework import generics, permissions
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .models import Book, Chapter
-from analysis.models import BookCharacter, CharacterRelationship
-from .serializers import (
-    BookListSerializer,
-    BookDetailSerializer,
-    ChapterSerializer,
-    BookCharacterSerializer,
-    CharacterRelationSerializer,
-)
+from analysis.models import CharacterRelationship
+from .serializers import BookListSerializer, BookDetailSerializer
 
 
 class BookListView(generics.ListAPIView):
@@ -49,35 +41,4 @@ class BookRetrieveView(generics.RetrieveAPIView):
             "authors",
             "tags",
             "genres",
-        )
-
-
-class ChapterView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def get(self, request, book_id):
-        chapters = Chapter.objects.filter(book_id=book_id).order_by("chapter_number")
-        return Response(ChapterSerializer(chapters, many=True).data)
-
-
-class BookCharactersView(generics.ListAPIView):
-    serializer_class = BookCharacterSerializer
-    permission_classes = [permissions.AllowAny]
-    pagination_class = None
-
-    def get_queryset(self):
-        book_id = self.kwargs.get("book_id")
-        return BookCharacter.objects.filter(
-            Q(relations_from__book_id=book_id) | Q(relations_to__book_id=book_id)
-        ).distinct()
-
-
-class BookRelationsView(generics.ListAPIView):
-    serializer_class = CharacterRelationSerializer
-    permission_classes = [permissions.AllowAny]
-    pagination_class = None
-
-    def get_queryset(self):
-        return CharacterRelationship.objects.filter(book_id=self.kwargs["book_id"]).select_related(
-            "from_character", "to_character"
         )
