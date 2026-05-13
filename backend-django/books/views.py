@@ -1,4 +1,3 @@
-from django.db import models
 from django.db.models import Prefetch, Q
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -69,7 +68,7 @@ class BookCharactersView(generics.ListAPIView):
     def get_queryset(self):
         book_id = self.kwargs.get("book_id")
         return BookCharacter.objects.filter(
-            models.Q(relations_from__book_id=book_id) | models.Q(relations_to__book_id=book_id)
+            Q(relations_from__book_id=book_id) | Q(relations_to__book_id=book_id)
         ).distinct()
 
 

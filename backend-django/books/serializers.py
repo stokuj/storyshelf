@@ -1,4 +1,4 @@
-from django.db import models
+from django.db.models import Q
 from rest_framework import serializers
 from .models import Book, Chapter
 from analysis.models import BookCharacter, CharacterRelationship
@@ -140,8 +140,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         # Characters
         characters = BookCharacterSerializer(
             BookCharacter.objects.filter(
-                models.Q(relations_from__book_id=instance.id)
-                | models.Q(relations_to__book_id=instance.id)
+                Q(relations_from__book_id=instance.id) | Q(relations_to__book_id=instance.id)
             ).distinct(),
             many=True,
         ).data

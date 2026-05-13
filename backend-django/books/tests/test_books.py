@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 from config.test_helpers import AuthTestHelper
 from books.models import Book
 from library.models import Author
+from analysis.models import BookCharacter, CharacterRelationship
 
 
 class BookListViewTest(AuthTestHelper, APITestCase):
@@ -82,6 +83,29 @@ class BookCharactersTest(AuthTestHelper, APITestCase):
         resp = self.client.get(f"/api/books/{self.book.id}/characters/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, [])
+
+    def test_get_characters_scoped_per_book(self):
+        book2 = Book.objects.create(title="Other Book", isbn="888b", page_count=100, year=2023)
+        alice = BookCharacter.objects.create(name="Alice", description="", mention_count=5)
+        bob = BookCharacter.objects.create(name="Bob", description="", mention_count=3)
+        charlie = BookCharacter.objects.create(name="Charlie", description="", mention_count=7)
+        dave = BookCharacter.objects.create(name="Dave", description="", mention_count=2)
+        CharacterRelationship.objects.create(
+            from_character=alice, to_character=bob, relation_type="friend_of", book=self.book
+        )
+        CharacterRelationship.objects.create(
+            from_character=charlie, to_character=dave, relation_type="rival_of", book=book2
+        )
+
+        resp_book1 = self.client.get(f"/api/books/{self.book.id}/characters/")
+        self.assertEqual(resp_book1.status_code, status.HTTP_200_OK)
+        names1 = {c["name"] for c in resp_book1.data}
+        self.assertEqual(names1, {"Alice", "Bob"})
+
+        resp_book2 = self.client.get(f"/api/books/{book2.id}/characters/")
+        self.assertEqual(resp_book2.status_code, status.HTTP_200_OK)
+        names2 = {c["name"] for c in resp_book2.data}
+        self.assertEqual(names2, {"Charlie", "Dave"})
 
 
 class BookRelationsTest(AuthTestHelper, APITestCase):
