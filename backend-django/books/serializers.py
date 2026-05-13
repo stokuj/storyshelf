@@ -73,25 +73,6 @@ class BookListSerializer(serializers.ModelSerializer):
         return [t.name for t in obj.tags.all()]
 
 
-class BookCreateSerializer(serializers.ModelSerializer):
-    author_id = serializers.IntegerField(write_only=True)
-    genres = serializers.ListField(child=serializers.CharField(), write_only=True, default=list)
-    tags = serializers.ListField(child=serializers.CharField(), write_only=True, default=list)
-
-    class Meta:
-        model = Book
-        fields = (
-            "title",
-            "author_id",
-            "year",
-            "isbn",
-            "description",
-            "page_count",
-            "genres",
-            "tags",
-        )
-
-
 class BookDetailSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()

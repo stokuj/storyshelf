@@ -4,6 +4,7 @@ from django.db import migrations
 def upgrade_moderator_to_admin(apps, schema_editor):
     User = apps.get_model("users", "User")
     User.objects.filter(role="MODERATOR").update(role="ADMIN")
+    User.objects.filter(role="ADMIN").update(is_staff=True, is_superuser=True)
 
 
 class Migration(migrations.Migration):
