@@ -2,88 +2,89 @@ from __future__ import annotations
 
 import logging
 import os
-import time
 from collections import Counter
-from typing import Any, Callable, cast
-
-from transformers import pipeline
+from typing import Any
 
 logger = logging.getLogger(__name__)
-DEFAULT_NER_MODEL = os.getenv(
-    "NER_MODEL", "dbmdz/bert-large-cased-finetuned-conll03-english"
-)
+
+DEFAULT_NER_MODEL = os.getenv("NER_MODEL", "en_core_web_trf")
 NER_MIN_OCCURRENCES = int(os.getenv("NER_MIN_OCCURRENCES", "5"))
-_NER_PIPELINES: dict[str, Any] = {}
+
+_NLP: dict[str, Any] = {}
+
+LABEL_MAP = {
+    "PERSON": "characters",
+    "PER": "characters",
+    "ORG": "organizations",
+    "LOC": "locations",
+    "GPE": "locations",
+}
 
 
-def load_ner_model(model: str) -> bool:
-    if model in _NER_PIPELINES:
-        return True
+def _get_nlp(model: str = DEFAULT_NER_MODEL) -> Any | None:
+    if model in _NLP:
+        return _NLP[model]
     try:
-        logger.info("Loading NER model: %s (pid=%s)", model, os.getpid())
-        _NER_PIPELINES[model] = pipeline(
-            task="token-classification",
-            model=model,
-            aggregation_strategy="first",
-            stride=128,
-        )
-        logger.info("NER model loaded: %s", model)
-        return True
-    except (OSError, EnvironmentError) as exc:
-        logger.warning("Model '%s' unavailable: %s", model, exc)
-        return False
+        import spacy
+
+        logger.info("Loading spaCy model: %s", model)
+        _NLP[model] = spacy.load(model)
+        logger.info("spaCy model loaded: %s", model)
+        return _NLP[model]
+    except (OSError, ImportError) as exc:
+        logger.warning("spaCy model '%s' unavailable: %s", model, exc)
+        return None
 
 
-def extract_entities(text: str, model: str = DEFAULT_NER_MODEL) -> dict:
-    """Extract named entities from text.
+def chunk_text(text: str, chunk_size: int = 400, overlap: int = 50) -> list[str]:
+    words = text.split()
+    if not words:
+        return []
+    step = chunk_size - overlap
+    chunks = []
+    for i in range(0, len(words), step):
+        chunk = " ".join(words[i : i + chunk_size])
+        if chunk:
+            chunks.append(chunk)
+    return chunks
 
-    Returns dict: {characters, organizations, locations, miscellaneous}.
-    Each value is {name: count} sorted by count descending.
-    MISC is always empty dict — ignored per project spec.
-    """
-    if not load_ner_model(model):
+
+def extract_entities_from_chunks(
+    text: str,
+    model: str = DEFAULT_NER_MODEL,
+    chunk_size: int = 400,
+    overlap: int = 50,
+) -> dict:
+    nlp = _get_nlp(model)
+    if nlp is None:
         return {}
 
-    ner = cast(Callable[[str], list[dict]], _NER_PIPELINES[model])
-    start_time = time.perf_counter()
-    entities = ner(text)
+    chunks = chunk_text(text, chunk_size=chunk_size, overlap=overlap)
+    if not chunks:
+        return {}
 
-    group_map: dict[str, list[str]] = {
+    raw: dict[str, list[str]] = {
         "characters": [],
         "organizations": [],
         "locations": [],
-        "miscellaneous": [],
-    }
-    group_to_key = {
-        "PER": "characters",
-        "PERSON": "characters",
-        "ORG": "organizations",
-        "LOC": "locations",
-        "MISC": "miscellaneous",
     }
 
-    for entity in entities:
-        word = entity.get("word", "").strip()
-        group = entity.get("entity_group")
-        if group is not None:
-            key = group_to_key.get(str(group))
-            if word and key:
-                group_map[key].append(word)
+    for doc in nlp.pipe(chunks, batch_size=8):
+        for ent in doc.ents:
+            key = LABEL_MAP.get(ent.label_)
+            if key:
+                raw[key].append(ent.text.strip())
 
-    def sorted_counts(names: list[str], min_occ: int = 1) -> dict[str, int]:
+    def filtered_counts(names: list[str]) -> dict[str, int]:
         counts = Counter(names)
-        filtered = {n: c for n, c in counts.items() if c >= min_occ}
-        return dict(sorted(filtered.items(), key=lambda x: x[1], reverse=True))
-
-    elapsed = time.perf_counter() - start_time
-    logger.info("NER execution: %.3f s", elapsed)
+        return {
+            n: c
+            for n, c in sorted(counts.items(), key=lambda x: x[1], reverse=True)
+            if c >= NER_MIN_OCCURRENCES
+        }
 
     return {
-        "engine": "transformers",
-        "model_name": model,
-        "characters": sorted_counts(group_map["characters"], NER_MIN_OCCURRENCES),
-        "organizations": sorted_counts(group_map["organizations"], NER_MIN_OCCURRENCES),
-        "locations": sorted_counts(group_map["locations"], NER_MIN_OCCURRENCES),
-        "miscellaneous": {},
-        "execution_time_seconds": round(elapsed, 3),
+        "characters": filtered_counts(raw["characters"]),
+        "organizations": filtered_counts(raw["organizations"]),
+        "locations": filtered_counts(raw["locations"]),
     }

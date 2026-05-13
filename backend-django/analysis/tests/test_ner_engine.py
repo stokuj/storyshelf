@@ -1,62 +1,102 @@
 from unittest.mock import MagicMock, patch
 
 
-class TestLoadNerModel:
-    def test_load_with_mock_pipeline(self):
-        with patch("analysis.ner_engine.pipeline"):
-            from analysis.ner_engine import load_ner_model
-
-            result = load_ner_model("test-model")
-            assert result is True
-
-    def test_load_returns_false_on_error(self):
-        with patch("analysis.ner_engine.pipeline", side_effect=OSError("no model")):
-            from analysis.ner_engine import load_ner_model
-
-            result = load_ner_model("missing-model")
-            assert result is False
+def make_ent(text, label):
+    ent = MagicMock()
+    ent.text = text
+    ent.label_ = label
+    return ent
 
 
-class TestExtractEntities:
-    def test_groups_by_entity_type(self):
-        fake_pipeline = MagicMock()
-        fake_pipeline.return_value = [
-            {"word": "Frodo", "entity_group": "PER"},
-            {"word": "Frodo", "entity_group": "PER"},
-            {"word": "Gandalf", "entity_group": "PER"},
-            {"word": "Shire", "entity_group": "LOC"},
-            {"word": "Fellowship", "entity_group": "ORG"},
-        ]
-        with patch("analysis.ner_engine.load_ner_model", return_value=True):
-            with patch(
-                "analysis.ner_engine._NER_PIPELINES", {"test-model": fake_pipeline}
-            ):
-                with patch("analysis.ner_engine.NER_MIN_OCCURRENCES", 1):
-                    from analysis.ner_engine import extract_entities
+def make_doc(ents):
+    doc = MagicMock()
+    doc.ents = ents
+    return doc
 
-                    result = extract_entities("text", model="test-model")
-        assert result["characters"] == {"Frodo": 2, "Gandalf": 1}
-        assert result["locations"] == {"Shire": 1}
-        assert result["organizations"] == {"Fellowship": 1}
-        assert result["miscellaneous"] == {}
 
-    def test_misc_always_empty(self):
-        fake_pipeline = MagicMock()
-        fake_pipeline.return_value = [
-            {"word": "Sword", "entity_group": "MISC"},
-        ]
-        with patch("analysis.ner_engine.load_ner_model", return_value=True):
-            with patch(
-                "analysis.ner_engine._NER_PIPELINES", {"test-model": fake_pipeline}
-            ):
-                from analysis.ner_engine import extract_entities
+class TestChunkText:
+    def test_single_chunk_for_short_text(self):
+        from analysis.ner_engine import chunk_text
 
-                result = extract_entities("text", model="test-model")
-        assert result["miscellaneous"] == {}
+        chunks = chunk_text("word " * 100, chunk_size=400, overlap=50)
+        assert len(chunks) == 1
 
-    def test_returns_empty_on_failed_load(self):
-        with patch("analysis.ner_engine.load_ner_model", return_value=False):
-            from analysis.ner_engine import extract_entities
+    def test_multiple_chunks_for_long_text(self):
+        from analysis.ner_engine import chunk_text
 
-            result = extract_entities("text")
+        chunks = chunk_text("word " * 1000, chunk_size=400, overlap=50)
+        assert len(chunks) > 1
+
+    def test_overlap_means_chunks_share_words(self):
+        from analysis.ner_engine import chunk_text
+
+        text = " ".join(str(i) for i in range(500))
+        chunks = chunk_text(text, chunk_size=400, overlap=50)
+        last_words_of_first = set(chunks[0].split()[-50:])
+        first_words_of_second = set(chunks[1].split()[:50])
+        assert last_words_of_first & first_words_of_second
+
+
+class TestExtractEntitiesFromChunks:
+    def test_aggregates_characters_across_chunks(self):
+        from analysis.ner_engine import extract_entities_from_chunks
+
+        mock_nlp = MagicMock()
+        mock_nlp.pipe.return_value = iter([
+            make_doc([make_ent("Frodo", "PERSON"), make_ent("Frodo", "PERSON")]),
+            make_doc([make_ent("Frodo", "PERSON"), make_ent("Gandalf", "PERSON")]),
+        ])
+        with patch("analysis.ner_engine._get_nlp", return_value=mock_nlp):
+            with patch("analysis.ner_engine.NER_MIN_OCCURRENCES", 1):
+                result = extract_entities_from_chunks("some text")
+
+        assert result["characters"]["Frodo"] == 3
+        assert result["characters"]["Gandalf"] == 1
+
+    def test_filters_by_min_occurrences(self):
+        from analysis.ner_engine import extract_entities_from_chunks
+
+        mock_nlp = MagicMock()
+        mock_nlp.pipe.return_value = iter([
+            make_doc([make_ent("Frodo", "PERSON"), make_ent("Rare", "PERSON")]),
+        ])
+        with patch("analysis.ner_engine._get_nlp", return_value=mock_nlp):
+            with patch("analysis.ner_engine.NER_MIN_OCCURRENCES", 2):
+                result = extract_entities_from_chunks("some text")
+
+        assert "Frodo" not in result["characters"]
+        assert "Rare" not in result["characters"]
+
+    def test_returns_empty_when_nlp_fails(self):
+        from analysis.ner_engine import extract_entities_from_chunks
+
+        with patch("analysis.ner_engine._get_nlp", return_value=None):
+            result = extract_entities_from_chunks("some text")
+
         assert result == {}
+
+    def test_loc_goes_to_locations(self):
+        from analysis.ner_engine import extract_entities_from_chunks
+
+        mock_nlp = MagicMock()
+        mock_nlp.pipe.return_value = iter([
+            make_doc([make_ent("Shire", "LOC")]),
+        ])
+        with patch("analysis.ner_engine._get_nlp", return_value=mock_nlp):
+            with patch("analysis.ner_engine.NER_MIN_OCCURRENCES", 1):
+                result = extract_entities_from_chunks("some text")
+
+        assert result["locations"]["Shire"] == 1
+
+    def test_org_goes_to_organizations(self):
+        from analysis.ner_engine import extract_entities_from_chunks
+
+        mock_nlp = MagicMock()
+        mock_nlp.pipe.return_value = iter([
+            make_doc([make_ent("Fellowship", "ORG")]),
+        ])
+        with patch("analysis.ner_engine._get_nlp", return_value=mock_nlp):
+            with patch("analysis.ner_engine.NER_MIN_OCCURRENCES", 1):
+                result = extract_entities_from_chunks("some text")
+
+        assert result["organizations"]["Fellowship"] == 1
