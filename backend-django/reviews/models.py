@@ -5,9 +5,11 @@ from django.db import models
 
 class Review(models.Model):
     book = models.ForeignKey(
-        "books.Book", on_delete=models.CASCADE, related_name="reviews"
+        "books.Book", on_delete=models.CASCADE, related_name="reviews", db_index=True
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=True
+    )
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
