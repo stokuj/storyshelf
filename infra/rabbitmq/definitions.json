@@ -7,24 +7,6 @@
   ],
   "queues": [
     {
-      "name": "ner",
-      "vhost": "/",
-      "durable": true,
-      "arguments": {
-        "x-dead-letter-exchange": "dlx",
-        "x-dead-letter-routing-key": "dead"
-      }
-    },
-    {
-      "name": "llm",
-      "vhost": "/",
-      "durable": true,
-      "arguments": {
-        "x-dead-letter-exchange": "dlx",
-        "x-dead-letter-routing-key": "dead"
-      }
-    },
-    {
       "name": "dead_letter",
       "vhost": "/",
       "durable": true,
@@ -35,5 +17,8 @@
   ],
   "bindings": [
     {"source": "dlx", "vhost": "/", "destination": "dead_letter", "destination_type": "queue", "routing_key": "dead"}
+  ],
+  "permissions": [
+    {"user": "celery", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*"}
   ]
 }

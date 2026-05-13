@@ -27,7 +27,7 @@ services:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       db:
@@ -44,7 +44,7 @@ services:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     restart: unless-stopped
     depends_on:
@@ -59,7 +59,7 @@ services:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     restart: unless-stopped
     depends_on:
@@ -73,10 +73,10 @@ services:
     ports:
       - "5555:5555"
     environment:
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
     depends_on:
       - rabbitmq
-    command: celery -A config flower --port=5555 --broker=amqp://rabbitmq:5672//
+    command: celery -A config flower --port=5555 --broker=amqp://celery:celery@rabbitmq:5672//
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -86,6 +86,8 @@ services:
     volumes:
       - ../rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     environment:
+      RABBITMQ_DEFAULT_USER: celery
+      RABBITMQ_DEFAULT_PASS: celery
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
