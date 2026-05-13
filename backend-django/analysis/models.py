@@ -2,27 +2,45 @@ from django.db import models
 
 
 class BookCharacter(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    book = models.ForeignKey(
+        "books.Book", on_delete=models.CASCADE, related_name="characters"
+    )
+    name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     mention_count = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("name", "book")
 
     def __str__(self):
         return self.name
 
 
 class BookPlace(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    book = models.ForeignKey(
+        "books.Book", on_delete=models.CASCADE, related_name="places"
+    )
+    name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     mention_count = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("name", "book")
 
     def __str__(self):
         return self.name
 
 
 class BookOrganization(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    book = models.ForeignKey(
+        "books.Book", on_delete=models.CASCADE, related_name="organizations"
+    )
+    name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     mention_count = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ("name", "book")
 
     def __str__(self):
         return self.name
@@ -70,6 +88,4 @@ class CharacterRelationship(models.Model):
         unique_together = ("from_character", "to_character", "book")
 
     def __str__(self):
-        return (
-            f"{self.from_character.name} {self.relation_type} {self.to_character.name}"
-        )
+        return f"{self.from_character.name} {self.relation_type} {self.to_character.name}"

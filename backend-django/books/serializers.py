@@ -3,24 +3,27 @@ from rest_framework import serializers
 
 from analysis.models import BookCharacter, CharacterRelationship
 
-from .models import Book, Chapter
+from .models import Book
+# TODO(task5): Chapter removed
+# from .models import Book, Chapter
 
 
-class ChapterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chapter
-        fields = (
-            "id",
-            "book_id",
-            "chapter_number",
-            "title",
-            "analysis_completed",
-            "char_count",
-            "char_count_clean",
-            "word_count",
-            "token_count",
-        )
-        read_only_fields = ("book_id", "analysis_completed")
+# TODO(task5): ChapterSerializer removed
+# class ChapterSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Chapter
+#         fields = (
+#             "id",
+#             "book_id",
+#             "chapter_number",
+#             "title",
+#             "analysis_completed",
+#             "char_count",
+#             "char_count_clean",
+#             "word_count",
+#             "token_count",
+#         )
+#         read_only_fields = ("book_id", "analysis_completed")
 
 
 class BookCharacterSerializer(serializers.ModelSerializer):
@@ -106,17 +109,8 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         # Build book object
         book_data = super().to_representation(instance)
 
-        # Analysis status
-        finished = (
-            instance.ner_completed_count >= instance.chapters_count
-            if instance.chapters_count > 0
-            else False
-        )
-        book_data["analysisStatus"] = {
-            "chaptersCount": instance.chapters_count,
-            "nerCompletedCount": instance.ner_completed_count,
-            "analysisFinished": finished,
-        }
+        # TODO(task5): analysisStatus removed (chapters_count / ner_completed_count gone)
+        # book_data["analysisStatus"] = { ... }
 
         # Series info (fallbacks for frontend)
         if instance.serie:
@@ -136,8 +130,8 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
             except Exception:
                 pass
 
-        # Chapters
-        chapters = ChapterSerializer(instance.chapters.order_by("chapter_number"), many=True).data
+        # TODO(task5): chapters removed
+        # chapters = ChapterSerializer(instance.chapters.order_by("chapter_number"), many=True).data
 
         # Characters
         characters = BookCharacterSerializer(
@@ -156,7 +150,6 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         return {
             "book": book_data,
             "shelfEntry": shelf_entry,
-            "chapters": chapters,
             "characters": characters,
             "relations": relations,
         }

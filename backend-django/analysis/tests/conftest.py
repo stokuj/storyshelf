@@ -18,18 +18,18 @@ def user(db):
 def book(db):
     from books.models import Book
 
-    return Book.objects.create(title="Test Book")
+    return Book.objects.create(title="Test Book", year=2020, page_count=100)
 
 
 @pytest.fixture
-def character_a(db):
+def character_a(db, book):
     from analysis.models import BookCharacter
 
-    return BookCharacter.objects.create(name="Frodo")
+    return BookCharacter.objects.create(name="Frodo", book=book)
 
 
 @pytest.fixture
-def character_b(db):
+def character_b(db, book):
     from analysis.models import BookCharacter
 
-    return BookCharacter.objects.create(name="Sam")
+    return BookCharacter.objects.create(name="Sam", book=book)

@@ -3,7 +3,9 @@ from rest_framework import generics, permissions
 
 from analysis.models import CharacterRelationship
 
-from .models import Book, Chapter
+from .models import Book
+# TODO(task5): Chapter removed
+# from .models import Book, Chapter
 from .serializers import BookDetailSerializer, BookListSerializer
 
 
@@ -32,8 +34,7 @@ class BookListView(generics.ListAPIView):
 
 class BookRetrieveView(generics.RetrieveAPIView):
     """
-    Szczegóły książki wraz z rozdziałami (posortowanymi), relacjami między postaciami,
-    autorami, tagami i gatunkami.
+    Szczegóły książki wraz z relacjami między postaciami, autorami, tagami i gatunkami.
     """
 
     serializer_class = BookDetailSerializer
@@ -41,7 +42,8 @@ class BookRetrieveView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Book.objects.prefetch_related(
-            Prefetch("chapters", queryset=Chapter.objects.order_by("chapter_number")),
+            # TODO(task5): chapters prefetch removed
+            # Prefetch("chapters", queryset=Chapter.objects.order_by("chapter_number")),
             Prefetch(
                 "character_relationships",
                 queryset=CharacterRelationship.objects.select_related(
