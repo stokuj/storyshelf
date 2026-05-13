@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
-    "django_filters",
     "drf_spectacular",
     "users.apps.UsersConfig",
     "books.apps.BooksConfig",
@@ -93,9 +92,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.getenv("JWT_ACCESS_LIFETIME_MINUTES", "30"))
-    ),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("JWT_ACCESS_LIFETIME_MINUTES", "30"))),
     "REFRESH_TOKEN_LIFETIME": timedelta(
         minutes=int(os.getenv("JWT_REFRESH_LIFETIME_MINUTES", "1440"))
     ),
