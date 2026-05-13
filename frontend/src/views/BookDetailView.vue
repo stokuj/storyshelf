@@ -270,7 +270,7 @@ import { computed, reactive, onMounted, ref, watch } from 'vue'
 import NotFoundState from '../components/NotFoundState.vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import {
   addToBookshelf,
   createBookReview,

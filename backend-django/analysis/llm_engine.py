@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import openai
-from openai import AsyncOpenAI, OpenAI
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +33,9 @@ class LLMService:
 
     def __init__(self, model: str = LLM_MODEL) -> None:
         self._model = model
-        self._async_client = AsyncOpenAI(
-            base_url=OPENROUTER_BASE_URL,
+        self._client = OpenAI(
             api_key=OPENROUTER_API_KEY,
+            base_url=OPENROUTER_BASE_URL,
         )
         self._sync_client = OpenAI(
             base_url=OPENROUTER_BASE_URL,
@@ -73,42 +73,12 @@ RULES:
 RETURN ONLY JSON:
 {{"relations": [{{"source": "...", "relation": "...", "target": "...", "evidence": "..."}}]}}"""
 
-    async def extract_relations(self, pair: list[str], sentences: list[str]) -> str:
+    def extract_relations(self, pair: list[str], sentences: list[str]) -> str:
+        """Extract character relations using LLM."""
         prompt = self._get_prompt(pair, sentences)
-        logger.info("Extracting relations for pair (async): %s", pair)
+        logger.info("Extracting relations for pair: %s", pair)
         try:
-            response = await self._async_client.chat.completions.create(
-                model=self._model,
-                max_tokens=LLM_MAX_TOKENS,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a literary analysis expert. Return only valid JSON.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                extra_body={"reasoning": {"enabled": False}},
-            )
-            content = response.choices[0].message.content
-            if content is None:
-                logger.warning("LLM returned None for pair: %s", pair)
-                return '{"relations": []}'
-            return content
-        except (
-            openai.RateLimitError,
-            openai.APITimeoutError,
-            openai.APIConnectionError,
-            openai.APIError,
-        ) as e:
-            logger.error("API error for pair %s: %s", pair, e)
-            return '{"relations": []}'
-
-    def extract_relations_sync(self, pair: list[str], sentences: list[str]) -> str:
-        """Synchronous version for Celery workers."""
-        prompt = self._get_prompt(pair, sentences)
-        logger.info("Extracting relations for pair (sync): %s", pair)
-        try:
-            response = self._sync_client.chat.completions.create(
+            response = self._client.chat.completions.create(
                 model=self._model,
                 max_tokens=LLM_MAX_TOKENS,
                 messages=[

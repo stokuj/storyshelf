@@ -6,7 +6,6 @@ export const authState = reactive({
   authenticated: false,
   email: null,
   username: null,
-  role: null,
 })
 
 function applySession(data) {
@@ -14,7 +13,6 @@ function applySession(data) {
   authState.authenticated = Boolean(data?.authenticated)
   authState.email = data?.email ?? null
   authState.username = data?.username ?? null
-  authState.role = data?.role ?? null
 }
 
 export async function refreshAuth() {

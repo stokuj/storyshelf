@@ -36,7 +36,7 @@ class TestExtractRelations:
             from analysis.llm_engine import LLMService
 
             svc = LLMService(model="test")
-            result = svc.extract_relations_sync(["Frodo", "Sam"], ["walked together"])
+            result = svc.extract_relations(["Frodo", "Sam"], ["walked together"])
         parsed = json.loads(result)
         assert len(parsed["relations"]) == 1
 
@@ -50,7 +50,7 @@ class TestExtractRelations:
             from analysis.llm_engine import LLMService
 
             svc = LLMService(model="test")
-            result = svc.extract_relations_sync(["A", "B"], ["t"])
+            result = svc.extract_relations(["A", "B"], ["t"])
         assert result == '{"relations": []}'
 
     def test_returns_empty_on_api_error(self):
@@ -63,7 +63,7 @@ class TestExtractRelations:
             from analysis.llm_engine import LLMService
 
             svc = LLMService(model="test")
-            result = svc.extract_relations_sync(["A", "B"], ["t"])
+            result = svc.extract_relations(["A", "B"], ["t"])
         assert result == '{"relations": []}'
 
     def test_sanitize_removes_injection(self):

@@ -34,9 +34,7 @@ def ner_chapter(self, chapter_id: int, content: str):
     chapter.ner_pending = result
     chapter.save(update_fields=["ner_pending"])
 
-    Book.objects.filter(id=chapter.book_id).update(
-        ner_completed_count=F("ner_completed_count") + 1
-    )
+    Book.objects.filter(id=chapter.book_id).update(ner_completed_count=F("ner_completed_count") + 1)
 
     book = Book.objects.get(id=chapter.book_id)
     if book.ner_completed_count >= book.chapters_count:
@@ -126,7 +124,7 @@ def relations_for_book(self, book_id: int, pairs_data: list[dict]):
         sentences = item["sentences"]
         if not sentences:
             continue
-        result_json = llm_service.extract_relations_sync(pair, sentences)
+        result_json = llm_service.extract_relations(pair, sentences)
         try:
             result = json.loads(result_json)
         except json.JSONDecodeError:

@@ -76,7 +76,7 @@ import LoadingSpinner from '../components/LoadingSpinner.vue'
 const activeFilter = ref('ALL')
 const entries = ref([])
 const { loading, error, execute } = useAsyncState()
-const { loading: mutating, error: mutateError, execute: executeMutate } = useAsyncState()
+const { error: mutateError, execute: executeMutate } = useAsyncState()
 loading.value = true
 
 const filters = [

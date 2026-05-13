@@ -3,7 +3,6 @@ from .models import (
     Book,
     Chapter,
     BookAuthor,
-    BookTag,
 )
 from analysis.admin import analyze_selected_books
 
