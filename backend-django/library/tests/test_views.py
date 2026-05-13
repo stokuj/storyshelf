@@ -1,3 +1,5 @@
+from django.db import IntegrityError
+from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -90,9 +92,8 @@ class SeriesResponseStructureTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
-class AuthorNameUniqueTest(APITestCase):
+class AuthorNameUniqueTest(TestCase):
     def test_duplicate_author_name_raises_integrity_error(self):
-        from django.db import IntegrityError
         Author.objects.create(name="Jane Austen")
         with self.assertRaises(IntegrityError):
             Author.objects.create(name="Jane Austen")
