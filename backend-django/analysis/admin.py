@@ -6,25 +6,28 @@ from analysis.models import (
     BookPlace,
     CharacterRelationship,
 )
-from analysis.tasks import analyse_chapter, ner_chapter
+from analysis.tasks import analyse_book
 
 
 @admin.register(BookCharacter)
 class BookCharacterAdmin(admin.ModelAdmin):
-    list_display = ("name", "mention_count")
+    list_display = ("name", "book", "mention_count")
     search_fields = ("name",)
+    list_filter = ("book",)
 
 
 @admin.register(BookPlace)
 class BookPlaceAdmin(admin.ModelAdmin):
-    list_display = ("name", "mention_count")
+    list_display = ("name", "book", "mention_count")
     search_fields = ("name",)
+    list_filter = ("book",)
 
 
 @admin.register(BookOrganization)
 class BookOrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "mention_count")
+    list_display = ("name", "book", "mention_count")
     search_fields = ("name",)
+    list_filter = ("book",)
 
 
 @admin.register(CharacterRelationship)
@@ -34,17 +37,12 @@ class CharacterRelationshipAdmin(admin.ModelAdmin):
     search_fields = ("from_character__name", "to_character__name")
 
 
-@admin.action(description="Analyze selected books (all chapters)")
+@admin.action(description="Analyse selected books (NER + LLM)")
 def analyze_selected_books(modeladmin, request, queryset):
-    books_triggered = 0
+    triggered = 0
     for book in queryset:
-        if not book.chapters.exists():
+        if not book.text:
             continue
-        book.ner_completed_count = 0
-        book.save()
-        for chapter in book.chapters.all():
-            if chapter.text:
-                analyse_chapter.delay(chapter.id, chapter.text)
-                ner_chapter.delay(chapter.id, chapter.text)
-        books_triggered += 1
-    messages.success(request, f"Analysis dispatched for {books_triggered} books.")
+        analyse_book.delay(book.id)
+        triggered += 1
+    messages.success(request, f"Analysis dispatched for {triggered} books.")
