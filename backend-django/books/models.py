@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -25,11 +26,11 @@ class Book(models.Model):
         blank=True,
         related_name="books",
     )
-    title = models.CharField(max_length=500, blank=True, default="")
-    year = models.IntegerField(default=0)
-    isbn = models.CharField(max_length=20, blank=True, default="")
+    title = models.CharField(max_length=500)
+    year = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    isbn = models.CharField(max_length=20, unique=True, null=True, blank=True, default=None)
     description = models.TextField(blank=True, default="")
-    page_count = models.IntegerField(default=0)
+    page_count = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     position_in_series = models.IntegerField(null=True, blank=True)
     chapters_count = models.IntegerField(default=0)
     ner_completed_count = models.IntegerField(default=0)
