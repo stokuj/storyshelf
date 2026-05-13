@@ -1,3 +1,4 @@
+from django.db import models
 from django.db.models import Prefetch, Q
 from rest_framework import generics, permissions
 from rest_framework.response import Response
@@ -66,7 +67,10 @@ class BookCharactersView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        return BookCharacter.objects.all()
+        book_id = self.kwargs.get("book_id")
+        return BookCharacter.objects.filter(
+            models.Q(relations_from__book_id=book_id) | models.Q(relations_to__book_id=book_id)
+        ).distinct()
 
 
 class BookRelationsView(generics.ListAPIView):
