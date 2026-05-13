@@ -97,3 +97,41 @@ class AuthorNameUniqueTest(TestCase):
         Author.objects.create(name="Jane Austen")
         with self.assertRaises(IntegrityError):
             Author.objects.create(name="Jane Austen")
+
+
+class GenreListViewTest(AuthTestHelper, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        AuthTestHelper.setUpTestData()
+        from library.models import Genre
+        cls.genre = Genre.objects.create(name="Fantasy")
+
+    def test_get_list_returns_200_with_array(self):
+        resp = self.client.get("/api/genres/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(resp.data, list)
+        self.assertGreaterEqual(len(resp.data), 1)
+
+    def test_get_list_sorted_alphabetically(self):
+        from library.models import Genre
+        Genre.objects.create(name="Adventure")
+        resp = self.client.get("/api/genres/")
+        names = [g["name"] for g in resp.data]
+        self.assertEqual(names, sorted(names))
+
+
+class GenreRetrieveViewTest(AuthTestHelper, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        AuthTestHelper.setUpTestData()
+        from library.models import Genre
+        cls.genre = Genre.objects.create(name="Horror")
+
+    def test_get_detail_returns_200(self):
+        resp = self.client.get(f"/api/genres/{self.genre.id}/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["name"], "Horror")
+
+    def test_get_nonexistent_returns_404(self):
+        resp = self.client.get("/api/genres/99999/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
