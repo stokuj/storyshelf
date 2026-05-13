@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework import serializers
 from .models import Book, Chapter
 from analysis.models import BookCharacter, CharacterRelationship
@@ -144,7 +145,13 @@ class BookDetailSerializer(serializers.ModelSerializer):
         chapters = ChapterSerializer(instance.chapters.order_by("chapter_number"), many=True).data
 
         # Characters
-        characters = BookCharacterSerializer(BookCharacter.objects.all(), many=True).data
+        characters = BookCharacterSerializer(
+            BookCharacter.objects.filter(
+                models.Q(relations_from__book_id=instance.id)
+                | models.Q(relations_to__book_id=instance.id)
+            ).distinct(),
+            many=True,
+        ).data
 
         # Relations
         relations = CharacterRelationSerializer(
