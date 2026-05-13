@@ -151,18 +151,10 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
             many=True,
         ).data
 
-        # Reviews
-        from reviews.serializers import ReviewSerializer
-
-        reviews = ReviewSerializer(
-            instance.reviews.select_related("user").order_by("-created_at"), many=True
-        ).data
-
         return {
             "book": book_data,
             "shelfEntry": shelf_entry,
             "chapters": chapters,
-            "reviews": reviews,
             "characters": characters,
             "relations": relations,
         }

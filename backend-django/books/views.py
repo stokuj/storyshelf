@@ -37,7 +37,6 @@ class BookRetrieveView(generics.RetrieveAPIView):
                     "from_character", "to_character"
                 ),
             ),
-            Prefetch("reviews"),
             "authors",
             "tags",
             "genres",

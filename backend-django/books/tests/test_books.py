@@ -52,7 +52,6 @@ class BookDetailTest(AuthTestHelper, APITestCase):
         self.assertIn("chapters", resp.data)
         self.assertIn("characters", resp.data)
         self.assertIn("relations", resp.data)
-        self.assertIn("reviews", resp.data)
         self.assertEqual(resp.data["book"]["title"], "Detail Book")
 
     def test_get_nonexistent_book_returns_404(self):
