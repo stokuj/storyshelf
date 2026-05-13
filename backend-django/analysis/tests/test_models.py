@@ -3,25 +3,25 @@ from django.db import IntegrityError
 
 
 class TestBookCharacter:
-    def test_create(self, db):
+    def test_create(self, db, book):
         from analysis.models import BookCharacter
 
-        c = BookCharacter.objects.create(name="Frodo", mention_count=5)
+        c = BookCharacter.objects.create(name="Frodo", book=book, mention_count=5)
         assert c.name == "Frodo"
         assert c.mention_count == 5
         assert c.description is None
 
-    def test_name_unique(self, db):
+    def test_name_unique(self, db, book):
         from analysis.models import BookCharacter
 
-        BookCharacter.objects.create(name="Gandalf")
+        BookCharacter.objects.create(name="Gandalf", book=book)
         with pytest.raises(IntegrityError):
-            BookCharacter.objects.create(name="Gandalf")
+            BookCharacter.objects.create(name="Gandalf", book=book)
 
-    def test_mention_count_default(self, db):
+    def test_mention_count_default(self, db, book):
         from analysis.models import BookCharacter
 
-        c = BookCharacter.objects.create(name="Sam")
+        c = BookCharacter.objects.create(name="Sam", book=book)
         assert c.mention_count == 0
 
 
@@ -55,20 +55,17 @@ class TestCharacterRelationship:
             )
 
 
-class TestChapterNerPending:
-    def test_ner_pending_nullable(self, db, book):
-        from books.models import Chapter
+class TestBookText:
+    def test_text_field_blank_by_default(self, db, book):
+        from books.models import Book
 
-        c = Chapter.objects.create(book=book, chapter_number=1, text="test")
-        assert c.ner_pending is None
+        b = Book.objects.get(pk=book.pk)
+        assert b.text == ""
 
-    def test_ner_pending_stores_json(self, db, book):
-        from books.models import Chapter
+    def test_text_field_stores_content(self, db, book):
+        from books.models import Book
 
-        c = Chapter.objects.create(
-            book=book,
-            chapter_number=1,
-            text="t",
-            ner_pending={"characters": {"Frodo": 1}},
-        )
-        assert c.ner_pending == {"characters": {"Frodo": 1}}
+        book.text = "Frodo and Gandalf met in the Shire."
+        book.save()
+        b = Book.objects.get(pk=book.pk)
+        assert b.text == "Frodo and Gandalf met in the Shire."

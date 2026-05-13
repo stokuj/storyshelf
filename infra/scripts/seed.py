@@ -284,7 +284,7 @@ def seed():
                 "year": entry["year"],
                 "description": entry["description"],
                 "page_count": entry["page_count"],
-                "rating": entry["rating"],
+                "avg_rating": entry["rating"],
                 "ratings_count": entry["ratings_count"],
             },
         )

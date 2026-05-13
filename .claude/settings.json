@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run ruff check *)",
+      "Bash(uv run python manage.py check *)",
+      "Bash(uv run python manage.py migrate --check *)",
+      "Bash(uv run python -c *)"
+    ]
+  }
+}
