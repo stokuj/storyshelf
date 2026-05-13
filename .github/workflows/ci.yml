@@ -73,18 +73,3 @@ jobs:
           push: true
           tags: ghcr.io/stokuj/storyshelf-frontend:main
 
-  # deploy:
-  #   needs: build-and-push
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Deploy to VPS
-  #       uses: appleboy/ssh-action@v1
-  #       with:
-  #         host: ${{ secrets.VPS_HOST }}
-  #         username: ${{ secrets.VPS_USER }}
-  #         key: ${{ secrets.VPS_SSH_KEY }}
-  #         script: |
-  #           cd /opt/storyshelf
-  #           docker compose pull
-  #           docker compose up -d
