@@ -1,11 +1,7 @@
-from django.db.models import Prefetch, Q
+from django.db.models import Q
 from rest_framework import generics, permissions
 
-from analysis.models import CharacterRelationship
-
 from .models import Book
-# TODO(task5): Chapter removed
-# from .models import Book, Chapter
 from .serializers import BookDetailSerializer, BookListSerializer
 
 
@@ -42,15 +38,10 @@ class BookRetrieveView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Book.objects.prefetch_related(
-            # TODO(task5): chapters prefetch removed
-            # Prefetch("chapters", queryset=Chapter.objects.order_by("chapter_number")),
-            Prefetch(
-                "character_relationships",
-                queryset=CharacterRelationship.objects.select_related(
-                    "from_character", "to_character"
-                ),
-            ),
             "authors",
             "tags",
             "genres",
+            "characters",
+            "character_relationships__from_character",
+            "character_relationships__to_character",
         )

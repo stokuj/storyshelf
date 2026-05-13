@@ -45,11 +45,10 @@ class BookDetailTest(AuthTestHelper, APITestCase):
         cls.book.authors.add(cls.author)
         cls.book.tags.set([])
 
-    def test_get_detail_returns_200_with_book_and_chapters(self):
+    def test_get_detail_returns_200_with_book_data(self):
         resp = self.client.get(f"/api/books/{self.book.id}/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertIn("book", resp.data)
-        self.assertIn("chapters", resp.data)
         self.assertIn("characters", resp.data)
         self.assertIn("relations", resp.data)
         self.assertEqual(resp.data["book"]["title"], "Detail Book")

@@ -113,10 +113,7 @@ CELERY_TASK_DEFAULT_RETRY_DELAY = 10
 CELERY_TASK_MAX_RETRIES = 3
 
 CELERY_TASK_ROUTES = {
-    "analysis.tasks.analyse_chapter": {"queue": "ner"},
-    "analysis.tasks.ner_chapter": {"queue": "ner"},
-    "analysis.tasks.merge_book_ner": {"queue": "ner"},
-    "analysis.tasks.find_pairs": {"queue": "ner"},
+    "analysis.tasks.analyse_book": {"queue": "ner"},
     "analysis.tasks.relations_for_book": {"queue": "llm"},
 }
 

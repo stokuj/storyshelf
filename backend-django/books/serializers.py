@@ -1,33 +1,12 @@
-from django.db.models import Q
 from rest_framework import serializers
 
 from analysis.models import BookCharacter, CharacterRelationship
 
 from .models import Book
-# TODO(task5): Chapter removed
-# from .models import Book, Chapter
-
-
-# TODO(task5): ChapterSerializer removed
-# class ChapterSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Chapter
-#         fields = (
-#             "id",
-#             "book_id",
-#             "chapter_number",
-#             "title",
-#             "analysis_completed",
-#             "char_count",
-#             "char_count_clean",
-#             "word_count",
-#             "token_count",
-#         )
-#         read_only_fields = ("book_id", "analysis_completed")
 
 
 class BookCharacterSerializer(serializers.ModelSerializer):
-    mentionCount = serializers.IntegerField(source="mention_count")
+    mentionCount = serializers.IntegerField(source="mention_count")  # noqa: N815
 
     class Meta:
         model = BookCharacter
@@ -35,8 +14,8 @@ class BookCharacterSerializer(serializers.ModelSerializer):
 
 
 class CharacterRelationSerializer(serializers.ModelSerializer):
-    sourceCharacterName = serializers.CharField(source="from_character.name")
-    targetCharacterName = serializers.CharField(source="to_character.name")
+    sourceCharacterName = serializers.CharField(source="from_character.name")  # noqa: N815
+    targetCharacterName = serializers.CharField(source="to_character.name")  # noqa: N815
 
     class Meta:
         model = CharacterRelationship
@@ -85,7 +64,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
-    ratingsCount = serializers.IntegerField(source="ratings_count")
+    ratingsCount = serializers.IntegerField(source="ratings_count")  # noqa: N815
 
     class Meta:
         model = Book
@@ -105,20 +84,17 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get("request")
-
-        # Build book object
         book_data = super().to_representation(instance)
 
-        # TODO(task5): analysisStatus removed (chapters_count / ner_completed_count gone)
-        # book_data["analysisStatus"] = { ... }
+        book_data["analysisStatus"] = {
+            "analysisFinished": BookCharacter.objects.filter(book=instance).exists(),
+        }
 
-        # Series info (fallbacks for frontend)
         if instance.serie:
             book_data["series"] = {"name": instance.serie.name}
         book_data["seriesName"] = instance.serie.name if instance.serie else None
         book_data["seriesTitle"] = None
 
-        # Shelf entry
         shelf_entry = None
         if request and request.user.is_authenticated:
             try:
@@ -130,18 +106,11 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
             except Exception:
                 pass
 
-        # TODO(task5): chapters removed
-        # chapters = ChapterSerializer(instance.chapters.order_by("chapter_number"), many=True).data
-
-        # Characters
         characters = BookCharacterSerializer(
-            BookCharacter.objects.filter(
-                Q(relations_from__book_id=instance.id) | Q(relations_to__book_id=instance.id)
-            ).distinct(),
+            BookCharacter.objects.filter(book=instance),
             many=True,
         ).data
 
-        # Relations
         relations = CharacterRelationSerializer(
             instance.character_relationships.select_related("from_character", "to_character"),
             many=True,
