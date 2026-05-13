@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from config.test_helpers import AuthTestHelper
-from library.models import Author, Serie
+from library.models import Author, Genre, Serie
 
 
 class AuthorListViewTest(AuthTestHelper, APITestCase):
@@ -103,7 +103,7 @@ class GenreListViewTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        from library.models import Genre
+
         cls.genre = Genre.objects.create(name="Fantasy")
 
     def test_get_list_returns_200_with_array(self):
@@ -113,7 +113,7 @@ class GenreListViewTest(AuthTestHelper, APITestCase):
         self.assertGreaterEqual(len(resp.data), 1)
 
     def test_get_list_sorted_alphabetically(self):
-        from library.models import Genre
+
         Genre.objects.create(name="Adventure")
         resp = self.client.get("/api/genres/")
         names = [g["name"] for g in resp.data]
@@ -124,7 +124,7 @@ class GenreRetrieveViewTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
-        from library.models import Genre
+
         cls.genre = Genre.objects.create(name="Horror")
 
     def test_get_detail_returns_200(self):
