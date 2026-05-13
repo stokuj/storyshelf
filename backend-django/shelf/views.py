@@ -55,14 +55,14 @@ class ShelfEntryView(APIView):
         entry = get_object_or_404(ShelfEntry, user=request.user, book_id=book_id)
         status_val = request.data.get("status")
         if not status_val:
-            return Response({"detail": "status required"}, status=400)
+            return Response({"detail": "status required"}, status=status.HTTP_400_BAD_REQUEST)
         entry.status = status_val
         entry.start_date = request.data.get("start_date", entry.start_date)
         entry.finish_date = request.data.get("finish_date", entry.finish_date)
         try:
             entry.full_clean()
         except ValidationError as e:
-            return Response(e.message_dict, status=400)
+            return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
         entry.save()
         return Response(ShelfEntrySerializer(entry).data)
 
