@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -8,6 +9,11 @@ from .serializers import ShelfEntrySerializer
 
 
 class ShelfListView(generics.ListAPIView):
+    """
+    Zwraca wszystkie wpisy na półce zalogowanego użytkownika, sortowane od najnowszego.
+    Statusy: WANT_TO_READ | READING | READ.
+    """
+
     serializer_class = ShelfEntrySerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = None  # flat list for frontend
@@ -21,6 +27,14 @@ class ShelfListView(generics.ListAPIView):
 
 
 class ShelfEntryView(APIView):
+    """
+    Zarządzanie pojedynczym wpisem na półce dla książki o podanym book_id.
+    GET: Pobierz wpis (404 jeśli książka nie jest na półce).
+    POST: Dodaj książkę na półkę (domyślny status: WANT_TO_READ). Idempotentne — nie duplikuje.
+    PATCH: Zmień status (wymagane pole: status).
+    DELETE: Usuń książkę z półki.
+    """
+
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, book_id):
@@ -43,6 +57,12 @@ class ShelfEntryView(APIView):
         if not status_val:
             return Response({"detail": "status required"}, status=400)
         entry.status = status_val
+        entry.start_date = request.data.get("start_date", entry.start_date)
+        entry.finish_date = request.data.get("finish_date", entry.finish_date)
+        try:
+            entry.full_clean()
+        except ValidationError as e:
+            return Response(e.message_dict, status=400)
         entry.save()
         return Response(ShelfEntrySerializer(entry).data)
 

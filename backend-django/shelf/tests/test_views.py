@@ -136,3 +136,32 @@ class ShelfResponseStructureTest(AuthTestHelper, APITestCase):
         self.assertIn("id", entry["book"])
         self.assertIn("title", entry["book"])
         self.assertIn("author", entry["book"])
+
+
+class ShelfEntryDateValidationTest(AuthTestHelper, APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        AuthTestHelper.setUpTestData()
+        cls.book = Book.objects.create(title="Date Book", year=2020, page_count=100)
+
+    def test_finish_before_start_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        ShelfEntry.objects.filter(user=self.user, book=self.book).delete()
+        self.client.post(f"/api/shelf/{self.book.id}/", {"status": "READING"})
+        resp = self.client.patch(
+            f"/api/shelf/{self.book.id}/",
+            {"status": "READ", "start_date": "2024-06-01", "finish_date": "2024-05-01"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_finish_equals_start_is_valid(self):
+        self.client.force_authenticate(user=self.user)
+        ShelfEntry.objects.filter(user=self.user, book=self.book).delete()
+        self.client.post(f"/api/shelf/{self.book.id}/", {"status": "READING"})
+        resp = self.client.patch(
+            f"/api/shelf/{self.book.id}/",
+            {"status": "READ", "start_date": "2024-06-01", "finish_date": "2024-06-01"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
