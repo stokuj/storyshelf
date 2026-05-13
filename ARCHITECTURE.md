@@ -1,4 +1,4 @@
-# Architecture — Goodreads Clone
+# Architecture — StoryShelf
 
 ## Tech Stack
 
@@ -45,17 +45,18 @@ Vue 3 (Nginx)
 Caddy  (SSL termination, /api/* → django, /* → vue)
     ▼
 Django + DRF
-    │  .apply_async()
+    │  analyse_book.delay(book_id)
     │  trigger: ręczny — Django Admin action
     ▼
 RabbitMQ
     ├──► [queue: ner]   celery-ner   (prefork, CPU-bound)
-    │                       └── dslim/bert-base-NER
-    │                               └── NERResult (JSONB) → PostgreSQL
+    │                       └── spaCy en_core_web_trf (CPU-only torch)
+    │                               └── BookCharacter/Place/Organization → PostgreSQL
+    │                               └── find_pairs() → relations_for_book.delay()
     │
     └──► [queue: llm]   celery-llm   (gevent, I/O-bound)
                             └── OpenRouter API
-                                    └── BookSummary (JSONB) → PostgreSQL
+                                    └── CharacterRelationship → PostgreSQL
 
 Celery result backend: Redis
 Failed tasks (max retries) ──► RabbitMQ DLX ──► [queue: dead_letter]
@@ -73,20 +74,52 @@ Flower ──► monitoring celery-ner + celery-llm
 - Endpointy: `register`, `login`, `token/refresh`, `logout`
 
 ### Books
-- Model `Book`: tytuł, opis, `avg_rating`
-- Relacje: `Author` (M2M), `Genre` (M2M)
-- Źródło danych: OpenLibrary API (import skryptem) + Django Admin (ręcznie)
-- Brak modelu `Edition` — jedna encja `Book` per dzieło; dedulikacja przy imporcie
+- Model `Book`: tytuł, opis, `avg_rating`, `text` (tymczasowy — czyszczony po NLP)
+- Relacje: `Author` (M2M), `Genre` (M2M), `Tag` (M2M)
+- Źródło danych: Django Admin (upload TXT do `Book.text`)
+- Brak modelu `Chapter` — tekst całej książki w `Book.text`, chunking w workerze
 
 ### Reviews & Ratings
 - Model `Review`: 1 per User per Book, tekst + ocena (1–5)
 - `avg_rating` na `Book` aktualizowany sygnałem Django (`post_save` / `post_delete` na `Review`)
-- Trigger NER/LLM: ręcznie przez admina via Django Admin action
 
 ### ShelfEntry
 - Statusy: `want_to_read` | `reading` | `read`
 - Pola: `start_date`, `finish_date`, `personal_rating`
 - `unique_together(user, book)` — jeden wpis na użytkownika na książkę
+- Walidacja: `finish_date >= start_date` (Django `clean()`, wywołane w view)
+
+---
+
+## NLP Pipeline
+
+### Trigger
+Admin wybiera książki w Django Admin → akcja `Analyse selected books` → `analyse_book.delay(book_id)` per książka.
+
+### analyse_book (kolejka: ner)
+```
+Book.text
+    → chunk_text(chunk_size=400, overlap=50)  # word-based chunking
+    → spaCy en_core_web_trf via nlp.pipe()
+    → agregacja encji (Counter, NER_MIN_OCCURRENCES=5)
+    → upsert BookCharacter / BookPlace / BookOrganization (per book, book FK)
+    → find_sentences_with_both_characters()  # regex, synchronicznie
+    → Book.text = ""  # czyszczenie
+    → relations_for_book.delay(book_id, pairs_data)
+```
+
+### relations_for_book (kolejka: llm)
+```
+pairs_data (pary postaci + zdania z ich współwystępowaniem)
+    → LLM (OpenRouter) per para
+    → CharacterRelationship.get_or_create() per relacja
+    → błędy: log + skip (brak retry)
+```
+
+### Modele encji
+- `BookCharacter`, `BookPlace`, `BookOrganization` — `unique_together("name", "book")`
+- Encje są **per-książka** — nie globalne
+- `CharacterRelationship` — 24 typy relacji, `unique_together(from, to, book)`
 
 ---
 
@@ -97,12 +130,10 @@ Flower ──► monitoring celery-ner + celery-llm
 |--------------|---------------------------------|
 | Pool         | prefork (CPU-bound)             |
 | Queue        | `ner`                           |
-| Model NER    | `dslim/bert-base-NER` (English) |
-| Routing      | `NERRouter` — wybór modelu per język (gotowe na rozszerzenie) |
-| Input        | Tekst recenzji lub opis książki |
-| Output       | Lista encji → `NERResult` (JSONB) w PostgreSQL |
-| Retry policy | Max 3 próby, exponential backoff |
-| On failure   | → Dead Letter Queue             |
+| Model NER    | spaCy `en_core_web_trf` (CPU-only torch) |
+| Chunking     | 400 słów z overlapem 50         |
+| Input        | `book_id`                       |
+| Output       | BookCharacter/Place/Org → PostgreSQL |
 
 ### celery-llm — LLM Worker
 | Parametr     | Wartość                                          |
@@ -110,10 +141,9 @@ Flower ──► monitoring celery-ner + celery-llm
 | Pool         | gevent (I/O-bound)                               |
 | Queue        | `llm`                                            |
 | Provider     | OpenRouter API                                   |
-| Taski        | `summarize_book(book_id)`, `summarize_reviews(book_id)` |
-| Output       | Tekst → `BookSummary` (JSONB) w PostgreSQL       |
-| Retry policy | Max 3 próby, exponential backoff                 |
-| On failure   | → Dead Letter Queue                              |
+| Task         | `relations_for_book(book_id, pairs_data)`        |
+| Output       | CharacterRelationship → PostgreSQL               |
+| On error     | log + skip para, nie retry                       |
 
 ---
 
@@ -121,8 +151,7 @@ Flower ──► monitoring celery-ner + celery-llm
 
 - **Exchange:** `dlx` (dead letter exchange w RabbitMQ)
 - **Queue:** `dead_letter`
-- **Warunek trafienia:** task przekroczył limit prób (NER lub LLM)
-- **Obsługa:** inspekcja przez Flower lub management command Django; ponowienie ręczne
+- **Obsługa:** inspekcja przez Flower lub management command Django
 
 ---
 
@@ -133,23 +162,21 @@ User
  ├── ShelfEntry (status, personal_rating, start_date, finish_date) ──► Book
  └── Review ──► Book
 
-Book
- ├── Serie ──► FK "library.Serie" (null, SET_NULL)
+Book (title, year, isbn, description, page_count, text, avg_rating)
+ ├── serie ──► FK "library.Serie" (null, SET_NULL)
  ├── Author (M2M through BookAuthor)
  ├── Genre (M2M through BookGenre)
- ├── Tag (M2M through BookTag)
- ├── Chapter ──► text, ner_pending (JSONB, tmp), analysis stats
- └── CharacterRelationship (FK from_character, to_character, book)
+ └── Tag (M2M through BookTag)
 
-BookCharacter (global, name UNIQUE, mention_count — nie filtrowane per książka)
-BookPlace (global, name UNIQUE, mention_count)
-BookOrganization (global, name UNIQUE, mention_count)
+BookCharacter (book FK, name, mention_count) — unique_together(name, book)
+BookPlace     (book FK, name, mention_count) — unique_together(name, book)
+BookOrganization (book FK, name, mention_count) — unique_together(name, book)
 
 CharacterRelationship
  ├── from_character ──► BookCharacter
  ├── to_character ──► BookCharacter
  ├── relation_type (24 typy)
- └── book ──► Book
+ └── book ──► Book — unique_together(from, to, book)
 ```
 
 ---
@@ -162,7 +189,7 @@ git push
             ├── lint + testy
             ├── build obrazów Docker
             ├── push do GHCR
-            └── SSH → Digital Ocean VPS
+            └── SSH → Digital Ocean VPS  (deploy zakomentowany — gotowy do włączenia)
                     └── docker compose pull
                         docker compose up -d --no-deps
 ```
@@ -173,13 +200,13 @@ git push
 
 | Decyzja                        | Wybór                              | Uzasadnienie                                                                 |
 |--------------------------------|------------------------------------|------------------------------------------------------------------------------|
-| Broker vs result backend       | RabbitMQ (broker) + Redis (wyniki) | RabbitMQ daje routing, DLQ, niezawodność; Redis szybki do odczytu wyników    |
-| Dwa oddzielne workery Celery   | prefork (NER) + gevent (LLM)       | BERT jest CPU-bound; wywołania OpenRouter to I/O — różne modele współbieżności |
-| JSONB dla NER/LLM              | PostgreSQL JSONB                   | Elastyczny schemat dla nieregularnych danych AI bez dodatkowego store'u       |
-| Brak modelu Edition            | Jedna `Book` per dzieło            | Upraszcza MVP; dedulikacja obsługiwana na warstwie importu                   |
-| Trigger NER/LLM ręczny         | Django Admin action                | Eliminuje niekontrolowane wywołania async na wczesnym etapie                 |
-| Access token w pamięci         | Vue reactive singleton (nie localStorage) | Odporność na XSS; refresh w HttpOnly cookie chroni przed CSRF                |
-| Dead Letter Queue              | RabbitMQ DLX                       | Failed taski nie znikają po cichu; umożliwia inspekcję i ponowienie          |
+| NER engine                     | spaCy en_core_web_trf (CPU-only)   | BERT/transformers ~2.5 GB obrazu; spaCy ~400 MB; CPU-only wystarczy dla 5-30 książek |
+| Brak modelu Chapter            | Book.text + chunking w workerze    | Chapter był tylko techniką NLP, nie domeną; upraszcza schemat                |
+| Encje per-book                 | book FK + unique_together          | Globalny unique name powodował kolizje między książkami                       |
+| 2 taski Celery                 | analyse_book + relations_for_book  | Było 5 tasków z race condition; uproszczenie bez utraty funkcjonalności       |
+| Broker vs result backend       | RabbitMQ (broker) + Redis (wyniki) | RabbitMQ: routing, DLQ, niezawodność; Redis: szybki odczyt wyników            |
+| Dwa oddzielne workery Celery   | prefork (NER) + gevent (LLM)       | spaCy jest CPU-bound; OpenRouter to I/O — różne modele współbieżności         |
+| Access token w pamięci         | Vue reactive singleton             | Odporność na XSS; refresh w HttpOnly cookie chroni przed CSRF                |
 
 ---
 
