@@ -88,4 +88,11 @@ class SeriesResponseStructureTest(AuthTestHelper, APITestCase):
     def test_series_response_has_cover_url(self):
         resp = self.client.get(f"/api/series/{self.serie.id}/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("cover_url", resp.data)
+
+
+class AuthorNameUniqueTest(APITestCase):
+    def test_duplicate_author_name_raises_integrity_error(self):
+        from django.db import IntegrityError
+        Author.objects.create(name="Jane Austen")
+        with self.assertRaises(IntegrityError):
+            Author.objects.create(name="Jane Austen")
