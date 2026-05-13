@@ -43,7 +43,18 @@ class CharacterRelationSerializer(serializers.ModelSerializer):
         )
 
 
-class BookListSerializer(serializers.ModelSerializer):
+class BookSerializerMixin:
+    def get_author(self, obj):
+        return obj.authors.first().name if obj.authors.exists() else None
+
+    def get_genres(self, obj):
+        return [g.name for g in obj.genres.all()]
+
+    def get_tags(self, obj):
+        return [t.name for t in obj.tags.all()]
+
+
+class BookListSerializer(BookSerializerMixin, serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
@@ -64,17 +75,8 @@ class BookListSerializer(serializers.ModelSerializer):
             "ratings_count",
         )
 
-    def get_author(self, obj):
-        return obj.authors.first().name if obj.authors.exists() else None
 
-    def get_genres(self, obj):
-        return [g.name for g in obj.genres.all()]
-
-    def get_tags(self, obj):
-        return [t.name for t in obj.tags.all()]
-
-
-class BookDetailSerializer(serializers.ModelSerializer):
+class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
@@ -95,15 +97,6 @@ class BookDetailSerializer(serializers.ModelSerializer):
             "avg_rating",
             "ratingsCount",
         )
-
-    def get_author(self, obj):
-        return obj.authors.first().name if obj.authors.exists() else None
-
-    def get_genres(self, obj):
-        return [g.name for g in obj.genres.all()]
-
-    def get_tags(self, obj):
-        return [t.name for t in obj.tags.all()]
 
     def to_representation(self, instance):
         request = self.context.get("request")
