@@ -79,8 +79,20 @@ export function fetchBookDetails(bookId) {
   return request('GET', `/api/books/${bookId}/`)
 }
 
-export function createBookReview(bookId, payload) {
-  return request('POST', `/api/books/${bookId}/reviews/`, payload)
+export function fetchReviews(bookId) {
+  return request('GET', `/api/reviews/?book_id=${bookId}`)
+}
+
+export function createReview(payload) {
+  return request('POST', '/api/reviews/', payload)
+}
+
+export function deleteReview(reviewId) {
+  return request('DELETE', `/api/reviews/${reviewId}/`)
+}
+
+export function updateReview(reviewId, payload) {
+  return request('PATCH', `/api/reviews/${reviewId}/`, payload)
 }
 
 export async function loginUser(payload) {
