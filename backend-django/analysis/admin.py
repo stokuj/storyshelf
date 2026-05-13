@@ -2,8 +2,8 @@ from django.contrib import admin, messages
 
 from analysis.models import (
     BookCharacter,
-    BookPlace,
     BookOrganization,
+    BookPlace,
     CharacterRelationship,
 )
 from analysis.tasks import analyse_chapter, ner_chapter

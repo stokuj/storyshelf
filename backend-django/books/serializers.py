@@ -1,7 +1,9 @@
 from django.db.models import Q
 from rest_framework import serializers
-from .models import Book, Chapter
+
 from analysis.models import BookCharacter, CharacterRelationship
+
+from .models import Book, Chapter
 
 
 class ChapterSerializer(serializers.ModelSerializer):

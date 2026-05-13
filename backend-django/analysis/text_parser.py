@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from itertools import combinations
 import re
+from itertools import combinations
 
 SENTENCE_SPLIT_RE = re.compile(
     r"(?:(?<!\bMr\.)(?<!\bMrs\.)(?<!\bMs\.)(?<!\bDr\.)(?<!\bProf\.)"

@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import ShelfListView, ShelfEntryView
+
+from .views import ShelfEntryView, ShelfListView
 
 urlpatterns = [
     path("", ShelfListView.as_view()),

@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-status dev-build prod-up prod-down prod-status prod-logs
+.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs
 
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPOSE_DIR := $(ROOT_DIR)infra/compose
@@ -12,9 +12,7 @@ dev-up:
 	@printf '%s\n' '  frontend: http://localhost:5173'
 	@printf '%s\n' '  rabbitmq UI: http://127.0.0.1:15672'
 	@printf '%s\n' '  flower: http://localhost:5555'
-	@printf '%s\n' '  django: internal only (proxy via frontend)'
-	@printf '\n%s\n' 'Current status:'
-	@$(MAKE) --no-print-directory dev-status
+	@printf '%s\n' '  admin panel: http://localhost:5173/admin/'
 
 dev-down:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) down
@@ -24,6 +22,9 @@ dev-status:
 
 dev-build:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) build
+
+dev-superuser:
+	$(DEV_COMPOSE) --env-file $(ENV_FILE) exec django python manage.py createsuperuser
 
 prod-up:
 	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) up -d

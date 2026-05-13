@@ -6,6 +6,7 @@ from django.db.models import F
 @shared_task(bind=True, max_retries=3, default_retry_delay=10)
 def analyse_chapter(self, chapter_id: int, content: str):
     from books.models import Chapter
+
     from .text_stats import analyse_text
 
     chapter = Chapter.objects.get(id=chapter_id)
@@ -24,6 +25,7 @@ def analyse_chapter(self, chapter_id: int, content: str):
 @shared_task(bind=True, max_retries=3, default_retry_delay=10)
 def ner_chapter(self, chapter_id: int, content: str):
     from books.models import Book, Chapter
+
     from .ner_engine import extract_entities
 
     chapter = Chapter.objects.select_related("book").get(id=chapter_id)
@@ -44,7 +46,8 @@ def ner_chapter(self, chapter_id: int, content: str):
 @shared_task(bind=True, max_retries=3, default_retry_delay=10)
 def merge_book_ner(self, book_id: int):
     from books.models import Book, Chapter
-    from .models import BookCharacter, BookPlace, BookOrganization
+
+    from .models import BookCharacter, BookOrganization, BookPlace
 
     book = Book.objects.prefetch_related("chapters").get(id=book_id)
     chapters = list(book.chapters.all())
@@ -115,8 +118,9 @@ def find_pairs(self, book_id: int, full_text: str, character_names: list[str]):
 @shared_task(bind=True, max_retries=3, default_retry_delay=10)
 def relations_for_book(self, book_id: int, pairs_data: list[dict]):
     import json
-    from .models import BookCharacter, CharacterRelationship
+
     from .llm_engine import llm_service
+    from .models import BookCharacter, CharacterRelationship
 
     total_relations = 0
     for item in pairs_data:

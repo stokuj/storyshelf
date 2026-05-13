@@ -1,4 +1,5 @@
 from django.urls import path
+
 from library.views import SeriesListView, SeriesRetrieveView
 
 urlpatterns = [

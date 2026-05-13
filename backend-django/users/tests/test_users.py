@@ -172,7 +172,7 @@ class FollowListTest(AuthTestHelper, APITestCase):
     def test_list_following_returns_200(self):
         self.client.force_authenticate(user=self.user)
         self.client.post(f"/api/users/{self.target.username}/follow/")
-        resp = self.client.get(f"/api/users/testuser/following/")
+        resp = self.client.get("/api/users/testuser/following/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
         self.assertEqual(resp.data[0]["followingUsername"], "target3")

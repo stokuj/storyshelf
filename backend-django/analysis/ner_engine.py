@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections import Counter
 import logging
 import os
 import time
+from collections import Counter
 from typing import Any, Callable, cast
 
 from transformers import pipeline

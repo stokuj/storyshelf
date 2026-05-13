@@ -1,12 +1,18 @@
 from django.db.models import Prefetch, Q
 from rest_framework import generics, permissions
 
-from .models import Book, Chapter
 from analysis.models import CharacterRelationship
-from .serializers import BookListSerializer, BookDetailSerializer
+
+from .models import Book, Chapter
+from .serializers import BookDetailSerializer, BookListSerializer
 
 
 class BookListView(generics.ListAPIView):
+    """
+    Zwraca płaską listę wszystkich książek.
+    Filtrowanie pełnotekstowe: ?q=<fraza> — przeszukuje tytuł, nazwisko autora i gatunek.
+    """
+
     serializer_class = BookListSerializer
     permission_classes = [permissions.AllowAny]
     pagination_class = None
@@ -25,6 +31,11 @@ class BookListView(generics.ListAPIView):
 
 
 class BookRetrieveView(generics.RetrieveAPIView):
+    """
+    Szczegóły książki wraz z rozdziałami (posortowanymi), relacjami między postaciami,
+    autorami, tagami i gatunkami.
+    """
+
     serializer_class = BookDetailSerializer
     permission_classes = [permissions.AllowAny]
 

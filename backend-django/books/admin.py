@@ -1,10 +1,12 @@
 from django.contrib import admin
+
+from analysis.admin import analyze_selected_books
+
 from .models import (
     Book,
-    Chapter,
     BookAuthor,
+    Chapter,
 )
-from analysis.admin import analyze_selected_books
 
 
 class ChapterInline(admin.TabularInline):
