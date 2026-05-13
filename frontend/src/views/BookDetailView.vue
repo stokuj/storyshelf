@@ -273,8 +273,9 @@ import LoadingSpinner from '../components/LoadingSpinner.vue'
 import { useRoute } from 'vue-router'
 import {
   addToBookshelf,
-  createBookReview,
+  createReview,
   fetchBookDetails,
+  fetchReviews,
   removeFromBookshelf,
   updateBookshelfStatus,
 } from '../api'
@@ -332,7 +333,8 @@ async function loadDetails() {
 
   if (result) {
     details.value = result
-    sortedReviews.value = sortReviews(details.value?.reviews || [], 6)
+    const reviews = await fetchReviews(route.params.id)
+    sortedReviews.value = sortReviews(reviews || [], 6)
   } else {
     details.value = null
     sortedReviews.value = []
@@ -365,15 +367,15 @@ async function removeShelfEntry() {
 
 async function submitReview() {
   const created = await executeReview(async () => {
-    return await createBookReview(route.params.id, {
+    return await createReview({
+      bookId: parseInt(route.params.id),
       rating: reviewForm.rating,
       content: reviewForm.content.trim(),
     })
   }, { fallback: 'Nie udało się dodać recenzji.' })
 
   if (created) {
-    details.value.reviews = [created, ...(details.value.reviews || [])]
-    sortedReviews.value = sortReviews(details.value.reviews, 6)
+    sortedReviews.value = sortReviews([created, ...sortedReviews.value], 6)
     reviewForm.content = ''
     reviewForm.rating = 5
     reviewMessage.value = 'Dodano recenzję.'
