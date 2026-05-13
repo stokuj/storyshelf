@@ -73,7 +73,7 @@ class TestExtractEntitiesFromChunks:
         with patch("analysis.ner_engine._get_nlp", return_value=None):
             result = extract_entities_from_chunks("some text")
 
-        assert result == {}
+        assert result == {"characters": {}, "organizations": {}, "locations": {}}
 
     def test_loc_goes_to_locations(self):
         from analysis.ner_engine import extract_entities_from_chunks

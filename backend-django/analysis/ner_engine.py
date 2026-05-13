@@ -37,6 +37,8 @@ def _get_nlp(model: str = DEFAULT_NER_MODEL) -> Any | None:
 
 
 def chunk_text(text: str, chunk_size: int = 400, overlap: int = 50) -> list[str]:
+    if chunk_size <= overlap:
+        raise ValueError(f"chunk_size ({chunk_size}) must be greater than overlap ({overlap})")
     words = text.split()
     if not words:
         return []
@@ -57,11 +59,11 @@ def extract_entities_from_chunks(
 ) -> dict:
     nlp = _get_nlp(model)
     if nlp is None:
-        return {}
+        return {"characters": {}, "organizations": {}, "locations": {}}
 
     chunks = chunk_text(text, chunk_size=chunk_size, overlap=overlap)
     if not chunks:
-        return {}
+        return {"characters": {}, "organizations": {}, "locations": {}}
 
     raw: dict[str, list[str]] = {
         "characters": [],

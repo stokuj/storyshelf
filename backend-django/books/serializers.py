@@ -107,7 +107,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
                 pass
 
         characters = BookCharacterSerializer(
-            BookCharacter.objects.filter(book=instance),
+            instance.characters.all(),
             many=True,
         ).data
 
