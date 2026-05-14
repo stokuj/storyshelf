@@ -9,29 +9,24 @@ class RegisterTest(APITestCase):
     def setUp(self):
         self.url = "/api/auth/register/"
 
-    def test_post_valid_returns_201_with_tokens(self):
+    def test_post_valid_returns_201_with_cookies(self):
         resp = self.client.post(
             self.url,
-            {
-                "email": "new@test.com",
-                "username": "newuser",
-                "password": "secret123",
-            },
+            {"email": "new@test.com", "username": "newuser", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        self.assertIn("access", resp.data)
-        self.assertIn("refresh", resp.data)
+        self.assertIn("access_token", resp.cookies)
+        self.assertIn("refresh_token", resp.cookies)
+        self.assertTrue(resp.cookies["access_token"]["httponly"])
+        self.assertEqual(resp.data["authenticated"], True)
+        self.assertEqual(resp.data["email"], "new@test.com")
         self.assertTrue(User.objects.filter(email="new@test.com").exists())
 
     def test_post_duplicate_email_returns_400(self):
         User.objects.create_user(email="dup@test.com", username="dupuser", password="pw")
         resp = self.client.post(
             self.url,
-            {
-                "email": "dup@test.com",
-                "username": "another",
-                "password": "secret123",
-            },
+            {"email": "dup@test.com", "username": "another", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -39,43 +34,25 @@ class RegisterTest(APITestCase):
         User.objects.create_user(email="a@test.com", username="dupuser", password="pw")
         resp = self.client.post(
             self.url,
-            {
-                "email": "b@test.com",
-                "username": "dupuser",
-                "password": "secret123",
-            },
+            {"email": "b@test.com", "username": "dupuser", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_missing_email_returns_400(self):
-        resp = self.client.post(
-            self.url,
-            {
-                "username": "someone",
-                "password": "secret123",
-            },
-        )
+        resp = self.client.post(self.url, {"username": "someone", "password": "secret123"})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_short_password_returns_400(self):
         resp = self.client.post(
             self.url,
-            {
-                "email": "x@test.com",
-                "username": "someone",
-                "password": "12345",
-            },
+            {"email": "x@test.com", "username": "someone", "password": "12345"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_invalid_username_uppercase_returns_400(self):
         resp = self.client.post(
             self.url,
-            {
-                "email": "x@test.com",
-                "username": "BadUser",
-                "password": "secret123",
-            },
+            {"email": "x@test.com", "username": "BadUser", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -88,41 +65,27 @@ class LoginTest(APITestCase):
     def setUp(self):
         self.url = "/api/auth/login/"
         self.user = User.objects.create_user(
-            email="login@test.com",
-            username="loginuser",
-            password="secret123",
+            email="login@test.com", username="loginuser", password="secret123"
         )
 
-    def test_post_valid_returns_200_with_tokens(self):
+    def test_post_valid_returns_200_with_cookies(self):
         resp = self.client.post(
-            self.url,
-            {
-                "email": "login@test.com",
-                "password": "secret123",
-            },
+            self.url, {"email": "login@test.com", "password": "secret123"}
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("access", resp.data)
-        self.assertIn("refresh", resp.data)
+        self.assertIn("access_token", resp.cookies)
+        self.assertIn("refresh_token", resp.cookies)
+        self.assertTrue(resp.cookies["access_token"]["httponly"])
+        self.assertEqual(resp.data["authenticated"], True)
 
     def test_post_wrong_password_returns_400(self):
         resp = self.client.post(
-            self.url,
-            {
-                "email": "login@test.com",
-                "password": "wrongpass",
-            },
+            self.url, {"email": "login@test.com", "password": "wrongpass"}
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_nonexistent_email_returns_400(self):
-        resp = self.client.post(
-            self.url,
-            {
-                "email": "no@test.com",
-                "password": "secret123",
-            },
-        )
+        resp = self.client.post(self.url, {"email": "no@test.com", "password": "secret123"})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_missing_fields_returns_400(self):
@@ -133,11 +96,7 @@ class LoginTest(APITestCase):
         self.user.is_active = False
         self.user.save()
         resp = self.client.post(
-            self.url,
-            {
-                "email": "login@test.com",
-                "password": "secret123",
-            },
+            self.url, {"email": "login@test.com", "password": "secret123"}
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -146,33 +105,23 @@ class TokenRefreshTest(APITestCase):
     def setUp(self):
         self.url = "/api/auth/refresh/"
         self.user = User.objects.create_user(
-            email="refresh@test.com",
-            username="refreshuser",
-            password="secret123",
+            email="refresh@test.com", username="refreshuser", password="secret123"
         )
 
-    def _get_tokens(self):
-        resp = self.client.post(
+    def _login(self):
+        self.client.post(
             "/api/auth/login/",
-            {
-                "email": "refresh@test.com",
-                "password": "secret123",
-            },
+            {"email": "refresh@test.com", "password": "secret123"},
         )
-        return resp.data["access"], resp.data["refresh"]
 
-    def test_post_valid_refresh_returns_200_with_new_access(self):
-        _, refresh = self._get_tokens()
-        resp = self.client.post(self.url, {"refresh": refresh})
+    def test_post_with_cookie_returns_200_and_new_cookies(self):
+        self._login()
+        resp = self.client.post(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("access", resp.data)
+        self.assertIn("access_token", resp.cookies)
 
-    def test_post_missing_refresh_returns_400(self):
-        resp = self.client.post(self.url, {})
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_post_invalid_refresh_returns_401(self):
-        resp = self.client.post(self.url, {"refresh": "invalid-token"})
+    def test_post_without_cookie_returns_401(self):
+        resp = self.client.post(self.url)
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
@@ -180,32 +129,25 @@ class LogoutTest(APITestCase):
     def setUp(self):
         self.url = "/api/auth/logout/"
         User.objects.create_user(
-            email="logout@test.com",
-            username="logoutuser",
-            password="secret123",
+            email="logout@test.com", username="logoutuser", password="secret123"
         )
 
-    def _get_tokens(self):
-        resp = self.client.post(
+    def _login(self):
+        self.client.post(
             "/api/auth/login/",
-            {
-                "email": "logout@test.com",
-                "password": "secret123",
-            },
+            {"email": "logout@test.com", "password": "secret123"},
         )
-        return resp.data["access"], resp.data["refresh"]
 
-    def test_post_valid_refresh_returns_200(self):
-        _, refresh = self._get_tokens()
-        resp = self.client.post(self.url, {"refresh": refresh})
+    def test_post_clears_cookies_and_returns_200(self):
+        self._login()
+        resp = self.client.post(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["message"], "Logged out successfully")
+        if "access_token" in resp.cookies:
+            self.assertEqual(resp.cookies["access_token"]["max-age"], 0)
 
-        resp = self.client.post(self.url, {"refresh": refresh})
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-
-    def test_post_no_refresh_still_succeeds_200(self):
-        resp = self.client.post(self.url, {})
+    def test_post_no_cookie_still_succeeds_200(self):
+        resp = self.client.post(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
 
@@ -213,24 +155,17 @@ class AuthMeTest(APITestCase):
     def setUp(self):
         self.url = "/api/auth/me/"
         self.user = User.objects.create_user(
-            email="me@test.com",
-            username="meuser",
-            password="secret123",
+            email="me@test.com", username="meuser", password="secret123"
         )
 
-    def _get_access_token(self):
-        resp = self.client.post(
+    def _login(self):
+        self.client.post(
             "/api/auth/login/",
-            {
-                "email": "me@test.com",
-                "password": "secret123",
-            },
+            {"email": "me@test.com", "password": "secret123"},
         )
-        return resp.data["access"]
 
-    def test_get_authenticated_returns_200_with_user_data(self):
-        token = self._get_access_token()
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    def test_get_authenticated_via_cookie_returns_200_with_user_data(self):
+        self._login()
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data["authenticated"])
