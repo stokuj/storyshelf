@@ -24,6 +24,18 @@
       "arguments": {
         "x-message-ttl": 604800000
       }
+    },
+    {
+      "name": "ner",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {}
+    },
+    {
+      "name": "llm",
+      "vhost": "/",
+      "durable": true,
+      "arguments": {}
     }
   ],
   "bindings": [
