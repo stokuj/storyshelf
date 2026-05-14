@@ -27,13 +27,13 @@ dev-superuser:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) exec django python manage.py createsuperuser
 
 prod-up:
-	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) up -d
+	$(PROD_COMPOSE) --env-file $(ENV_FILE) up -d
 
 prod-down:
-	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) down
+	$(PROD_COMPOSE) --env-file $(ENV_FILE) down
 
 prod-status:
-	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) ps --format "table {{.Name}}\t{{.Service}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}"
+	$(PROD_COMPOSE) --env-file $(ENV_FILE) ps --format "table {{.Name}}\t{{.Service}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}"
 
 prod-logs:
-	DJANGO_SECRET_KEY=$${DJANGO_SECRET_KEY:-dev-secret-key} $(PROD_COMPOSE) --env-file $(ENV_FILE) logs -f
+	$(PROD_COMPOSE) --env-file $(ENV_FILE) logs -f
