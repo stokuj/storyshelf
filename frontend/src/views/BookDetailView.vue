@@ -65,18 +65,18 @@
           </div>
 
           <!-- Ocena szczegółowa -->
-          <div v-if="details.book.rating > 0" class="flex items-center gap-3 flex-wrap">
+          <div v-if="details.book.avg_rating > 0" class="flex items-center gap-3 flex-wrap">
             <div class="rating rating-md">
               <input
                 v-for="star in 5"
                 :key="`right-star-${star}`"
                 type="radio"
                 class="mask mask-star-2 bg-orange-400"
-                :checked="star <= Math.round(details.book.rating)"
+                :checked="star <= Math.round(details.book.avg_rating)"
                 disabled
               />
             </div>
-            <span class="text-sm font-semibold text-orange-500">{{ details.book.rating.toFixed(1) }}</span>
+            <span class="text-sm font-semibold text-orange-500">{{ details.book.avg_rating.toFixed(1) }}</span>
             <span class="text-sm text-base-content/40">• {{ details.book.ratingsCount }} ocen</span>
           </div>
 
@@ -243,10 +243,7 @@
                 <span class="font-semibold">{{ relation.sourceCharacterName }}</span>
                 <span class="text-base-content/30">↔</span>
                 <span class="font-semibold">{{ relation.targetCharacterName }}</span>
-                <span v-if="relation.relation" class="badge badge-sm badge-outline ml-1">{{ relation.relation }}</span>
-              </div>
-              <div v-if="relation.evidence" class="text-xs text-base-content/50 italic pl-0.5">
-                {{ relation.evidence }}
+                <span v-if="relation.relation_type" class="badge badge-sm badge-outline ml-1">{{ relation.relation_type }}</span>
               </div>
             </li>
           </ul>
