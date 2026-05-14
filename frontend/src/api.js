@@ -46,7 +46,9 @@ async function request(method, path, body, isFormData = false) {
   if (res.status === 401 && accessToken) {
     try {
       await refreshAccessToken()
-      headers['Authorization'] = `Bearer ${getAccessToken()}`
+      const newToken = getAccessToken()
+      if (!newToken || newToken === 'null') throw new Error('no token after refresh')
+      headers['Authorization'] = `Bearer ${newToken}`
       res = await fetch(path, {
         method,
         headers,
