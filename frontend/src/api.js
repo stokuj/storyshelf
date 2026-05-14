@@ -1,61 +1,37 @@
-export function setTokens(access, refresh) {
-  localStorage.setItem('access_token', access)
-  localStorage.setItem('refresh_token', refresh)
-}
-
-export function clearTokens() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-}
-
-function getAccessToken() {
-  return localStorage.getItem('access_token')
-}
-
 async function refreshAccessToken() {
-  const refresh = localStorage.getItem('refresh_token')
-  if (!refresh) throw new Error('no refresh token')
   const res = await fetch('/api/auth/refresh/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh }),
+    credentials: 'include',
   })
   if (!res.ok) throw new Error('refresh failed')
-  const data = await res.json()
-  setTokens(data.access, data.refresh)
-  return data.access
 }
 
 async function request(method, path, body, isFormData = false) {
   const headers = {}
   if (!isFormData) headers['Content-Type'] = 'application/json'
-  const accessToken = getAccessToken()
-  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
 
   let res
   try {
     res = await fetch(path, {
       method,
       headers,
+      credentials: 'include',
       body: isFormData ? body : body ? JSON.stringify(body) : undefined,
     })
   } catch {
     throw new Error('Brak połączenia z serwerem.')
   }
 
-  if (res.status === 401 && accessToken) {
+  if (res.status === 401) {
     try {
       await refreshAccessToken()
-      const newToken = getAccessToken()
-      if (!newToken || newToken === 'null') throw new Error('no token after refresh')
-      headers['Authorization'] = `Bearer ${newToken}`
       res = await fetch(path, {
         method,
         headers,
+        credentials: 'include',
         body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       })
     } catch {
-      clearTokens()
       throw new Error('Session expired')
     }
   }
@@ -98,15 +74,11 @@ export function updateReview(reviewId, payload) {
 }
 
 export async function loginUser(payload) {
-  const data = await request('POST', '/api/auth/login/', payload)
-  setTokens(data.access, data.refresh)
-  return data
+  return request('POST', '/api/auth/login/', payload)
 }
 
 export async function registerUser(payload) {
-  const data = await request('POST', '/api/auth/register/', payload)
-  setTokens(data.access, data.refresh)
-  return data
+  return request('POST', '/api/auth/register/', payload)
 }
 
 export function fetchAuthMe() {
@@ -114,11 +86,7 @@ export function fetchAuthMe() {
 }
 
 export async function logoutUser() {
-  try {
-    await request('POST', '/api/auth/logout/', { refresh: localStorage.getItem('refresh_token') })
-  } finally {
-    clearTokens()
-  }
+  await request('POST', '/api/auth/logout/')
 }
 
 export function fetchBookshelf() {
@@ -169,5 +137,3 @@ export function updateCurrentUserVisibility(profilePublic) {
   const value = profilePublic ? 'true' : 'false'
   return request('PATCH', `/api/users/me/visibility/?profilePublic=${value}`)
 }
-
-
