@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs
+.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs verify
 
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPOSE_DIR := $(ROOT_DIR)infra/compose
@@ -37,3 +37,7 @@ prod-status:
 
 prod-logs:
 	$(PROD_COMPOSE) --env-file $(ENV_FILE) logs -f
+
+verify:
+	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
+	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python -m pytest

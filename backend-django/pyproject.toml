@@ -49,6 +49,8 @@ select = ["E", "F", "I", "N"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
+testpaths = ["."]
+norecursedirs = [".venv", "migrations", "__pycache__"]
 
 [tool.coverage.run]
 source = ["."]
