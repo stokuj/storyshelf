@@ -59,10 +59,13 @@ onMounted(() => {
   loadBooks()
 })
 
+let searchDebounce = null
+
 watch(
   () => route.query.q,
   () => {
-    loadBooks()
+    clearTimeout(searchDebounce)
+    searchDebounce = setTimeout(loadBooks, 300)
   },
 )
 </script>
