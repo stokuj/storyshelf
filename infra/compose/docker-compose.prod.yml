@@ -80,7 +80,8 @@ services:
     environment:
       CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     command: celery -A config flower --port=5555 --broker=amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
 
   rabbitmq:
