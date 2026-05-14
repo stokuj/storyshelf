@@ -66,6 +66,30 @@ describe('BookDetailView — API contract', () => {
     expect(wrapper.text()).not.toContain('undefined')
   })
 
+  it('shows review error when reviews fail to load', async () => {
+    fetchBookDetails.mockResolvedValue({
+      book: { id: 1, title: 'Dune', author: 'Herbert', avg_rating: 0, ratingsCount: 0 },
+      shelfEntry: null,
+      characters: [],
+      relations: [],
+    })
+    fetchReviews.mockRejectedValue(new Error('Network error'))
+
+    const wrapper = mount(BookDetailView, {
+      global: {
+        stubs: {
+          RouterLink: { template: '<a><slot /></a>' },
+          AlertMessage: { props: ['message'], template: '<div class="alert">{{ message }}</div>' },
+          LoadingSpinner: { template: '<div />' },
+          NotFoundState: { template: '<div />' },
+        },
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('recenzji')
+  })
+
   it('renders relation_type from backend response', async () => {
     fetchBookDetails.mockResolvedValue({
       book: { id: 1, title: 'Dune', author: 'Herbert', avg_rating: 3.0, ratingsCount: 2 },

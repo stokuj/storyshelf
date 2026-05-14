@@ -330,8 +330,13 @@ async function loadDetails() {
 
   if (result) {
     details.value = result
-    const reviews = await fetchReviews(route.params.id)
-    sortedReviews.value = sortReviews(reviews || [], 6)
+    try {
+      const reviews = await fetchReviews(route.params.id)
+      sortedReviews.value = sortReviews(reviews || [], 6)
+    } catch {
+      sortedReviews.value = []
+      reviewError.value = 'Nie udało się pobrać recenzji.'
+    }
   } else {
     details.value = null
     sortedReviews.value = []
