@@ -174,6 +174,18 @@ and loads `dev.py` or `prod.py` on top of `base.py`.
   frontend (books, shelf, reviews, characters, relations, followers, following).
 - **DRF field naming**: Frontend expects `camelCase`. Always map snake_case
   fields via `serializers.IntegerField(source="snake_name")` or similar.
+- **`avg_rating` not `rating`**: `BookSerializer` exposes `avg_rating` (direct
+  model field) and `ratingsCount` (mapped). Frontend must use `book.avg_rating`
+  — `book.rating` is undefined and renders as nothing.
+- **`relation_type` not `relation`**: `CharacterRelationSerializer` exposes
+  `relation_type`. No `evidence` field exists. Using the wrong name silently
+  renders nothing in the relations list.
+- **`useAsyncState` timeout**: `execute(fn, options)` supports `options.timeout`
+  (ms, default 15000). Fires `'Przekroczono czas oczekiwania.'` error via
+  `Promise.race`. All views using `useAsyncState` inherit this automatically.
+- **JWT in localStorage**: Tokens are stored in `localStorage` — XSS-vulnerable.
+  HttpOnly cookie migration is pending (requires Django backend changes). Do not
+  add new localStorage token reads outside `src/api.js`.
 - **Docker volume mounts**: Never bind-mount a host directory that contains
   a `.venv/` (the host Python version may differ). Always add `.venv/` to
   `.dockerignore`. Use the built image directly in dev compose.
