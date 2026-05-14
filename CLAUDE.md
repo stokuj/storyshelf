@@ -14,7 +14,7 @@ All backend work is in `backend-django/`. There is no `backend/` directory anymo
 
 ## Key Commands
 
-All Django commands run from `backend-django/` using `uv`:
+### Backend (run from `backend-django/` using `uv`)
 
 ```bash
 # Run / check
@@ -35,12 +35,23 @@ uv run ruff check .          # check
 uv run ruff check --fix .    # auto-fix
 ```
 
-Full Docker dev stack:
+### Frontend (run from `frontend/`)
+
+```bash
+npm run dev      # Vite dev server on port 5173
+npm test         # Vitest (jsdom) — run all tests
+npm run test -- src/views/__tests__/BookDetailView.test.js   # single test file
+npm run build    # production build (no sourcemaps)
+```
+
+### Docker dev stack
+
 ```bash
 make dev-up     # all services (db, redis, rabbitmq, django, celery-ner, celery-llm, flower, frontend)
 make dev-down
 make dev-build  # rebuild images
 make dev-superuser  # create Django superuser in container
+make verify     # lint + tests (CI equivalent)
 ```
 
 Seed test data (20 books, idempotent):
@@ -63,6 +74,21 @@ backend-django/
 
 API root: `http://localhost:8000/api/`
 Swagger docs: `http://localhost:8000/api/docs/`
+
+## Frontend Layout
+
+```
+frontend/src/
+  api.js              — all HTTP calls, JWT attach + silent 401 refresh
+  auth.js             — reactive authState singleton, refreshAuth(), signOut()
+  router.js           — Vue Router, auth guard on requiresAuth routes
+  composables/
+    useAsyncState.js  — loading/error/message state; execute(fn, {timeout, fallback})
+  views/              — 7 page-level components
+  components/         — AlertMessage, BookCard, LoadingSpinner, NotFoundState
+```
+
+Tests: Vitest + @vue/test-utils + jsdom. Files in `__tests__/` subdirectories.
 
 ## NLP Pipeline
 
@@ -93,6 +119,8 @@ Entities are **per-book** (`unique_together("name", "book")`), not global.
 - **`DJANGO_ENV=dev` required for tests** — without it, settings won't load correctly.
 - **Pagination**: Frontend expects flat arrays. Always `pagination_class = None` on list endpoints.
 - **Field naming**: Frontend expects camelCase — map via `serializers.IntegerField(source="snake_name")`.
+- **`avg_rating` not `rating`**: `BookSerializer` exposes `avg_rating` and `ratingsCount`. Frontend must use `book.avg_rating` — `book.rating` is undefined.
+- **`relation_type` not `relation`**: `CharacterRelationSerializer` exposes `relation_type`. No `evidence` field exists.
 - **`Serie` model** is intentionally singular (not `Series`) — "Series" clashes with Django test discovery.
 - **RabbitMQ**: Pin to `rabbitmq:3-management-alpine` (v4 breaks Celery 5.6). `definitions.json` must declare `"vhosts": [{"name": "/"}]` first.
 - **Trailing slashes**: All Django URL patterns and all `api.js` frontend calls use trailing slashes.
@@ -102,6 +130,8 @@ Entities are **per-book** (`unique_together("name", "book")`), not global.
 - **No Chapter model** — removed. Book text lives in `Book.text`, cleared after NLP analysis.
 - **BookDetail response**: `{book, shelfEntry, characters, relations}` — no `chapters` key.
 - **`analyse_book` is not idempotent on re-run** — re-uploading text and re-running accumulates entities. Delete `BookCharacter/Place/Organization` manually for a clean re-analysis.
+- **JWT in localStorage** — XSS-vulnerable. HttpOnly cookie migration is pending. Do not add new localStorage token reads outside `src/api.js`.
+- **`useAsyncState` timeout** — `execute(fn, { timeout: ms })` default 15 000 ms. On timeout shows Polish error `'Przekroczono czas oczekiwania.'`.
 
 ## Conventions
 
