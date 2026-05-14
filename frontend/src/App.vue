@@ -8,7 +8,10 @@
             role="button"
             class="btn btn-ghost btn-circle"
             aria-label="Menu"
+            :aria-expanded="menuOpen.toString()"
             @click="menuOpen = !menuOpen"
+            @keydown.enter.prevent="menuOpen = !menuOpen"
+            @keydown.space.prevent="menuOpen = !menuOpen"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -17,6 +20,7 @@
           <ul
             v-if="menuOpen"
             tabindex="0"
+            role="menu"
             class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
           >
             <li v-if="authState.authenticated">
