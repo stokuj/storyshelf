@@ -3,8 +3,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from users.cookie_auth import clear_jwt_cookies, set_jwt_cookies
 from users.models import User, UserFollow
 from users.serializers import (
     FollowSerializer,
@@ -24,35 +26,75 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {"authenticated": True, "email": user.email, "username": user.username},
+            status=status.HTTP_201_CREATED,
+        )
+        set_jwt_cookies(response, refresh.access_token, refresh)
+        return response
 
 
 class LoginView(views.APIView):
-    """Logowanie. Zwraca access token i refresh token. Pola: email, password."""
+    """Logowanie. Ustawia HttpOnly cookies. Pola: email, password."""
 
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        return Response(serializer.data)
+        user = serializer.validated_data["user"]
+        refresh = RefreshToken.for_user(user)
+        response = Response(
+            {"authenticated": True, "email": user.email, "username": user.username}
+        )
+        set_jwt_cookies(response, refresh.access_token, refresh)
+        return response
 
 
-class LogoutView(views.APIView):
-    """Wylogowanie. Unieważnia refresh token (blacklist). Pole: refresh."""
+class TokenRefreshCookieView(views.APIView):
+    """Odświeża access token z HttpOnly refresh cookie. Ustawia nowe cookies."""
 
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
+        raw_refresh = request.COOKIES.get("refresh_token")
+        if not raw_refresh:
+            return Response(
+                {"detail": "Refresh token not found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        serializer = TokenRefreshSerializer(data={"refresh": raw_refresh})
         try:
-            refresh_token = request.data.get("refresh")
-            if refresh_token:
-                token = RefreshToken(refresh_token)
+            serializer.is_valid(raise_exception=True)
+        except (TokenError, Exception):
+            return Response(
+                {"detail": "Invalid or expired refresh token."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        response = Response({"authenticated": True})
+        new_refresh = serializer.validated_data.get("refresh")
+        set_jwt_cookies(response, serializer.validated_data["access"], new_refresh)
+        return response
+
+
+class LogoutView(views.APIView):
+    """Wylogowanie. Czyści cookies i blacklistuje refresh token."""
+
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        raw_refresh = request.COOKIES.get("refresh_token")
+        if raw_refresh:
+            try:
+                token = RefreshToken(raw_refresh)
                 token.blacklist()
-        except (TokenError, AttributeError):
-            pass
-        return Response({"message": "Logged out successfully"})
+            except (TokenError, AttributeError):
+                pass
+        response = Response({"message": "Logged out successfully"})
+        clear_jwt_cookies(response)
+        return response
 
 
 class AuthMeView(views.APIView):
@@ -163,7 +205,7 @@ class FollowListView(generics.ListAPIView):
 
     permission_classes = (permissions.AllowAny,)
     serializer_class = FollowSerializer
-    pagination_class = None  # flat list for frontend
+    pagination_class = None
     follower_view = False
 
     def get_queryset(self):

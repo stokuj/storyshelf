@@ -21,13 +21,6 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
-    def to_representation(self, instance):
-        refresh = RefreshToken.for_user(instance)
-        return {
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-        }
-
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -45,13 +38,6 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Account is deactivated")
         attrs["user"] = user
         return attrs
-
-    def to_representation(self, instance):
-        refresh = RefreshToken.for_user(instance["user"])
-        return {
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-        }
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
