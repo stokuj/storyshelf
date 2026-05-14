@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useAsyncState } from '../useAsyncState'
 
 describe('useAsyncState', () => {
@@ -59,5 +59,37 @@ describe('useAsyncState', () => {
 
     expect(error.value).toBe('')
     expect(message.value).toBe('')
+  })
+})
+
+describe('useAsyncState — timeout', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('sets error when fn exceeds timeout', async () => {
+    const { loading, error, execute } = useAsyncState()
+
+    const promise = execute(
+      () => new Promise(() => {}), // never resolves
+      { timeout: 1000, fallback: 'fallback error' },
+    )
+
+    vi.advanceTimersByTime(1100)
+    await promise
+
+    expect(loading.value).toBe(false)
+    expect(error.value).toBe('Przekroczono czas oczekiwania.')
+  })
+
+  it('does not timeout when fn resolves in time', async () => {
+    const { error, execute } = useAsyncState()
+
+    const result = await execute(
+      () => Promise.resolve('ok'),
+      { timeout: 1000 },
+    )
+
+    expect(result).toBe('ok')
+    expect(error.value).toBe('')
   })
 })

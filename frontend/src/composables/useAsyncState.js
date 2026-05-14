@@ -15,10 +15,21 @@ export function useAsyncState() {
     error.value = ''
     message.value = ''
 
+    const timeout = options.timeout ?? 15000
+
     try {
-      return await fn()
+      return await Promise.race([
+        fn(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('__timeout__')), timeout),
+        ),
+      ])
     } catch (err) {
-      error.value = err instanceof Error ? err.message : options.fallback || 'Wystąpił błąd.'
+      if (err instanceof Error && err.message === '__timeout__') {
+        error.value = 'Przekroczono czas oczekiwania.'
+      } else {
+        error.value = err instanceof Error ? err.message : options.fallback || 'Wystąpił błąd.'
+      }
     } finally {
       loading.value = false
     }
