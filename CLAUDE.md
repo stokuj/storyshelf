@@ -79,7 +79,7 @@ Swagger docs: `http://localhost:8000/api/docs/`
 
 ```
 frontend/src/
-  api.js              — all HTTP calls, JWT attach + silent 401 refresh
+  api.js              — all HTTP calls, credentials: include (cookies), silent 401 refresh
   auth.js             — reactive authState singleton, refreshAuth(), signOut()
   router.js           — Vue Router, auth guard on requiresAuth routes
   composables/
@@ -130,7 +130,7 @@ Entities are **per-book** (`unique_together("name", "book")`), not global.
 - **No Chapter model** — removed. Book text lives in `Book.text`, cleared after NLP analysis.
 - **BookDetail response**: `{book, shelfEntry, characters, relations}` — no `chapters` key.
 - **`analyse_book` is not idempotent on re-run** — re-uploading text and re-running accumulates entities. Delete `BookCharacter/Place/Organization` manually for a clean re-analysis.
-- **JWT in localStorage** — XSS-vulnerable. HttpOnly cookie migration is pending. Do not add new localStorage token reads outside `src/api.js`.
+- **JWT via HttpOnly cookies** — tokens are `access_token` / `refresh_token` cookies set by the backend. Frontend never touches tokens directly; `api.js` uses `credentials: 'include'` on all fetches. `users/cookie_auth.py` contains `JWTCookieAuthentication` + `set_jwt_cookies()` / `clear_jwt_cookies()`. Header `Authorization: Bearer` still works as fallback (Swagger). Do NOT add localStorage token storage anywhere.
 - **`useAsyncState` timeout** — `execute(fn, { timeout: ms })` default 15 000 ms. On timeout shows Polish error `'Przekroczono czas oczekiwania.'`.
 
 ## Conventions
