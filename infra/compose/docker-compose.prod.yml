@@ -23,8 +23,8 @@ services:
     environment:
       DJANGO_ENV: prod
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       db:
@@ -42,12 +42,14 @@ services:
     environment:
       DJANGO_ENV: prod
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
-      - django
-      - rabbitmq
+      django:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     command: celery -A config worker -Q ner -l info -c 2 --pool prefork
 
   celery-llm:
@@ -59,12 +61,14 @@ services:
     environment:
       DJANGO_ENV: prod
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
-      - django
-      - rabbitmq
+      django:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     command: celery -A config worker -Q llm -l info -c 10 --pool gevent
 
   flower:
@@ -74,10 +78,10 @@ services:
     expose:
       - "5555"
     environment:
-      CELERY_BROKER_URL: amqp://rabbitmq:5672//
+      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
     depends_on:
       - rabbitmq
-    command: celery -A config flower --port=5555 --broker=amqp://rabbitmq:5672//
+    command: celery -A config flower --port=5555 --broker=amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -86,6 +90,8 @@ services:
     volumes:
       - ../rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-celery}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-celery}
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
