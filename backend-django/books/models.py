@@ -11,10 +11,10 @@ class Book(models.Model):
         related_name="books",
     )
     title = models.CharField(max_length=500)
-    year = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    year = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1)])
     isbn = models.CharField(max_length=20, unique=True, null=True, blank=True, default=None)
     description = models.TextField(blank=True, default="")
-    page_count = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    page_count = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1)])
     position_in_series = models.IntegerField(null=True, blank=True)
     text = models.TextField(blank=True, default="")
     avg_rating = models.FloatField(default=0.0)

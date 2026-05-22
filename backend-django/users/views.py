@@ -23,6 +23,7 @@ class RegisterView(generics.CreateAPIView):
 
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
+    throttle_scope = "auth_register"
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -41,6 +42,7 @@ class LoginView(views.APIView):
     """Logowanie. Ustawia HttpOnly cookies. Pola: email, password."""
 
     permission_classes = (permissions.AllowAny,)
+    throttle_scope = "auth_login"
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data, context={"request": request})
@@ -58,6 +60,7 @@ class TokenRefreshCookieView(views.APIView):
     """Odświeża access token z HttpOnly refresh cookie. Ustawia nowe cookies."""
 
     permission_classes = (permissions.AllowAny,)
+    throttle_scope = "auth_refresh"
 
     def post(self, request):
         raw_refresh = request.COOKIES.get("refresh_token")

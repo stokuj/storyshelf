@@ -14,6 +14,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 LLM_MODEL = os.getenv("LLM_MODEL", "qwen/qwen3.5-35b-a3b")
 LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "1000"))
+LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
 
 RELATION_SCHEMA = {
     "family": ["parent_of", "sibling_of", "spouse_of", "ancestor_of"],
@@ -37,6 +38,7 @@ class LLMService:
         self._client = OpenAI(
             api_key=OPENROUTER_API_KEY,
             base_url=OPENROUTER_BASE_URL,
+            timeout=LLM_TIMEOUT_SECONDS,
         )
 
     @staticmethod

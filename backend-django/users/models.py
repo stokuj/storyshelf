@@ -4,6 +4,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.db import models
+from django.db.models import F, Q
 
 
 class UserManager(BaseUserManager):
@@ -52,6 +53,13 @@ class UserFollow(models.Model):
                 fields=["follower", "following"],
                 name="unique_follower_following",
             ),
+            models.CheckConstraint(
+                condition=~Q(follower=F("following")),
+                name="userfollow_no_self_follow",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["following"], name="userfollow_following_idx"),
         ]
 
     def __str__(self):

@@ -71,11 +71,18 @@ def extract_entities_from_chunks(
         "locations": [],
     }
 
-    for doc in nlp.pipe(chunks, batch_size=8):
-        for ent in doc.ents:
-            key = LABEL_MAP.get(ent.label_)
-            if key:
-                raw[key].append(ent.text.strip())
+    try:
+        for doc in nlp.pipe(chunks, batch_size=8):
+            for ent in doc.ents:
+                key = LABEL_MAP.get(ent.label_)
+                if key:
+                    raw[key].append(ent.text.strip())
+    except Exception as exc:
+        # spaCy/Torch can raise a wide range of runtime errors (OOM, CUDA fault,
+        # tokenization edge cases). Returning an empty result lets the task
+        # finish cleanly rather than crashing the worker.
+        logger.exception("NER pipeline failed: %s", exc)
+        return {"characters": {}, "organizations": {}, "locations": {}}
 
     def filtered_counts(names: list[str]) -> dict[str, int]:
         counts = Counter(names)
