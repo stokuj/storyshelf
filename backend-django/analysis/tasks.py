@@ -8,8 +8,11 @@ from .ner_engine import extract_entities_from_chunks
 from .text_parser import find_sentences_with_both_characters
 
 try:
+    import openai
+
     from .llm_engine import llm_service
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
+    openai = None  # type: ignore[assignment]
     llm_service = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
@@ -26,7 +29,11 @@ def analyse_book(book_id: int):
 
     from .models import BookCharacter, BookOrganization, BookPlace
 
-    book = Book.objects.get(id=book_id)
+    try:
+        book = Book.objects.get(id=book_id)
+    except Book.DoesNotExist:
+        logger.warning("analyse_book: Book %s does not exist", book_id)
+        return
     if not book.text:
         return
 
@@ -50,10 +57,12 @@ def analyse_book(book_id: int):
             BookOrganization.objects.create(name=name, book=book, mention_count=count)
 
     pairs_data = find_sentences_with_both_characters(full_text, char_names)
-    Book.objects.filter(id=book_id).update(text="")
 
     if pairs_data and len(char_names) >= 2:
+        Book.objects.filter(id=book_id).update(text="")
         relations_for_book.delay(book_id, pairs_data)
+    else:
+        Book.objects.filter(id=book_id).update(text="")
 
 
 @shared_task
@@ -78,7 +87,7 @@ def relations_for_book(book_id: int, pairs_data: list[dict]):
         try:
             result_json = llm_service.extract_relations(pair, sentences)
             result = json.loads(result_json)
-        except (json.JSONDecodeError, Exception) as e:
+        except (json.JSONDecodeError, openai.OpenAIError) as e:
             logger.warning("LLM error for pair %s: %s", pair, e, exc_info=True)
             continue
 

@@ -33,7 +33,9 @@ class ShelfEntry(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "book")
+        constraints = [
+            models.UniqueConstraint(fields=["user", "book"], name="unique_user_book_shelf"),
+        ]
         ordering = ("-created_at",)
 
     def clean(self):

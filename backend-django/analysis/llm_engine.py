@@ -38,10 +38,6 @@ class LLMService:
             api_key=OPENROUTER_API_KEY,
             base_url=OPENROUTER_BASE_URL,
         )
-        self._sync_client = OpenAI(
-            base_url=OPENROUTER_BASE_URL,
-            api_key=OPENROUTER_API_KEY,
-        )
 
     @staticmethod
     def _sanitize(text: str) -> str:
@@ -105,4 +101,8 @@ RETURN ONLY JSON:
             return '{"relations": []}'
 
 
-llm_service = LLMService()
+llm_service: LLMService | None = None
+if OPENROUTER_API_KEY:
+    llm_service = LLMService()
+else:
+    logger.warning("OPENROUTER_API_KEY not set; LLM features disabled")

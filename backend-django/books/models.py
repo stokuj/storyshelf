@@ -25,6 +25,9 @@ class Book(models.Model):
     tags = models.ManyToManyField("library.Tag", through="BookTag")
     genres = models.ManyToManyField("library.Genre", through="BookGenre", related_name="books")
 
+    def __str__(self):
+        return self.title
+
 
 class BookAuthor(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
@@ -32,7 +35,9 @@ class BookAuthor(models.Model):
     role = models.CharField(max_length=30, blank=True, null=True)
 
     class Meta:
-        unique_together = ("book", "author")
+        constraints = [
+            models.UniqueConstraint(fields=["book", "author"], name="unique_book_author"),
+        ]
 
 
 class BookTag(models.Model):
@@ -40,7 +45,9 @@ class BookTag(models.Model):
     tag = models.ForeignKey("library.Tag", on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ("book", "tag")
+        constraints = [
+            models.UniqueConstraint(fields=["book", "tag"], name="unique_book_tag"),
+        ]
 
 
 class BookGenre(models.Model):
@@ -50,4 +57,6 @@ class BookGenre(models.Model):
     )
 
     class Meta:
-        unique_together = ["book", "genre"]
+        constraints = [
+            models.UniqueConstraint(fields=["book", "genre"], name="unique_book_genre"),
+        ]

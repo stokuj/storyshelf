@@ -24,6 +24,7 @@ class ShelfListView(generics.ListAPIView):
         return (
             ShelfEntry.objects.filter(user=self.request.user)
             .select_related("book")
+            .prefetch_related("book__authors")
             .order_by("-created_at")
         )
 
@@ -46,6 +47,12 @@ class ShelfEntryView(APIView):
     def post(self, request, book_id):
         book = get_object_or_404(Book, id=book_id)
         status_val = request.data.get("status", "WANT_TO_READ")
+        valid_statuses = {s.value for s in ShelfEntry.Status}
+        if status_val not in valid_statuses:
+            return Response(
+                {"detail": f"Invalid status. Choose from: {', '.join(valid_statuses)}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         entry, _ = ShelfEntry.objects.get_or_create(
             user=request.user, book=book, defaults={"status": status_val}
         )
@@ -58,6 +65,12 @@ class ShelfEntryView(APIView):
         status_val = request.data.get("status")
         if not status_val:
             return Response({"detail": "status required"}, status=status.HTTP_400_BAD_REQUEST)
+        valid_statuses = {s.value for s in ShelfEntry.Status}
+        if status_val not in valid_statuses:
+            return Response(
+                {"detail": f"Invalid status. Choose from: {', '.join(valid_statuses)}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         entry.status = status_val
         entry.start_date = request.data.get("start_date", entry.start_date)
         entry.finish_date = request.data.get("finish_date", entry.finish_date)

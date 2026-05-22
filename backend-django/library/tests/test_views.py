@@ -75,10 +75,13 @@ class AuthorResponseStructureTest(AuthTestHelper, APITestCase):
         AuthTestHelper.setUpTestData()
         cls.author = Author.objects.create(name="Struct Author")
 
-    def test_author_response_has_avatar_url(self):
+    def test_author_response_has_expected_fields(self):
         resp = self.client.get(f"/api/authors/{self.author.id}/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("avatar_url", resp.data)
+        self.assertIn("id", resp.data)
+        self.assertIn("name", resp.data)
+        self.assertIn("bio", resp.data)
+        self.assertIn("birth_date", resp.data)
 
 
 class SeriesResponseStructureTest(AuthTestHelper, APITestCase):
@@ -87,10 +90,13 @@ class SeriesResponseStructureTest(AuthTestHelper, APITestCase):
         AuthTestHelper.setUpTestData()
         cls.serie = Serie.objects.create(name="Struct Series")
 
-    def test_series_response_has_cover_url(self):
+    def test_series_response_has_expected_fields(self):
         resp = self.client.get(f"/api/series/{self.serie.id}/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("cover_url", resp.data)
+        self.assertIn("id", resp.data)
+        self.assertIn("name", resp.data)
+        self.assertIn("description", resp.data)
+        self.assertIn("status", resp.data)
 
 
 class AuthorNameUniqueTest(TestCase):

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from analysis.models import BookCharacter, CharacterRelationship
+from shelf.models import ShelfEntry
 
 from .models import Book
 
@@ -87,7 +88,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         book_data = super().to_representation(instance)
 
         book_data["analysisStatus"] = {
-            "analysisFinished": BookCharacter.objects.filter(book=instance).exists(),
+            "analysisFinished": instance.characters.exists(),
         }
 
         book_data["seriesName"] = instance.serie.name if instance.serie else None
@@ -100,7 +101,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
                     "status": entry.status,
                     "createdAt": entry.created_at.isoformat(),
                 }
-            except Exception:
+            except ShelfEntry.DoesNotExist:
                 pass
 
         characters = BookCharacterSerializer(

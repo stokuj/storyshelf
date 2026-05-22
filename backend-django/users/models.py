@@ -10,7 +10,7 @@ class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra):
         if not email:
             raise ValueError("Email is required")
-        email = self.normalize_email(email)
+        email = self.normalize_email(email).lower()
         user = self.model(email=email, username=username, **extra)
         user.set_password(password)
         user.save(using=self._db)
@@ -37,6 +37,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
+    def __str__(self):
+        return self.username
+
 
 class UserFollow(models.Model):
     follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following_set")
@@ -44,4 +47,12 @@ class UserFollow(models.Model):
     followed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("follower", "following")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["follower", "following"],
+                name="unique_follower_following",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.follower.username} → {self.following.username}"
