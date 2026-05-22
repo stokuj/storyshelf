@@ -12,7 +12,7 @@ depends_on:
   - spaCy en_core_web_trf (CPU-only torch)
   - OpenRouter API
   - RabbitMQ (queues: ner, llm)
-related_pages: [celery-workers, dev-setup]
+related_pages: [celery-workers, dev-setup, api-conventions]
 status: stable
 ---
 

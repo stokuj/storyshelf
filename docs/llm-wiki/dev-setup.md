@@ -13,7 +13,7 @@ depends_on:
   - Docker + Docker Compose
   - uv (Python package manager)
   - Node.js + npm
-related_pages: [celery-workers, api-conventions]
+related_pages: [celery-workers, api-conventions, auth-flow, nlp-pipeline]
 status: stable
 ---
 

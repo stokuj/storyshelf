@@ -14,7 +14,7 @@ owns:
   - frontend/src/composables/useAsyncState.js
 depends_on:
   - Django REST Framework
-related_pages: [auth-flow, nlp-pipeline]
+related_pages: [auth-flow, nlp-pipeline, dev-setup]
 status: stable
 ---
 
