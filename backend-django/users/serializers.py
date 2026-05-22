@@ -1,7 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import User, UserFollow
 
