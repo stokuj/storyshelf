@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 def analyse_book(book_id: int):
     """Run NER on Book.text, save per-book entities, dispatch LLM task.
 
-    Note: re-running after a text update accumulates entities (no delete-before-recreate).
-    Clear BookCharacter/Place/Organization manually if a clean re-analysis is needed.
+    Idempotent: deletes existing entities before writing new ones so re-runs
+    on updated text don't accumulate stale entries.
     """
     from books.models import Book
 
@@ -35,21 +35,19 @@ def analyse_book(book_id: int):
 
     char_names: list[str] = []
     with transaction.atomic():
+        BookCharacter.objects.filter(book=book).delete()
+        BookPlace.objects.filter(book=book).delete()
+        BookOrganization.objects.filter(book=book).delete()
+
         for name, count in result.get("characters", {}).items():
-            BookCharacter.objects.update_or_create(
-                name=name, book=book, defaults={"mention_count": count}
-            )
+            BookCharacter.objects.create(name=name, book=book, mention_count=count)
             char_names.append(name)
 
         for name, count in result.get("locations", {}).items():
-            BookPlace.objects.update_or_create(
-                name=name, book=book, defaults={"mention_count": count}
-            )
+            BookPlace.objects.create(name=name, book=book, mention_count=count)
 
         for name, count in result.get("organizations", {}).items():
-            BookOrganization.objects.update_or_create(
-                name=name, book=book, defaults={"mention_count": count}
-            )
+            BookOrganization.objects.create(name=name, book=book, mention_count=count)
 
     pairs_data = find_sentences_with_both_characters(full_text, char_names)
     Book.objects.filter(id=book_id).update(text="")

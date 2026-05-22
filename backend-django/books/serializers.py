@@ -90,10 +90,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
             "analysisFinished": BookCharacter.objects.filter(book=instance).exists(),
         }
 
-        if instance.serie:
-            book_data["series"] = {"name": instance.serie.name}
         book_data["seriesName"] = instance.serie.name if instance.serie else None
-        book_data["seriesTitle"] = None
 
         shelf_entry = None
         if request and request.user.is_authenticated:

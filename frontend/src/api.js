@@ -37,10 +37,18 @@ async function request(method, path, body, isFormData = false) {
   }
 
   if (res.status === 204) return null
+
+  const contentType = res.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Server error ${res.status}: unexpected response format`)
+  }
+
   const data = await res.json()
   if (!res.ok) {
-    const msg = data.detail || data.message || data.error || res.statusText
-    throw new Error(msg)
+    const fieldError = data.non_field_errors?.[0]
+      ?? Object.values(data).flatMap(v => Array.isArray(v) ? v : [v])[0]
+    const msg = data.detail || data.message || data.error || fieldError || res.statusText
+    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg))
   }
   return data
 }
