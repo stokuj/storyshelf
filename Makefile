@@ -39,5 +39,6 @@ prod-logs:
 	$(PROD_COMPOSE) --env-file $(ENV_FILE) logs -f
 
 verify:
+	cd $(ROOT_DIR)backend-django && uv run ruff check .
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python -m pytest
