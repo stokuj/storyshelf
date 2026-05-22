@@ -12,11 +12,11 @@
 | JWT przez HttpOnly cookies | Migracja z localStorage, `JWTCookieAuthentication`, silent refresh | [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md) |
 | Frontend audit fixes | useAsyncState, AlertMessage, NotFoundState, router auth init | — |
 | Django audit fixes | validators, unique constraints, signals, lint config | — |
-| SDD docs restructure | Wprowadzenie 3-warstwowej dokumentacji + ADR + slash commands | Bieżący etap |
+| SDD docs restructure | Wprowadzenie struktury `docs/` (ARCHITECTURE, ROADMAP, decisions/) + integracja z plugin superpowers (`/brainstorming` → `/writing-plans` → `/executing-plans` → PR) | PR #43 |
 
 ## W toku
 
-Brak. Po zakończeniu restruktryzacji dokumentacji — wybór następnego etapu z "Następne".
+Brak. Wybór następnego etapu z "Następne".
 
 ## Następne (priorytetyzowane)
 

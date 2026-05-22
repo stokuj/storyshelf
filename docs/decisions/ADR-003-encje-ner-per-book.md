@@ -68,5 +68,4 @@ Ten design powodował trzy problemy:
 ## Linki
 
 - Kod: `backend-django/analysis/models.py`, `backend-django/analysis/tasks.py`, `backend-django/analysis/ner_engine.py`
-- Strony wiki: [[nlp-pipeline]]
 - Supersedes: wcześniejszy design opisany w usuniętym `docs/superpowers/plans/2026-05-13-nlp-pipeline-redesign.md`

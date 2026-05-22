@@ -54,4 +54,3 @@ synchronicznym wywołaniom torch.
 
 - Kod: `backend-django/config/celery.py`, `backend-django/analysis/tasks.py`
 - Infra: `infra/compose/docker-compose.dev.yml`, `infra/rabbitmq/definitions.json`
-- Strony wiki: [[celery-workers]], [[nlp-pipeline]]
