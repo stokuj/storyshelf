@@ -7,4 +7,3 @@ Szczegóły:
 - Architektura: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Decyzje (ADR): [docs/decisions/](docs/decisions/)
 - Roadmapa: [docs/ROADMAP.md](docs/ROADMAP.md)
-- Stan systemu: [docs/llm-wiki/_meta/INDEX.md](docs/llm-wiki/_meta/INDEX.md)

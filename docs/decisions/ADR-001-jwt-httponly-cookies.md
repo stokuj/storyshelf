@@ -47,4 +47,3 @@ odczytać access token z `request.COOKIES`, potem z headera Authorization (fallb
 
 - Commits: `992ce90`, `2b32ff3`, `0432ef2`, `9028719`, `429e1a7`
 - Kod: `backend-django/users/cookie_auth.py`, `backend-django/users/views.py`, `frontend/src/api.js`
-- Strona wiki: [[auth-flow]]
