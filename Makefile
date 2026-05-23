@@ -42,6 +42,7 @@ verify:
 	cd $(ROOT_DIR)backend-django && uv run ruff check .
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python -m pytest
+	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py test config.tests.test_openapi_schema --noinput
 
 regenerate-openapi:
 	$(ROOT_DIR)infra/scripts/regenerate-openapi.sh
