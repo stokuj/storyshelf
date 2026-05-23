@@ -41,7 +41,10 @@ def build_user_export_zip(user):
             }
             for e in entries
         ]
-        zf.writestr("shelf_entries.json", json.dumps(shelf_entries_data, indent=2, cls=_DatetimeEncoder))
+        zf.writestr(
+            "shelf_entries.json",
+            json.dumps(shelf_entries_data, indent=2, cls=_DatetimeEncoder),
+        )
 
         # reviews.json
         reviews = list(

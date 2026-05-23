@@ -69,7 +69,7 @@ class UserMePatchTest(AuthTestHelper, APITestCase):
         self.assertEqual(self.user.display_name, "Test User")
 
     def test_patch_handle_conflict_returns_400(self):
-        other = User.objects.create_user(
+        User.objects.create_user(
             email="other@test.com", handle="otheruser", password="pw123456"
         )
         self.client.force_authenticate(user=self.user)
@@ -84,7 +84,7 @@ class UserMePatchTest(AuthTestHelper, APITestCase):
     def test_patch_email_ignored(self):
         self.client.force_authenticate(user=self.user)
         original_email = self.user.email
-        resp = self.client.patch("/api/users/me/", {"email": "hacker@evil.com"})
+        self.client.patch("/api/users/me/", {"email": "hacker@evil.com"})
         self.user.refresh_from_db()
         self.assertEqual(self.user.email, original_email)
 

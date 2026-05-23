@@ -226,7 +226,10 @@ class EmailChangeView(views.APIView):
         try:
             send_mail(
                 subject="Your StoryShelf email has been changed",
-                message=f"Your account email was changed to {new_email}. If this wasn't you, contact support.",
+                message=(
+                    f"Your account email was changed to {new_email}."
+                    " If this wasn't you, contact support."
+                ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[old_email],
                 fail_silently=False,

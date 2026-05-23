@@ -16,7 +16,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         max_length=30,
         validators=[UniqueValidator(queryset=User.objects.all())],
     )
-    display_name = serializers.CharField(max_length=80, required=False, default="", allow_blank=True)
+    display_name = serializers.CharField(
+        max_length=80, required=False, default="", allow_blank=True
+    )
 
     class Meta:
         model = User
