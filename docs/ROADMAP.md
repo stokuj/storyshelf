@@ -6,23 +6,26 @@
 
 ## 🎯 Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `phase/2.0-foundation` (9 commitów ahead of main)
+**Bieżący branch:** `phase/2.0-foundation` (17 commitów ahead of main)
 
-**ZADANIE:** Zdecydować: czy plans (2.0-2.6) piszemy teraz w batchu, czy JIT przed implementacją każdej sub-fazy.
+**ZADANIE:** Wypchnij branch na origin i zacznij implementację Phase 2.0 (`/executing-plans`).
 
-Wszystkie 6 specyfikacji gotowe:
-- [x] 2.1 Books API extensions → [`docs/superpowers/specs/2026-05-23-phase2.1-books-api.md`](superpowers/specs/2026-05-23-phase2.1-books-api.md)
-- [x] 2.2 AI extraction API → [`docs/superpowers/specs/2026-05-23-phase2.2-ai-extraction.md`](superpowers/specs/2026-05-23-phase2.2-ai-extraction.md)
-- [x] 2.3 Multi-shelf collections → [`docs/superpowers/specs/2026-05-23-phase2.3-shelves.md`](superpowers/specs/2026-05-23-phase2.3-shelves.md)
-- [x] 2.4 Account management → [`docs/superpowers/specs/2026-05-23-phase2.4-account.md`](superpowers/specs/2026-05-23-phase2.4-account.md)
-- [x] 2.5 Character disambiguation → [`docs/superpowers/specs/2026-05-23-phase2.5-disambiguation.md`](superpowers/specs/2026-05-23-phase2.5-disambiguation.md)
-- [x] 2.6 Vue removal + SvelteKit setup → [`docs/superpowers/specs/2026-05-23-phase2.6-svelte-setup.md`](superpowers/specs/2026-05-23-phase2.6-svelte-setup.md)
+Wszystkie specs i plany gotowe:
 
-**Następny krok:** użytkownik decyduje czy:
-- **Batch plans teraz** — napisać plany dla wszystkich 6 sub-faz (subagentami, po jednym na sub-fazę)
-- **JIT** — pisać plan bezpośrednio przed implementacją każdej sub-fazy (start od 2.0 → implement → plan 2.1 → implement → ...)
+| # | Spec | Plan |
+|---|---|---|
+| 2.0 | [`specs/phase2.0-foundation.md`](superpowers/specs/2026-05-23-phase2.0-foundation.md) ✅ | [`plans/phase2.0-foundation.md`](superpowers/plans/2026-05-23-phase2.0-foundation.md) ✅ |
+| 2.1 | [`specs/phase2.1-books-api.md`](superpowers/specs/2026-05-23-phase2.1-books-api.md) ✅ | [`plans/phase2.1-books-api.md`](superpowers/plans/2026-05-23-phase2.1-books-api.md) ✅ |
+| 2.2 | [`specs/phase2.2-ai-extraction.md`](superpowers/specs/2026-05-23-phase2.2-ai-extraction.md) ✅ | [`plans/phase2.2-ai-extraction.md`](superpowers/plans/2026-05-23-phase2.2-ai-extraction.md) ✅ |
+| 2.3 | [`specs/phase2.3-shelves.md`](superpowers/specs/2026-05-23-phase2.3-shelves.md) ✅ | [`plans/phase2.3-shelves.md`](superpowers/plans/2026-05-23-phase2.3-shelves.md) ✅ |
+| 2.4 | [`specs/phase2.4-account.md`](superpowers/specs/2026-05-23-phase2.4-account.md) ✅ | [`plans/phase2.4-account.md`](superpowers/plans/2026-05-23-phase2.4-account.md) ✅ |
+| 2.5 | [`specs/phase2.5-disambiguation.md`](superpowers/specs/2026-05-23-phase2.5-disambiguation.md) ✅ | [`plans/phase2.5-disambiguation.md`](superpowers/plans/2026-05-23-phase2.5-disambiguation.md) ✅ |
+| 2.6 | [`specs/phase2.6-svelte-setup.md`](superpowers/specs/2026-05-23-phase2.6-svelte-setup.md) ✅ | [`plans/phase2.6-svelte-setup.md`](superpowers/plans/2026-05-23-phase2.6-svelte-setup.md) ✅ |
 
-Następnie: wypchnij branch na origin i zacznij implementację Phase 2.0 (`/executing-plans`).
+**Workflow implementacji:**
+1. `git push origin phase/2.0-foundation`
+2. Zacznij od Phase 2.0: `/executing-plans docs/superpowers/plans/2026-05-23-phase2.0-foundation.md`
+3. Po każdej fazie: PR → merge → nowy branch → następna faza
 
 ---
 
