@@ -18,6 +18,7 @@ dependencies = [
     "openai>=1.0",
     "tiktoken>=0.7",
     "gevent>=24",
+    "Pillow>=11.0",
 ]
 
 [dependency-groups]

@@ -12,26 +12,26 @@ class RegisterEdgeCaseTest(AuthTestHelper, APITestCase):
         self.url = "/api/auth/register/"
 
     def test_duplicate_email_returns_400_not_500(self):
-        User.objects.create_user(email="dup@test.com", username="dupuser", password="pw")
+        User.objects.create_user(email="dup@test.com", handle="dupuser", password="pw")
         resp = self.client.post(
             self.url,
-            {"email": "dup@test.com", "username": "another", "password": "secret123"},
+            {"email": "dup@test.com", "handle": "another", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("email", resp.data)
 
     def test_duplicate_email_case_insensitive_fails(self):
-        User.objects.create_user(email="UPPER@test.com", username="upperuser", password="pw")
+        User.objects.create_user(email="UPPER@test.com", handle="upperuser", password="pw")
         resp = self.client.post(
             self.url,
-            {"email": "upper@test.com", "username": "another", "password": "secret123"},
+            {"email": "upper@test.com", "handle": "another", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_password_not_leaked_in_response(self):
         resp = self.client.post(
             self.url,
-            {"email": "leak@test.com", "username": "leakuser", "password": "secret123"},
+            {"email": "leak@test.com", "handle": "leakuser", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         raw = resp.content.decode()
@@ -40,14 +40,14 @@ class RegisterEdgeCaseTest(AuthTestHelper, APITestCase):
     def test_username_too_short_returns_400(self):
         resp = self.client.post(
             self.url,
-            {"email": "short@test.com", "username": "ab", "password": "secret123"},
+            {"email": "short@test.com", "handle": "ab", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_username_non_ascii_returns_400(self):
         resp = self.client.post(
             self.url,
-            {"email": "ascii@test.com", "username": "tëst", "password": "secret123"},
+            {"email": "ascii@test.com", "handle": "tëst", "password": "secret123"},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 

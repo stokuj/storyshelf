@@ -6,22 +6,14 @@ from users.models import User, UserFollow
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = (
-        "email",
-        "username",
-        "profile_public",
-        "is_active",
-        "created_at",
-    )
-    list_filter = ("profile_public", "is_active")
-    search_fields = ("email", "username")
-    ordering = ("-created_at",)
-
+    list_display = ("handle", "display_name", "email", "is_staff", "profile_public")
+    search_fields = ("handle", "email", "display_name")
+    ordering = ("handle",)
     fieldsets = (
-        (None, {"fields": ("email", "username", "password")}),
+        (None, {"fields": ("email", "password")}),
         (
             "Profile",
-            {"fields": ("bio", "avatar_url", "profile_public")},
+            {"fields": ("handle", "display_name", "bio", "avatar", "profile_public")},
         ),
         (
             "Permissions",
@@ -35,33 +27,18 @@ class UserAdmin(BaseUserAdmin):
                 )
             },
         ),
-        ("Dates", {"fields": ("created_at", "last_login")}),
     )
-
     add_fieldsets = (
         (
             None,
             {
                 "classes": ("wide",),
-                "fields": (
-                    "email",
-                    "username",
-                    "password1",
-                    "password2",
-                    "profile_public",
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                ),
+                "fields": ("email", "handle", "password1", "password2"),
             },
         ),
     )
-
-    readonly_fields = ("created_at",)
 
 
 @admin.register(UserFollow)
 class UserFollowAdmin(admin.ModelAdmin):
     list_display = ("follower", "following", "followed_at")
-    search_fields = ("follower__username", "following__username")
-    ordering = ("-followed_at",)

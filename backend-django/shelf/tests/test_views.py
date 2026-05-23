@@ -33,7 +33,7 @@ class ShelfListTest(AuthTestHelper, APITestCase):
 
     def test_shelf_entries_isolated_per_user(self):
         other = User.objects.create_user(
-            email="other@test.com", username="otheruser", password="password123"
+            email="other@test.com", handle="otheruser", password="password123"
         )
         ShelfEntry.objects.create(user=self.user, book=self.book, status="READ")
         ShelfEntry.objects.create(user=other, book=self.book, status="WANT_TO_READ")
@@ -111,7 +111,7 @@ class ShelfEntryTest(AuthTestHelper, APITestCase):
 
     def test_cannot_access_other_user_entry(self):
         other = User.objects.create_user(
-            email="other@test.com", username="otheruser", password="password123"
+            email="other@test.com", handle="otheruser", password="password123"
         )
         ShelfEntry.objects.create(user=other, book=self.book, status="READ")
         self.client.force_authenticate(user=self.user)

@@ -15,20 +15,20 @@ class UserProfileTest(AuthTestHelper, APITestCase):
     def setUp(self):
         self.target = User.objects.create_user(
             email="target@test.com",
-            username="targetuser",
+            handle="targetuser",
             password="pw",
             bio="Hello world",
         )
-        self.url = f"/api/users/{self.target.username}/"
+        self.url = f"/api/u/{self.target.handle}/"
 
     def test_get_public_profile_returns_200(self):
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data["username"], "targetuser")
+        self.assertEqual(resp.data["handle"], "targetuser")
         self.assertEqual(resp.data["bio"], "Hello world")
 
     def test_get_nonexistent_user_returns_404(self):
-        resp = self.client.get("/api/users/nonexistent/")
+        resp = self.client.get("/api/u/nonexistent/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_private_profile_returns_404_for_others(self):
@@ -54,9 +54,9 @@ class UserSettingsTest(AuthTestHelper, APITestCase):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/users/me/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data["username"], "testuser")
+        self.assertEqual(resp.data["handle"], "testuser")
         self.assertIn("email", resp.data)
-        self.assertIn("profilePublic", resp.data)
+        self.assertIn("profile_public", resp.data["settings"])
 
     def test_get_settings_unauthenticated_returns_401(self):
         resp = self.client.get("/api/users/me/")
@@ -71,32 +71,6 @@ class UserSettingsTest(AuthTestHelper, APITestCase):
         self.assertEqual(self.user.bio, "New bio")
 
 
-class UserVisibilityTest(AuthTestHelper, APITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        AuthTestHelper.setUpTestData()
-
-    def test_patch_visibility_to_false(self):
-        self.client.force_authenticate(user=self.user)
-        resp = self.client.patch("/api/users/me/visibility/?profilePublic=false")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertFalse(resp.data["profile_public"])
-        self.user.refresh_from_db()
-        self.assertFalse(self.user.profile_public)
-
-    def test_patch_visibility_to_true(self):
-        self.user.profile_public = False
-        self.user.save()
-        self.client.force_authenticate(user=self.user)
-        resp = self.client.patch("/api/users/me/visibility/?profilePublic=true")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue(resp.data["profile_public"])
-
-    def test_patch_visibility_unauthenticated_returns_401(self):
-        resp = self.client.patch("/api/users/me/visibility/")
-        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
-
-
 class UserFollowTest(AuthTestHelper, APITestCase):
     @classmethod
     def setUpTestData(cls):
@@ -105,21 +79,21 @@ class UserFollowTest(AuthTestHelper, APITestCase):
     def setUp(self):
         self.target = User.objects.create_user(
             email="target2@test.com",
-            username="target2",
+            handle="target2",
             password="pw",
         )
-        self.url = f"/api/users/{self.target.username}/follow/"
+        self.url = f"/api/users/{self.target.handle}/follow/"
 
     def test_post_follow_returns_201(self):
         self.client.force_authenticate(user=self.user)
         resp = self.client.post(self.url)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(resp.data["followerUsername"], "testuser")
-        self.assertEqual(resp.data["followingUsername"], "target2")
+        self.assertEqual(resp.data["follower_handle"], "testuser")
+        self.assertEqual(resp.data["following_handle"], "target2")
 
     def test_post_follow_self_returns_400(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.post(f"/api/users/{self.user.username}/follow/")
+        resp = self.client.post(f"/api/users/{self.user.handle}/follow/")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_follow_already_following_returns_409(self):
@@ -157,28 +131,28 @@ class FollowListTest(AuthTestHelper, APITestCase):
     def setUp(self):
         self.target = User.objects.create_user(
             email="target3@test.com",
-            username="target3",
+            handle="target3",
             password="pw",
         )
 
     def test_list_followers_returns_200(self):
         self.client.force_authenticate(user=self.user)
-        self.client.post(f"/api/users/{self.target.username}/follow/")
-        resp = self.client.get(f"/api/users/{self.target.username}/followers/")
+        self.client.post(f"/api/users/{self.target.handle}/follow/")
+        resp = self.client.get(f"/api/users/{self.target.handle}/followers/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["followerUsername"], "testuser")
+        self.assertEqual(resp.data[0]["follower_handle"], "testuser")
 
     def test_list_following_returns_200(self):
         self.client.force_authenticate(user=self.user)
-        self.client.post(f"/api/users/{self.target.username}/follow/")
+        self.client.post(f"/api/users/{self.target.handle}/follow/")
         resp = self.client.get("/api/users/testuser/following/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["followingUsername"], "target3")
+        self.assertEqual(resp.data[0]["following_handle"], "target3")
 
     def test_list_followers_empty_returns_200(self):
-        resp = self.client.get(f"/api/users/{self.target.username}/followers/")
+        resp = self.client.get(f"/api/users/{self.target.handle}/followers/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, [])
 
@@ -192,10 +166,10 @@ class UserSettingsResponseStructureTest(AuthTestHelper, APITestCase):
     def setUpTestData(cls):
         AuthTestHelper.setUpTestData()
 
-    def test_response_uses_camelcase_keys(self):
+    def test_response_uses_snake_case_keys(self):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/users/me/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("profilePublic", resp.data)
-        self.assertIn("avatarUrl", resp.data)
-        self.assertIn("memberSince", resp.data)
+        self.assertIn("profile_public", resp.data["settings"])
+        self.assertIn("avatar_url", resp.data)
+        self.assertIn("member_since", resp.data)

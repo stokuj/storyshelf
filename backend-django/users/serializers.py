@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -10,15 +11,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     password = serializers.CharField(min_length=6, max_length=72, write_only=True)
-    username = serializers.RegexField(
+    handle = serializers.RegexField(
         regex=r"^[a-z]{3,30}$",
         max_length=30,
         validators=[UniqueValidator(queryset=User.objects.all())],
     )
+    display_name = serializers.CharField(max_length=80, required=False, default="", allow_blank=True)
 
     class Meta:
         model = User
-        fields = ("email", "username", "password")
+        fields = ("email", "handle", "display_name", "password")
 
     def validate_email(self, value):
         return value.lower().strip()
@@ -45,40 +47,133 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    memberSince = serializers.DateTimeField(source="created_at", read_only=True)
-    avatarUrl = serializers.URLField(source="avatar_url", read_only=True)
+class UserMePatchSerializer(serializers.ModelSerializer):
+    handle = serializers.RegexField(
+        regex=r"^[a-z]{3,30}$",
+        max_length=30,
+        required=False,
+    )
+    display_name = serializers.CharField(max_length=80, required=False, allow_blank=True)
+    bio = serializers.CharField(max_length=500, required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ("username", "bio", "avatarUrl", "memberSince")
-        read_only_fields = ("username", "bio", "avatarUrl", "memberSince")
+        fields = ("handle", "display_name", "bio")
+
+    def validate_handle(self, value):
+        if User.objects.exclude(pk=self.instance.pk).filter(handle=value).exists():
+            raise serializers.ValidationError("This handle is already taken.")
+        return value
+
+    def validate_display_name(self, value):
+        return value.strip()
 
 
-class UserSettingsSerializer(serializers.ModelSerializer):
-    memberSince = serializers.DateTimeField(source="created_at", read_only=True)
-    avatarUrl = serializers.URLField(source="avatar_url", required=False, allow_blank=True)
-    profilePublic = serializers.BooleanField(source="profile_public")
+class UserMeSerializer(serializers.ModelSerializer):
+    settings = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
+    member_since = serializers.DateTimeField(source="created_at", read_only=True)
 
     class Meta:
         model = User
         fields = (
-            "username",
+            "id",
+            "handle",
+            "display_name",
             "email",
             "bio",
-            "avatarUrl",
-            "profilePublic",
-            "memberSince",
+            "avatar_url",
+            "member_since",
+            "settings",
         )
-        read_only_fields = ("email", "memberSince")
+
+    def get_settings(self, obj):
+        return {"profile_public": obj.profile_public}
+
+    def get_avatar_url(self, obj):
+        if obj.avatar:
+            request = self.context.get("request")
+            return request.build_absolute_uri(obj.avatar.url) if request else obj.avatar.url
+        return None
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    member_since = serializers.DateTimeField(source="created_at", read_only=True)
+    avatar_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "handle",
+            "display_name",
+            "bio",
+            "avatar_url",
+            "member_since",
+            "profile_public",
+        )
+
+    def get_avatar_url(self, obj):
+        if obj.avatar:
+            request = self.context.get("request")
+            return request.build_absolute_uri(obj.avatar.url) if request else obj.avatar.url
+        return None
+
+
+class UserSettingsPatchSerializer(serializers.Serializer):
+    profile_public = serializers.BooleanField()
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(min_length=6, max_length=72, write_only=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+
+
+class EmailChangeSerializer(serializers.Serializer):
+    new_email = serializers.EmailField()
+    current_password = serializers.CharField(write_only=True)
+
+    def validate_new_email(self, value):
+        value = value.lower().strip()
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email is already in use.")
+        return value
+
+
+class AvatarUploadSerializer(serializers.Serializer):
+    avatar = serializers.ImageField()
+
+    def validate_avatar(self, file):
+        if file.size > 2 * 1024 * 1024:
+            raise serializers.ValidationError("Avatar must be under 2 MB.")
+        allowed = {"image/jpeg", "image/png", "image/webp"}
+        if file.content_type not in allowed:
+            raise serializers.ValidationError("Only JPEG, PNG and WebP are allowed.")
+        from PIL import Image
+
+        img = Image.open(file)
+        img.verify()
+        file.seek(0)
+        img = Image.open(file)
+        if img.width > 1024 or img.height > 1024:
+            raise serializers.ValidationError("Dimensions must not exceed 1024×1024 px.")
+        file.seek(0)
+        return file
+
+
+class AccountDeleteSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    followerUsername = serializers.CharField(source="follower.username", read_only=True)
-    followingUsername = serializers.CharField(source="following.username", read_only=True)
-    followedAt = serializers.DateTimeField(source="followed_at", read_only=True)
+    follower_handle = serializers.CharField(source="follower.handle", read_only=True)
+    following_handle = serializers.CharField(source="following.handle", read_only=True)
+    followed_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = UserFollow
-        fields = ("id", "followerUsername", "followingUsername", "followedAt")
-        read_only_fields = ("id", "followerUsername", "followingUsername", "followedAt")
+        fields = ("id", "follower_handle", "following_handle", "followed_at")
+        read_only_fields = fields

@@ -19,7 +19,7 @@ class JWTCookieAuthenticationTest(TestCase):
     def setUp(self):
         self.auth = JWTCookieAuthentication()
         self.user = User.objects.create_user(
-            email="cookie@test.com", username="cookieuser", password="secret123"
+            email="cookie@test.com", handle="cookieuser", password="secret123"
         )
 
     def test_no_cookie_returns_none(self):

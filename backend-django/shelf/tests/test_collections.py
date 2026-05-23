@@ -11,10 +11,10 @@ class MyShelvesViewTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="shelf@test.com", username="shelfuser", password="pass123"
+            email="shelf@test.com", handle="shelfuser", password="pass123"
         )
         self.other = User.objects.create_user(
-            email="other@test.com", username="otheruser", password="pass123"
+            email="other@test.com", handle="otheruser", password="pass123"
         )
         self.client.force_authenticate(user=self.user)
 
@@ -67,7 +67,7 @@ class MyShelfDetailViewTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="detail@test.com", username="detailuser", password="pass123"
+            email="detail@test.com", handle="detailuser", password="pass123"
         )
         self.client.force_authenticate(user=self.user)
         self.shelf = Shelf.objects.create(user=self.user, name="My Shelf")
@@ -118,10 +118,10 @@ class MyShelfBookViewTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="book@test.com", username="bookuser", password="pass123"
+            email="book@test.com", handle="bookuser", password="pass123"
         )
         self.other = User.objects.create_user(
-            email="other2@test.com", username="otheruser2", password="pass123"
+            email="other2@test.com", handle="otheruser2", password="pass123"
         )
         self.client.force_authenticate(user=self.user)
         self.shelf = Shelf.objects.create(user=self.user, name="Reading List")

@@ -6,7 +6,7 @@ from .models import Review
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="user.username", read_only=True)
+    handle = serializers.CharField(source="user.handle", read_only=True)
     bookTitle = serializers.CharField(source="book.title", read_only=True)  # noqa: N815
     bookId = serializers.IntegerField(source="book.id", read_only=True)  # noqa: N815
     createdAt = serializers.DateTimeField(source="created_at", read_only=True)  # noqa: N815
@@ -15,14 +15,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = (
             "id",
-            "username",
+            "handle",
             "rating",
             "content",
             "createdAt",
             "bookTitle",
             "bookId",
         )
-        read_only_fields = ("id", "username", "bookTitle", "bookId", "createdAt")
+        read_only_fields = ("id", "handle", "bookTitle", "bookId", "createdAt")
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):

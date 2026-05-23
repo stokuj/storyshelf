@@ -31,6 +31,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    volumes:
+      - media:/app/media
     command: gunicorn config.wsgi -b 0.0.0.0:8000 -w 4
     healthcheck:
       test:
@@ -156,3 +158,4 @@ volumes:
   redis-data:
   caddy-data:
   caddy-config:
+  media:

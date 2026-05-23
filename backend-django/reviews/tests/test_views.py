@@ -24,7 +24,7 @@ class ReviewListTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
         self.assertEqual(resp.data[0]["rating"], 4)
-        self.assertEqual(resp.data[0]["username"], "testuser")
+        self.assertEqual(resp.data[0]["handle"], "testuser")
 
     def test_get_reviews_without_filter_returns_all(self):
         book2 = Book.objects.create(title="Other", isbn="r004", page_count=100, year=2023)
@@ -137,7 +137,7 @@ class ReviewRetrieveTest(AuthTestHelper, APITestCase):
         self.assertIn("createdAt", data)
         self.assertIn("bookTitle", data)
         self.assertIn("bookId", data)
-        self.assertIn("username", data)
+        self.assertIn("handle", data)
 
     def test_get_nonexistent_review_returns_404(self):
         resp = self.client.get("/api/reviews/99999/")
@@ -166,7 +166,7 @@ class ReviewUpdateTest(AuthTestHelper, APITestCase):
 
     def test_update_other_users_review_returns_403(self):
         other = User.objects.create_user(
-            email="other@test.com", username="otheruser", password="password123"
+            email="other@test.com", handle="otheruser", password="password123"
         )
         other_review = Review.objects.create(user=other, book=self.book, rating=3, content="Other")
         self.client.force_authenticate(user=self.user)
@@ -199,7 +199,7 @@ class ReviewDeleteTest(AuthTestHelper, APITestCase):
 
     def test_delete_other_users_review_returns_403(self):
         other = User.objects.create_user(
-            email="other@test.com", username="otheruser", password="password123"
+            email="other@test.com", handle="otheruser", password="password123"
         )
         other_review = Review.objects.create(user=other, book=self.book, rating=3, content="Other")
         self.client.force_authenticate(user=self.user)

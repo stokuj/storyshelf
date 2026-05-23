@@ -11,7 +11,7 @@ class BookScopedReviewsTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="reviewer@test.com", username="reviewer", password="pass123"
+            email="reviewer@test.com", handle="reviewer", password="pass123"
         )
         self.book = Book.objects.create(title="Test Book")
         self.other_book = Book.objects.create(title="Other Book")
