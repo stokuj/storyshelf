@@ -1,37 +1,47 @@
-:80 {
-    tls internal
-    handle_path /v3/api-docs* {
-        reverse_proxy django:8000
-    }
+# DOMAIN: bare domain (e.g. storyshelf.example.com). Autohttps via Let's Encrypt.
+# CADDY_ACME_EMAIL: contact email used for ACME registration.
+# Fallback to local-dev mode when DOMAIN unset.
+{
+	email {$CADDY_ACME_EMAIL:admin@example.com}
+}
 
-    handle_path /swagger-ui/* {
-        reverse_proxy django:8000
-    }
+{$DOMAIN:http://:80} {
+	handle_path /v3/api-docs* {
+		reverse_proxy django:8000
+	}
 
-    handle /docs {
-        rewrite * /swagger-ui/index.html
-        reverse_proxy django:8000
-    }
+	handle_path /swagger-ui/* {
+		reverse_proxy django:8000
+	}
 
-    handle_path /api/internal/* {
-        respond "Forbidden" 403
-    }
+	handle /docs {
+		rewrite * /swagger-ui/index.html
+		reverse_proxy django:8000
+	}
 
-    handle_path /api/* {
-        reverse_proxy django:8000
-    }
+	handle_path /api/internal/* {
+		respond "Forbidden" 403
+	}
 
-    handle {
-        reverse_proxy frontend:80
-    }
+	handle_path /api/* {
+		reverse_proxy django:8000
+	}
 
-    encode gzip
-    header {
-        X-Content-Type-Options nosniff
-        X-Frame-Options DENY
-        Referrer-Policy no-referrer
-    }
-    log {
-        output stdout
-    }
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	encode gzip
+	header {
+		# baseline security headers — SPA is self-hosted, no third-party scripts
+		Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+	}
+	log {
+		output stdout
+	}
 }

@@ -10,7 +10,9 @@ class BookCharacter(models.Model):
     mention_count = models.IntegerField(default=0)
 
     class Meta:
-        unique_together = ("name", "book")
+        constraints = [
+            models.UniqueConstraint(fields=["name", "book"], name="unique_character_per_book"),
+        ]
 
     def __str__(self):
         return self.name
@@ -25,7 +27,9 @@ class BookPlace(models.Model):
     mention_count = models.IntegerField(default=0)
 
     class Meta:
-        unique_together = ("name", "book")
+        constraints = [
+            models.UniqueConstraint(fields=["name", "book"], name="unique_place_per_book"),
+        ]
 
     def __str__(self):
         return self.name
@@ -40,7 +44,9 @@ class BookOrganization(models.Model):
     mention_count = models.IntegerField(default=0)
 
     class Meta:
-        unique_together = ("name", "book")
+        constraints = [
+            models.UniqueConstraint(fields=["name", "book"], name="unique_org_per_book"),
+        ]
 
     def __str__(self):
         return self.name
@@ -85,7 +91,12 @@ class CharacterRelationship(models.Model):
     )
 
     class Meta:
-        unique_together = ("from_character", "to_character", "book")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["from_character", "to_character", "book"],
+                name="unique_character_relation_per_book",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.from_character.name} {self.relation_type} {self.to_character.name}"

@@ -1,5 +1,8 @@
+from django.db import IntegrityError
 from rest_framework import generics, permissions
+from rest_framework import status as http_status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.response import Response
 
 from .models import Review
 from .serializers import ReviewCreateSerializer, ReviewSerializer
@@ -38,6 +41,15 @@ class ReviewListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            return Response(
+                {"detail": "You have already reviewed this book."},
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):

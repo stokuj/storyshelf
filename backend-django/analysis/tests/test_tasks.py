@@ -84,6 +84,33 @@ class TestAnalyseBook:
                 analyse_book(book.id)
                 mock_llm.delay.assert_not_called()
 
+    def test_reanalysis_replaces_stale_entities(self, db, book):
+        from analysis.models import BookCharacter, BookPlace
+
+        BookCharacter.objects.create(name="OldChar", book=book, mention_count=10)
+        BookPlace.objects.create(name="OldPlace", book=book, mention_count=5)
+
+        book.text = "Frodo walked in the Shire."
+        book.save()
+
+        with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner:
+            mock_ner.return_value = {
+                "characters": {"Frodo": 3},
+                "locations": {"Shire": 2},
+                "organizations": {},
+            }
+            with patch("analysis.tasks.relations_for_book") as mock_llm:
+                mock_llm.delay = lambda *a, **kw: None
+                from analysis.tasks import analyse_book
+
+                analyse_book(book.id)
+
+        assert not BookCharacter.objects.filter(book=book, name="OldChar").exists()
+        assert not BookPlace.objects.filter(book=book, name="OldPlace").exists()
+        assert BookCharacter.objects.filter(book=book, name="Frodo").exists()
+        assert BookPlace.objects.filter(book=book, name="Shire").exists()
+        assert BookCharacter.objects.filter(book=book).count() == 1
+
 
 class TestRelationsForBook:
     def test_skips_pair_on_empty_relations(self, db, book):

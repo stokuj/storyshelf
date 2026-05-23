@@ -1,5 +1,7 @@
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from rest_framework import generics, permissions
+
+from shelf.models import ShelfEntry
 
 from .models import Book
 from .serializers import BookDetailSerializer, BookListSerializer
@@ -37,7 +39,7 @@ class BookRetrieveView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Book.objects.prefetch_related(
+        qs = Book.objects.select_related("serie").prefetch_related(
             "authors",
             "tags",
             "genres",
@@ -45,3 +47,12 @@ class BookRetrieveView(generics.RetrieveAPIView):
             "character_relationships__from_character",
             "character_relationships__to_character",
         )
+        if self.request.user.is_authenticated:
+            qs = qs.prefetch_related(
+                Prefetch(
+                    "shelf_entries",
+                    queryset=ShelfEntry.objects.filter(user=self.request.user),
+                    to_attr="current_user_shelf_entries",
+                )
+            )
+        return qs

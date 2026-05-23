@@ -6,7 +6,9 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me-in-production")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-fallback-not-for-production")
+if os.getenv("DJANGO_ENV") == "prod" and SECRET_KEY == "dev-fallback-not-for-production":
+    raise ValueError("DJANGO_SECRET_KEY must be set in production")
 DEBUG = False
 ALLOWED_HOSTS = [h for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h]
 
@@ -88,9 +90,20 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "auth_login": os.getenv("THROTTLE_AUTH_LOGIN", "10/min"),
+        "auth_register": os.getenv("THROTTLE_AUTH_REGISTER", "5/hour"),
+        "auth_refresh": os.getenv("THROTTLE_AUTH_REFRESH", "30/min"),
+    },
 }
 
 SIMPLE_JWT = {

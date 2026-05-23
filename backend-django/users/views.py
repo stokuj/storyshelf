@@ -1,6 +1,7 @@
+from django.db import IntegrityError
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, status, views
+from rest_framework import generics, permissions, serializers, status, views
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
@@ -22,6 +23,7 @@ class RegisterView(generics.CreateAPIView):
 
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
+    throttle_scope = "auth_register"
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -40,6 +42,7 @@ class LoginView(views.APIView):
     """Logowanie. Ustawia HttpOnly cookies. Pola: email, password."""
 
     permission_classes = (permissions.AllowAny,)
+    throttle_scope = "auth_login"
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data, context={"request": request})
@@ -57,6 +60,7 @@ class TokenRefreshCookieView(views.APIView):
     """Odświeża access token z HttpOnly refresh cookie. Ustawia nowe cookies."""
 
     permission_classes = (permissions.AllowAny,)
+    throttle_scope = "auth_refresh"
 
     def post(self, request):
         raw_refresh = request.COOKIES.get("refresh_token")
@@ -68,7 +72,7 @@ class TokenRefreshCookieView(views.APIView):
         serializer = TokenRefreshSerializer(data={"refresh": raw_refresh})
         try:
             serializer.is_valid(raise_exception=True)
-        except (TokenError, Exception):
+        except (TokenError, serializers.ValidationError):
             return Response(
                 {"detail": "Invalid or expired refresh token."},
                 status=status.HTTP_401_UNAUTHORIZED,
@@ -181,7 +185,13 @@ class UserFollowView(views.APIView):
                 {"detail": "Already following this user"},
                 status=status.HTTP_409_CONFLICT,
             )
-        follow = UserFollow.objects.create(follower=request.user, following=target)
+        try:
+            follow = UserFollow.objects.create(follower=request.user, following=target)
+        except IntegrityError:
+            return Response(
+                {"detail": "Already following this user"},
+                status=status.HTTP_409_CONFLICT,
+            )
         serializer = FollowSerializer(follow)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

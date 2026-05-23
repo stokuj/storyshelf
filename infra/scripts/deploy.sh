@@ -9,6 +9,11 @@ set -e
 COMPOSE_FILE="infra/compose/docker-compose.prod.yml"
 SERVICES="${@:-}"
 
+if [ ! -f .env ]; then
+    echo "ERROR: .env file missing. Copy .env.example to .env and fill in secrets."
+    exit 1
+fi
+
 if [ -z "$SERVICES" ]; then
     echo "Pulling all images..."
     docker compose -f "$COMPOSE_FILE" pull

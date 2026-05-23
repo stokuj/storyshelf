@@ -32,6 +32,14 @@ services:
       rabbitmq:
         condition: service_healthy
     command: gunicorn config.wsgi -b 0.0.0.0:8000 -w 4
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "python -c \"import socket;s=socket.socket();s.settimeout(3);s.connect(('localhost',8000))\""
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   celery-ner:
     image: ghcr.io/stokuj/storyshelf-django:main
@@ -47,7 +55,7 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       django:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     command: celery -A config worker -Q ner -l info -c 2 --pool prefork
@@ -66,7 +74,7 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       django:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     command: celery -A config worker -Q llm -l info -c 10 --pool gevent
@@ -79,10 +87,15 @@ services:
       - "5555"
     environment:
       CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
+      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH:?FLOWER_BASIC_AUTH must be set (user:pass) — Flower would otherwise start unauthenticated}
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: celery -A config flower --port=5555 --broker=amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
+    command: >-
+      celery -A config flower
+      --port=5555
+      --broker=amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
+      --basic-auth=${FLOWER_BASIC_AUTH}
 
   rabbitmq:
     image: rabbitmq:3-management-alpine

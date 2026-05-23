@@ -29,7 +29,9 @@ class CharacterRelationSerializer(serializers.ModelSerializer):
 
 class BookSerializerMixin:
     def get_author(self, obj):
-        return obj.authors.first().name if obj.authors.exists() else None
+        # Use the prefetched authors cache to avoid an extra query per book.
+        authors = list(obj.authors.all())
+        return authors[0].name if authors else None
 
     def get_genres(self, obj):
         return [g.name for g in obj.genres.all()]
@@ -87,24 +89,20 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         book_data = super().to_representation(instance)
 
         book_data["analysisStatus"] = {
-            "analysisFinished": BookCharacter.objects.filter(book=instance).exists(),
+            "analysisFinished": instance.characters.exists(),
         }
 
-        if instance.serie:
-            book_data["series"] = {"name": instance.serie.name}
         book_data["seriesName"] = instance.serie.name if instance.serie else None
-        book_data["seriesTitle"] = None
 
         shelf_entry = None
         if request and request.user.is_authenticated:
-            try:
-                entry = instance.shelf_entries.get(user=request.user)
+            entries = getattr(instance, "current_user_shelf_entries", None)
+            entry = entries[0] if entries else None
+            if entry is not None:
                 shelf_entry = {
                     "status": entry.status,
                     "createdAt": entry.created_at.isoformat(),
                 }
-            except Exception:
-                pass
 
         characters = BookCharacterSerializer(
             instance.characters.all(),
@@ -112,7 +110,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         ).data
 
         relations = CharacterRelationSerializer(
-            instance.character_relationships.select_related("from_character", "to_character"),
+            instance.character_relationships.all(),
             many=True,
         ).data
 

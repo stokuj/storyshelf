@@ -6,6 +6,9 @@ from users.models import User, UserFollow
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     password = serializers.CharField(min_length=6, max_length=72, write_only=True)
     username = serializers.RegexField(
         regex=r"^[a-z]{3,30}$",
@@ -16,6 +19,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("email", "username", "password")
+
+    def validate_email(self, value):
+        return value.lower().strip()
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)

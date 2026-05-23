@@ -17,5 +17,10 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("book", "user")
+        constraints = [
+            models.UniqueConstraint(fields=["book", "user"], name="unique_book_user_review"),
+        ]
         ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.user.username} → {self.book.title} ({self.rating}/5)"
