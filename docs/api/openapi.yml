@@ -127,9 +127,19 @@ paths:
   /api/books/:
     get:
       operationId: books_list
-      description: |-
-        Zwraca płaską listę wszystkich książek.
-        Filtrowanie pełnotekstowe: ?q=<fraza> — przeszukuje tytuł, nazwisko autora i gatunek.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - books
       security:
@@ -140,15 +150,100 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BookList'
+                $ref: '#/components/schemas/PaginatedBookListList'
+          description: ''
+  /api/books/{id_or_slug}/:
+    get:
+      operationId: books_retrieve
+      parameters:
+      - in: path
+        name: id_or_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+          description: ''
+  /api/books/{id_or_slug}/reviews/:
+    get:
+      operationId: books_reviews_list
+      description: 'Scoped reviews for a single book: GET /books/:id/reviews/, POST
+        /books/:id/reviews/.'
+      parameters:
+      - in: path
+        name: id_or_slug
+        schema:
+          type: string
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewList'
+          description: ''
+    post:
+      operationId: books_reviews_create
+      description: 'Scoped reviews for a single book: GET /books/:id/reviews/, POST
+        /books/:id/reviews/.'
+      parameters:
+      - in: path
+        name: id_or_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopedReviewCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ScopedReviewCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ScopedReviewCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopedReviewCreate'
           description: ''
   /api/books/{id}/:
     get:
-      operationId: books_retrieve
-      description: Szczegóły książki wraz z relacjami między postaciami, autorami,
-        tagami i gatunkami.
+      operationId: books_retrieve_2
       parameters:
       - in: path
         name: id
@@ -166,6 +261,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BookDetail'
+          description: ''
+  /api/books/contains-character/:
+    get:
+      operationId: books_contains_character_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookListList'
           description: ''
   /api/genres/:
     get:
@@ -748,6 +871,10 @@ components:
         id:
           type: integer
           readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
         title:
           type: string
           maxLength: 500
@@ -794,6 +921,10 @@ components:
         id:
           type: integer
           readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
         title:
           type: string
           maxLength: 500
@@ -871,6 +1002,48 @@ components:
     NullEnum:
       enum:
       - null
+    PaginatedBookListList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookList'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+    PaginatedReviewList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
     PatchedReview:
       type: object
       properties:
@@ -989,6 +1162,25 @@ components:
           type: integer
       required:
       - bookId
+      - content
+      - id
+      - rating
+    ScopedReviewCreate:
+      type: object
+      description: Review create for scoped endpoint /books/:id/reviews/. Book injected
+        from URL.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        content:
+          type: string
+          maxLength: 2000
+      required:
       - content
       - id
       - rating
