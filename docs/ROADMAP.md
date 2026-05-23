@@ -6,45 +6,23 @@
 
 ## 🎯 Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `phase/2.0-foundation` (3 commity ahead of main, wypchnięte na origin)
+**Bieżący branch:** `phase/2.0-foundation` (9 commitów ahead of main)
 
-**ZADANIE:** Napisać 6 specyfikacji dla sub-faz Phase 2.1 – 2.6, **sekwencyjnie** (jedna po drugiej, nie równolegle).
+**ZADANIE:** Zdecydować: czy plans (2.0-2.6) piszemy teraz w batchu, czy JIT przed implementacją każdej sub-fazy.
 
-| # | Spec do napisania | Plik docelowy |
-|---|---|---|
-| 2.1 | Books API extensions | `docs/superpowers/specs/2026-05-23-phase2.1-books-api.md` |
-| 2.2 | AI extraction API | `docs/superpowers/specs/2026-05-23-phase2.2-ai-extraction.md` |
-| 2.3 | Multi-shelf collections | `docs/superpowers/specs/2026-05-23-phase2.3-shelves.md` |
-| 2.4 | Account management | `docs/superpowers/specs/2026-05-23-phase2.4-account.md` |
-| 2.5 | Character disambiguation | `docs/superpowers/specs/2026-05-23-phase2.5-disambiguation.md` |
-| 2.6 | Vue removal + SvelteKit setup | `docs/superpowers/specs/2026-05-23-phase2.6-svelte-setup.md` |
+Wszystkie 6 specyfikacji gotowe:
+- [x] 2.1 Books API extensions → [`docs/superpowers/specs/2026-05-23-phase2.1-books-api.md`](superpowers/specs/2026-05-23-phase2.1-books-api.md)
+- [x] 2.2 AI extraction API → [`docs/superpowers/specs/2026-05-23-phase2.2-ai-extraction.md`](superpowers/specs/2026-05-23-phase2.2-ai-extraction.md)
+- [x] 2.3 Multi-shelf collections → [`docs/superpowers/specs/2026-05-23-phase2.3-shelves.md`](superpowers/specs/2026-05-23-phase2.3-shelves.md)
+- [x] 2.4 Account management → [`docs/superpowers/specs/2026-05-23-phase2.4-account.md`](superpowers/specs/2026-05-23-phase2.4-account.md)
+- [x] 2.5 Character disambiguation → [`docs/superpowers/specs/2026-05-23-phase2.5-disambiguation.md`](superpowers/specs/2026-05-23-phase2.5-disambiguation.md)
+- [x] 2.6 Vue removal + SvelteKit setup → [`docs/superpowers/specs/2026-05-23-phase2.6-svelte-setup.md`](superpowers/specs/2026-05-23-phase2.6-svelte-setup.md)
 
-**Wzór stylu:** [`docs/superpowers/specs/2026-05-23-phase2.0-foundation.md`](superpowers/specs/2026-05-23-phase2.0-foundation.md) — zachowaj strukturę (Kontekst, Obszar 1/2/3..., Pliki do zmiany, Akceptacja, Out of scope).
+**Następny krok:** użytkownik decyduje czy:
+- **Batch plans teraz** — napisać plany dla wszystkich 6 sub-faz (subagentami, po jednym na sub-fazę)
+- **JIT** — pisać plan bezpośrednio przed implementacją każdej sub-fazy (start od 2.0 → implement → plan 2.1 → implement → ...)
 
-**Source decyzji:** sekcja "Decyzje grilling-sessions z 2026-05-23" niżej w tym pliku + handoff w `svelte(wideframe)/handoff/03-api-contract.md` (kontrakt API którego frontend wymaga).
-
-**Workflow:**
-1. Każdy spec piszesz w osobnym subagencie (`Agent` tool, `model: sonnet` lub `opus` — sonnet z 1M kontekstem wymaga `/usage-credits`, sonnet ze standardem nie; opus zawsze działa).
-2. Po każdym specu — commit na bieżącym branchu (`docs(phase-2.X): spec for ...`).
-3. Po wszystkich 6 — pchnij na origin i kontynuuj decyzję czy plans piszemy teraz (batch) czy JIT przed implementacją każdej sub-fazy.
-
-**Wytyczne dla subagenta (do każdego spec promptu):**
-- Przeczytaj wzór `phase2.0-foundation.md` przed pisaniem
-- Przeczytaj odpowiednie pliki backendu pod kątem stanu obecnego (konkrety: `plik:linia`)
-- Zaczerpnij decyzje z sekcji "Decyzje grilling-sessions" niżej
-- Cięcia z MVP wypisz explicitnie w "Out of scope" żeby agent implementacji nie nadinterpretował
-- Po polsku komentarze i opisy, kod po angielsku
-- Wróć z 3-zdaniowym raportem (ile obszarów, co zauważyłeś w trakcie, czy zakres mieści się w jednym PR)
-
-**Stan zaawansowania zadania (zaktualizuj po każdym specu):**
-- [ ] 2.1 Books API extensions
-- [ ] 2.2 AI extraction API
-- [ ] 2.3 Multi-shelf collections
-- [ ] 2.4 Account management
-- [ ] 2.5 Character disambiguation
-- [ ] 2.6 Vue removal + SvelteKit setup
-
-Po zakończeniu wszystkich 6: usuń tę sekcję "Aktualny krok" i podejmij decyzję o dalszych krokach z użytkownikiem.
+Następnie: wypchnij branch na origin i zacznij implementację Phase 2.0 (`/executing-plans`).
 
 ---
 
