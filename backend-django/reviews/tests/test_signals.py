@@ -20,7 +20,7 @@ class AvgRatingSignalTest(AuthTestHelper, TestCase):
 
     def test_avg_rating_updates_on_second_review(self):
         user2 = User.objects.create_user(
-            email="signal2@test.com", username="signaluser", password="pass123"
+            email="signal2@test.com", handle="signaluser", password="pass123"
         )
         Review.objects.create(user=self.user, book=self.book, rating=4, content="Good")
         Review.objects.create(user=user2, book=self.book, rating=2, content="Bad")

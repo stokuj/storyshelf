@@ -12,14 +12,14 @@ def django_db_setup():
 @pytest.fixture
 def user(db):
     return User.objects.get_or_create(
-        username="testuser", defaults={"email": "testuser@test.com"}
+        handle="testuser", defaults={"email": "testuser@test.com"}
     )[0]
 
 
 @pytest.fixture
 def admin_user(db):
     u, _ = User.objects.get_or_create(
-        username="admin_fixture",
+        handle="admin_fixture",
         defaults={"email": "admin_fixture@test.com", "is_staff": True, "is_superuser": True},
     )
     u.is_staff = True
@@ -32,7 +32,7 @@ def admin_user(db):
 @pytest.fixture
 def regular_user(db):
     u, _ = User.objects.get_or_create(
-        username="regular_fixture",
+        handle="regular_fixture",
         defaults={"email": "regular_fixture@test.com"},
     )
     u.set_password("userpass")

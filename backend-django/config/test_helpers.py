@@ -8,6 +8,6 @@ class AuthTestHelper:
     def setUpTestData(cls):
         cls.user = User.objects.create_user(
             email="user@test.com",
-            username="testuser",
+            handle="testuser",
             password="password123",
         )

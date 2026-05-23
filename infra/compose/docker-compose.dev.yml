@@ -26,6 +26,7 @@ services:
     volumes:
       - ../../backend-django:/app
       - /app/.venv
+      - media:/app/media
     environment:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
@@ -131,3 +132,4 @@ services:
 volumes:
   db-data:
   redis-data:
+  media:

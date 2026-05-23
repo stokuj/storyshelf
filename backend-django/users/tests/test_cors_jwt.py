@@ -39,7 +39,7 @@ class LoginCookieFlagsDevTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="cors@test.com", username="corsuser", password="secret123"
+            email="cors@test.com", handle="corsuser", password="secret123"
         )
 
     def test_dev_login_sets_lax_insecure_cookie(self):
@@ -65,7 +65,7 @@ class LoginCookieFlagsProdProfileTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="cors2@test.com", username="corsuser2", password="secret123"
+            email="cors2@test.com", handle="corsuser2", password="secret123"
         )
 
     def test_prod_profile_login_sets_none_secure_cookie(self):

@@ -1,23 +1,28 @@
 from django.urls import path
 
 from users.views import (
+    AvatarUploadView,
+    DataExportView,
+    EmailChangeView,
     FollowListView,
+    PasswordChangeView,
     PublicUserRecentlyReadView,
     PublicUserShelvesView,
     UserFollowView,
-    UserProfileView,
+    UserMeView,
     UserSettingsView,
-    UserVisibilityView,
 )
 
 urlpatterns = [
-    path("me/", UserSettingsView.as_view()),
-    path("me/visibility/", UserVisibilityView.as_view()),
-    # Specific user-scoped paths BEFORE catch-all <str:username>/
-    path("<str:username>/shelves/", PublicUserShelvesView.as_view()),
-    path("<str:username>/recently-read/", PublicUserRecentlyReadView.as_view()),
-    path("<str:username>/follow/", UserFollowView.as_view()),
-    path("<str:username>/followers/", FollowListView.as_view(follower_view=True)),
-    path("<str:username>/following/", FollowListView.as_view(follower_view=False)),
-    path("<str:username>/", UserProfileView.as_view()),
+    path("me/", UserMeView.as_view()),
+    path("me/password/", PasswordChangeView.as_view()),
+    path("me/email/", EmailChangeView.as_view()),
+    path("me/avatar/", AvatarUploadView.as_view()),
+    path("me/settings/", UserSettingsView.as_view()),
+    path("me/export/", DataExportView.as_view()),
+    path("<str:handle>/shelves/", PublicUserShelvesView.as_view()),
+    path("<str:handle>/recently-read/", PublicUserRecentlyReadView.as_view()),
+    path("<str:handle>/follow/", UserFollowView.as_view()),
+    path("<str:handle>/followers/", FollowListView.as_view(follower_view=True)),
+    path("<str:handle>/following/", FollowListView.as_view(follower_view=False)),
 ]

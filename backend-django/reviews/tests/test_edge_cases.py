@@ -46,7 +46,7 @@ class ReviewEdgeCaseTest(AuthTestHelper, APITestCase):
 
     def test_cannot_edit_other_users_review(self):
         other = User.objects.create_user(
-            email="other@test.com", username="otheruser", password="password123"
+            email="other@test.com", handle="otheruser", password="password123"
         )
         review = Review.objects.create(user=other, book=self.book, rating=3, content="Meh")
         self.client.force_authenticate(user=self.user)
@@ -59,7 +59,7 @@ class ReviewEdgeCaseTest(AuthTestHelper, APITestCase):
 
     def test_cannot_delete_other_users_review(self):
         other = User.objects.create_user(
-            email="other2@test.com", username="other2", password="password123"
+            email="other2@test.com", handle="other2", password="password123"
         )
         review = Review.objects.create(user=other, book=self.book, rating=3, content="Meh")
         self.client.force_authenticate(user=self.user)

@@ -8,26 +8,27 @@ from django.db.models import F, Q
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, username, password=None, **extra):
+    def create_user(self, email, handle, password=None, **extra):
         if not email:
             raise ValueError("Email is required")
         email = self.normalize_email(email).lower()
-        user = self.model(email=email, username=username, **extra)
+        user = self.model(email=email, handle=handle, **extra)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password=None, **extra):
+    def create_superuser(self, email, handle, password=None, **extra):
         extra.setdefault("is_staff", True)
         extra.setdefault("is_superuser", True)
-        return self.create_user(email, username, password, **extra)
+        return self.create_user(email, handle, password, **extra)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    username = models.CharField(max_length=30, unique=True)
+    handle = models.CharField(max_length=30, unique=True)
+    display_name = models.CharField(max_length=80, blank=True, default="")
     bio = models.TextField(max_length=500, blank=True, default="")
-    avatar_url = models.URLField(blank=True, default="")
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     profile_public = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -36,10 +37,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]
+    REQUIRED_FIELDS = ["handle"]
 
     def __str__(self):
-        return self.username
+        return self.handle
 
 
 class UserFollow(models.Model):
@@ -63,4 +64,4 @@ class UserFollow(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.follower.username} → {self.following.username}"
+        return f"{self.follower.handle} → {self.following.handle}"

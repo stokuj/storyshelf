@@ -30,8 +30,8 @@ paths:
   /api/auth/me/:
     get:
       operationId: auth_me_retrieve
-      description: 'Zwraca stan sesji: authenticated, email, username. Używane do
-        inicjalizacji auth w SPA.'
+      description: 'Zwraca stan sesji: authenticated, email, handle. Używane do inicjalizacji
+        auth w SPA.'
       tags:
       - auth
       security:
@@ -55,7 +55,7 @@ paths:
   /api/auth/register/:
     post:
       operationId: auth_register_create
-      description: 'Rejestracja nowego użytkownika. Pola: email, username, password.'
+      description: 'Rejestracja nowego użytkownika. Pola: email, handle, password.'
       tags:
       - auth
       requestBody:
@@ -877,20 +877,20 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/users/{username}/:
+  /api/u/{handle}/:
     get:
-      operationId: users_retrieve
+      operationId: u_retrieve
       description: |-
-        Publiczny profil użytkownika po username. Zwraca 404 jeśli profil jest prywatny
+        Publiczny profil użytkownika po handle. Zwraca 404 jeśli profil jest prywatny
         i requestujący nie jest właścicielem.
       parameters:
       - in: path
-        name: username
+        name: handle
         schema:
           type: string
         required: true
       tags:
-      - users
+      - u
       security:
       - jwtAuth: []
       - {}
@@ -901,16 +901,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProfile'
           description: ''
-  /api/users/{username}/follow/:
+  /api/users/{handle}/follow/:
     post:
       operationId: users_follow_create
       description: |-
-        POST: Obserwuj użytkownika o podanym username.
+        POST: Obserwuj użytkownika o podanym handle.
               400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
         DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
       parameters:
       - in: path
-        name: username
+        name: handle
         schema:
           type: string
         required: true
@@ -924,12 +924,12 @@ paths:
     delete:
       operationId: users_follow_destroy
       description: |-
-        POST: Obserwuj użytkownika o podanym username.
+        POST: Obserwuj użytkownika o podanym handle.
               400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
         DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
       parameters:
       - in: path
-        name: username
+        name: handle
         schema:
           type: string
         required: true
@@ -940,15 +940,15 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/users/{username}/followers/:
+  /api/users/{handle}/followers/:
     get:
       operationId: users_followers_list
       description: |-
-        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym username.
+        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
         follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
       parameters:
       - in: path
-        name: username
+        name: handle
         schema:
           type: string
         required: true
@@ -966,15 +966,15 @@ paths:
                 items:
                   $ref: '#/components/schemas/Follow'
           description: ''
-  /api/users/{username}/following/:
+  /api/users/{handle}/following/:
     get:
       operationId: users_following_list
       description: |-
-        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym username.
+        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
         follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
       parameters:
       - in: path
-        name: username
+        name: handle
         schema:
           type: string
         required: true
@@ -992,13 +992,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/Follow'
           description: ''
-  /api/users/{username}/recently-read/:
+  /api/users/{handle}/recently-read/:
     get:
       operationId: users_recently_read_list
       description: Do 6 ostatnio przeczytanych książek, szanujące profile_public.
       parameters:
       - in: path
-        name: username
+        name: handle
         schema:
           type: string
         required: true
@@ -1016,13 +1016,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/BookPreview'
           description: ''
-  /api/users/{username}/shelves/:
+  /api/users/{handle}/shelves/:
     get:
       operationId: users_shelves_list
       description: Publiczne półki użytkownika, szanujące profile_public.
       parameters:
       - in: path
-        name: username
+        name: handle
         schema:
           type: string
         required: true
@@ -1043,77 +1043,74 @@ paths:
   /api/users/me/:
     get:
       operationId: users_me_retrieve
-      description: 'GET/PUT/PATCH ustawień zalogowanego użytkownika: username, bio,
-        avatar_url.'
       tags:
       - users
       security:
       - jwtAuth: []
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserSettings'
-          description: ''
-    put:
-      operationId: users_me_update
-      description: 'GET/PUT/PATCH ustawień zalogowanego użytkownika: username, bio,
-        avatar_url.'
-      tags:
-      - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserSettings'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UserSettings'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserSettings'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserSettings'
-          description: ''
+          description: No response body
     patch:
       operationId: users_me_partial_update
-      description: 'GET/PUT/PATCH ustawień zalogowanego użytkownika: username, bio,
-        avatar_url.'
       tags:
       - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUserSettings'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUserSettings'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUserSettings'
       security:
       - jwtAuth: []
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserSettings'
-          description: ''
-  /api/users/me/visibility/:
+          description: No response body
+    delete:
+      operationId: users_me_destroy
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/me/avatar/:
     patch:
-      operationId: users_me_visibility_partial_update
-      description: PATCH ?profilePublic=true|false — przełącza widoczność profilu
-        zalogowanego użytkownika.
+      operationId: users_me_avatar_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/email/:
+    patch:
+      operationId: users_me_email_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/export/:
+    post:
+      operationId: users_me_export_create
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/password/:
+    patch:
+      operationId: users_me_password_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/settings/:
+    patch:
+      operationId: users_me_settings_partial_update
       tags:
       - users
       security:
@@ -1274,20 +1271,20 @@ components:
         id:
           type: integer
           readOnly: true
-        followerUsername:
+        follower_handle:
           type: string
           readOnly: true
-        followingUsername:
+        following_handle:
           type: string
           readOnly: true
-        followedAt:
+        followed_at:
           type: string
           format: date-time
           readOnly: true
       required:
-      - followedAt
-      - followerUsername
-      - followingUsername
+      - followed_at
+      - follower_handle
+      - following_handle
       - id
     Genre:
       type: object
@@ -1352,7 +1349,7 @@ components:
         id:
           type: integer
           readOnly: true
-        username:
+        handle:
           type: string
           readOnly: true
         rating:
@@ -1383,38 +1380,20 @@ components:
           maxLength: 500
         is_public:
           type: boolean
-    PatchedUserSettings:
-      type: object
-      properties:
-        username:
-          type: string
-          maxLength: 30
-        email:
-          type: string
-          format: email
-          readOnly: true
-        bio:
-          type: string
-          maxLength: 500
-        avatarUrl:
-          type: string
-          format: uri
-        profilePublic:
-          type: boolean
-        memberSince:
-          type: string
-          format: date-time
-          readOnly: true
     Register:
       type: object
       properties:
         email:
           type: string
           format: email
-        username:
+        handle:
           type: string
           maxLength: 30
           pattern: ^[a-z]{3,30}$
+        display_name:
+          type: string
+          default: ''
+          maxLength: 80
         password:
           type: string
           writeOnly: true
@@ -1422,15 +1401,15 @@ components:
           minLength: 6
       required:
       - email
+      - handle
       - password
-      - username
     Review:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        username:
+        handle:
           type: string
           readOnly: true
         rating:
@@ -1455,9 +1434,9 @@ components:
       - bookTitle
       - content
       - createdAt
+      - handle
       - id
       - rating
-      - username
     ReviewCreate:
       type: object
       properties:
@@ -1648,52 +1627,28 @@ components:
     UserProfile:
       type: object
       properties:
-        username:
-          type: string
-          readOnly: true
-        bio:
-          type: string
-          readOnly: true
-        avatarUrl:
-          type: string
-          format: uri
-          readOnly: true
-        memberSince:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-      - avatarUrl
-      - bio
-      - memberSince
-      - username
-    UserSettings:
-      type: object
-      properties:
-        username:
+        handle:
           type: string
           maxLength: 30
-        email:
+        display_name:
           type: string
-          format: email
-          readOnly: true
+          maxLength: 80
         bio:
           type: string
           maxLength: 500
-        avatarUrl:
+        avatar_url:
           type: string
-          format: uri
-        profilePublic:
-          type: boolean
-        memberSince:
+          readOnly: true
+        member_since:
           type: string
           format: date-time
           readOnly: true
+        profile_public:
+          type: boolean
       required:
-      - email
-      - memberSince
-      - profilePublic
-      - username
+      - avatar_url
+      - handle
+      - member_since
   securitySchemes:
     jwtAuth:
       type: http
