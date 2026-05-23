@@ -53,12 +53,22 @@ class BookRetrieveView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_object(self):
+        from analysis.models import BookCharacter
+
         id_or_slug = self.kwargs.get("id_or_slug") or str(self.kwargs.get("pk", ""))
+        is_admin = bool(self.request.user and self.request.user.is_staff)
+
+        chars_qs = (
+            BookCharacter.objects.all()
+            if is_admin
+            else BookCharacter.objects.filter(is_hidden=False)
+        )
+
         qs = Book.objects.select_related("serie").prefetch_related(
+            Prefetch("characters", queryset=chars_qs),
             "authors",
             "tags",
             "genres",
-            "characters",
             "character_relationships__from_character",
             "character_relationships__to_character",
         )
