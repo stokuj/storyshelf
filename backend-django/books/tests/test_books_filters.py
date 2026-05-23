@@ -11,13 +11,19 @@ class BookFiltersTest(TestCase):
         fantasy = Genre.objects.create(name="Fantasy")
         scifi = Genre.objects.create(name="Sci-Fi")
 
-        self.book_fantasy = Book.objects.create(title="A Fantasy Book", avg_rating=4.5, ratings_count=100)
+        self.book_fantasy = Book.objects.create(
+            title="A Fantasy Book", avg_rating=4.5, ratings_count=100
+        )
         self.book_fantasy.genres.add(fantasy)
 
-        self.book_scifi = Book.objects.create(title="A Sci-Fi Book", avg_rating=3.0, ratings_count=200)
+        self.book_scifi = Book.objects.create(
+            title="A Sci-Fi Book", avg_rating=3.0, ratings_count=200
+        )
         self.book_scifi.genres.add(scifi)
 
-        self.book_both = Book.objects.create(title="Sci-Fi Fantasy", avg_rating=5.0, ratings_count=50)
+        self.book_both = Book.objects.create(
+            title="Sci-Fi Fantasy", avg_rating=5.0, ratings_count=50
+        )
         self.book_both.genres.add(fantasy, scifi)
 
     def test_filter_by_genre(self):

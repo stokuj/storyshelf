@@ -1,5 +1,7 @@
 from django.urls import path
 
+from reviews.views import BookReviewListCreateView
+
 from .views import BookContainsCharacterView, BookListView, BookRetrieveView
 
 urlpatterns = [
@@ -10,4 +12,5 @@ urlpatterns = [
     path("<int:pk>/", BookRetrieveView.as_view()),
     # idOrSlug routing (nowy kontrakt Svelte)
     path("<str:id_or_slug>/", BookRetrieveView.as_view()),
+    path("<str:id_or_slug>/reviews/", BookReviewListCreateView.as_view()),
 ]

@@ -41,3 +41,19 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         if self.instance is None and Review.objects.filter(user=user, book_id=book_id).exists():
             raise serializers.ValidationError("You have already reviewed this book.")
         return data
+
+
+class ScopedReviewCreateSerializer(serializers.ModelSerializer):
+    """Review create for scoped endpoint /books/:id/reviews/. Book injected from URL."""
+
+    class Meta:
+        model = Review
+        fields = ("id", "rating", "content")
+        read_only_fields = ("id",)
+
+    def validate(self, data):
+        user = self.context["request"].user
+        book = self.context["book"]
+        if self.instance is None and Review.objects.filter(user=user, book=book).exists():
+            raise serializers.ValidationError("You have already reviewed this book.")
+        return data
