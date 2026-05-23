@@ -6,8 +6,13 @@ from rest_framework.views import APIView
 
 from books.models import Book
 
-from .models import ShelfEntry
-from .serializers import ShelfEntrySerializer
+from .models import Shelf, ShelfEntry, ShelfMembership
+from .serializers import (
+    ShelfCreateSerializer,
+    ShelfDetailSerializer,
+    ShelfEntrySerializer,
+    ShelfSerializer,
+)
 
 
 class ShelfListView(generics.ListAPIView):
@@ -84,4 +89,81 @@ class ShelfEntryView(APIView):
     def delete(self, request, book_id):
         entry = get_object_or_404(ShelfEntry, user=request.user, book_id=book_id)
         entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyShelvesView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ShelfCreateSerializer
+        return ShelfSerializer
+
+    def get_queryset(self):
+        return Shelf.objects.filter(user=self.request.user).prefetch_related("memberships")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        shelf = serializer.save(user=request.user)
+        return Response(
+            ShelfSerializer(shelf, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class MyShelfDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "slug"
+    lookup_url_kwarg = "shelf_slug"
+
+    def get_serializer_class(self):
+        if self.request.method in ("PUT", "PATCH"):
+            return ShelfCreateSerializer
+        return ShelfDetailSerializer
+
+    def get_queryset(self):
+        return Shelf.objects.filter(user=self.request.user).prefetch_related(
+            "memberships__book__authors"
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = ShelfCreateSerializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        # Name update does NOT regenerate slug (stable URL)
+        serializer.save()
+        return Response(ShelfDetailSerializer(instance, context=self.get_serializer_context()).data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyShelfBookView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def _get_shelf(self, request, shelf_slug):
+        return get_object_or_404(Shelf, user=request.user, slug=shelf_slug)
+
+    def post(self, request, shelf_slug, book_id):
+        shelf = self._get_shelf(request, shelf_slug)
+        book = get_object_or_404(Book, pk=book_id)
+        _, created = ShelfMembership.objects.get_or_create(shelf=shelf, book=book)
+        return Response(
+            {"added": created},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request, shelf_slug, book_id):
+        shelf = self._get_shelf(request, shelf_slug)
+        membership = get_object_or_404(ShelfMembership, shelf=shelf, book_id=book_id)
+        membership.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

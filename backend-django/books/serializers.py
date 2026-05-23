@@ -43,6 +43,14 @@ class BookSerializerMixin:
         return [t.name for t in obj.tags.all()]
 
 
+class BookPreviewSerializer(BookSerializerMixin, serializers.ModelSerializer):
+    author = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Book
+        fields = ("id", "slug", "title", "author", "avg_rating")
+
+
 class BookListSerializer(BookSerializerMixin, serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
