@@ -49,6 +49,7 @@ class BookListSerializer(BookSerializerMixin, serializers.ModelSerializer):
         model = Book
         fields = (
             "id",
+            "slug",
             "title",
             "author",
             "year",
@@ -72,6 +73,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         model = Book
         fields = (
             "id",
+            "slug",
             "title",
             "author",
             "year",
