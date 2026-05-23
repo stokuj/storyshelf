@@ -131,7 +131,17 @@ CELERY_TASK_ROUTES = {
     "analysis.tasks.relations_for_book": {"queue": "llm"},
 }
 
+# --- CORS (django-cors-headers) ---
+# Cross-origin policy: explicit allowlist + credentials (wymagane dla cookies JWT).
+# Konkretne origins ustawia kazde srodowisko (dev.py / prod.py).
 CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
+# --- JWT cookies (uzywane przez users.cookie_auth.set_jwt_cookies) ---
+# Defaulty bezpieczne dla prod; dev nadpisuje na luzniejsze (Lax, insecure).
+JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "Lax")
+JWT_COOKIE_SECURE = os.getenv("JWT_COOKIE_SECURE", "false").lower() == "true"
+JWT_COOKIE_DOMAIN = os.getenv("JWT_COOKIE_DOMAIN") or None
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "StoryShelf API",

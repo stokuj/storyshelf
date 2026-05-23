@@ -55,7 +55,7 @@ class JWTCookieAuthenticationTest(TestCase):
 
 
 class SetJWTCookiesTest(TestCase):
-    def test_sets_access_cookie(self):
+    def test_sets_access_cookie_with_settings_samesite(self):
         response = MagicMock()
         set_jwt_cookies(response, "access_token_value")
         response.set_cookie.assert_called_once()
@@ -63,7 +63,9 @@ class SetJWTCookiesTest(TestCase):
         self.assertEqual(args[0], ACCESS_COOKIE)
         self.assertEqual(args[1], "access_token_value")
         self.assertTrue(kwargs["httponly"])
+        # Dev settings: SameSite=Lax, Secure=False, no domain
         self.assertEqual(kwargs["samesite"], "Lax")
+        self.assertFalse(kwargs["secure"])
 
     def test_sets_both_cookies_when_refresh_provided(self):
         response = MagicMock()
@@ -82,6 +84,25 @@ class SetJWTCookiesTest(TestCase):
                 break
         else:
             self.fail("Refresh cookie not set")
+
+    def test_respects_overridden_samesite_and_secure(self):
+        from django.test import override_settings
+
+        response = MagicMock()
+        with override_settings(JWT_COOKIE_SAMESITE="None", JWT_COOKIE_SECURE=True):
+            set_jwt_cookies(response, "access_value", "refresh_value")
+        for call in response.set_cookie.call_args_list:
+            self.assertEqual(call.kwargs["samesite"], "None")
+            self.assertTrue(call.kwargs["secure"])
+
+    def test_passes_cookie_domain_when_set(self):
+        from django.test import override_settings
+
+        response = MagicMock()
+        with override_settings(JWT_COOKIE_DOMAIN=".storyshelf.example.com"):
+            set_jwt_cookies(response, "access_value", "refresh_value")
+        for call in response.set_cookie.call_args_list:
+            self.assertEqual(call.kwargs["domain"], ".storyshelf.example.com")
 
 
 class ClearJWTCookiesTest(TestCase):

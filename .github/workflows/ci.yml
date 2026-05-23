@@ -47,6 +47,9 @@ jobs:
       - name: Run Django tests
         working-directory: backend-django
         run: uv run python manage.py test --noinput
+      - name: Verify OpenAPI snapshot
+        working-directory: backend-django
+        run: DJANGO_ENV=dev uv run python manage.py test config.tests.test_openapi_schema --noinput
 
   build-and-push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

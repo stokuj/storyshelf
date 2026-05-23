@@ -24,6 +24,18 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 
 CORS_ALLOWED_ORIGINS = [o for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o]
+
+# JWT cookies prod: cross-origin (Svelte na osobnej domenie), wymaga HTTPS
+JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "None")
+JWT_COOKIE_SECURE = os.getenv("JWT_COOKIE_SECURE", "true").lower() == "true"
+JWT_COOKIE_DOMAIN = os.getenv("JWT_COOKIE_DOMAIN") or None
+
+# SameSite=None bez Secure jest odrzucane przez przegladarki. Fail fast.
+if JWT_COOKIE_SAMESITE == "None" and not JWT_COOKIE_SECURE:
+    raise ValueError(
+        "JWT_COOKIE_SECURE must be true when JWT_COOKIE_SAMESITE=None (browsers reject otherwise)"
+    )
+
 CSRF_TRUSTED_ORIGINS = [o for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o]
 if not CSRF_TRUSTED_ORIGINS:
     # Empty in prod means every cookie-authenticated POST will 403.
