@@ -137,7 +137,9 @@ class TestAnalyseBook:
         with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
              patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
              patch("analysis.tasks.relations_for_book") as mock_rel:
-            mock_ner.return_value = {"characters": {"Gandalf": 5}, "locations": {}, "organizations": {}}
+            mock_ner.return_value = {
+                "characters": {"Gandalf": 5}, "locations": {}, "organizations": {}
+            }
             mock_fp.return_value = []
             mock_rel.delay = MagicMock()
             analyse_book(book.id)
@@ -151,7 +153,9 @@ class TestAnalyseBook:
         with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
              patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
              patch("analysis.tasks.relations_for_book") as mock_rel:
-            mock_ner.return_value = {"characters": {"Gandalf": 20}, "locations": {}, "organizations": {}}
+            mock_ner.return_value = {
+                "characters": {"Gandalf": 20}, "locations": {}, "organizations": {}
+            }
             mock_fp.return_value = []
             mock_rel.delay = MagicMock()
             analyse_book(book.id)
@@ -168,7 +172,9 @@ class TestAnalyseBook:
         with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
              patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
              patch("analysis.tasks.relations_for_book") as mock_rel:
-            mock_ner.return_value = {"characters": {"Alice": 3}, "locations": {}, "organizations": {}}
+            mock_ner.return_value = {
+                "characters": {"Alice": 3}, "locations": {}, "organizations": {}
+            }
             mock_fp.return_value = []
             mock_rel.delay = MagicMock()
             analyse_book(book.id)
@@ -179,6 +185,7 @@ class TestAnalyseBook:
 
     def test_status_set_to_failed_on_exception(self, db, book):
         import pytest
+
         from analysis.tasks import analyse_book
 
         book.text = "Alice walked."

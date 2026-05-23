@@ -57,7 +57,7 @@ def _upsert_characters(book, entities: dict) -> list[str]:
 
 @shared_task
 def analyse_book(book_id: int):
-    """Run NER on Book.text, upsert per-book entities (preserving admin flags), dispatch LLM task."""
+    """Run NER on Book.text, upsert per-book entities (preserving admin flags), dispatch LLM."""
     from books.models import Book
 
     from .models import BookOrganization, BookPlace

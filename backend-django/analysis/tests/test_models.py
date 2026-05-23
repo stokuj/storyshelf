@@ -68,8 +68,8 @@ class TestBookCharacter:
         assert char.confidence is None
 
     def test_unique_slug_per_book_not_global(self, db, book):
-        from books.models import Book
         from analysis.models import BookCharacter
+        from books.models import Book
 
         book2 = Book.objects.create(title="Other Book")
         BookCharacter.objects.create(book=book, name="Legolas", mention_count=3)
