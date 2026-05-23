@@ -1,5 +1,16 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.text import slugify
+
+
+def _generate_unique_slug(title: str) -> str:
+    base = slugify(title)[:200] or "book"
+    slug = base
+    counter = 1
+    while Book.objects.filter(slug=slug).exists():
+        slug = f"{base}-{counter}"
+        counter += 1
+    return slug
 
 
 class Book(models.Model):
@@ -19,6 +30,7 @@ class Book(models.Model):
     text = models.TextField(blank=True, default="")
     avg_rating = models.FloatField(default=0.0)
     ratings_count = models.IntegerField(default=0)
+    slug = models.SlugField(max_length=255, unique=True, blank=True, default="")
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
     authors = models.ManyToManyField("library.Author", through="BookAuthor")
@@ -27,6 +39,11 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = _generate_unique_slug(self.title)
+        super().save(*args, **kwargs)
 
 
 class BookAuthor(models.Model):
