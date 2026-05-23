@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs verify
+.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs verify regenerate-openapi
 
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPOSE_DIR := $(ROOT_DIR)infra/compose
@@ -42,3 +42,6 @@ verify:
 	cd $(ROOT_DIR)backend-django && uv run ruff check .
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python -m pytest
+
+regenerate-openapi:
+	$(ROOT_DIR)infra/scripts/regenerate-openapi.sh
