@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from .models import Review
-from .serializers import ReviewCreateSerializer, ReviewSerializer
+from .serializers import ReviewCreateSerializer, ReviewSerializer, ScopedReviewCreateSerializer
 
 
 class ReviewListCreateView(generics.ListCreateAPIView):
@@ -41,6 +41,51 @@ class ReviewListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            return Response(
+                {"detail": "You have already reviewed this book."},
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class BookReviewListCreateView(generics.ListCreateAPIView):
+    """Scoped reviews for a single book: GET /books/:id/reviews/, POST /books/:id/reviews/."""
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ScopedReviewCreateSerializer
+        return ReviewSerializer
+
+    def _get_book(self):
+        if not hasattr(self, "_book"):
+            from books.lookups import resolve_book
+            self._book = resolve_book(self.kwargs["id_or_slug"])
+        return self._book
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["book"] = self._get_book()
+        return ctx
+
+    def get_queryset(self):
+        book = self._get_book()
+        return (
+            Review.objects.filter(book=book)
+            .select_related("user", "book")
+            .order_by("-created_at")
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, book=self._get_book())
 
     def create(self, request, *args, **kwargs):
         try:

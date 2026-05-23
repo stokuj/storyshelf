@@ -1,18 +1,51 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.text import slugify
+
+
+def _generate_character_slug(name: str, book_id: int) -> str:
+    base = slugify(name)[:200] or "character"
+    slug = base
+    counter = 2
+    while BookCharacter.objects.filter(slug=slug, book_id=book_id).exists():
+        slug = f"{base}-{counter}"
+        counter += 1
+    return slug
 
 
 class BookCharacter(models.Model):
+    class Source(models.TextChoices):
+        HUMAN = "human"
+        AI = "ai"
+        AI_VERIFIED = "ai-verified"
+
     book = models.ForeignKey(
         "books.Book", on_delete=models.CASCADE, related_name="characters"
     )
     name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, blank=True, default="")
     description = models.TextField(null=True, blank=True)
     mention_count = models.IntegerField(default=0)
+    source = models.CharField(
+        max_length=20, choices=Source.choices, default=Source.AI
+    )
+    confidence = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+    )
+    is_hidden = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["name", "book"], name="unique_character_per_book"),
+            models.UniqueConstraint(fields=["slug", "book"], name="unique_character_slug_per_book"),
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = _generate_character_slug(self.name, self.book_id)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

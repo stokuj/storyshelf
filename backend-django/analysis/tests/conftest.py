@@ -11,7 +11,33 @@ def django_db_setup():
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username="testuser", password="testpass")
+    return User.objects.get_or_create(
+        username="testuser", defaults={"email": "testuser@test.com"}
+    )[0]
+
+
+@pytest.fixture
+def admin_user(db):
+    u, _ = User.objects.get_or_create(
+        username="admin_fixture",
+        defaults={"email": "admin_fixture@test.com", "is_staff": True, "is_superuser": True},
+    )
+    u.is_staff = True
+    u.is_superuser = True
+    u.set_password("adminpass")
+    u.save()
+    return u
+
+
+@pytest.fixture
+def regular_user(db):
+    u, _ = User.objects.get_or_create(
+        username="regular_fixture",
+        defaults={"email": "regular_fixture@test.com"},
+    )
+    u.set_password("userpass")
+    u.save()
+    return u
 
 
 @pytest.fixture
@@ -25,11 +51,11 @@ def book(db):
 def character_a(db, book):
     from analysis.models import BookCharacter
 
-    return BookCharacter.objects.create(name="Frodo", book=book)
+    return BookCharacter.objects.get_or_create(name="Frodo", book=book)[0]
 
 
 @pytest.fixture
 def character_b(db, book):
     from analysis.models import BookCharacter
 
-    return BookCharacter.objects.create(name="Sam", book=book)
+    return BookCharacter.objects.get_or_create(name="Sam", book=book)[0]

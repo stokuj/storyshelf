@@ -9,11 +9,25 @@ from analysis.models import (
 from analysis.tasks import analyse_book
 
 
+@admin.action(description="Mark selected characters as hidden")
+def mark_hidden(modeladmin, request, queryset):
+    updated = queryset.update(is_hidden=True)
+    messages.success(request, f"{updated} character(s) marked as hidden.")
+
+
+@admin.action(description="Mark selected characters as visible")
+def mark_visible(modeladmin, request, queryset):
+    updated = queryset.update(is_hidden=False)
+    messages.success(request, f"{updated} character(s) marked as visible.")
+
+
 @admin.register(BookCharacter)
 class BookCharacterAdmin(admin.ModelAdmin):
-    list_display = ("name", "book", "mention_count")
-    search_fields = ("name",)
-    list_filter = ("book",)
+    list_display = ("name", "slug", "book", "mention_count", "source", "is_hidden", "confidence")
+    search_fields = ("name", "slug")
+    list_filter = ("book", "source", "is_hidden")
+    actions = [mark_hidden, mark_visible]
+    readonly_fields = ("slug",)
 
 
 @admin.register(BookPlace)

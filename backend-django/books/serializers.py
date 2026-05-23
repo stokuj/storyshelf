@@ -6,11 +6,14 @@ from .models import Book
 
 
 class BookCharacterSerializer(serializers.ModelSerializer):
-    mentionCount = serializers.IntegerField(source="mention_count")  # noqa: N815
+    mention_count = serializers.IntegerField()
 
     class Meta:
         model = BookCharacter
-        fields = ("id", "name", "description", "mentionCount")
+        fields = (
+            "id", "slug", "name", "description",
+            "mention_count", "source", "confidence", "is_hidden",
+        )
 
 
 class CharacterRelationSerializer(serializers.ModelSerializer):
@@ -49,6 +52,7 @@ class BookListSerializer(BookSerializerMixin, serializers.ModelSerializer):
         model = Book
         fields = (
             "id",
+            "slug",
             "title",
             "author",
             "year",
@@ -72,6 +76,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         model = Book
         fields = (
             "id",
+            "slug",
             "title",
             "author",
             "year",
@@ -88,10 +93,12 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         request = self.context.get("request")
         book_data = super().to_representation(instance)
 
-        book_data["analysisStatus"] = {
-            "analysisFinished": instance.characters.exists(),
-        }
+        is_admin = bool(request and request.user and request.user.is_staff)
 
+        book_data["analysisStatus"] = {
+            "analysisFinished": instance.characters.filter(is_hidden=False).exists(),
+            "status": instance.ai_extraction_status,
+        }
         book_data["seriesName"] = instance.serie.name if instance.serie else None
 
         shelf_entry = None
@@ -104,10 +111,11 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
                     "createdAt": entry.created_at.isoformat(),
                 }
 
-        characters = BookCharacterSerializer(
-            instance.characters.all(),
-            many=True,
-        ).data
+        chars_qs = (
+            instance.characters.all() if is_admin
+            else instance.characters.filter(is_hidden=False)
+        )
+        characters = BookCharacterSerializer(chars_qs, many=True).data
 
         relations = CharacterRelationSerializer(
             instance.character_relationships.all(),

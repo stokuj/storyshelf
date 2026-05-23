@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 class TestAnalyseBook:
@@ -22,7 +22,7 @@ class TestAnalyseBook:
                 "organizations": {},
             }
             with patch("analysis.tasks.relations_for_book") as mock_llm:
-                mock_llm.delay = lambda *a, **kw: None
+                mock_llm.delay = MagicMock()
                 from analysis.tasks import analyse_book
 
                 analyse_book(book.id)
@@ -40,7 +40,7 @@ class TestAnalyseBook:
         with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner:
             mock_ner.return_value = {"characters": {}, "locations": {}, "organizations": {}}
             with patch("analysis.tasks.relations_for_book") as mock_llm:
-                mock_llm.delay = lambda *a, **kw: None
+                mock_llm.delay = MagicMock()
                 from analysis.tasks import analyse_book
 
                 analyse_book(book.id)
@@ -84,32 +84,121 @@ class TestAnalyseBook:
                 analyse_book(book.id)
                 mock_llm.delay.assert_not_called()
 
-    def test_reanalysis_replaces_stale_entities(self, db, book):
-        from analysis.models import BookCharacter, BookPlace
+    def test_upsert_preserves_is_hidden(self, db, book):
+        from analysis.models import BookCharacter
+        from analysis.tasks import analyse_book
 
-        BookCharacter.objects.create(name="OldChar", book=book, mention_count=10)
-        BookPlace.objects.create(name="OldPlace", book=book, mention_count=5)
+        book.text = "Harry met Hermione."
+        book.save()
 
-        book.text = "Frodo walked in the Shire."
+        with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
+             patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
+             patch("analysis.tasks.relations_for_book") as mock_rel:
+            mock_ner.return_value = {
+                "characters": {"Harry": 10, "Hermione": 8},
+                "locations": {},
+                "organizations": {},
+            }
+            mock_fp.return_value = []
+            mock_rel.delay = MagicMock()
+            analyse_book(book.id)
+
+        char = BookCharacter.objects.get(book=book, name="Harry")
+        char.is_hidden = True
+        char.source = "ai-verified"
+        char.save()
+
+        book.text = "Harry met Hermione."
+        book.save()
+
+        with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
+             patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
+             patch("analysis.tasks.relations_for_book") as mock_rel:
+            mock_ner.return_value = {
+                "characters": {"Harry": 10, "Hermione": 8},
+                "locations": {},
+                "organizations": {},
+            }
+            mock_fp.return_value = []
+            mock_rel.delay = MagicMock()
+            analyse_book(book.id)
+
+        char.refresh_from_db()
+        assert char.is_hidden is True, "is_hidden must survive re-run"
+        assert char.source == "ai-verified", "source must survive re-run"
+
+    def test_upsert_updates_mention_count(self, db, book):
+        from analysis.models import BookCharacter
+        from analysis.tasks import analyse_book
+
+        book.text = "Gandalf walked."
+        book.save()
+
+        with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
+             patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
+             patch("analysis.tasks.relations_for_book") as mock_rel:
+            mock_ner.return_value = {
+                "characters": {"Gandalf": 5}, "locations": {}, "organizations": {}
+            }
+            mock_fp.return_value = []
+            mock_rel.delay = MagicMock()
+            analyse_book(book.id)
+
+        char = BookCharacter.objects.get(book=book, name="Gandalf")
+        assert char.mention_count == 5
+
+        book.text = "Gandalf walked. Gandalf ran. Gandalf flew."
+        book.save()
+
+        with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
+             patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
+             patch("analysis.tasks.relations_for_book") as mock_rel:
+            mock_ner.return_value = {
+                "characters": {"Gandalf": 20}, "locations": {}, "organizations": {}
+            }
+            mock_fp.return_value = []
+            mock_rel.delay = MagicMock()
+            analyse_book(book.id)
+
+        char.refresh_from_db()
+        assert char.mention_count == 20
+
+    def test_status_set_to_done_on_success(self, db, book):
+        from analysis.tasks import analyse_book
+
+        book.text = "Alice walked."
+        book.save()
+
+        with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner, \
+             patch("analysis.tasks.find_sentences_with_both_characters") as mock_fp, \
+             patch("analysis.tasks.relations_for_book") as mock_rel:
+            mock_ner.return_value = {
+                "characters": {"Alice": 3}, "locations": {}, "organizations": {}
+            }
+            mock_fp.return_value = []
+            mock_rel.delay = MagicMock()
+            analyse_book(book.id)
+
+        book.refresh_from_db()
+        assert book.ai_extraction_status == "done"
+        assert book.ai_extraction_finished_at is not None
+
+    def test_status_set_to_failed_on_exception(self, db, book):
+        import pytest
+
+        from analysis.tasks import analyse_book
+
+        book.text = "Alice walked."
         book.save()
 
         with patch("analysis.tasks.extract_entities_from_chunks") as mock_ner:
-            mock_ner.return_value = {
-                "characters": {"Frodo": 3},
-                "locations": {"Shire": 2},
-                "organizations": {},
-            }
-            with patch("analysis.tasks.relations_for_book") as mock_llm:
-                mock_llm.delay = lambda *a, **kw: None
-                from analysis.tasks import analyse_book
-
+            mock_ner.side_effect = RuntimeError("NER exploded")
+            with pytest.raises(RuntimeError):
                 analyse_book(book.id)
 
-        assert not BookCharacter.objects.filter(book=book, name="OldChar").exists()
-        assert not BookPlace.objects.filter(book=book, name="OldPlace").exists()
-        assert BookCharacter.objects.filter(book=book, name="Frodo").exists()
-        assert BookPlace.objects.filter(book=book, name="Shire").exists()
-        assert BookCharacter.objects.filter(book=book).count() == 1
+        book.refresh_from_db()
+        assert book.ai_extraction_status == "failed"
+        assert "NER exploded" in book.ai_extraction_failure_reason
 
 
 class TestRelationsForBook:

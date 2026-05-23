@@ -3,6 +3,8 @@ import logging
 
 from celery import shared_task
 from django.db import transaction
+from django.utils import timezone
+from django.utils.text import slugify
 
 from .ner_engine import extract_entities_from_chunks
 from .text_parser import find_sentences_with_both_characters
@@ -18,16 +20,47 @@ except ImportError:  # pragma: no cover
 logger = logging.getLogger(__name__)
 
 
+def _upsert_characters(book, entities: dict) -> list[str]:
+    from .models import BookCharacter
+
+    existing = {c.slug: c for c in BookCharacter.objects.filter(book=book)}
+    char_names: list[str] = []
+    used_slugs_this_run: set[str] = set()
+
+    for name, count in entities.items():
+        base = slugify(name)[:200] or "character"
+        slug = base
+        counter = 2
+        while slug in used_slugs_this_run:
+            slug = f"{base}-{counter}"
+            counter += 1
+        used_slugs_this_run.add(slug)
+
+        if slug in existing:
+            char = existing[slug]
+            char.mention_count = count
+            char.save(update_fields=["mention_count"])
+        else:
+            BookCharacter.objects.create(
+                book=book,
+                name=name,
+                slug=slug,
+                mention_count=count,
+                source="ai",
+                confidence=None,
+                is_hidden=False,
+            )
+        char_names.append(name)
+
+    return char_names
+
+
 @shared_task
 def analyse_book(book_id: int):
-    """Run NER on Book.text, save per-book entities, dispatch LLM task.
-
-    Idempotent: deletes existing entities before writing new ones so re-runs
-    on updated text don't accumulate stale entries.
-    """
+    """Run NER on Book.text, upsert per-book entities (preserving admin flags), dispatch LLM."""
     from books.models import Book
 
-    from .models import BookCharacter, BookOrganization, BookPlace
+    from .models import BookOrganization, BookPlace
 
     try:
         book = Book.objects.get(id=book_id)
@@ -37,32 +70,46 @@ def analyse_book(book_id: int):
     if not book.text:
         return
 
-    full_text = book.text
-    result = extract_entities_from_chunks(full_text)
+    Book.objects.filter(id=book_id).update(
+        ai_extraction_status="running",
+        ai_extraction_started_at=timezone.now(),
+        ai_extraction_failure_reason="",
+    )
 
-    char_names: list[str] = []
-    with transaction.atomic():
-        BookCharacter.objects.filter(book=book).delete()
-        BookPlace.objects.filter(book=book).delete()
-        BookOrganization.objects.filter(book=book).delete()
+    try:
+        full_text = book.text
+        result = extract_entities_from_chunks(full_text)
 
-        for name, count in result.get("characters", {}).items():
-            BookCharacter.objects.create(name=name, book=book, mention_count=count)
-            char_names.append(name)
+        with transaction.atomic():
+            char_names = _upsert_characters(book, result.get("characters", {}))
 
-        for name, count in result.get("locations", {}).items():
-            BookPlace.objects.create(name=name, book=book, mention_count=count)
+            for name, count in result.get("locations", {}).items():
+                BookPlace.objects.update_or_create(
+                    name=name, book=book, defaults={"mention_count": count}
+                )
+            for name, count in result.get("organizations", {}).items():
+                BookOrganization.objects.update_or_create(
+                    name=name, book=book, defaults={"mention_count": count}
+                )
 
-        for name, count in result.get("organizations", {}).items():
-            BookOrganization.objects.create(name=name, book=book, mention_count=count)
-
-    pairs_data = find_sentences_with_both_characters(full_text, char_names)
-
-    if pairs_data and len(char_names) >= 2:
+        pairs_data = find_sentences_with_both_characters(full_text, char_names)
         Book.objects.filter(id=book_id).update(text="")
-        relations_for_book.delay(book_id, pairs_data)
-    else:
-        Book.objects.filter(id=book_id).update(text="")
+
+        if pairs_data and len(char_names) >= 2:
+            relations_for_book.delay(book_id, pairs_data)
+
+        Book.objects.filter(id=book_id).update(
+            ai_extraction_status="done",
+            ai_extraction_finished_at=timezone.now(),
+        )
+
+    except Exception as exc:
+        Book.objects.filter(id=book_id).update(
+            ai_extraction_status="failed",
+            ai_extraction_finished_at=timezone.now(),
+            ai_extraction_failure_reason=str(exc)[:512],
+        )
+        raise
 
 
 @shared_task
@@ -71,7 +118,7 @@ def relations_for_book(book_id: int, pairs_data: list[dict]):
 
     Errors per pair are logged and skipped — the task never retries.
     """
-    if llm_service is None:  # openai unavailable at import time
+    if llm_service is None:
         logger.error("relations_for_book: llm_service unavailable, skipping book %s", book_id)
         return
 
