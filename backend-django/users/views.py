@@ -1,4 +1,4 @@
-from django.db import IntegrityError, models
+from django.db import IntegrityError
 from django.db.models import F
 from django.http import Http404
 from django.shortcuts import get_object_or_404

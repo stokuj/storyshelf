@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from books.serializers import BookPreviewSerializer
 
-from .models import Shelf, ShelfEntry, ShelfMembership
+from .models import Shelf, ShelfEntry
 
 
 class ShelfEntrySerializer(serializers.ModelSerializer):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Shelf, ShelfEntry, ShelfMembership
+from .models import Shelf, ShelfMembership
 
 
 class ShelfMembershipInline(admin.TabularInline):
