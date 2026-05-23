@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
 
@@ -22,29 +23,39 @@ class JWTCookieAuthentication(JWTAuthentication):
         return self.get_user(validated_token), validated_token
 
 
+def _cookie_flags() -> dict:
+    """Pull cross-origin cookie flags from Django settings (env-driven, see settings/base.py)."""
+    flags = {
+        "samesite": getattr(settings, "JWT_COOKIE_SAMESITE", "Lax"),
+        "secure": getattr(settings, "JWT_COOKIE_SECURE", False),
+    }
+    domain = getattr(settings, "JWT_COOKIE_DOMAIN", None)
+    if domain:
+        flags["domain"] = domain
+    return flags
+
+
 def set_jwt_cookies(response, access_token, refresh_token=None):
     """Set HttpOnly JWT cookies on response. access/refresh can be token objects or strings."""
-    secure = os.getenv("DJANGO_ENV", "dev") == "prod"
     access_max_age = int(os.getenv("JWT_ACCESS_LIFETIME_MINUTES", "30")) * 60
     refresh_max_age = int(os.getenv("JWT_REFRESH_LIFETIME_MINUTES", "1440")) * 60
+    flags = _cookie_flags()
 
     response.set_cookie(
         ACCESS_COOKIE,
         str(access_token),
         httponly=True,
-        samesite="Lax",
-        secure=secure,
         max_age=access_max_age,
+        **flags,
     )
     if refresh_token is not None:
         response.set_cookie(
             REFRESH_COOKIE,
             str(refresh_token),
             httponly=True,
-            samesite="Lax",
-            secure=secure,
             max_age=refresh_max_age,
             path=REFRESH_COOKIE_PATH,
+            **flags,
         )
 
 
