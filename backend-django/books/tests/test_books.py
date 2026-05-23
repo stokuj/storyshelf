@@ -18,22 +18,24 @@ class BookListViewTest(AuthTestHelper, APITestCase):
         cls.book2.authors.add(cls.author)
         cls.book2.tags.set([])
 
-    def test_get_list_returns_200_with_array(self):
+    def test_get_list_returns_200_paginated(self):
         resp = self.client.get("/api/books/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(resp.data, list)
-        self.assertGreaterEqual(len(resp.data), 2)
+        for key in ("data", "page", "per_page", "total"):
+            self.assertIn(key, resp.data)
+        self.assertGreaterEqual(resp.data["total"], 2)
 
     def test_get_list_with_search_returns_filtered(self):
         resp = self.client.get("/api/books/?q=First")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        titles = [b["title"] for b in resp.data]
+        titles = [b["title"] for b in resp.data["data"]]
         self.assertIn("First Book", titles)
 
     def test_get_list_with_nonexistent_query_returns_empty(self):
         resp = self.client.get("/api/books/?q=zzzzzzz")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data, [])
+        self.assertEqual(resp.data["data"], [])
+        self.assertEqual(resp.data["total"], 0)
 
 
 class BookDetailTest(AuthTestHelper, APITestCase):
@@ -70,5 +72,5 @@ class BookSearchByAuthorTest(AuthTestHelper, APITestCase):
     def test_search_by_author_name_finds_book(self):
         resp = self.client.get("/api/books/?q=austen")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["title"], "Pride")
+        self.assertEqual(resp.data["total"], 1)
+        self.assertEqual(resp.data["data"][0]["title"], "Pride")
