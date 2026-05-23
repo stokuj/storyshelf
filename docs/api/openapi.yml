@@ -699,6 +699,184 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/shelf/me/collections/:
+    get:
+      operationId: shelf_me_collections_list
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shelf'
+          description: ''
+    post:
+      operationId: shelf_me_collections_create
+      tags:
+      - shelf
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfCreate'
+          description: ''
+  /api/shelf/me/collections/{shelf_slug}/:
+    get:
+      operationId: shelf_me_collections_retrieve
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfDetail'
+          description: ''
+    put:
+      operationId: shelf_me_collections_update
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfCreate'
+          description: ''
+    patch:
+      operationId: shelf_me_collections_partial_update
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShelfCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShelfCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShelfCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfCreate'
+          description: ''
+    delete:
+      operationId: shelf_me_collections_destroy
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shelf/me/collections/{shelf_slug}/books/{book_id}/:
+    post:
+      operationId: shelf_me_collections_books_create
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: shelf_me_collections_books_destroy
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/users/{username}/:
     get:
       operationId: users_retrieve
@@ -813,6 +991,54 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/users/{username}/recently-read/:
+    get:
+      operationId: users_recently_read_list
+      description: Do 6 ostatnio przeczytanych książek, szanujące profile_public.
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookPreview'
+          description: ''
+  /api/users/{username}/shelves/:
+    get:
+      operationId: users_shelves_list
+      description: Publiczne półki użytkownika, szanujące profile_public.
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shelf'
           description: ''
   /api/users/me/:
     get:
@@ -1019,6 +1245,29 @@ components:
       - id
       - tags
       - title
+    BookPreview:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 500
+        author:
+          type: string
+          readOnly: true
+        avg_rating:
+          type: number
+          format: double
+      required:
+      - author
+      - id
+      - title
     Follow:
       type: object
       properties:
@@ -1123,6 +1372,17 @@ components:
         bookId:
           type: integer
           readOnly: true
+    PatchedShelfCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
     PatchedUserSettings:
       type: object
       properties:
@@ -1269,6 +1529,97 @@ components:
         * `COMPLETED` - Completed
         * `CANCELLED` - Cancelled
         * `HIATUS` - Hiatus
+    Shelf:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 80
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
+        book_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - book_count
+      - created_at
+      - id
+      - is_public
+      - name
+      - slug
+      - updated_at
+    ShelfCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
+      required:
+      - name
+    ShelfDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 80
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
+        book_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        books:
+          type: string
+          readOnly: true
+      required:
+      - book_count
+      - books
+      - created_at
+      - id
+      - is_public
+      - name
+      - slug
+      - updated_at
     ShelfEntry:
       type: object
       properties:
