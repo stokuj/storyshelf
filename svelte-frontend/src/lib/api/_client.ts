@@ -1,6 +1,18 @@
-import { INTERNAL_API } from '$lib/config';
+import { PUBLIC_API_URL } from '$lib/config';
 
 export type ApiError = { status: number; detail: string };
+
+/**
+ * Get the internal API base URL.
+ * Uses process.env directly to avoid statically importing $env/dynamic/private
+ * which would break client-side bundling.
+ */
+function getInternalApi(): string {
+	if (typeof process !== 'undefined' && process.env?.INTERNAL_API_URL) {
+		return process.env.INTERNAL_API_URL;
+	}
+	return PUBLIC_API_URL;
+}
 
 async function fetchJson<T>(
 	fetchFn: typeof fetch,
@@ -59,7 +71,7 @@ export async function apiFetch<T>(
 	options?: RequestInit,
 	isServerSide = false
 ): Promise<{ data: T | null; error: ApiError | null }> {
-	const base = isServerSide ? INTERNAL_API : '/api';
+	const base = isServerSide ? await getInternalApi() : '/api';
 	const url = `${base}${path}`;
 
 	// Server-side timeout to prevent hung SSR renders.

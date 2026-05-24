@@ -1,2 +1,6 @@
-// All utility functions were removed as unused.
-// If you need a utility, re-add it here and check that it's actually imported.
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
+}
