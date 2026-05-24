@@ -92,7 +92,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
         is_admin = self.context.get("is_admin", False)
 
         book_data["analysisStatus"] = {
-            "analysisFinished": instance.characters.exists(),
+            "analysisFinished": instance.ai_extraction_status == "done",
             "status": instance.ai_extraction_status,
         }
         book_data["seriesName"] = instance.serie.name if instance.serie else None
@@ -111,16 +111,19 @@ class BookDetailSerializer(serializers.ModelSerializer):
         chars = getattr(instance, "_prefetched_characters", None)
         if chars is None:
             chars_qs = (
-                BookCharacter.all_objects.filter(book=instance) if is_admin
+                BookCharacter.all_objects.filter(book=instance, canonical__isnull=True) if is_admin
                 else instance.characters.filter(canonical__isnull=True)
             )
             chars = chars_qs
         characters = BookCharacterSerializer(chars, many=True).data
 
-        relations = CharacterRelationSerializer(
-            instance.character_relationships.all(),
-            many=True,
-        ).data
+        rels_qs = instance.character_relationships.all()
+        if not is_admin:
+            rels_qs = rels_qs.filter(
+                from_character__is_hidden=False,
+                to_character__is_hidden=False,
+            )
+        relations = CharacterRelationSerializer(rels_qs, many=True).data
 
         return {
             "book": book_data,

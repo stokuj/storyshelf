@@ -107,7 +107,7 @@ class BookContainsCharacterView(generics.ListAPIView):
         if not name:
             return Book.objects.none()
         return (
-            Book.objects.filter(characters__name__icontains=name)
+            Book.objects.filter(characters__name__icontains=name, characters__is_hidden=False)
             .select_related("serie")
             .prefetch_related("authors", "genres", "tags")
             .distinct()
