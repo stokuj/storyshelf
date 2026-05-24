@@ -1,5 +1,5 @@
-import { env } from '$env/dynamic/private';
-import { PUBLIC_API_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
+import { env as privateEnv } from '$env/dynamic/private';
 
-export const PUBLIC_API = PUBLIC_API_URL;
-export const INTERNAL_API = env.INTERNAL_API_URL ?? PUBLIC_API_URL;
+export const PUBLIC_API = env.PUBLIC_API_URL ?? '';
+export const INTERNAL_API = privateEnv.INTERNAL_API_URL ?? env.PUBLIC_API_URL ?? '';
