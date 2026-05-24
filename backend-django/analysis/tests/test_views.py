@@ -43,7 +43,7 @@ class TestAIExtractionPermissions:
     def test_hide_anonymous_returns_401(self, db, api_client, ai_book):
         from analysis.models import BookCharacter
 
-        char = BookCharacter.objects.create(book=ai_book, name="Alice", mention_count=3)
+        char = BookCharacter.all_objects.create(book=ai_book, name="Alice", mention_count=3)
         response = api_client.post(f"/api/books/{ai_book.pk}/characters/{char.pk}/hide/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -118,7 +118,7 @@ class TestBookCharacterHide:
 
         api_client.force_authenticate(user=admin_user)
         book = Book.objects.create(title="Hide Book A")
-        char = BookCharacter.objects.create(book=book, name="Visible Character", mention_count=5)
+        char = BookCharacter.all_objects.create(book=book, name="Visible Character", mention_count=5)
 
         response = api_client.post(
             f"/api/books/{book.pk}/characters/{char.pk}/hide/",
@@ -135,7 +135,7 @@ class TestBookCharacterHide:
 
         api_client.force_authenticate(user=admin_user)
         book = Book.objects.create(title="Hide Book B")
-        char = BookCharacter.objects.create(
+        char = BookCharacter.all_objects.create(
             book=book, name="Hidden Character", mention_count=5, is_hidden=True
         )
 
@@ -154,7 +154,7 @@ class TestBookCharacterHide:
 
         api_client.force_authenticate(user=admin_user)
         book = Book.objects.create(title="Hide Book C")
-        char = BookCharacter.objects.create(book=book, name="Default Hide", mention_count=5)
+        char = BookCharacter.all_objects.create(book=book, name="Default Hide", mention_count=5)
 
         response = api_client.post(f"/api/books/{book.pk}/characters/{char.pk}/hide/")
         assert response.status_code == status.HTTP_200_OK
@@ -168,7 +168,7 @@ class TestBookCharacterHide:
         api_client.force_authenticate(user=admin_user)
         book = Book.objects.create(title="Book X")
         other_book = Book.objects.create(title="Book Y")
-        char = BookCharacter.objects.create(book=book, name="Character", mention_count=5)
+        char = BookCharacter.all_objects.create(book=book, name="Character", mention_count=5)
 
         response = api_client.post(
             f"/api/books/{other_book.pk}/characters/{char.pk}/hide/",
@@ -188,7 +188,7 @@ def _make_book():
 
 
 def _make_char(book, name, mention_count=5):
-    return BookCharacter.objects.create(
+    return BookCharacter.all_objects.create(
         book=book, name=name, mention_count=mention_count
     )
 

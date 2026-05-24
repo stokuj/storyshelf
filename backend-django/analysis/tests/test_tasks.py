@@ -9,7 +9,7 @@ class TestAnalyseBook:
 
         from analysis.models import BookCharacter
 
-        assert not BookCharacter.objects.filter(book=book).exists()
+        assert not BookCharacter.all_objects.filter(book=book).exists()
 
     def test_creates_characters_from_ner(self, db, book):
         book.text = "Frodo walked in the Shire with Gandalf."
@@ -29,8 +29,8 @@ class TestAnalyseBook:
 
         from analysis.models import BookCharacter, BookPlace
 
-        assert BookCharacter.objects.filter(book=book, name="Frodo").exists()
-        assert BookCharacter.objects.filter(book=book, name="Gandalf").exists()
+        assert BookCharacter.all_objects.filter(book=book, name="Frodo").exists()
+        assert BookCharacter.all_objects.filter(book=book, name="Gandalf").exists()
         assert BookPlace.objects.filter(book=book, name="Shire").exists()
 
     def test_clears_text_after_analysis(self, db, book):
@@ -103,7 +103,7 @@ class TestAnalyseBook:
             mock_rel.delay = MagicMock()
             analyse_book(book.id)
 
-        char = BookCharacter.objects.get(book=book, name="Harry")
+        char = BookCharacter.all_objects.get(book=book, name="Harry")
         char.is_hidden = True
         char.source = "ai-verified"
         char.save()
@@ -144,7 +144,7 @@ class TestAnalyseBook:
             mock_rel.delay = MagicMock()
             analyse_book(book.id)
 
-        char = BookCharacter.objects.get(book=book, name="Gandalf")
+        char = BookCharacter.all_objects.get(book=book, name="Gandalf")
         assert char.mention_count == 5
 
         book.text = "Gandalf walked. Gandalf ran. Gandalf flew."
@@ -205,8 +205,8 @@ class TestRelationsForBook:
     def test_skips_pair_on_empty_relations(self, db, book):
         from analysis.models import BookCharacter, CharacterRelationship
 
-        BookCharacter.objects.create(name="Frodo", book=book)
-        BookCharacter.objects.create(name="Sam", book=book)
+        BookCharacter.all_objects.create(name="Frodo", book=book)
+        BookCharacter.all_objects.create(name="Sam", book=book)
 
         pairs_data = [{"pair": ["Frodo", "Sam"], "sentences": ["Frodo and Sam walked."]}]
 
@@ -221,8 +221,8 @@ class TestRelationsForBook:
     def test_saves_valid_relation(self, db, book):
         from analysis.models import BookCharacter, CharacterRelationship
 
-        BookCharacter.objects.create(name="Frodo", book=book)
-        BookCharacter.objects.create(name="Gandalf", book=book)
+        BookCharacter.all_objects.create(name="Frodo", book=book)
+        BookCharacter.all_objects.create(name="Gandalf", book=book)
 
         pairs_data = [{"pair": ["Frodo", "Gandalf"], "sentences": ["Gandalf mentored Frodo."]}]
 
@@ -240,7 +240,7 @@ class TestRelationsForBook:
     def test_skips_unknown_character(self, db, book):
         from analysis.models import BookCharacter, CharacterRelationship
 
-        BookCharacter.objects.create(name="Frodo", book=book)
+        BookCharacter.all_objects.create(name="Frodo", book=book)
 
         pairs_data = [{"pair": ["Frodo", "Ghost"], "sentences": ["Frodo met Ghost."]}]
 

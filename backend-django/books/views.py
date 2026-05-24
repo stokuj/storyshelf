@@ -57,11 +57,12 @@ class BookRetrieveView(generics.RetrieveAPIView):
 
         id_or_slug = self.kwargs.get("id_or_slug") or str(self.kwargs.get("pk", ""))
         is_admin = bool(self.request.user and self.request.user.is_staff)
+        book = resolve_book(id_or_slug)
 
         chars_qs = (
-            BookCharacter.objects.all()
+            BookCharacter.all_objects.filter(book=book)
             if is_admin
-            else BookCharacter.objects.filter(is_hidden=False, canonical__isnull=True)
+            else book.characters.filter(canonical__isnull=True)
         )
 
         qs = Book.objects.select_related("serie").prefetch_related(
@@ -80,7 +81,6 @@ class BookRetrieveView(generics.RetrieveAPIView):
                     to_attr="current_user_shelf_entries",
                 )
             )
-        book = resolve_book(id_or_slug)
         return qs.get(pk=book.pk)
 
 

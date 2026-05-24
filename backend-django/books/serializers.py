@@ -106,7 +106,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         is_admin = bool(request and request.user and request.user.is_staff)
 
         book_data["analysisStatus"] = {
-            "analysisFinished": instance.characters.filter(is_hidden=False).exists(),
+            "analysisFinished": instance.characters.exists(),
             "status": instance.ai_extraction_status,
         }
         book_data["seriesName"] = instance.serie.name if instance.serie else None
@@ -122,8 +122,8 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
                 }
 
         chars_qs = (
-            instance.characters.all() if is_admin
-            else instance.characters.filter(is_hidden=False, canonical__isnull=True)
+            BookCharacter.all_objects.filter(book=instance) if is_admin
+            else instance.characters.filter(canonical__isnull=True)
         )
         characters = BookCharacterSerializer(chars_qs, many=True).data
 

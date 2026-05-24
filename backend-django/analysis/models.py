@@ -3,17 +3,27 @@ from django.db import models
 from django.utils.text import slugify
 
 
+class BookCharacterManager(models.Manager):
+    """Default manager that excludes hidden characters."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_hidden=False)
+
+
 def _generate_character_slug(name: str, book_id: int) -> str:
     base = slugify(name)[:200] or "character"
     slug = base
     counter = 2
-    while BookCharacter.objects.filter(slug=slug, book_id=book_id).exists():
+    while BookCharacter.all_objects.filter(slug=slug, book_id=book_id).exists():
         slug = f"{base}-{counter}"
         counter += 1
     return slug
 
 
 class BookCharacter(models.Model):
+    objects = BookCharacterManager()
+    all_objects = models.Manager()
+
     class Source(models.TextChoices):
         HUMAN = "human"
         AI = "ai"
