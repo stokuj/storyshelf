@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+
+@theme {
+	/* Placeholder design tokens — Phase 2.7 fills these from 01-design-system.md */
+	--color-background: #ffffff;
+	--color-foreground: #0a0a0a;
+}
