@@ -28,7 +28,7 @@
 	}
 
 	handle {
-		respond "Storyshelf frontend not deployed yet" 503
+		reverse_proxy svelte:3000
 	}
 
 	encode gzip

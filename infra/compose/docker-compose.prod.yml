@@ -29,6 +29,23 @@ services:
       retries: 5
       start_period: 20s
 
+  svelte:
+    image: ghcr.io/stokuj/storyshelf-svelte:main
+    container_name: svelte
+    expose:
+      - "3000"
+    environment:
+      PUBLIC_API_URL: https://${DOMAIN}/api
+      INTERNAL_API_URL: http://django:8000/api
+    restart: unless-stopped
+    depends_on:
+      - django
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   celery-ner:
     image: ghcr.io/stokuj/storyshelf-django:main
     container_name: storyshelf-celery-ner
@@ -113,6 +130,7 @@ services:
       - caddy-config:/config
     restart: unless-stopped
     depends_on:
+      - svelte
       - django
 
   db:
