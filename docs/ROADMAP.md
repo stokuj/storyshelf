@@ -6,9 +6,9 @@
 
 ## 🎯 Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `phase/2.0-foundation` (17 commitów ahead of main)
+**Bieżący branch:** `phase/2.6-svelte-setup` (3 commity ahead of main)
 
-**ZADANIE:** Wypchnij branch na origin i zacznij implementację Phase 2.0 (`/executing-plans`).
+**ZADANIE:** Wypchnij branch na origin, zweryfikuj smoke-testem, utwórz PR.
 
 Wszystkie specs i plany gotowe:
 
@@ -58,8 +58,8 @@ Sub-etapy Phase 2 (kolejność wykonania):
 | 2.2 | AI extraction API (endpointy admin-gated, `source`+`confidence`+`slug` na BookCharacter, `ai_extraction_status` na Book, soft-delete `is_hidden`, idempotentność) | `phase/2.2-ai-extraction` | spec ⏳ |
 | 2.3 | Multi-shelf collections (Shelf + ShelfMembership, public shelves endpoint) | `phase/2.3-shelves` | spec ⏳ |
 | 2.4 | Account management (PATCH /password, /email, multipart avatar + ImageField, GDPR export + DELETE) | `phase/2.4-account` | spec ⏳ |
-| 2.5 | Character disambiguation (alias merge w obrębie książki — zastępuje stary roadmap pkt 3) | `phase/2.5-disambiguation` | spec ⏳ |
-| 2.6 | Vue removal + SvelteKit setup (zgodnie z ADR-004) | `phase/2.6-svelte-setup` | spec ⏳ |
+| 2.5 | Character disambiguation (alias merge w obrębie książki — zastępuje stary roadmap pkt 3) | `phase/2.5-disambiguation` | ✅ zrobione |
+| 2.6 | Vue removal + SvelteKit setup (zgodnie z ADR-004) | `phase/2.6-svelte-setup` | 🔧 w toku |
 | 2.7 | Svelte foundation (prompts 01-04 z `svelte(wideframe)/handoff/prompts/`) | `phase/2.7-svelte-foundation` | — |
 | 2.8 | Svelte books + characters + AI panel (prompts 05-07) | `phase/2.8-svelte-books` | — |
 | 2.9 | Svelte profile + settings + polish (prompts 08, 09, 11) | `phase/2.9-svelte-profile` | — |

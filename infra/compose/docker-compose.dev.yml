@@ -1,25 +1,5 @@
 # Development environment — no Caddy, open ports for local dev
 services:
-  frontend:
-    build:
-      context: ../../frontend
-      dockerfile: Dockerfile
-    image: storyshelf-frontend:local
-    container_name: frontend
-    ports:
-      - "5173:5173"
-    environment:
-      VITE_API_PROXY_TARGET: http://django:8000
-    restart: unless-stopped
-    depends_on:
-      django:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5173/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
   django:
     build: ../../backend-django
     container_name: storyshelf-django
@@ -40,6 +20,31 @@ services:
         condition: service_healthy
     restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
+
+  svelte:
+    build:
+      context: ../../svelte-frontend
+      dockerfile: Dockerfile.dev
+    image: storyshelf-svelte:local
+    container_name: svelte
+    ports:
+      - "5174:5174"
+    environment:
+      PUBLIC_API_URL: http://localhost:8000/api
+      INTERNAL_API_URL: http://django:8000/api
+    volumes:
+      - ../../svelte-frontend:/app
+      - /app/node_modules
+      - /app/.svelte-kit
+    restart: unless-stopped
+    depends_on:
+      django:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5174/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   celery-ner:
     build: ../../backend-django

@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs verify regenerate-openapi
+.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs verify regenerate-openapi svelte-install svelte-types svelte-dev svelte-build svelte-check
 
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPOSE_DIR := $(ROOT_DIR)infra/compose
@@ -9,10 +9,10 @@ PROD_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml
 dev-up:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) up -d
 	@printf '\n%s\n' 'Dev services:'
-	@printf '%s\n' '  frontend: http://localhost:5173'
+	@printf '%s\n' '  svelte: http://localhost:5174'
 	@printf '%s\n' '  rabbitmq UI: http://127.0.0.1:15672'
 	@printf '%s\n' '  flower: http://localhost:5555'
-	@printf '%s\n' '  admin panel: http://localhost:5173/admin/'
+	@printf '%s\n' '  admin panel: http://localhost:8000/admin/'
 
 dev-down:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) down
@@ -43,6 +43,24 @@ verify:
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python -m pytest
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py test config.tests.test_openapi_schema --noinput
+	cd $(ROOT_DIR)svelte-frontend && npm run types:api
+	cd $(ROOT_DIR)svelte-frontend && npm run check
+	cd $(ROOT_DIR)svelte-frontend && npm run lint
 
 regenerate-openapi:
 	$(ROOT_DIR)infra/scripts/regenerate-openapi.sh
+
+svelte-install:
+	cd $(ROOT_DIR)svelte-frontend && npm install
+
+svelte-types:
+	cd $(ROOT_DIR)svelte-frontend && npm run types:api
+
+svelte-dev:
+	cd $(ROOT_DIR)svelte-frontend && npm run dev
+
+svelte-build:
+	cd $(ROOT_DIR)svelte-frontend && npm run build
+
+svelte-check:
+	cd $(ROOT_DIR)svelte-frontend && npm run check && npm run lint

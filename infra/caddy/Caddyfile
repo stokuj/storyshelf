@@ -28,7 +28,7 @@
 	}
 
 	handle {
-		reverse_proxy frontend:80
+		reverse_proxy svelte:3000
 	}
 
 	encode gzip
