@@ -24,7 +24,9 @@
 	{#each [1, 2, 3, 4, 5] as star}
 		<button
 			type="button"
-			class="transition-colors {readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110 transition-transform'}"
+			class="transition-colors {readonly
+				? 'cursor-default'
+				: 'cursor-pointer hover:scale-110 transition-transform'}"
 			class:text-accent={star <= value || star <= hoverValue}
 			class:text-rule={star > value && star > hoverValue}
 			disabled={readonly}
@@ -37,10 +39,7 @@
 			}}
 			aria-label="{star} star{star > 1 ? 's' : ''}"
 		>
-			<Star
-				class={sizeCls}
-				fill={(star <= value || star <= hoverValue) ? 'currentColor' : 'none'}
-			/>
+			<Star class={sizeCls} fill={star <= value || star <= hoverValue ? 'currentColor' : 'none'} />
 		</button>
 	{/each}
 </div>

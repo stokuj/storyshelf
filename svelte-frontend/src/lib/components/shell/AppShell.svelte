@@ -14,7 +14,10 @@
 	let user: UserMe | null | undefined = $derived($page.data.user as UserMe | null | undefined);
 </script>
 
-<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:bg-ink focus:text-paper focus:px-4 focus:py-2 focus:rounded-md">
+<a
+	href="#main-content"
+	class="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:bg-ink focus:text-paper focus:px-4 focus:py-2 focus:rounded-md"
+>
 	Skip to content
 </a>
 

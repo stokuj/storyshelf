@@ -34,10 +34,10 @@ export const actions: Actions = {
 		if (!email) {
 			return fail(400, { error: 'Email is required' });
 		}
-		await fetch(`${PUBLIC_API_URL}/users/me/`, {
+		await fetch(`${PUBLIC_API_URL}/users/me/email/`, {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email }),
+			body: JSON.stringify({ new_email: email }),
 			credentials: 'include'
 		});
 		return { success: true };
@@ -58,8 +58,8 @@ export const actions: Actions = {
 			return fail(400, { error: 'Password must be at least 8 characters' });
 		}
 
-		await fetch(`${PUBLIC_API_URL}/auth/password/change/`, {
-			method: 'POST',
+		await fetch(`${PUBLIC_API_URL}/users/me/password/`, {
+			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ current_password: current, new_password: newPw }),
 			credentials: 'include'
@@ -71,7 +71,7 @@ export const actions: Actions = {
 		const file = data.get('avatar') as File;
 		if (file && file.size > 0) {
 			await fetch(`${PUBLIC_API_URL}/users/me/avatar/`, {
-				method: 'POST',
+				method: 'PATCH',
 				body: data,
 				credentials: 'include'
 			});

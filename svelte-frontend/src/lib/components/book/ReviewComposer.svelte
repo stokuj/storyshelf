@@ -50,11 +50,7 @@
 		<p class="text-xs text-danger">{errorMessage}</p>
 	{/if}
 	<div class="flex justify-end">
-		<Button
-			size="sm"
-			disabled={submitting || rating === 0 || content.length < 10}
-			onclick={submit}
-		>
+		<Button size="sm" disabled={submitting || rating === 0 || content.length < 10} onclick={submit}>
 			{submitting ? 'Posting...' : 'Post review'}
 		</Button>
 	</div>

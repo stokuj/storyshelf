@@ -111,9 +111,7 @@
 								with {relatedCharName(rel)}
 							</p>
 							{#if rel.spoiler_chapter}
-								<span class="block text-xs text-muted"
-									>Spoiler: chapter {rel.spoiler_chapter}</span
-								>
+								<span class="block text-xs text-muted">Spoiler: chapter {rel.spoiler_chapter}</span>
 							{/if}
 						</div>
 					{/each}

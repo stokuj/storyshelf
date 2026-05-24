@@ -39,8 +39,7 @@
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-2">Pause account</h2>
 		<p class="text-sm text-ink-2 mb-4">
-			Your profile will be hidden and you won't receive notifications. You can reactivate
-			anytime.
+			Your profile will be hidden and you won't receive notifications. You can reactivate anytime.
 		</p>
 		<form method="POST" action="?/pause" use:enhance>
 			<Button variant="outline" size="sm" type="submit">
@@ -86,13 +85,11 @@
 				<div
 					class="relative z-50 rounded-lg border border-rule bg-surface p-6 shadow-lg max-w-lg w-full mx-4"
 				>
-					<h2 class="font-sans text-base font-semibold text-danger mb-2">
-						Delete your account?
-					</h2>
+					<h2 class="font-sans text-base font-semibold text-danger mb-2">Delete your account?</h2>
 					<p class="text-sm text-ink-2 mb-4">
-						This will permanently delete your account, all your data, and cannot be
-						undone.
-						Type <strong class="text-ink">your handle</strong> to confirm.
+						This will permanently delete your account, all your data, and cannot be undone. Type <strong
+							class="text-ink">your handle</strong
+						> to confirm.
 					</p>
 					<form method="POST" action="?/delete" use:enhance class="space-y-3">
 						<Input
@@ -102,19 +99,10 @@
 							required
 						/>
 						<div class="flex justify-end gap-2">
-							<Button
-								variant="ghost"
-								size="sm"
-								onclick={() => (showDeleteDialog = false)}
-							>
+							<Button variant="ghost" size="sm" onclick={() => (showDeleteDialog = false)}>
 								Cancel
 							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								class="border-danger text-danger"
-								type="submit"
-							>
+							<Button variant="outline" size="sm" class="border-danger text-danger" type="submit">
 								Delete my account
 							</Button>
 						</div>

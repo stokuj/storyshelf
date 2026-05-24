@@ -26,20 +26,10 @@
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Avatar</h2>
 		<div class="flex items-center gap-4">
-			<CharacterAvatar
-				name={user?.display_name ?? 'User'}
-				avatarUrl={user?.avatar_url}
-				size="xl"
-			/>
+			<CharacterAvatar name={user?.display_name ?? 'User'} avatarUrl={user?.avatar_url} size="xl" />
 			<div>
 				<form method="POST" action="?/avatar" enctype="multipart/form-data" use:enhance>
-					<input
-						type="file"
-						name="avatar"
-						accept="image/*"
-						class="hidden"
-						id="avatar-upload"
-					/>
+					<input type="file" name="avatar" accept="image/*" class="hidden" id="avatar-upload" />
 					<Button
 						variant="outline"
 						size="sm"
@@ -58,11 +48,7 @@
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Display name</h2>
 		<form method="POST" action="?/profile" use:enhance class="space-y-3">
-			<Input
-				name="display_name"
-				value={user?.display_name ?? ''}
-				placeholder="Your display name"
-			/>
+			<Input name="display_name" value={user?.display_name ?? ''} placeholder="Your display name" />
 			<div class="flex justify-end">
 				<Button size="sm" type="submit">Save</Button>
 			</div>
@@ -84,12 +70,7 @@
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Email</h2>
 		<form method="POST" action="?/email" use:enhance class="space-y-3">
-			<Input
-				name="email"
-				value={user?.email ?? ''}
-				type="email"
-				placeholder="you@example.com"
-			/>
+			<Input name="email" value={user?.email ?? ''} type="email" placeholder="you@example.com" />
 			{#if user?.email_verified}
 				<p class="text-xs text-success">✓ Verified</p>
 			{:else}

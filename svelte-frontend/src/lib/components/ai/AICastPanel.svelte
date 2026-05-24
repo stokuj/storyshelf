@@ -20,7 +20,9 @@
 
 	type PanelState = 'idle' | 'pending' | 'ready' | 'failed';
 	let panelState: PanelState = $state(initialPanelReady ? 'ready' : 'idle');
-	let extraction: AIExtraction | null = $state(initExtraction ? structuredClone(initExtraction) : null);
+	let extraction: AIExtraction | null = $state(
+		initExtraction ? structuredClone(initExtraction) : null
+	);
 	let errorMessage = $state('');
 
 	async function generate() {
@@ -58,8 +60,8 @@
 <AIPanel title="Meet the cast">
 	{#if panelState === 'idle'}
 		<p class="text-sm text-accent-ink/80 leading-relaxed mb-4">
-			Let AI extract characters and their relationships from this book.
-			Characters appear here for you to verify or reject.
+			Let AI extract characters and their relationships from this book. Characters appear here for
+			you to verify or reject.
 		</p>
 		<Button variant="default" class="w-full" onclick={generate}>
 			<Sparkles class="mr-2 size-4" /> Generate
@@ -87,8 +89,8 @@
 			>
 				<AlertTriangle class="size-3 mt-0.5 shrink-0" />
 				<span
-					>{extraction.confidence_summary.flagged_low} character(s) detected with low confidence.
-					They may be one-off mentions.</span
+					>{extraction.confidence_summary.flagged_low} character(s) detected with low confidence. They
+					may be one-off mentions.</span
 				>
 			</div>
 		{/if}
@@ -115,9 +117,7 @@
 			<Button variant="outline" size="sm" onclick={() => (showGraph = true)}>
 				Open relation graph
 			</Button>
-			<Button variant="outline" size="sm" onclick={refresh}>
-				Refresh
-			</Button>
+			<Button variant="outline" size="sm" onclick={refresh}>Refresh</Button>
 		</div>
 
 		{#if showGraph && extraction}
@@ -125,7 +125,7 @@
 				<RelationGraphDialog
 					characters={extraction.characters}
 					relations={extraction.relations}
-					slug={slug}
+					{slug}
 					onclose={() => (showGraph = false)}
 				/>
 			</div>

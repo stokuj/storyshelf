@@ -24,19 +24,19 @@
 		loading = true;
 		const prev = shelfStatus;
 		shelfStatus = status;
-		try {
-			if (prev === 'none') {
-				await addToShelf(fetch, bookId);
-			} else {
-				await updateShelfEntry(fetch, bookId, status);
-			}
-			toast.success(prev === 'none' ? 'Added to shelf' : 'Shelf updated');
-		} catch {
-			shelfStatus = prev;
-			toast.error('Failed to update shelf');
-		} finally {
-			loading = false;
+		let result;
+		if (prev === 'none') {
+			result = await addToShelf(fetch, bookId);
+		} else {
+			result = await updateShelfEntry(fetch, bookId, status);
 		}
+		if (result.error) {
+			shelfStatus = prev;
+			toast.error(result.error.detail ?? 'Failed to update shelf');
+		} else {
+			toast.success(prev === 'none' ? 'Added to shelf' : 'Shelf updated');
+		}
+		loading = false;
 	}
 
 	const labels: Record<string, string> = {

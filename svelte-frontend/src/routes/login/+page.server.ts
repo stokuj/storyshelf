@@ -19,15 +19,23 @@ export const actions: Actions = {
 			credentials: 'include'
 		});
 
-		// Copy Set-Cookie headers from API response to our response
-		const setCookie = res.headers.get('set-cookie');
-		if (setCookie) {
-			cookies.set('storyshelf_session', setCookie, {
-				path: '/',
-				httpOnly: true,
-				secure: false,
-				sameSite: 'lax'
-			});
+		// Forward all Set-Cookie headers from the API response to the browser.
+		// The backend uses 'access_token' and 'refresh_token' cookie names (see backend-django/users/cookie_auth.py).
+		for (const cookieStr of res.headers.getSetCookie()) {
+			const eq = cookieStr.indexOf('=');
+			if (eq > 0) {
+				const name = cookieStr.slice(0, eq);
+				const value = cookieStr.slice(
+					eq + 1,
+					cookieStr.indexOf(';') > 0 ? cookieStr.indexOf(';') : undefined
+				);
+				cookies.set(name, value, {
+					path: '/',
+					httpOnly: true,
+					secure: false,
+					sameSite: 'lax'
+				});
+			}
 		}
 
 		if (!res.ok) {

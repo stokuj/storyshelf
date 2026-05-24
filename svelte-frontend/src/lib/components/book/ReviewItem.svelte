@@ -26,7 +26,10 @@
 				@{review.handle}
 			</a>
 			<!-- Inline star rating display -->
-			<span class="inline-flex items-center gap-0.5 text-accent text-xs" aria-label="{review.rating} out of 5 stars">
+			<span
+				class="inline-flex items-center gap-0.5 text-accent text-xs"
+				aria-label="{review.rating} out of 5 stars"
+			>
 				{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
 			</span>
 			<span class="text-xs text-muted">{new Date(review.createdAt).toLocaleDateString()}</span>
