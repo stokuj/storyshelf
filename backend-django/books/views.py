@@ -61,7 +61,7 @@ class BookRetrieveView(generics.RetrieveAPIView):
         chars_qs = (
             BookCharacter.objects.all()
             if is_admin
-            else BookCharacter.objects.filter(is_hidden=False)
+            else BookCharacter.objects.filter(is_hidden=False, canonical__isnull=True)
         )
 
         qs = Book.objects.select_related("serie").prefetch_related(

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def django_db_setup():
     pass
 

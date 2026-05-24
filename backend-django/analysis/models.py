@@ -35,17 +35,44 @@ class BookCharacter(models.Model):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
     is_hidden = models.BooleanField(default=False)
+    canonical = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="aliases",
+        limit_choices_to={"canonical__isnull": True},
+    )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["name", "book"], name="unique_character_per_book"),
             models.UniqueConstraint(fields=["slug", "book"], name="unique_character_slug_per_book"),
         ]
+        indexes = [
+            models.Index(fields=["book", "canonical"], name="bookchar_book_canonical_idx"),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = _generate_character_slug(self.name, self.book_id)
         super().save(*args, **kwargs)
+
+    @property
+    def is_canonical(self):
+        return self.canonical_id is None
+
+    def clean(self):
+        if self.canonical_id is not None:
+            from django.core.exceptions import ValidationError
+            if self.canonical_id == self.pk:
+                raise ValidationError({"canonical": "A character cannot be its own canonical."})
+            if self.canonical.canonical_id is not None:
+                raise ValidationError(
+                    {"canonical": "Canonical must itself be canonical (no alias chains)."}
+                )
+            if self.canonical.book_id != self.book_id:
+                raise ValidationError({"canonical": "Canonical must belong to the same book."})
 
     def __str__(self):
         return self.name

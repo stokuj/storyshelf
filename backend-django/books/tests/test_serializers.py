@@ -1,8 +1,14 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
+from rest_framework import status
+from rest_framework.test import APITestCase
 
+from analysis.models import BookCharacter
 from books.models import Book
 from books.serializers import BookDetailSerializer, BookListSerializer
 from library.models import Author, Genre, Tag
+
+User = get_user_model()
 
 
 class BookListSerializerTest(TestCase):
@@ -60,3 +66,40 @@ class BookDetailSerializerTest(TestCase):
     def test_analysis_status_false_when_no_characters(self):
         data = BookDetailSerializer(self.book, context={"request": None}).data
         self.assertFalse(data["book"]["analysisStatus"]["analysisFinished"])
+
+
+class BookDetailCharacterFilterTest(APITestCase):
+    def setUp(self):
+        self.book = Book.objects.create(title="Test", description="")
+        self.canonical = BookCharacter.objects.create(
+            book=self.book, name="Harry", mention_count=10,
+            is_hidden=False,
+        )
+        self.alias = BookCharacter.objects.create(
+            book=self.book, name="Mr. Potter", mention_count=3,
+            is_hidden=False, canonical=self.canonical,
+        )
+        self.hidden = BookCharacter.objects.create(
+            book=self.book, name="Ghost", mention_count=1,
+            is_hidden=True,
+        )
+        self.url = f"/api/books/{self.book.pk}/"
+
+    def test_anon_sees_only_canonical_visible_characters(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        names = [c["name"] for c in resp.data["characters"]]
+        self.assertIn("Harry", names)
+        self.assertNotIn("Mr. Potter", names)
+        self.assertNotIn("Ghost", names)
+
+    def test_admin_sees_all_characters(self):
+        admin = User.objects.create_user(
+            email="admin@test.com", handle="admin", password="pw123456", is_staff=True
+        )
+        self.client.force_authenticate(user=admin)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        names = [c["name"] for c in resp.data["characters"]]
+        self.assertIn("Mr. Potter", names)
+        self.assertIn("Ghost", names)

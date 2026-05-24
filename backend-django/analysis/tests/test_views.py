@@ -1,8 +1,12 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
+
+from analysis.models import BookCharacter, CharacterRelationship
+from books.models import Book
 
 
 @pytest.fixture
@@ -172,3 +176,154 @@ class TestBookCharacterHide:
             format="json",
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+# ─── BookCharacterMergeView (unittest-style, alongside pytest tests) ─────────
+
+User = get_user_model()
+
+
+def _make_book():
+    return Book.objects.create(title="Test", description="")
+
+
+def _make_char(book, name, mention_count=5):
+    return BookCharacter.objects.create(
+        book=book, name=name, mention_count=mention_count
+    )
+
+
+def _make_rel(book, from_char, to_char, rel_type="friend_of"):
+    return CharacterRelationship.objects.create(
+        book=book,
+        from_character=from_char,
+        to_character=to_char,
+        relation_type=rel_type,
+    )
+
+
+class BookCharacterMergeViewTest(APITestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin@test.com",
+            handle="admin",
+            password="pw123456",
+            is_staff=True,
+        )
+        self.user = User.objects.create_user(
+            email="user@test.com", handle="regularuser", password="pw123456"
+        )
+        self.book = _make_book()
+        self.harry = _make_char(self.book, "Harry", mention_count=10)
+        self.potter = _make_char(self.book, "Mr. Potter", mention_count=3)
+
+    def _url(self, book_id=None, char_id=None):
+        b = book_id or self.book.pk
+        c = char_id or self.potter.pk
+        return f"/api/books/{b}/characters/{c}/merge/"
+
+    def test_anon_returns_401(self):
+        resp = self.client.post(self._url(), {"into": self.harry.pk})
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_regular_user_returns_403(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.post(self._url(), {"into": self.harry.pk})
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_merge_sets_canonical_on_source(self):
+        self.client.force_authenticate(user=self.admin)
+        self.client.post(self._url(), {"into": self.harry.pk})
+        self.potter.refresh_from_db()
+        self.assertEqual(self.potter.canonical_id, self.harry.pk)
+
+    def test_merge_sets_is_hidden_on_source(self):
+        self.client.force_authenticate(user=self.admin)
+        self.client.post(self._url(), {"into": self.harry.pk})
+        self.potter.refresh_from_db()
+        self.assertTrue(self.potter.is_hidden)
+
+    def test_merge_accumulates_mention_count(self):
+        self.client.force_authenticate(user=self.admin)
+        self.client.post(self._url(), {"into": self.harry.pk})
+        self.harry.refresh_from_db()
+        self.assertEqual(self.harry.mention_count, 13)  # 10 + 3
+
+    def test_merge_transfers_relations_from_source(self):
+        hermione = _make_char(self.book, "Hermione")
+        rel = _make_rel(self.book, self.potter, hermione)
+        self.client.force_authenticate(user=self.admin)
+        self.client.post(self._url(), {"into": self.harry.pk})
+        rel.refresh_from_db()
+        self.assertEqual(rel.from_character_id, self.harry.pk)
+
+    def test_merge_transfers_relations_to_source(self):
+        hermione = _make_char(self.book, "Hermione")
+        rel = _make_rel(self.book, hermione, self.potter)
+        self.client.force_authenticate(user=self.admin)
+        self.client.post(self._url(), {"into": self.harry.pk})
+        rel.refresh_from_db()
+        self.assertEqual(rel.to_character_id, self.harry.pk)
+
+    def test_merge_removes_duplicate_relations(self):
+        hermione = _make_char(self.book, "Hermione")
+        _make_rel(self.book, self.harry, hermione)
+        _make_rel(self.book, self.potter, hermione)
+        self.client.force_authenticate(user=self.admin)
+        self.client.post(self._url(), {"into": self.harry.pk})
+        rels = CharacterRelationship.objects.filter(
+            from_character=self.harry, to_character=hermione
+        )
+        self.assertEqual(rels.count(), 1)
+
+    def test_merge_returns_200_with_canonical_data(self):
+        self.client.force_authenticate(user=self.admin)
+        resp = self.client.post(self._url(), {"into": self.harry.pk})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["id"], self.harry.pk)
+
+    def test_merge_into_self_returns_400(self):
+        self.client.force_authenticate(user=self.admin)
+        resp = self.client.post(
+            self._url(char_id=self.harry.pk), {"into": self.harry.pk}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_merge_nonexistent_source_returns_404(self):
+        self.client.force_authenticate(user=self.admin)
+        resp = self.client.post(self._url(char_id=9999), {"into": self.harry.pk})
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_merge_target_from_other_book_returns_400(self):
+        other_book = _make_book()
+        other_char = _make_char(other_book, "Ron")
+        self.client.force_authenticate(user=self.admin)
+        resp = self.client.post(self._url(), {"into": other_char.pk})
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_merge_alias_as_source_returns_400(self):
+        alias = _make_char(self.book, "Alias")
+        alias.canonical = self.harry
+        alias.save()
+        self.client.force_authenticate(user=self.admin)
+        resp = self.client.post(
+            self._url(char_id=alias.pk), {"into": self.potter.pk}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_merge_alias_as_target_returns_400(self):
+        alias = _make_char(self.book, "Alias")
+        alias.canonical = self.harry
+        alias.save()
+        self.client.force_authenticate(user=self.admin)
+        resp = self.client.post(self._url(), {"into": alias.pk})
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_merge_canonical_with_existing_aliases_transfers_aliases(self):
+        alias1 = _make_char(self.book, "HP")
+        alias1.canonical = self.potter
+        alias1.save()
+        self.client.force_authenticate(user=self.admin)
+        self.client.post(self._url(), {"into": self.harry.pk})
+        alias1.refresh_from_db()
+        self.assertEqual(alias1.canonical_id, self.harry.pk)

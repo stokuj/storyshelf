@@ -7,12 +7,14 @@ from .models import Book
 
 class BookCharacterSerializer(serializers.ModelSerializer):
     mention_count = serializers.IntegerField()
+    canonical_id = serializers.IntegerField(allow_null=True, read_only=True)
 
     class Meta:
         model = BookCharacter
         fields = (
             "id", "slug", "name", "description",
             "mention_count", "source", "confidence", "is_hidden",
+            "canonical_id",
         )
 
 
@@ -121,7 +123,7 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
 
         chars_qs = (
             instance.characters.all() if is_admin
-            else instance.characters.filter(is_hidden=False)
+            else instance.characters.filter(is_hidden=False, canonical__isnull=True)
         )
         characters = BookCharacterSerializer(chars_qs, many=True).data
 
