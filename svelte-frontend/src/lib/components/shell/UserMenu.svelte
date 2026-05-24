@@ -27,11 +27,6 @@
 			.join('')
 			.toUpperCase();
 	}
-
-	async function signOut() {
-		await fetch('/api/auth/logout/', { method: 'POST', credentials: 'include' });
-		goto(resolve('/'));
-	}
 </script>
 
 {#if user}
@@ -45,25 +40,27 @@
 			</Button>
 		</DropdownMenuTrigger>
 		<DropdownMenuContent align="end" class="w-48">
-			<button onclick={() => goto(resolve(`/u/${user.handle}`))}>
-				<DropdownMenuItem>
-					<User class="mr-2 size-4" /> Profile
-				</DropdownMenuItem>
-			</button>
-			<DropdownMenuItem on:click={() => goto(resolve('/settings'))}>
+			<DropdownMenuItem onclick={() => goto(resolve(`/u/${user.handle}`))}>
+				<User class="mr-2 size-4" /> Profile
+			</DropdownMenuItem>
+			<DropdownMenuItem onclick={() => goto(resolve('/settings'))}>
 				<Settings class="mr-2 size-4" /> Settings
 			</DropdownMenuItem>
 			<DropdownMenuSeparator />
-			<DropdownMenuItem on:click={() => setMode('dark')}>
+			<DropdownMenuItem onclick={() => setMode('dark')}>
 				<Moon class="mr-2 size-4" /> Dark mode
 			</DropdownMenuItem>
-			<DropdownMenuItem on:click={() => setMode('light')}>
+			<DropdownMenuItem onclick={() => setMode('light')}>
 				<Sun class="mr-2 size-4" /> Light mode
 			</DropdownMenuItem>
 			<DropdownMenuSeparator />
-			<DropdownMenuItem on:click={signOut}>
-				<LogOut class="mr-2 size-4" /> Sign out
-			</DropdownMenuItem>
+			<form method="POST" action="/logout">
+				<DropdownMenuItem>
+					<button type="submit" class="flex w-full items-center">
+						<LogOut class="mr-2 size-4" /> Sign out
+					</button>
+				</DropdownMenuItem>
+			</form>
 		</DropdownMenuContent>
 	</DropdownMenu>
 {:else}

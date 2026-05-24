@@ -13,6 +13,7 @@
 	let book = $derived(data.book!);
 	let reviews = $derived(data.reviews);
 	let extraction = $derived(data.extraction);
+	let shelfStatus = $derived(data.shelfStatus);
 </script>
 
 <svelte:head>
@@ -30,7 +31,7 @@
 			<div class="flex-1">
 				<BookHeader {book} />
 				<div class="mt-3">
-					<BookActions bookId={book.id} slug={book.slug} />
+					<BookActions bookId={book.id} initialStatus={shelfStatus} />
 				</div>
 				<div class="mt-2 text-sm text-muted">
 					★ {book.avg_rating?.toFixed(1) ?? '—'} · {book.ratings_count} ratings
@@ -62,7 +63,7 @@
 		<!-- Left: cover + actions -->
 		<div class="space-y-4">
 			<BookCover coverUrl={book.cover_url} title={book.title} size="md" />
-			<BookActions bookId={book.id} slug={book.slug} />
+			<BookActions bookId={book.id} initialStatus={shelfStatus} />
 			<div class="text-center text-sm text-muted">
 				★ {book.avg_rating?.toFixed(1) ?? '—'} · {book.ratings_count} ratings
 			</div>

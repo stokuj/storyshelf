@@ -7,30 +7,30 @@
 		DropdownMenuTrigger
 	} from '$lib/components/ui/dropdown-menu';
 	import { BookOpen, Bookmark, Check, ChevronDown } from 'lucide-svelte';
-	import { addToShelf, updateShelfEntry } from '$lib/api/shelves';
+	import { addToShelf, updateShelfEntry, type ShelfStatus } from '$lib/api/shelves';
 	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		bookId: number;
-		slug: string;
+		initialStatus?: ShelfStatus | 'none';
 	}
-	let { bookId }: Props = $props();
+	let { bookId, initialStatus = 'none' }: Props = $props();
 
-	let shelfStatus: 'none' | 'WANT_TO_READ' | 'READING' | 'READ' = $state('none');
+	// Local override for optimistic updates; undefined = fall back to server value.
+	let localOverride: ShelfStatus | 'none' | undefined = $state(undefined);
+	let shelfStatus = $derived(localOverride ?? initialStatus);
 	let loading = $state(false);
 
-	async function setStatus(status: 'WANT_TO_READ' | 'READING' | 'READ') {
+	async function setStatus(status: ShelfStatus) {
 		loading = true;
 		const prev = shelfStatus;
-		shelfStatus = status;
-		let result;
-		if (prev === 'none') {
-			result = await addToShelf(fetch, bookId);
-		} else {
-			result = await updateShelfEntry(fetch, bookId, status);
-		}
+		localOverride = status;
+		const result =
+			prev === 'none'
+				? await addToShelf(fetch, bookId)
+				: await updateShelfEntry(fetch, bookId, status);
 		if (result.error) {
-			shelfStatus = prev;
+			localOverride = prev === 'none' ? undefined : prev;
 			toast.error(result.error.detail ?? 'Failed to update shelf');
 		} else {
 			toast.success(prev === 'none' ? 'Added to shelf' : 'Shelf updated');
@@ -38,7 +38,7 @@
 		loading = false;
 	}
 
-	const labels: Record<string, string> = {
+	const labels: Record<ShelfStatus, string> = {
 		WANT_TO_READ: 'Want to read',
 		READING: 'Currently reading',
 		READ: 'Read'

@@ -1,4 +1,5 @@
-import { json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 import type { RequestHandler } from './$types';
 import { fixtureBooks } from '$lib/api/__fixtures__/books';
 import { fixtureCharacters } from '$lib/api/__fixtures__/characters';
@@ -17,6 +18,8 @@ function paginate<T>(data: T[], page = 1, perPage = 20) {
 }
 
 export const GET: RequestHandler = ({ params, url }) => {
+	if (!dev) throw error(404, 'Not found');
+
 	const rest = params.rest;
 
 	if (rest === 'books/') {
