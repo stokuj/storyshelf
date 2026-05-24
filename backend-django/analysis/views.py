@@ -84,40 +84,55 @@ class BookCharacterMergeView(APIView):
                 {"detail": "Target character must belong to the same book."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if source.canonical_id is not None:
+        try:
+            _perform_merge(source, target)
+        except ValueError as e:
             return Response(
-                {"detail": "Source is already an alias; merge its canonical instead."},
+                {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if target.canonical_id is not None:
-            return Response(
-                {"detail": "Target is an alias; provide the canonical id."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        _perform_merge(source, target)
         target.refresh_from_db()
         return Response(BookCharacterSerializer(target).data)
 
 
 def _perform_merge(source, target):
     with transaction.atomic():
+        # Lock BOTH rows — serializes concurrent merges on same source/target
+        source_locked = (
+            BookCharacter.objects.select_for_update().get(pk=source.pk)
+        )
+        target_locked = (
+            BookCharacter.objects.select_for_update().get(pk=target.pk)
+        )
+
+        # Re-check preconditions under lock — race-free
+        if source_locked.canonical_id is not None:
+            raise ValueError("Source is already an alias")
+        if target_locked.canonical_id is not None:
+            raise ValueError("Target is an alias")
+
         # 1. Re-point any aliases of source to target
-        source.aliases.all().update(canonical=target)
+        source_locked.aliases.all().update(canonical=target_locked)
 
         # 2. Build set of existing (from_id, to_id) pairs NOT involving source
         existing = set(
-            CharacterRelationship.objects.filter(book=source.book)
-            .exclude(Q(from_character=source) | Q(to_character=source))
+            CharacterRelationship.objects.filter(book=source_locked.book)
+            .exclude(Q(from_character=source_locked) | Q(to_character=source_locked))
             .values_list("from_character_id", "to_character_id")
         )
 
         # 3. Re-point source's relations to target, deduplicating
         for rel in CharacterRelationship.objects.filter(
-            Q(from_character=source) | Q(to_character=source)
+            Q(from_character=source_locked) | Q(to_character=source_locked)
         ):
-            new_from = target.pk if rel.from_character_id == source.pk else rel.from_character_id
-            new_to = target.pk if rel.to_character_id == source.pk else rel.to_character_id
+            new_from = (
+                target_locked.pk if rel.from_character_id == source_locked.pk
+                else rel.from_character_id
+            )
+            new_to = (
+                target_locked.pk if rel.to_character_id == source_locked.pk
+                else rel.to_character_id
+            )
 
             if new_from == new_to:  # self-relation created by merge
                 rel.delete()
@@ -133,11 +148,11 @@ def _perform_merge(source, target):
                 rel.save(update_fields=["from_character_id", "to_character_id"])
 
         # 4. Accumulate mention_count
-        BookCharacter.objects.filter(pk=target.pk).update(
-            mention_count=F("mention_count") + source.mention_count
+        BookCharacter.objects.filter(pk=target_locked.pk).update(
+            mention_count=F("mention_count") + source_locked.mention_count
         )
 
         # 5. Mark source as alias
-        source.canonical = target
-        source.is_hidden = True
-        source.save(update_fields=["canonical_id", "is_hidden"])
+        source_locked.canonical = target_locked
+        source_locked.is_hidden = True
+        source_locked.save(update_fields=["canonical_id", "is_hidden"])
