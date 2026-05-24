@@ -71,15 +71,15 @@ class BookDetailSerializerTest(TestCase):
 class BookDetailCharacterFilterTest(APITestCase):
     def setUp(self):
         self.book = Book.objects.create(title="Test", description="")
-        self.canonical = BookCharacter.objects.create(
+        self.canonical = BookCharacter.all_objects.create(
             book=self.book, name="Harry", mention_count=10,
             is_hidden=False,
         )
-        self.alias = BookCharacter.objects.create(
+        self.alias = BookCharacter.all_objects.create(
             book=self.book, name="Mr. Potter", mention_count=3,
             is_hidden=False, canonical=self.canonical,
         )
-        self.hidden = BookCharacter.objects.create(
+        self.hidden = BookCharacter.all_objects.create(
             book=self.book, name="Ghost", mention_count=1,
             is_hidden=True,
         )

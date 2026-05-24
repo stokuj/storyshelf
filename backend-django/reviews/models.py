@@ -13,7 +13,7 @@ class Review(models.Model):
     rating = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    content = models.TextField(max_length=2000)
+    content = models.TextField(max_length=2000, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -23,4 +23,4 @@ class Review(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"{self.user.username} → {self.book.title} ({self.rating}/5)"
+        return f"{self.user.handle} → {self.book.title} ({self.rating}/5)"

@@ -1,19 +1,30 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
+
+
+class BookCharacterManager(models.Manager):
+    """Default manager that excludes hidden characters."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_hidden=False)
 
 
 def _generate_character_slug(name: str, book_id: int) -> str:
     base = slugify(name)[:200] or "character"
     slug = base
     counter = 2
-    while BookCharacter.objects.filter(slug=slug, book_id=book_id).exists():
+    while BookCharacter.all_objects.filter(slug=slug, book_id=book_id).exists():
         slug = f"{base}-{counter}"
         counter += 1
     return slug
 
 
 class BookCharacter(models.Model):
+    objects = BookCharacterManager()
+    all_objects = models.Manager()
+
     class Source(models.TextChoices):
         HUMAN = "human"
         AI = "ai"
@@ -64,7 +75,6 @@ class BookCharacter(models.Model):
 
     def clean(self):
         if self.canonical_id is not None:
-            from django.core.exceptions import ValidationError
             if self.canonical_id == self.pk:
                 raise ValidationError({"canonical": "A character cannot be its own canonical."})
             if self.canonical.canonical_id is not None:
@@ -78,6 +88,7 @@ class BookCharacter(models.Model):
         return self.name
 
 
+# TODO: expose via API or remove (dead model per 2026-05-24 audit)
 class BookPlace(models.Model):
     book = models.ForeignKey(
         "books.Book", on_delete=models.CASCADE, related_name="places"
@@ -95,6 +106,7 @@ class BookPlace(models.Model):
         return self.name
 
 
+# TODO: expose via API or remove (dead model per 2026-05-24 audit)
 class BookOrganization(models.Model):
     book = models.ForeignKey(
         "books.Book", on_delete=models.CASCADE, related_name="organizations"

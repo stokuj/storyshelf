@@ -23,7 +23,7 @@ class MyShelvesViewTest(TestCase):
         Shelf.objects.create(user=self.other, name="Theirs")
         response = self.client.get("/api/shelf/me/collections/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        names = [s["name"] for s in response.data]
+        names = [s["name"] for s in response.data["data"]]
         self.assertIn("Mine", names)
         self.assertNotIn("Theirs", names)
 

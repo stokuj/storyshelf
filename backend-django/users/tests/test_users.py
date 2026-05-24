@@ -18,6 +18,7 @@ class UserProfileTest(AuthTestHelper, APITestCase):
             handle="targetuser",
             password="pw",
             bio="Hello world",
+            profile_public=True,
         )
         self.url = f"/api/u/{self.target.handle}/"
 
@@ -56,7 +57,7 @@ class UserSettingsTest(AuthTestHelper, APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["handle"], "testuser")
         self.assertIn("email", resp.data)
-        self.assertIn("profile_public", resp.data["settings"])
+        self.assertIn("profile_public", resp.data)
 
     def test_get_settings_unauthenticated_returns_401(self):
         resp = self.client.get("/api/users/me/")
@@ -170,6 +171,6 @@ class UserSettingsResponseStructureTest(AuthTestHelper, APITestCase):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/users/me/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("profile_public", resp.data["settings"])
+        self.assertIn("profile_public", resp.data)
         self.assertIn("avatar_url", resp.data)
         self.assertIn("member_since", resp.data)

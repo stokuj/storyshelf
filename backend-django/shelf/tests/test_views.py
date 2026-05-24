@@ -18,8 +18,8 @@ class ShelfListTest(AuthTestHelper, APITestCase):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/shelf/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["status"], "READING")
+        self.assertEqual(len(resp.data["data"]), 1)
+        self.assertEqual(resp.data["data"][0]["status"], "READING")
 
     def test_get_shelf_unauthenticated_returns_401(self):
         resp = self.client.get("/api/shelf/")
@@ -29,7 +29,7 @@ class ShelfListTest(AuthTestHelper, APITestCase):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/shelf/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data, [])
+        self.assertEqual(resp.data["data"], [])
 
     def test_shelf_entries_isolated_per_user(self):
         other = User.objects.create_user(
@@ -40,8 +40,8 @@ class ShelfListTest(AuthTestHelper, APITestCase):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/shelf/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["status"], "READ")
+        self.assertEqual(len(resp.data["data"]), 1)
+        self.assertEqual(resp.data["data"][0]["status"], "READ")
 
 
 class ShelfEntryTest(AuthTestHelper, APITestCase):
@@ -130,8 +130,11 @@ class ShelfResponseStructureTest(AuthTestHelper, APITestCase):
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/shelf/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        entry = resp.data[0]
+        entry = resp.data["data"][0]
         self.assertIn("createdAt", entry)
+        self.assertIn("startDate", entry)
+        self.assertIn("finishDate", entry)
+        self.assertIn("personalRating", entry)
         self.assertIn("book", entry)
         self.assertIn("id", entry["book"])
         self.assertIn("title", entry["book"])

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def _upsert_characters(book, entities: dict) -> list[str]:
     from .models import BookCharacter
 
-    existing = {c.slug: c for c in BookCharacter.objects.filter(book=book)}
+    existing = {c.slug: c for c in BookCharacter.all_objects.filter(book=book)}
     char_names: list[str] = []
     used_slugs_this_run: set[str] = set()
 
@@ -41,7 +41,7 @@ def _upsert_characters(book, entities: dict) -> list[str]:
             char.mention_count = count
             char.save(update_fields=["mention_count"])
         else:
-            BookCharacter.objects.create(
+            BookCharacter.all_objects.create(
                 book=book,
                 name=name,
                 slug=slug,
@@ -144,8 +144,8 @@ def relations_for_book(book_id: int, pairs_data: list[dict]):
                 logger.warning("Unknown relation type '%s', skipping", relation_type)
                 continue
             try:
-                source = BookCharacter.objects.get(name=rel["source"], book_id=book_id)
-                target = BookCharacter.objects.get(name=rel["target"], book_id=book_id)
+                source = BookCharacter.all_objects.get(name=rel["source"], book_id=book_id)
+                target = BookCharacter.all_objects.get(name=rel["target"], book_id=book_id)
                 CharacterRelationship.objects.get_or_create(
                     from_character=source,
                     to_character=target,

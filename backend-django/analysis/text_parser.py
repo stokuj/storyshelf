@@ -8,12 +8,6 @@ SENTENCE_SPLIT_RE = re.compile(
     r"(?<!\bJr\.)(?<!\bSr\.)(?<!\bSt\.)(?<!\bvs\.))(?<=[.!?])\s+"
 )
 
-CHAPTER_HEADER_RE = re.compile(
-    r"^\s*(?:Chapter|CHAPTER|Rozdział|ROZDZIAŁ)\s+[IVXLCDM\d]+",
-    re.MULTILINE,
-)
-
-
 def find_sentences_with_both_characters(
     content: str, characters: list[str], include_empty: bool = False
 ) -> list[dict]:
@@ -28,15 +22,3 @@ def find_sentences_with_both_characters(
     return result
 
 
-def split_into_chapters(text: str) -> list[dict]:
-    if not text.strip():
-        return []
-    parts = CHAPTER_HEADER_RE.split(text)
-    headers = CHAPTER_HEADER_RE.findall(text)
-    if not headers:
-        return [{"number": 1, "title": "", "content": text.strip()}]
-    chapters = []
-    for i, header in enumerate(headers):
-        content = parts[i + 1].strip() if i + 1 < len(parts) else ""
-        chapters.append({"number": i + 1, "title": header.strip(), "content": content})
-    return chapters

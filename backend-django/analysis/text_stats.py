@@ -19,19 +19,4 @@ def _get_tokenizer():
     return _TOKENIZER
 
 
-def analyse_text(text: str) -> dict:
-    char_count = len(text)
-    char_count_clean = sum(ch.isalnum() for ch in text)
-    word_count = len(text.split())
-    tokenizer = _get_tokenizer()
-    if tokenizer is None:
-        logger.warning("tiktoken unavailable, using fallback")
-        token_count = len(text) // 4
-    else:
-        token_count = len(tokenizer.encode(text))
-    return {
-        "char_count": char_count,
-        "char_count_clean": char_count_clean,
-        "word_count": word_count,
-        "token_count": token_count,
-    }
+

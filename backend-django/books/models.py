@@ -1,5 +1,5 @@
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
 
 
@@ -59,13 +59,21 @@ class Book(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = _generate_unique_slug(self.title)
+        for _ in range(5):
+            try:
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                return
+            except IntegrityError:
+                # TOCTOU race: slug was taken between exists() check and save().
+                self.slug = _generate_unique_slug(self.title)
+        # Retries exhausted — let the last attempt raise naturally.
         super().save(*args, **kwargs)
 
 
 class BookAuthor(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     author = models.ForeignKey("library.Author", on_delete=models.CASCADE)
-    role = models.CharField(max_length=30, blank=True, null=True)
 
     class Meta:
         constraints = [
@@ -84,9 +92,9 @@ class BookTag(models.Model):
 
 
 class BookGenre(models.Model):
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="book_genres")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="book_genre_through")
     genre = models.ForeignKey(
-        "library.Genre", on_delete=models.CASCADE, related_name="book_genres"
+        "library.Genre", on_delete=models.CASCADE, related_name="book_genre_through"
     )
 
     class Meta:

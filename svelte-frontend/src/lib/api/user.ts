@@ -8,7 +8,7 @@ export interface UserMe {
 	bio: string;
 	avatar_url: string | null;
 	member_since: string;
-	settings: { profile_public: boolean };
+	profile_public: boolean;
 }
 
 export async function getCurrentUser(fetchFn: typeof fetch) {

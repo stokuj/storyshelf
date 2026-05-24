@@ -49,7 +49,7 @@ class BookCharacterHideView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request, book_id, character_id):
-        char = get_object_or_404(BookCharacter, pk=character_id, book_id=book_id)
+        char = get_object_or_404(BookCharacter.all_objects, pk=character_id, book_id=book_id)
         hidden = bool(request.data.get("hidden", True))
         char.is_hidden = hidden
         char.save(update_fields=["is_hidden"])
@@ -60,7 +60,7 @@ class BookCharacterMergeView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request, book_id, character_id):
-        source = get_object_or_404(BookCharacter, pk=character_id, book_id=book_id)
+        source = get_object_or_404(BookCharacter.all_objects, pk=character_id, book_id=book_id)
         serializer = MergeRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_id = serializer.validated_data["into"]
@@ -72,7 +72,7 @@ class BookCharacterMergeView(APIView):
             )
 
         try:
-            target = BookCharacter.objects.get(pk=target_id)
+            target = BookCharacter.all_objects.get(pk=target_id)
         except BookCharacter.DoesNotExist:
             return Response(
                 {"detail": "Target character not found."},
@@ -99,10 +99,10 @@ def _perform_merge(source, target):
     with transaction.atomic():
         # Lock BOTH rows — serializes concurrent merges on same source/target
         source_locked = (
-            BookCharacter.objects.select_for_update().get(pk=source.pk)
+            BookCharacter.all_objects.select_for_update().get(pk=source.pk)
         )
         target_locked = (
-            BookCharacter.objects.select_for_update().get(pk=target.pk)
+            BookCharacter.all_objects.select_for_update().get(pk=target.pk)
         )
 
         # Re-check preconditions under lock — race-free
@@ -148,7 +148,7 @@ def _perform_merge(source, target):
                 rel.save(update_fields=["from_character_id", "to_character_id"])
 
         # 4. Accumulate mention_count
-        BookCharacter.objects.filter(pk=target_locked.pk).update(
+        BookCharacter.all_objects.filter(pk=target_locked.pk).update(
             mention_count=F("mention_count") + source_locked.mention_count
         )
 

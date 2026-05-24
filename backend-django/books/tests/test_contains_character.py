@@ -10,9 +10,9 @@ class ContainsCharacterTest(TestCase):
         self.client = APIClient()
         self.book1 = Book.objects.create(title="Harry Potter")
         self.book2 = Book.objects.create(title="Another Book")
-        BookCharacter.objects.create(book=self.book1, name="Hermione Granger", mention_count=10)
-        BookCharacter.objects.create(book=self.book1, name="Harry Potter", mention_count=20)
-        BookCharacter.objects.create(book=self.book2, name="John Smith", mention_count=5)
+        BookCharacter.all_objects.create(book=self.book1, name="Hermione Granger", mention_count=10)
+        BookCharacter.all_objects.create(book=self.book1, name="Harry Potter", mention_count=20)
+        BookCharacter.all_objects.create(book=self.book2, name="John Smith", mention_count=5)
 
     def test_finds_book_by_character_name(self):
         response = self.client.get("/api/books/contains-character/?name=Hermione")

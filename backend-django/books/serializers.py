@@ -1,59 +1,24 @@
 from rest_framework import serializers
 
-from analysis.models import BookCharacter, CharacterRelationship
+from analysis.models import BookCharacter
+from analysis.serializers import BookCharacterSerializer, CharacterRelationSerializer
 
 from .models import Book
 
 
-class BookCharacterSerializer(serializers.ModelSerializer):
-    mention_count = serializers.IntegerField()
-    canonical_id = serializers.IntegerField(allow_null=True, read_only=True)
-
-    class Meta:
-        model = BookCharacter
-        fields = (
-            "id", "slug", "name", "description",
-            "mention_count", "source", "confidence", "is_hidden",
-            "canonical_id",
-        )
-
-
-class CharacterRelationSerializer(serializers.ModelSerializer):
-    sourceCharacterName = serializers.CharField(source="from_character.name")  # noqa: N815
-    targetCharacterName = serializers.CharField(source="to_character.name")  # noqa: N815
-
-    class Meta:
-        model = CharacterRelationship
-        fields = (
-            "id",
-            "sourceCharacterName",
-            "targetCharacterName",
-            "relation_type",
-        )
-
-
-class BookSerializerMixin:
-    def get_author(self, obj):
-        # Use the prefetched authors cache to avoid an extra query per book.
-        authors = list(obj.authors.all())
-        return authors[0].name if authors else None
-
-    def get_genres(self, obj):
-        return [g.name for g in obj.genres.all()]
-
-    def get_tags(self, obj):
-        return [t.name for t in obj.tags.all()]
-
-
-class BookPreviewSerializer(BookSerializerMixin, serializers.ModelSerializer):
+class BookPreviewSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
 
     class Meta:
         model = Book
         fields = ("id", "slug", "title", "author", "avg_rating")
 
+    def get_author(self, obj):
+        authors = list(obj.authors.all())
+        return authors[0].name if authors else None
 
-class BookListSerializer(BookSerializerMixin, serializers.ModelSerializer):
+
+class BookListSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
@@ -75,12 +40,33 @@ class BookListSerializer(BookSerializerMixin, serializers.ModelSerializer):
             "ratings_count",
         )
 
+    def get_author(self, obj):
+        # Prefetched via Prefetch("authors", to_attr="_prefetched_authors") in BookListView
+        authors = list(obj.authors.all())
+        return authors[0].name if authors else None
 
-class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
+    def get_genres(self, obj):
+        return [g.name for g in obj.genres.all()]
+
+    def get_tags(self, obj):
+        return [t.name for t in obj.tags.all()]
+
+
+class BookDetailSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     genres = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     ratingsCount = serializers.IntegerField(source="ratings_count")  # noqa: N815
+
+    def get_author(self, obj):
+        authors = list(obj.authors.all())
+        return authors[0].name if authors else None
+
+    def get_genres(self, obj):
+        return [g.name for g in obj.genres.all()]
+
+    def get_tags(self, obj):
+        return [t.name for t in obj.tags.all()]
 
     class Meta:
         model = Book
@@ -103,10 +89,10 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
         request = self.context.get("request")
         book_data = super().to_representation(instance)
 
-        is_admin = bool(request and request.user and request.user.is_staff)
+        is_admin = self.context.get("is_admin", False)
 
         book_data["analysisStatus"] = {
-            "analysisFinished": instance.characters.filter(is_hidden=False).exists(),
+            "analysisFinished": instance.ai_extraction_status == "done",
             "status": instance.ai_extraction_status,
         }
         book_data["seriesName"] = instance.serie.name if instance.serie else None
@@ -121,16 +107,23 @@ class BookDetailSerializer(BookSerializerMixin, serializers.ModelSerializer):
                     "createdAt": entry.created_at.isoformat(),
                 }
 
-        chars_qs = (
-            instance.characters.all() if is_admin
-            else instance.characters.filter(is_hidden=False, canonical__isnull=True)
-        )
-        characters = BookCharacterSerializer(chars_qs, many=True).data
+        # Use view-side Prefetch (to_attr="_prefetched_characters") to avoid re-query.
+        chars = getattr(instance, "_prefetched_characters", None)
+        if chars is None:
+            chars_qs = (
+                BookCharacter.all_objects.filter(book=instance, canonical__isnull=True) if is_admin
+                else instance.characters.filter(canonical__isnull=True)
+            )
+            chars = chars_qs
+        characters = BookCharacterSerializer(chars, many=True).data
 
-        relations = CharacterRelationSerializer(
-            instance.character_relationships.all(),
-            many=True,
-        ).data
+        rels_qs = instance.character_relationships.all()
+        if not is_admin:
+            rels_qs = rels_qs.filter(
+                from_character__is_hidden=False,
+                to_character__is_hidden=False,
+            )
+        relations = CharacterRelationSerializer(rels_qs, many=True).data
 
         return {
             "book": book_data,

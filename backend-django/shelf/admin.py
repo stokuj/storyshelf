@@ -14,7 +14,7 @@ class ShelfMembershipInline(admin.TabularInline):
 class ShelfAdmin(admin.ModelAdmin):
     list_display = ("name", "user", "slug", "is_public", "book_count", "created_at")
     list_filter = ("is_public",)
-    search_fields = ("name", "user__username")
+    search_fields = ("name", "user__handle")
     readonly_fields = ("slug", "created_at", "updated_at")
     inlines = [ShelfMembershipInline]
 

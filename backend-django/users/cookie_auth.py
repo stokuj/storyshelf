@@ -1,5 +1,3 @@
-import os
-
 from django.conf import settings
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
@@ -15,7 +13,12 @@ class JWTCookieAuthentication(JWTAuthentication):
     def authenticate(self, request):
         raw_token = request.COOKIES.get(ACCESS_COOKIE)
         if raw_token is None:
-            return None
+            # Fallback to Authorization header (ADR-001 compliance)
+            header = request.META.get("HTTP_AUTHORIZATION", "")
+            if header.startswith("Bearer "):
+                raw_token = header[7:]
+            else:
+                return None
         try:
             validated_token = self.get_validated_token(raw_token)
         except InvalidToken:
@@ -37,8 +40,8 @@ def _cookie_flags() -> dict:
 
 def set_jwt_cookies(response, access_token, refresh_token=None):
     """Set HttpOnly JWT cookies on response. access/refresh can be token objects or strings."""
-    access_max_age = int(os.getenv("JWT_ACCESS_LIFETIME_MINUTES", "30")) * 60
-    refresh_max_age = int(os.getenv("JWT_REFRESH_LIFETIME_MINUTES", "1440")) * 60
+    access_max_age = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()
+    refresh_max_age = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
     flags = _cookie_flags()
 
     response.set_cookie(

@@ -16,15 +16,15 @@ class ReviewListTest(AuthTestHelper, APITestCase):
     def test_get_reviews_empty_returns_200(self):
         resp = self.client.get("/api/reviews/?book_id=" + str(self.book.id))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data, [])
+        self.assertEqual(resp.data["data"], [])
 
     def test_get_reviews_with_data_returns_200(self):
         Review.objects.create(user=self.user, book=self.book, rating=4, content="Good book")
         resp = self.client.get("/api/reviews/?book_id=" + str(self.book.id))
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["rating"], 4)
-        self.assertEqual(resp.data[0]["handle"], "testuser")
+        self.assertEqual(len(resp.data["data"]), 1)
+        self.assertEqual(resp.data["data"][0]["rating"], 4)
+        self.assertEqual(resp.data["data"][0]["handle"], "testuser")
 
     def test_get_reviews_without_filter_returns_all(self):
         book2 = Book.objects.create(title="Other", isbn="r004", page_count=100, year=2023)
@@ -32,7 +32,7 @@ class ReviewListTest(AuthTestHelper, APITestCase):
         Review.objects.create(user=self.user, book=book2, rating=5, content="B")
         resp = self.client.get("/api/reviews/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.data), 2)
+        self.assertEqual(len(resp.data["data"]), 2)
 
 
 class ReviewCreateTest(AuthTestHelper, APITestCase):

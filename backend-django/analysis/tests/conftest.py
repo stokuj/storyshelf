@@ -51,11 +51,11 @@ def book(db):
 def character_a(db, book):
     from analysis.models import BookCharacter
 
-    return BookCharacter.objects.get_or_create(name="Frodo", book=book)[0]
+    return BookCharacter.all_objects.get_or_create(name="Frodo", book=book)[0]
 
 
 @pytest.fixture
 def character_b(db, book):
     from analysis.models import BookCharacter
 
-    return BookCharacter.objects.get_or_create(name="Sam", book=book)[0]
+    return BookCharacter.all_objects.get_or_create(name="Sam", book=book)[0]

@@ -8,6 +8,13 @@ from .models import Review
 from .serializers import ReviewCreateSerializer, ReviewSerializer, ScopedReviewCreateSerializer
 
 
+def _handle_integrity_error():
+    return Response(
+        {"detail": "You have already reviewed this book."},
+        status=http_status.HTTP_400_BAD_REQUEST,
+    )
+
+
 class ReviewListCreateView(generics.ListCreateAPIView):
     """
     GET: Płaska lista recenzji, sortowana od najnowszej.
@@ -17,7 +24,7 @@ class ReviewListCreateView(generics.ListCreateAPIView):
           Po zapisie sygnał Django automatycznie aktualizuje Book.avg_rating i Book.ratings_count.
     """
 
-    pagination_class = None
+    # default pagination from settings
 
     def get_permissions(self):
         if self.request.method == "POST":
@@ -46,10 +53,7 @@ class ReviewListCreateView(generics.ListCreateAPIView):
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError:
-            return Response(
-                {"detail": "You have already reviewed this book."},
-                status=http_status.HTTP_400_BAD_REQUEST,
-            )
+            return _handle_integrity_error()
 
 
 class BookReviewListCreateView(generics.ListCreateAPIView):
@@ -91,10 +95,7 @@ class BookReviewListCreateView(generics.ListCreateAPIView):
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError:
-            return Response(
-                {"detail": "You have already reviewed this book."},
-                status=http_status.HTTP_400_BAD_REQUEST,
-            )
+            return _handle_integrity_error()
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):

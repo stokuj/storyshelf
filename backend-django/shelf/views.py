@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -23,7 +24,7 @@ class ShelfListView(generics.ListAPIView):
 
     serializer_class = ShelfEntrySerializer
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = None  # flat list for frontend
+    # default pagination from settings
 
     def get_queryset(self):
         return (
@@ -58,9 +59,24 @@ class ShelfEntryView(APIView):
                 {"detail": f"Invalid status. Choose from: {', '.join(valid_statuses)}."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        entry, _ = ShelfEntry.objects.get_or_create(
+        entry, created = ShelfEntry.objects.get_or_create(
             user=request.user, book=book, defaults={"status": status_val}
         )
+        if created:
+            # Apply date fields and validate on create (get_or_create bypasses clean()).
+            start_date = request.data.get("start_date")
+            finish_date = request.data.get("finish_date")
+            if start_date:
+                entry.start_date = start_date
+            if finish_date:
+                entry.finish_date = finish_date
+            try:
+                with transaction.atomic():
+                    entry.full_clean()
+                    entry.save(update_fields=["start_date", "finish_date"])
+            except ValidationError as e:
+                entry.delete()  # rollback the get_or_create
+                return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
         return Response(
             ShelfEntrySerializer(entry).data, status=status.HTTP_201_CREATED
         )
@@ -79,6 +95,8 @@ class ShelfEntryView(APIView):
         entry.status = status_val
         entry.start_date = request.data.get("start_date", entry.start_date)
         entry.finish_date = request.data.get("finish_date", entry.finish_date)
+        if "personal_rating" in request.data:
+            entry.personal_rating = request.data.get("personal_rating")
         try:
             entry.full_clean()
         except ValidationError as e:
@@ -94,7 +112,7 @@ class ShelfEntryView(APIView):
 
 class MyShelvesView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = None
+    # default pagination from settings
 
     def get_serializer_class(self):
         if self.request.method == "POST":

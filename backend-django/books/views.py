@@ -1,10 +1,10 @@
 from django.db.models import Prefetch, Q
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 
 from shelf.models import ShelfEntry
 
-from .lookups import resolve_book
 from .models import Book
 from .serializers import BookDetailSerializer, BookListSerializer
 
@@ -21,7 +21,11 @@ class BookListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        qs = Book.objects.select_related("serie").prefetch_related("authors", "tags", "genres")
+        qs = Book.objects.defer("text").prefetch_related(
+            Prefetch("authors", to_attr="_prefetched_authors"),
+            "tags",
+            "genres",
+        )
 
         q = self.request.query_params.get("q", "").strip()
         if q:
@@ -52,6 +56,13 @@ class BookRetrieveView(generics.RetrieveAPIView):
     serializer_class = BookDetailSerializer
     permission_classes = [permissions.AllowAny]
 
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["is_admin"] = bool(
+            self.request.user and self.request.user.is_staff
+        )
+        return ctx
+
     def get_object(self):
         from analysis.models import BookCharacter
 
@@ -59,13 +70,13 @@ class BookRetrieveView(generics.RetrieveAPIView):
         is_admin = bool(self.request.user and self.request.user.is_staff)
 
         chars_qs = (
-            BookCharacter.objects.all()
+            BookCharacter.all_objects.all()
             if is_admin
-            else BookCharacter.objects.filter(is_hidden=False, canonical__isnull=True)
+            else BookCharacter.objects.filter(canonical__isnull=True)
         )
 
         qs = Book.objects.select_related("serie").prefetch_related(
-            Prefetch("characters", queryset=chars_qs),
+            Prefetch("characters", queryset=chars_qs, to_attr="_prefetched_characters"),
             "authors",
             "tags",
             "genres",
@@ -80,8 +91,11 @@ class BookRetrieveView(generics.RetrieveAPIView):
                     to_attr="current_user_shelf_entries",
                 )
             )
-        book = resolve_book(id_or_slug)
-        return qs.get(pk=book.pk)
+
+        # Try lookup by integer pk first, then by slug.
+        if id_or_slug.isdigit():
+            return get_object_or_404(qs, pk=int(id_or_slug))
+        return get_object_or_404(qs, slug=id_or_slug)
 
 
 class BookContainsCharacterView(generics.ListAPIView):
@@ -93,7 +107,7 @@ class BookContainsCharacterView(generics.ListAPIView):
         if not name:
             return Book.objects.none()
         return (
-            Book.objects.filter(characters__name__icontains=name)
+            Book.objects.filter(characters__name__icontains=name, characters__is_hidden=False)
             .select_related("serie")
             .prefetch_related("authors", "genres", "tags")
             .distinct()
