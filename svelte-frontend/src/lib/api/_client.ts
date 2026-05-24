@@ -14,7 +14,7 @@ async function fetchJson<T>(
 				'Content-Type': 'application/json',
 				...(options?.headers ?? {})
 			},
-			credentials: 'include',
+			credentials: 'include'
 		});
 
 		if (!res.ok) {
@@ -45,7 +45,7 @@ async function attemptTokenRefresh(fetchFn: typeof fetch, base: string): Promise
 	try {
 		const res = await fetchFn(`${base}/auth/refresh/`, {
 			method: 'POST',
-			credentials: 'include',
+			credentials: 'include'
 		});
 		return res.ok;
 	} catch {
