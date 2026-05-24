@@ -118,7 +118,9 @@ class TestBookCharacterHide:
 
         api_client.force_authenticate(user=admin_user)
         book = Book.objects.create(title="Hide Book A")
-        char = BookCharacter.all_objects.create(book=book, name="Visible Character", mention_count=5)
+        char = BookCharacter.all_objects.create(
+            book=book, name="Visible Character", mention_count=5
+        )
 
         response = api_client.post(
             f"/api/books/{book.pk}/characters/{char.pk}/hide/",

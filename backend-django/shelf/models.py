@@ -28,6 +28,8 @@ class ShelfEntry(models.Model):
     )
     start_date = models.DateField(null=True, blank=True)
     finish_date = models.DateField(null=True, blank=True)
+    # NOTE: validators only run during full_clean(), not on direct .save().
+    # Views must call entry.full_clean() before saving when personal_rating is set.
     personal_rating = models.IntegerField(
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(5)]
     )

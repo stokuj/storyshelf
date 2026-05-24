@@ -1,10 +1,10 @@
 from django.db.models import Prefetch, Q
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 
 from shelf.models import ShelfEntry
 
-from .lookups import resolve_book
 from .models import Book
 from .serializers import BookDetailSerializer, BookListSerializer
 
@@ -21,7 +21,11 @@ class BookListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        qs = Book.objects.select_related("serie").prefetch_related("authors", "tags", "genres")
+        qs = Book.objects.select_related("serie").prefetch_related(
+            Prefetch("authors", to_attr="_prefetched_authors"),
+            "tags",
+            "genres",
+        )
 
         q = self.request.query_params.get("q", "").strip()
         if q:
@@ -57,12 +61,11 @@ class BookRetrieveView(generics.RetrieveAPIView):
 
         id_or_slug = self.kwargs.get("id_or_slug") or str(self.kwargs.get("pk", ""))
         is_admin = bool(self.request.user and self.request.user.is_staff)
-        book = resolve_book(id_or_slug)
 
         chars_qs = (
-            BookCharacter.all_objects.filter(book=book)
+            BookCharacter.all_objects.all()
             if is_admin
-            else book.characters.filter(canonical__isnull=True)
+            else BookCharacter.objects.filter(canonical__isnull=True)
         )
 
         qs = Book.objects.select_related("serie").prefetch_related(
@@ -81,7 +84,11 @@ class BookRetrieveView(generics.RetrieveAPIView):
                     to_attr="current_user_shelf_entries",
                 )
             )
-        return qs.get(pk=book.pk)
+
+        # Try lookup by integer pk first, then by slug.
+        if id_or_slug.isdigit():
+            return get_object_or_404(qs, pk=int(id_or_slug))
+        return get_object_or_404(qs, slug=id_or_slug)
 
 
 class BookContainsCharacterView(generics.ListAPIView):

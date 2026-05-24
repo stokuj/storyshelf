@@ -1,7 +1,7 @@
 import { getCurrentUser } from '$lib/api/user';
-import type { PageServerLoad } from './$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch }) => {
+export const load: LayoutServerLoad = async ({ fetch }) => {
 	const { data: user, error } = await getCurrentUser(fetch);
 	return { user, authError: error };
 };

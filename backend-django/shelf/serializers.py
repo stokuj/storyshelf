@@ -8,10 +8,13 @@ from .models import Shelf, ShelfEntry
 class ShelfEntrySerializer(serializers.ModelSerializer):
     book = serializers.SerializerMethodField()
     createdAt = serializers.DateTimeField(source="created_at", read_only=True)
+    startDate = serializers.DateField(source="start_date", read_only=True)
+    finishDate = serializers.DateField(source="finish_date", read_only=True)
+    personalRating = serializers.IntegerField(source="personal_rating", read_only=True)
 
     class Meta:
         model = ShelfEntry
-        fields = ("book", "status", "createdAt")
+        fields = ("book", "status", "startDate", "finishDate", "personalRating", "createdAt")
 
     def get_book(self, obj):
         author = obj.book.authors.first().name if obj.book.authors.exists() else None
@@ -20,8 +23,6 @@ class ShelfEntrySerializer(serializers.ModelSerializer):
 
 class ShelfSerializer(serializers.ModelSerializer):
     book_count = serializers.SerializerMethodField()
-    is_public = serializers.BooleanField()
-
     class Meta:
         model = Shelf
         fields = (

@@ -9,12 +9,12 @@ async function fetchJson<T>(
 ): Promise<{ data: T | null; error: ApiError | null }> {
 	try {
 		const res = await fetchFn(url, {
+			...options,
 			headers: {
 				'Content-Type': 'application/json',
 				...(options?.headers ?? {})
 			},
 			credentials: 'include',
-			...options
 		});
 
 		if (!res.ok) {
@@ -28,6 +28,7 @@ async function fetchJson<T>(
 			return { data: null, error: { status: res.status, detail } };
 		}
 
+		// 204 No Content — success with no body (distinct from 200 with empty body).
 		if (res.status === 204) {
 			return { data: null, error: null };
 		}
@@ -35,6 +36,7 @@ async function fetchJson<T>(
 		const data: T = await res.json();
 		return { data, error: null };
 	} catch (err) {
+		// status: 0 indicates a network error (CORS, timeout, offline), not an HTTP response.
 		return { data: null, error: { status: 0, detail: String(err) } };
 	}
 }
@@ -59,6 +61,23 @@ export async function apiFetch<T>(
 ): Promise<{ data: T | null; error: ApiError | null }> {
 	const base = isServerSide ? INTERNAL_API : '/api';
 	const url = `${base}${path}`;
+
+	// Server-side timeout to prevent hung SSR renders.
+	if (isServerSide) {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 10_000);
+		options = { ...options, signal: controller.signal };
+		const result = await fetchJson<T>(fetchFn, url, options);
+		clearTimeout(timeoutId);
+
+		if (result.error?.status === 401) {
+			const refreshed = await attemptTokenRefresh(fetchFn, base);
+			if (refreshed) {
+				return fetchJson<T>(fetchFn, url, options);
+			}
+		}
+		return result;
+	}
 
 	const result = await fetchJson<T>(fetchFn, url, options);
 

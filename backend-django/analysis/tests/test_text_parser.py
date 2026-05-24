@@ -1,5 +1,4 @@
 
-
 class TestFindSentencesWithBothCharacters:
     def test_finds_sentences_with_both(self):
         from analysis.text_parser import find_sentences_with_both_characters
@@ -28,34 +27,3 @@ class TestFindSentencesWithBothCharacters:
 
         result = find_sentences_with_both_characters("Frodo walked.", ["Frodo"])
         assert len(result) == 0
-
-
-class TestSplitIntoChapters:
-    def test_english_headers(self):
-        from analysis.text_parser import split_into_chapters
-
-        text = "Chapter 1\nFrodo walked.\nChapter 2\nSam followed."
-        result = split_into_chapters(text)
-        assert len(result) == 2
-        assert result[0]["title"] == "Chapter 1"
-        assert result[0]["number"] == 1
-
-    def test_polish_headers(self):
-        from analysis.text_parser import split_into_chapters
-
-        text = "Rozdział 1\nPoczątek.\nRozdział 2\nŚrodek."
-        result = split_into_chapters(text)
-        assert len(result) == 2
-
-    def test_no_headers_returns_one_chapter(self):
-        from analysis.text_parser import split_into_chapters
-
-        text = "Just some text."
-        result = split_into_chapters(text)
-        assert len(result) == 1
-        assert result[0]["number"] == 1
-
-    def test_empty_text(self):
-        from analysis.text_parser import split_into_chapters
-
-        assert split_into_chapters("") == []

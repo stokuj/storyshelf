@@ -250,7 +250,8 @@ class AvatarUploadView(views.APIView):
         old_avatar = user.avatar if user.avatar else None
         user.avatar = serializer.validated_data["avatar"]
         user.save(update_fields=["avatar"])
-        if old_avatar:
+        # Delete old avatar AFTER saving the new one (no gap without avatar).
+        if old_avatar and old_avatar.name != user.avatar.name:
             old_avatar.delete(save=False)
         return Response(
             {"avatar_url": request.build_absolute_uri(user.avatar.url)}
@@ -259,6 +260,9 @@ class AvatarUploadView(views.APIView):
 
 class UserSettingsView(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        return Response({"profile_public": request.user.profile_public})
 
     def patch(self, request):
         serializer = UserSettingsPatchSerializer(data=request.data)

@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
@@ -74,7 +75,6 @@ class BookCharacter(models.Model):
 
     def clean(self):
         if self.canonical_id is not None:
-            from django.core.exceptions import ValidationError
             if self.canonical_id == self.pk:
                 raise ValidationError({"canonical": "A character cannot be its own canonical."})
             if self.canonical.canonical_id is not None:
@@ -88,6 +88,7 @@ class BookCharacter(models.Model):
         return self.name
 
 
+# TODO: expose via API or remove (dead model per 2026-05-24 audit)
 class BookPlace(models.Model):
     book = models.ForeignKey(
         "books.Book", on_delete=models.CASCADE, related_name="places"
@@ -105,6 +106,7 @@ class BookPlace(models.Model):
         return self.name
 
 
+# TODO: expose via API or remove (dead model per 2026-05-24 audit)
 class BookOrganization(models.Model):
     book = models.ForeignKey(
         "books.Book", on_delete=models.CASCADE, related_name="organizations"

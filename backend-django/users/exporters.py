@@ -16,14 +16,16 @@ def build_user_export_zip(user):
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         # user.json
         user_data = {
+            "id": user.id,
             "handle": user.handle,
             "display_name": user.display_name,
             "email": user.email,
             "bio": user.bio,
             "profile_public": user.profile_public,
+            "is_active": user.is_active,
             "created_at": user.created_at.isoformat() if user.created_at else None,
         }
-        zf.writestr("user.json", json.dumps(user_data, indent=2))
+        zf.writestr("user.json", json.dumps(user_data, indent=2, cls=_DatetimeEncoder))
 
         # shelf_entries.json
         entries = list(
@@ -66,10 +68,16 @@ def build_user_export_zip(user):
         following_qs = user.following_set.select_related("following").order_by("following__handle")
         follower_qs = user.follower_set.select_related("follower").order_by("follower__handle")
         follows_data = {
-            "following": [f.following.handle for f in following_qs],
-            "followers": [f.follower.handle for f in follower_qs],
+            "following": [
+                {"id": f.id, "handle": f.following.handle, "followed_at": f.followed_at.isoformat()}
+                for f in following_qs
+            ],
+            "followers": [
+                {"id": f.id, "handle": f.follower.handle, "followed_at": f.followed_at.isoformat()}
+                for f in follower_qs
+            ],
         }
-        zf.writestr("follows.json", json.dumps(follows_data, indent=2))
+        zf.writestr("follows.json", json.dumps(follows_data, indent=2, cls=_DatetimeEncoder))
 
         # avatar
         if user.avatar and user.avatar.name:

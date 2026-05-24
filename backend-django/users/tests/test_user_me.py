@@ -39,8 +39,7 @@ class UserMeGetTest(AuthTestHelper, APITestCase):
         self.assertIn("handle", resp.data)
         self.assertIn("display_name", resp.data)
         self.assertIn("email", resp.data)
-        self.assertIn("settings", resp.data)
-        self.assertIn("profile_public", resp.data["settings"])
+        self.assertIn("profile_public", resp.data)
         self.assertNotIn("username", resp.data)
         self.assertNotIn("profilePublic", resp.data)
 
