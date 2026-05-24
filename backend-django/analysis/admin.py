@@ -21,13 +21,30 @@ def mark_visible(modeladmin, request, queryset):
     messages.success(request, f"{updated} character(s) marked as visible.")
 
 
+def unmerge_aliases(modeladmin, request, queryset):
+    aliases = queryset.filter(canonical__isnull=False)
+    count = aliases.update(canonical=None, is_hidden=False)
+    modeladmin.message_user(
+        request,
+        f"{count} alias(es) unmerged. Note: relations and mention counts "
+        "were NOT restored — fix manually if needed.",
+        level="warning",
+    )
+
+
+unmerge_aliases.short_description = "Unmerge selected aliases (canonical → NULL, is_hidden → False)"
+
+
 @admin.register(BookCharacter)
 class BookCharacterAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "book", "mention_count", "source", "is_hidden", "confidence")
+    list_display = (
+        "name", "slug", "book", "mention_count", "source", "is_hidden", "confidence", "canonical"
+    )
     search_fields = ("name", "slug")
-    list_filter = ("book", "source", "is_hidden")
-    actions = [mark_hidden, mark_visible]
+    list_filter = ("book", "source", "is_hidden", ("canonical", admin.EmptyFieldListFilter))
+    actions = [mark_hidden, mark_visible, unmerge_aliases]
     readonly_fields = ("slug",)
+    raw_id_fields = ("canonical",)
 
 
 @admin.register(BookPlace)

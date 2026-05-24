@@ -121,3 +121,58 @@ class TestBookText:
         book.save()
         b = Book.objects.get(pk=book.pk)
         assert b.text == "Frodo and Gandalf met in the Shire."
+
+
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+
+from analysis.models import BookCharacter
+from books.models import Book
+
+
+def _make_book(title="Test Book"):
+    return Book.objects.create(title=title, description="")
+
+
+def _make_char(book, name, canonical=None):
+    char = BookCharacter(book=book, name=name, canonical=canonical)
+    char.save()
+    return char
+
+
+class BookCharacterCanonicalTest(TestCase):
+    def setUp(self):
+        self.book = _make_book()
+
+    def test_canonical_null_is_canonical(self):
+        char = _make_char(self.book, "Harry")
+        self.assertTrue(char.is_canonical)
+
+    def test_alias_is_not_canonical(self):
+        canonical = _make_char(self.book, "Harry")
+        alias = _make_char(self.book, "Mr. Potter", canonical=canonical)
+        self.assertFalse(alias.is_canonical)
+
+    def test_clean_raises_if_self_reference(self):
+        char = _make_char(self.book, "Harry")
+        char.canonical = char
+        with self.assertRaises(ValidationError):
+            char.clean()
+
+    def test_clean_raises_if_canonical_is_alias(self):
+        canonical = _make_char(self.book, "Harry")
+        alias = _make_char(self.book, "Potter")
+        alias.canonical = canonical
+        alias.save()
+        third = BookCharacter(book=self.book, name="Mr. P")
+        third.canonical = alias
+        with self.assertRaises(ValidationError):
+            third.clean()
+
+    def test_clean_raises_if_cross_book(self):
+        other_book = _make_book("Other Book")
+        char_a = _make_char(self.book, "Harry")
+        char_b = BookCharacter(book=other_book, name="Harry Clone")
+        char_b.canonical = char_a
+        with self.assertRaises(ValidationError):
+            char_b.clean()

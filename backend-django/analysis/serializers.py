@@ -6,12 +6,14 @@ from .models import BookCharacter, CharacterRelationship
 class BookCharacterSerializer(serializers.ModelSerializer):
     mention_count = serializers.IntegerField()
     is_hidden = serializers.BooleanField()
+    canonical_id = serializers.IntegerField(allow_null=True, read_only=True)
 
     class Meta:
         model = BookCharacter
         fields = (
             "id", "slug", "name", "description",
             "mention_count", "source", "confidence", "is_hidden",
+            "canonical_id",
         )
 
 
@@ -71,3 +73,7 @@ class AIExtractionSerializer(serializers.Serializer):
         avg = sum(confidences) / len(confidences)
         flagged = sum(1 for c in confidences if c < 0.5)
         return {"overall": round(avg, 3), "flagged_low": flagged}
+
+
+class MergeRequestSerializer(serializers.Serializer):
+    into = serializers.IntegerField(min_value=1)

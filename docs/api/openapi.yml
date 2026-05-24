@@ -205,6 +205,27 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/books/{book_id}/characters/{character_id}/merge/:
+    post:
+      operationId: books_characters_merge_create
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: character_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/books/{id_or_slug}/:
     get:
       operationId: books_retrieve
