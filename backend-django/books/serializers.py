@@ -89,7 +89,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         book_data = super().to_representation(instance)
 
-        is_admin = bool(request and request.user and request.user.is_staff)
+        is_admin = self.context.get("is_admin", False)
 
         book_data["analysisStatus"] = {
             "analysisFinished": instance.characters.exists(),
@@ -107,11 +107,15 @@ class BookDetailSerializer(serializers.ModelSerializer):
                     "createdAt": entry.created_at.isoformat(),
                 }
 
-        chars_qs = (
-            BookCharacter.all_objects.filter(book=instance) if is_admin
-            else instance.characters.filter(canonical__isnull=True)
-        )
-        characters = BookCharacterSerializer(chars_qs, many=True).data
+        # Use view-side Prefetch (to_attr="_prefetched_characters") to avoid re-query.
+        chars = getattr(instance, "_prefetched_characters", None)
+        if chars is None:
+            chars_qs = (
+                BookCharacter.all_objects.filter(book=instance) if is_admin
+                else instance.characters.filter(canonical__isnull=True)
+            )
+            chars = chars_qs
+        characters = BookCharacterSerializer(chars, many=True).data
 
         relations = CharacterRelationSerializer(
             instance.character_relationships.all(),

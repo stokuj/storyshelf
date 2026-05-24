@@ -414,6 +414,19 @@ paths:
              ?user_id=<id> — recenzje danego użytkownika.
         POST: Utwórz recenzję (wymaga logowania). Jedno konto może wystawić max 1 recenzję per książka.
               Po zapisie sygnał Django automatycznie aktualizuje Book.avg_rating i Book.ratings_count.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - reviews
       security:
@@ -424,9 +437,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Review'
+                $ref: '#/components/schemas/PaginatedReviewList'
           description: ''
     post:
       operationId: reviews_create
@@ -622,6 +633,19 @@ paths:
       description: |-
         Zwraca wszystkie wpisy na półce zalogowanego użytkownika, sortowane od najnowszego.
         Statusy: WANT_TO_READ | READING | READ.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - shelf
       security:
@@ -631,9 +655,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ShelfEntry'
+                $ref: '#/components/schemas/PaginatedShelfEntryList'
           description: ''
   /api/shelf/{book_id}/:
     get:
@@ -723,6 +745,19 @@ paths:
   /api/shelf/me/collections/:
     get:
       operationId: shelf_me_collections_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - shelf
       security:
@@ -732,9 +767,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Shelf'
+                $ref: '#/components/schemas/PaginatedShelfList'
           description: ''
     post:
       operationId: shelf_me_collections_create
@@ -1130,6 +1163,15 @@ paths:
         '200':
           description: No response body
   /api/users/me/settings/:
+    get:
+      operationId: users_me_settings_retrieve
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
     patch:
       operationId: users_me_settings_partial_update
       tags:
@@ -1364,6 +1406,48 @@ components:
         total:
           type: integer
           example: 100
+    PaginatedShelfEntryList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShelfEntry'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+    PaginatedShelfList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shelf'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
     PatchedReview:
       type: object
       properties:
@@ -1562,7 +1646,6 @@ components:
       - book_count
       - created_at
       - id
-      - is_public
       - name
       - slug
       - updated_at
@@ -1616,7 +1699,6 @@ components:
       - books
       - created_at
       - id
-      - is_public
       - name
       - slug
       - updated_at
@@ -1628,6 +1710,17 @@ components:
           readOnly: true
         status:
           $ref: '#/components/schemas/ShelfEntryStatusEnum'
+        startDate:
+          type: string
+          format: date
+          readOnly: true
+        finishDate:
+          type: string
+          format: date
+          readOnly: true
+        personalRating:
+          type: integer
+          readOnly: true
         createdAt:
           type: string
           format: date-time
@@ -1635,6 +1728,9 @@ components:
       required:
       - book
       - createdAt
+      - finishDate
+      - personalRating
+      - startDate
     ShelfEntryStatusEnum:
       enum:
       - WANT_TO_READ

@@ -1,5 +1,5 @@
 from django.core.validators import MinValueValidator
-from django.db import IntegrityError, models
+from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
 
 
@@ -61,11 +61,14 @@ class Book(models.Model):
             self.slug = _generate_unique_slug(self.title)
         for _ in range(5):
             try:
-                super().save(*args, **kwargs)
-                break
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                return
             except IntegrityError:
                 # TOCTOU race: slug was taken between exists() check and save().
                 self.slug = _generate_unique_slug(self.title)
+        # Retries exhausted — let the last attempt raise naturally.
+        super().save(*args, **kwargs)
 
 
 class BookAuthor(models.Model):

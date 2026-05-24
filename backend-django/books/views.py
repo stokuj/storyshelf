@@ -21,7 +21,7 @@ class BookListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        qs = Book.objects.select_related("serie").prefetch_related(
+        qs = Book.objects.defer("text").prefetch_related(
             Prefetch("authors", to_attr="_prefetched_authors"),
             "tags",
             "genres",
@@ -56,6 +56,13 @@ class BookRetrieveView(generics.RetrieveAPIView):
     serializer_class = BookDetailSerializer
     permission_classes = [permissions.AllowAny]
 
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["is_admin"] = bool(
+            self.request.user and self.request.user.is_staff
+        )
+        return ctx
+
     def get_object(self):
         from analysis.models import BookCharacter
 
@@ -69,7 +76,7 @@ class BookRetrieveView(generics.RetrieveAPIView):
         )
 
         qs = Book.objects.select_related("serie").prefetch_related(
-            Prefetch("characters", queryset=chars_qs),
+            Prefetch("characters", queryset=chars_qs, to_attr="_prefetched_characters"),
             "authors",
             "tags",
             "genres",

@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -70,11 +71,12 @@ class ShelfEntryView(APIView):
             if finish_date:
                 entry.finish_date = finish_date
             try:
-                entry.full_clean()
+                with transaction.atomic():
+                    entry.full_clean()
+                    entry.save(update_fields=["start_date", "finish_date"])
             except ValidationError as e:
                 entry.delete()  # rollback the get_or_create
                 return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
-            entry.save(update_fields=["start_date", "finish_date"])
         return Response(
             ShelfEntrySerializer(entry).data, status=status.HTTP_201_CREATED
         )
