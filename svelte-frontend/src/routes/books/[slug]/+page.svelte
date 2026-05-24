@@ -7,7 +7,6 @@
 	import ReviewList from '$lib/components/book/ReviewList.svelte';
 	import ReviewComposer from '$lib/components/book/ReviewComposer.svelte';
 	import AICastPanel from '$lib/components/ai/AICastPanel.svelte';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
 
 	let { data }: PageProps = $props();
@@ -45,7 +44,7 @@
 		<div class="space-y-6">
 			<section>
 				<h2 class="font-display text-xl font-medium text-ink mb-4">Reviews</h2>
-				<ReviewComposer bookId={book.id} slug={book.slug} />
+				<ReviewComposer slug={book.slug} />
 				<div class="mt-4">
 					<ReviewList {reviews} />
 				</div>
@@ -76,7 +75,7 @@
 			<Separator />
 			<div class="space-y-4">
 				<h2 class="font-display text-2xl font-medium text-ink">Reviews</h2>
-				<ReviewComposer bookId={book.id} slug={book.slug} />
+				<ReviewComposer slug={book.slug} />
 				<ReviewList {reviews} />
 			</div>
 		</div>

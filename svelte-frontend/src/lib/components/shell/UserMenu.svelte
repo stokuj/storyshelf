@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { setMode } from 'mode-watcher';
 	import { User, Settings, LogOut, Sun, Moon } from 'lucide-svelte';
 	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
@@ -29,29 +30,27 @@
 
 	async function signOut() {
 		await fetch('/api/auth/logout/', { method: 'POST', credentials: 'include' });
-		goto('/');
+		goto(resolve('/'));
 	}
 </script>
 
 {#if user}
 	<DropdownMenu>
 		<DropdownMenuTrigger>
-			{#snippet children()}
-				<Button variant="ghost" size="icon" class="rounded-full">
-					<Avatar class="size-7">
-						<AvatarImage src={user.avatar_url ?? undefined} alt={user.display_name} />
-						<AvatarFallback>{initials(user.display_name)}</AvatarFallback>
-					</Avatar>
-				</Button>
-			{/snippet}
+			<Button variant="ghost" size="icon" class="rounded-full">
+				<Avatar class="size-7">
+					<AvatarImage src={user.avatar_url ?? undefined} alt={user.display_name} />
+					<AvatarFallback>{initials(user.display_name)}</AvatarFallback>
+				</Avatar>
+			</Button>
 		</DropdownMenuTrigger>
 		<DropdownMenuContent align="end" class="w-48">
-			<button onclick={() => goto(`/u/${user.handle}`)}>
+			<button onclick={() => goto(resolve(`/u/${user.handle}`))}>
 				<DropdownMenuItem>
 					<User class="mr-2 size-4" /> Profile
 				</DropdownMenuItem>
 			</button>
-			<DropdownMenuItem on:click={() => goto('/settings')}>
+			<DropdownMenuItem on:click={() => goto(resolve('/settings'))}>
 				<Settings class="mr-2 size-4" /> Settings
 			</DropdownMenuItem>
 			<DropdownMenuSeparator />
@@ -68,5 +67,5 @@
 		</DropdownMenuContent>
 	</DropdownMenu>
 {:else}
-	<Button variant="ghost" size="sm" href="/login">Sign in</Button>
+	<Button variant="ghost" size="sm" href={resolve('/login')}>Sign in</Button>
 {/if}

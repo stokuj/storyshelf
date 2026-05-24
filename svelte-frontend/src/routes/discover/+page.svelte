@@ -2,9 +2,8 @@
 	import type { PageProps } from './$types';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { Book, SearchX } from 'lucide-svelte';
+	import { SearchX } from 'lucide-svelte';
 	import BookGrid from '$lib/components/book/BookGrid.svelte';
-	import BookGridSkeleton from '$lib/components/book/BookGridSkeleton.svelte';
 	import FilterBar from '$lib/components/discover/FilterBar.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { Button } from '$lib/components/ui/button';

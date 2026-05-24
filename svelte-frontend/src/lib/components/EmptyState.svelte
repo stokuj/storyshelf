@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
+	import type { ComponentType } from 'svelte';
 	interface Props {
-		icon: any;
+		icon: ComponentType;
 		title: string;
 		description: string;
 		cta?: { label: string; href: string };

@@ -28,7 +28,7 @@
 	{/if}
 	{#if book.genres?.length}
 		<div class="flex flex-wrap gap-1.5">
-			{#each book.genres as genre}
+			{#each book.genres as genre (genre)}
 				<Badge variant="secondary">{genre}</Badge>
 			{/each}
 		</div>

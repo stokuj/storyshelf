@@ -8,6 +8,7 @@
 	import { runExtraction, getExtraction } from '$lib/api/ai';
 	import type { AIExtraction } from '$lib/types';
 	import { Sparkles, AlertTriangle, ExternalLink } from 'lucide-svelte';
+	import { resolve } from '$app/paths';
 
 	interface Props {
 		bookId: number;
@@ -72,7 +73,8 @@
 				<span class="inline-block size-2 rounded-full bg-accent animate-pulse"></span>
 				Reading the book…
 			</div>
-			{#each Array(6) as _}
+			<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+			{#each Array(6) as _, i (i)}
 				<div class="flex items-center gap-3">
 					<Skeleton class="size-8 rounded-full" />
 					<div class="space-y-1 flex-1">
@@ -103,7 +105,7 @@
 
 		{#if extraction.characters.length > 6}
 			<a
-				href="/books/{slug}/characters"
+				href={resolve(`/books/${slug}/characters`)}
 				class="text-xs text-accent hover:underline inline-flex items-center gap-1"
 			>
 				See all ({extraction.characters.length})
@@ -125,7 +127,6 @@
 				<RelationGraphDialog
 					characters={extraction.characters}
 					relations={extraction.relations}
-					{slug}
 					onclose={() => (showGraph = false)}
 				/>
 			</div>

@@ -4,8 +4,7 @@
 		DropdownMenu,
 		DropdownMenuContent,
 		DropdownMenuItem,
-		DropdownMenuTrigger,
-		DropdownMenuSeparator
+		DropdownMenuTrigger
 	} from '$lib/components/ui/dropdown-menu';
 	import { BookOpen, Bookmark, Check, ChevronDown } from 'lucide-svelte';
 	import { addToShelf, updateShelfEntry } from '$lib/api/shelves';

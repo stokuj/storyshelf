@@ -6,10 +6,9 @@
 	interface Props {
 		characters: Character[];
 		relations: Relation[];
-		slug: string;
 		onclose: () => void;
 	}
-	let { characters, relations, slug: _slug, onclose }: Props = $props();
+	let { characters, relations, onclose }: Props = $props();
 
 	const relationColors: Record<string, string> = {
 		family: 'var(--color-rel-family)',
@@ -50,7 +49,7 @@
 		>
 			All
 		</button>
-		{#each ['family', 'romance', 'ally', 'enemy'] as kind}
+		{#each ['family', 'romance', 'ally', 'enemy'] as kind (kind)}
 			<button
 				class="px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors"
 				class:bg-ink={activeFilter === kind}

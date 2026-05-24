@@ -23,7 +23,7 @@
 	<div class="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-8">
 		<!-- Left rail -->
 		<nav class="space-y-1">
-			{#each navItems as item}
+			{#each navItems as item (item.href)}
 				<a
 					href={item.href}
 					class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors"

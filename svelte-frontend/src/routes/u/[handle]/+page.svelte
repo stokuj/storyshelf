@@ -4,9 +4,8 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { Button } from '$lib/components/ui/button';
 	import AIPanel from '$lib/components/ai/AIPanel.svelte';
-	import { Calendar, Lock } from 'lucide-svelte';
+	import { Calendar } from 'lucide-svelte';
 	import type { User } from '$lib/types';
-	import type { Visibility } from '$lib/types/user';
 
 	let { data }: PageProps = $props();
 	let profile: User = $derived(data.profile!);
@@ -70,7 +69,7 @@
 				<div>
 					<h2 class="font-display text-xl font-medium text-ink mb-3">Shelves</h2>
 					<div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-						{#each shelves as shelf}
+						{#each shelves as shelf (shelf.name)}
 							<div class="p-3 rounded-md border border-rule bg-surface">
 								<p class="text-sm font-medium text-ink">{shelf.name}</p>
 								<p class="text-xs text-muted">{shelf.book_count} books</p>

@@ -4,12 +4,12 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Card } from '$lib/components/ui/card';
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 
 	interface Props {
 		data?: { email?: string; error?: string; missing?: string };
-		form?: Record<string, unknown>;
 	}
-	let { data, form }: Props = $props();
+	let { data }: Props = $props();
 </script>
 
 <svelte:head>
@@ -52,7 +52,9 @@
 		</form>
 
 		<p class="text-sm text-muted text-center mt-4">
-			Don't have an account? <a href="/signup" class="text-accent hover:underline">Sign up</a>
+			Don't have an account? <a href={resolve('/signup')} class="text-accent hover:underline"
+				>Sign up</a
+			>
 		</p>
 	</Card>
 </div>

@@ -6,7 +6,7 @@
 		children: import('svelte').Snippet;
 		[key: string]: any;
 	}
-	let { class: className = '', value = '', children, ...restProps }: Props = $props();
+	let { class: className = '', children, ...restProps }: Props = $props();
 </script>
 
 <div class={cn('grid gap-2', className)} {...restProps}>{@render children()}</div>

@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import CharacterAvatar from '$lib/components/character/CharacterAvatar.svelte';
 	import AIBadge from '$lib/components/ai/AIBadge.svelte';
 	import { Input } from '$lib/components/ui/input';
@@ -40,7 +41,7 @@
 
 <div class="max-w-[1240px] mx-auto px-6 md:px-10 py-8">
 	<div class="mb-6">
-		<a href="/books/{book.slug}" class="text-sm text-muted hover:text-accent">
+		<a href={resolve(`/books/${book.slug}`)} class="text-sm text-muted hover:text-accent">
 			← Back to {book.title}
 		</a>
 		<h1 class="font-display text-3xl font-medium text-ink mt-1">
@@ -69,7 +70,7 @@
 			>
 				All
 			</button>
-			{#each roles as role}
+			{#each roles as role (role)}
 				<button
 					class="px-2.5 py-0.5 rounded-full text-xs font-medium capitalize transition-colors"
 					class:bg-ink={roleFilter === role}
@@ -83,11 +84,12 @@
 			{/each}
 		</div>
 
-		<div class="space-y-2">
+		<div class="space-y-1">
 			{#each filteredCharacters as char (char.id)}
 				<button
-					class="w-full text-left flex items-center gap-3 p-3 rounded-md border border-rule hover:border-rule-strong transition-colors"
+					class="w-full text-left flex items-center gap-3 p-2.5 rounded-md transition-colors"
 					class:bg-accent-soft={String(char.id) === focusCharId}
+					class:hover:bg-paper-2={String(char.id) !== focusCharId}
 					onclick={() => selectCharacter(char.id)}
 				>
 					<CharacterAvatar name={char.name} size="sm" />
@@ -102,12 +104,6 @@
 					</div>
 				</button>
 			{/each}
-			{#if filteredCharacters.length === 0}
-				<div class="text-center py-12 text-sm text-muted">
-					<Users class="size-8 mx-auto mb-2" />
-					<p>No characters found matching your filters.</p>
-				</div>
-			{/if}
 		</div>
 	</div>
 
@@ -134,7 +130,7 @@
 				>
 					All
 				</button>
-				{#each roles as role}
+				{#each roles as role (role)}
 					<button
 						class="px-2.5 py-0.5 rounded-full text-xs font-medium capitalize transition-colors"
 						class:bg-ink={roleFilter === role}
@@ -207,7 +203,7 @@
 							<div>
 								<h3 class="font-sans text-sm font-semibold text-ink mb-1">Tags</h3>
 								<div class="flex flex-wrap gap-1.5">
-									{#each char.tags as tag}
+									{#each char.tags as tag (tag)}
 										<span
 											class="inline-flex items-center rounded-full border border-transparent bg-paper-2 px-2.5 py-0.5 text-xs font-semibold text-ink-2"
 										>

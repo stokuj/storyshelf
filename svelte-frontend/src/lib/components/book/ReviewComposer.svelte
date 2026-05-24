@@ -6,10 +6,9 @@
 	import { toast } from 'svelte-sonner';
 
 	interface Props {
-		bookId: number;
 		slug: string;
 	}
-	let { bookId, slug }: Props = $props();
+	let { slug }: Props = $props();
 
 	let rating = $state(0);
 	let content = $state('');

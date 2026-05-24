@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CharacterAvatar from '$lib/components/character/CharacterAvatar.svelte';
+	import { resolve } from '$app/paths';
 
 	interface ReviewData {
 		id: number;
@@ -17,12 +18,15 @@
 </script>
 
 <div class="flex gap-3 p-3 rounded-md border border-rule bg-surface">
-	<a href="/u/{review.handle}" class="shrink-0">
+	<a href={resolve(`/u/${review.handle}`)} class="shrink-0">
 		<CharacterAvatar name={review.handle} size="sm" />
 	</a>
 	<div class="flex-1 min-w-0">
 		<div class="flex items-center gap-2 mb-1">
-			<a href="/u/{review.handle}" class="text-sm font-semibold text-ink hover:text-accent">
+			<a
+				href={resolve(`/u/${review.handle}`)}
+				class="text-sm font-semibold text-ink hover:text-accent"
+			>
 				@{review.handle}
 			</a>
 			<!-- Inline star rating display -->

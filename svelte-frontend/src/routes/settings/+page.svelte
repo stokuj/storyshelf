@@ -10,11 +10,8 @@
 
 	let user: UserMe | null | undefined = $derived($page.data.user as UserMe | null | undefined);
 
-	interface Props {
-		data?: Record<string, unknown>;
-		form?: Record<string, unknown>;
-	}
-	let { data, form }: Props = $props();
+	// eslint-disable-next-line no-empty-pattern
+	let {} = $props();
 </script>
 
 <svelte:head>

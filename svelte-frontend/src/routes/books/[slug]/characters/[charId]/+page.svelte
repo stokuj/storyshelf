@@ -4,6 +4,7 @@
 	import RelationBadge from '$lib/components/character/RelationBadge.svelte';
 	import AIBadge from '$lib/components/ai/AIBadge.svelte';
 	import { ArrowLeft } from 'lucide-svelte';
+	import { resolve } from '$app/paths';
 	import type { Relation } from '$lib/types';
 
 	let { data }: PageProps = $props();
@@ -31,7 +32,7 @@
 
 <div class="max-w-[1240px] mx-auto px-6 md:px-10 py-8">
 	<a
-		href="/books/{book.slug}"
+		href={resolve(`/books/${book.slug}`)}
 		class="inline-flex items-center gap-1 text-sm text-muted hover:text-accent mb-4"
 	>
 		<ArrowLeft class="size-3.5" /> Back to {book.title}
@@ -87,7 +88,7 @@
 				<div class="space-y-2">
 					<h2 class="font-display text-xl font-medium text-ink">Tags</h2>
 					<div class="flex flex-wrap gap-1.5">
-						{#each character.tags as tag}
+						{#each character.tags as tag (tag)}
 							<span
 								class="inline-flex items-center rounded-full border border-transparent bg-paper-2 px-2.5 py-0.5 text-xs font-semibold text-ink-2"
 							>

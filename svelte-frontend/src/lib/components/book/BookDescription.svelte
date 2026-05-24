@@ -7,7 +7,7 @@
 
 {#if description}
 	<div class="prose prose-stone max-w-none text-[15px] leading-relaxed text-ink">
-		{#each description.split('\n\n') as paragraph}
+		{#each description.split('\n\n') as paragraph (paragraph)}
 			<p class="mb-3 last:mb-0">{paragraph}</p>
 		{/each}
 	</div>

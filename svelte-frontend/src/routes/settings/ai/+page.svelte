@@ -10,11 +10,8 @@
 	import { Card } from '$lib/components/ui/card';
 	import { enhance } from '$app/forms';
 
-	interface Props {
-		data?: Record<string, unknown>;
-		form?: Record<string, unknown>;
-	}
-	let { data, form }: Props = $props();
+	// eslint-disable-next-line no-empty-pattern
+	let {} = $props();
 </script>
 
 <svelte:head>

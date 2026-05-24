@@ -4,6 +4,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Card } from '$lib/components/ui/card';
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 
 	interface Props {
 		data?: {
@@ -12,9 +13,8 @@
 			error?: string;
 			errors?: Record<string, string>;
 		};
-		form?: Record<string, unknown>;
 	}
-	let { data, form }: Props = $props();
+	let { data }: Props = $props();
 </script>
 
 <svelte:head>
@@ -78,7 +78,9 @@
 		</form>
 
 		<p class="text-sm text-muted text-center mt-4">
-			Already have an account? <a href="/login" class="text-accent hover:underline">Sign in</a>
+			Already have an account? <a href={resolve('/login')} class="text-accent hover:underline"
+				>Sign in</a
+			>
 		</p>
 	</Card>
 </div>

@@ -6,11 +6,8 @@
 	import { Download, Pause, Trash2 } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
-	interface Props {
-		data?: Record<string, unknown>;
-		form?: Record<string, unknown>;
-	}
-	let { data, form }: Props = $props();
+	// eslint-disable-next-line no-empty-pattern
+	let {} = $props();
 
 	let deleteHandle = $state('');
 	let showDeleteDialog = $state(false);
@@ -75,8 +72,6 @@
 				role="dialog"
 				aria-modal="true"
 			>
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<div
 					class="fixed inset-0 bg-ink/50"
 					role="presentation"

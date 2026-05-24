@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { Menu, Search, BookOpen } from 'lucide-svelte';
+	import { resolve } from '$app/paths';
+	import { Search } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import UserMenu from './UserMenu.svelte';
 	import type { UserMe } from '$lib/api/user';
@@ -25,12 +26,14 @@
 	<div class="max-w-[1240px] mx-auto px-6 md:px-10 flex items-center justify-between h-14">
 		<!-- Left: brand + nav -->
 		<div class="flex items-center gap-6">
-			<a href="/" class="font-display text-xl font-semibold text-ink tracking-tight">
+			<a href={resolve('/')} class="font-display text-xl font-semibold text-ink tracking-tight">
 				Storyshelf
 			</a>
 			<nav class="hidden md:flex items-center gap-1">
-				<Button variant="ghost" size="sm" href="/discover">Discover</Button>
-				<Button variant="ghost" size="sm" href={user ? '/u/me/shelf' : '/login'}>My Shelf</Button>
+				<Button variant="ghost" size="sm" href={resolve('/discover')}>Discover</Button>
+				<Button variant="ghost" size="sm" href={user ? resolve('/u/me/shelf') : resolve('/login')}
+					>My Shelf</Button
+				>
 			</nav>
 		</div>
 

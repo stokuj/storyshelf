@@ -21,7 +21,7 @@
 </script>
 
 <div class="inline-flex items-center gap-0.5">
-	{#each [1, 2, 3, 4, 5] as star}
+	{#each [1, 2, 3, 4, 5] as star (star)}
 		<button
 			type="button"
 			class="transition-colors {readonly

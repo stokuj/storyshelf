@@ -12,8 +12,6 @@
 	import { Search } from 'lucide-svelte';
 
 	let currentQ = $derived($page.url.searchParams.get('q') ?? '');
-	let currentGenre = $derived($page.url.searchParams.get('genre') ?? '');
-	let currentSort = $derived($page.url.searchParams.get('sort') ?? 'title');
 
 	function updateParam(key: string, value: string) {
 		const url = new URL($page.url);
