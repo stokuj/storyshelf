@@ -1,5 +1,10 @@
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.test import TestCase
+
+from analysis.models import BookCharacter
+from books.models import Book
 
 
 class TestBookCharacter:
@@ -121,13 +126,6 @@ class TestBookText:
         book.save()
         b = Book.objects.get(pk=book.pk)
         assert b.text == "Frodo and Gandalf met in the Shire."
-
-
-from django.core.exceptions import ValidationError
-from django.test import TestCase
-
-from analysis.models import BookCharacter
-from books.models import Book
 
 
 def _make_book(title="Test Book"):

@@ -1,8 +1,12 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
+
+from analysis.models import BookCharacter, CharacterRelationship
+from books.models import Book
 
 
 @pytest.fixture
@@ -175,12 +179,6 @@ class TestBookCharacterHide:
 
 
 # ─── BookCharacterMergeView (unittest-style, alongside pytest tests) ─────────
-
-from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase
-
-from analysis.models import BookCharacter, CharacterRelationship
-from books.models import Book
 
 User = get_user_model()
 

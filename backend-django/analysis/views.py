@@ -74,7 +74,10 @@ class BookCharacterMergeView(APIView):
         try:
             target = BookCharacter.objects.get(pk=target_id)
         except BookCharacter.DoesNotExist:
-            return Response({"detail": "Target character not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Target character not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         if target.book_id != source.book_id:
             return Response(

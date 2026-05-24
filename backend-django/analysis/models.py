@@ -68,7 +68,9 @@ class BookCharacter(models.Model):
             if self.canonical_id == self.pk:
                 raise ValidationError({"canonical": "A character cannot be its own canonical."})
             if self.canonical.canonical_id is not None:
-                raise ValidationError({"canonical": "Canonical must itself be canonical (no alias chains)."})
+                raise ValidationError(
+                    {"canonical": "Canonical must itself be canonical (no alias chains)."}
+                )
             if self.canonical.book_id != self.book_id:
                 raise ValidationError({"canonical": "Canonical must belong to the same book."})
 

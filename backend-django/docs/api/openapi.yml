@@ -1,0 +1,1677 @@
+openapi: 3.0.3
+info:
+  title: StoryShelf API
+  version: 1.0.0
+paths:
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: 'Logowanie. Ustawia HttpOnly cookies. Pola: email, password.'
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      description: Wylogowanie. Czyści cookies i blacklistuje refresh token.
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      description: 'Zwraca stan sesji: authenticated, email, handle. Używane do inicjalizacji
+        auth w SPA.'
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: Odświeża access token z HttpOnly refresh cookie. Ustawia nowe cookies.
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      description: 'Rejestracja nowego użytkownika. Pola: email, handle, password.'
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+          description: ''
+  /api/authors/:
+    get:
+      operationId: authors_list
+      description: Płaska lista wszystkich autorów. Tylko odczyt — zarządzanie przez
+        Django Admin.
+      tags:
+      - authors
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Author'
+          description: ''
+  /api/authors/{id}/:
+    get:
+      operationId: authors_retrieve
+      description: |-
+        Szczegóły autora: imię, bio, data urodzenia.
+
+        avatar_url zarezerwowany na przyszłość (obecnie null).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - authors
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Author'
+          description: ''
+  /api/books/:
+    get:
+      operationId: books_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookListList'
+          description: ''
+  /api/books/{book_id}/ai/extract/:
+    post:
+      operationId: books_ai_extract_create
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/books/{book_id}/ai/extraction/:
+    get:
+      operationId: books_ai_extraction_retrieve
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/books/{book_id}/characters/{character_id}/hide/:
+    post:
+      operationId: books_characters_hide_create
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: character_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/books/{book_id}/characters/{character_id}/merge/:
+    post:
+      operationId: books_characters_merge_create
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: character_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/books/{id_or_slug}/:
+    get:
+      operationId: books_retrieve
+      parameters:
+      - in: path
+        name: id_or_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+          description: ''
+  /api/books/{id_or_slug}/reviews/:
+    get:
+      operationId: books_reviews_list
+      description: 'Scoped reviews for a single book: GET /books/:id/reviews/, POST
+        /books/:id/reviews/.'
+      parameters:
+      - in: path
+        name: id_or_slug
+        schema:
+          type: string
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewList'
+          description: ''
+    post:
+      operationId: books_reviews_create
+      description: 'Scoped reviews for a single book: GET /books/:id/reviews/, POST
+        /books/:id/reviews/.'
+      parameters:
+      - in: path
+        name: id_or_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopedReviewCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ScopedReviewCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ScopedReviewCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopedReviewCreate'
+          description: ''
+  /api/books/{id}/:
+    get:
+      operationId: books_retrieve_2
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+          description: ''
+  /api/books/contains-character/:
+    get:
+      operationId: books_contains_character_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookListList'
+          description: ''
+  /api/genres/:
+    get:
+      operationId: genres_list
+      description: Płaska lista wszystkich gatunków, sortowana alfabetycznie. Tylko
+        odczyt.
+      tags:
+      - genres
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Genre'
+          description: ''
+  /api/genres/{id}/:
+    get:
+      operationId: genres_retrieve
+      description: Szczegóły gatunku.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - genres
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Genre'
+          description: ''
+  /api/reviews/:
+    get:
+      operationId: reviews_list
+      description: |-
+        GET: Płaska lista recenzji, sortowana od najnowszej.
+             Filtry: ?book_id=<id> — recenzje danej książki;
+             ?user_id=<id> — recenzje danego użytkownika.
+        POST: Utwórz recenzję (wymaga logowania). Jedno konto może wystawić max 1 recenzję per książka.
+              Po zapisie sygnał Django automatycznie aktualizuje Book.avg_rating i Book.ratings_count.
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+          description: ''
+    post:
+      operationId: reviews_create
+      description: |-
+        GET: Płaska lista recenzji, sortowana od najnowszej.
+             Filtry: ?book_id=<id> — recenzje danej książki;
+             ?user_id=<id> — recenzje danego użytkownika.
+        POST: Utwórz recenzję (wymaga logowania). Jedno konto może wystawić max 1 recenzję per książka.
+              Po zapisie sygnał Django automatycznie aktualizuje Book.avg_rating i Book.ratings_count.
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewCreate'
+          description: ''
+  /api/reviews/{id}/:
+    get:
+      operationId: reviews_retrieve
+      description: |-
+        GET: Szczegóły recenzji — publiczne.
+        PUT/PATCH: Edycja recenzji — tylko autor recenzji.
+        DELETE: Usunięcie recenzji — tylko autor recenzji. Sygnał przelicza avg_rating książki.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    put:
+      operationId: reviews_update
+      description: |-
+        GET: Szczegóły recenzji — publiczne.
+        PUT/PATCH: Edycja recenzji — tylko autor recenzji.
+        DELETE: Usunięcie recenzji — tylko autor recenzji. Sygnał przelicza avg_rating książki.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    patch:
+      operationId: reviews_partial_update
+      description: |-
+        GET: Szczegóły recenzji — publiczne.
+        PUT/PATCH: Edycja recenzji — tylko autor recenzji.
+        DELETE: Usunięcie recenzji — tylko autor recenzji. Sygnał przelicza avg_rating książki.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    delete:
+      operationId: reviews_destroy
+      description: |-
+        GET: Szczegóły recenzji — publiczne.
+        PUT/PATCH: Edycja recenzji — tylko autor recenzji.
+        DELETE: Usunięcie recenzji — tylko autor recenzji. Sygnał przelicza avg_rating książki.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/series/:
+    get:
+      operationId: series_list
+      description: Płaska lista wszystkich serii. Tylko odczyt — zarządzanie przez
+        Django Admin.
+      tags:
+      - series
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Series'
+          description: ''
+  /api/series/{id}/:
+    get:
+      operationId: series_retrieve
+      description: |-
+        Szczegóły serii: nazwa, opis, status (ONGOING/COMPLETED/CANCELLED/HIATUS).
+
+        cover_url obecnie null.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - series
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Series'
+          description: ''
+  /api/shelf/:
+    get:
+      operationId: shelf_list
+      description: |-
+        Zwraca wszystkie wpisy na półce zalogowanego użytkownika, sortowane od najnowszego.
+        Statusy: WANT_TO_READ | READING | READ.
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShelfEntry'
+          description: ''
+  /api/shelf/{book_id}/:
+    get:
+      operationId: shelf_retrieve
+      description: |-
+        Zarządzanie pojedynczym wpisem na półce dla książki o podanym book_id.
+        GET: Pobierz wpis (404 jeśli książka nie jest na półce).
+        POST: Dodaj książkę na półkę (domyślny status: WANT_TO_READ). Idempotentne — nie duplikuje.
+        PATCH: Zmień status (wymagane pole: status).
+        DELETE: Usuń książkę z półki.
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: shelf_create
+      description: |-
+        Zarządzanie pojedynczym wpisem na półce dla książki o podanym book_id.
+        GET: Pobierz wpis (404 jeśli książka nie jest na półce).
+        POST: Dodaj książkę na półkę (domyślny status: WANT_TO_READ). Idempotentne — nie duplikuje.
+        PATCH: Zmień status (wymagane pole: status).
+        DELETE: Usuń książkę z półki.
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: shelf_partial_update
+      description: |-
+        Zarządzanie pojedynczym wpisem na półce dla książki o podanym book_id.
+        GET: Pobierz wpis (404 jeśli książka nie jest na półce).
+        POST: Dodaj książkę na półkę (domyślny status: WANT_TO_READ). Idempotentne — nie duplikuje.
+        PATCH: Zmień status (wymagane pole: status).
+        DELETE: Usuń książkę z półki.
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: shelf_destroy
+      description: |-
+        Zarządzanie pojedynczym wpisem na półce dla książki o podanym book_id.
+        GET: Pobierz wpis (404 jeśli książka nie jest na półce).
+        POST: Dodaj książkę na półkę (domyślny status: WANT_TO_READ). Idempotentne — nie duplikuje.
+        PATCH: Zmień status (wymagane pole: status).
+        DELETE: Usuń książkę z półki.
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shelf/me/collections/:
+    get:
+      operationId: shelf_me_collections_list
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shelf'
+          description: ''
+    post:
+      operationId: shelf_me_collections_create
+      tags:
+      - shelf
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfCreate'
+          description: ''
+  /api/shelf/me/collections/{shelf_slug}/:
+    get:
+      operationId: shelf_me_collections_retrieve
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfDetail'
+          description: ''
+    put:
+      operationId: shelf_me_collections_update
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShelfCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfCreate'
+          description: ''
+    patch:
+      operationId: shelf_me_collections_partial_update
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShelfCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShelfCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShelfCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfCreate'
+          description: ''
+    delete:
+      operationId: shelf_me_collections_destroy
+      parameters:
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shelf/me/collections/{shelf_slug}/books/{book_id}/:
+    post:
+      operationId: shelf_me_collections_books_create
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: shelf_me_collections_books_destroy
+      parameters:
+      - in: path
+        name: book_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: shelf_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelf
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/u/{handle}/:
+    get:
+      operationId: u_retrieve
+      description: |-
+        Publiczny profil użytkownika po handle. Zwraca 404 jeśli profil jest prywatny
+        i requestujący nie jest właścicielem.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/users/{handle}/follow/:
+    post:
+      operationId: users_follow_create
+      description: |-
+        POST: Obserwuj użytkownika o podanym handle.
+              400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
+        DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: users_follow_destroy
+      description: |-
+        POST: Obserwuj użytkownika o podanym handle.
+              400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
+        DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/{handle}/followers/:
+    get:
+      operationId: users_followers_list
+      description: |-
+        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
+        follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/users/{handle}/following/:
+    get:
+      operationId: users_following_list
+      description: |-
+        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
+        follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Follow'
+          description: ''
+  /api/users/{handle}/recently-read/:
+    get:
+      operationId: users_recently_read_list
+      description: Do 6 ostatnio przeczytanych książek, szanujące profile_public.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookPreview'
+          description: ''
+  /api/users/{handle}/shelves/:
+    get:
+      operationId: users_shelves_list
+      description: Publiczne półki użytkownika, szanujące profile_public.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shelf'
+          description: ''
+  /api/users/me/:
+    get:
+      operationId: users_me_retrieve
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    patch:
+      operationId: users_me_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: users_me_destroy
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/me/avatar/:
+    patch:
+      operationId: users_me_avatar_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/email/:
+    patch:
+      operationId: users_me_email_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/export/:
+    post:
+      operationId: users_me_export_create
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/password/:
+    patch:
+      operationId: users_me_password_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/users/me/settings/:
+    patch:
+      operationId: users_me_settings_partial_update
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    Author:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        bio:
+          type: string
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - id
+      - name
+    BlankEnum:
+      enum:
+      - ''
+    BookDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 500
+        author:
+          type: string
+          readOnly: true
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        isbn:
+          type: string
+          nullable: true
+          maxLength: 20
+        description:
+          type: string
+        page_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        genres:
+          type: string
+          readOnly: true
+        tags:
+          type: string
+          readOnly: true
+        avg_rating:
+          type: number
+          format: double
+        ratingsCount:
+          type: integer
+      required:
+      - author
+      - genres
+      - id
+      - ratingsCount
+      - tags
+      - title
+    BookList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 500
+        author:
+          type: string
+          readOnly: true
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        isbn:
+          type: string
+          nullable: true
+          maxLength: 20
+        description:
+          type: string
+        page_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        genres:
+          type: string
+          readOnly: true
+        tags:
+          type: string
+          readOnly: true
+        avg_rating:
+          type: number
+          format: double
+        ratings_count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+      required:
+      - author
+      - genres
+      - id
+      - tags
+      - title
+    BookPreview:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        title:
+          type: string
+          maxLength: 500
+        author:
+          type: string
+          readOnly: true
+        avg_rating:
+          type: number
+          format: double
+      required:
+      - author
+      - id
+      - title
+    Follow:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        follower_handle:
+          type: string
+          readOnly: true
+        following_handle:
+          type: string
+          readOnly: true
+        followed_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - followed_at
+      - follower_handle
+      - following_handle
+      - id
+    Genre:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - id
+      - name
+    NullEnum:
+      enum:
+      - null
+    PaginatedBookListList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookList'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+    PaginatedReviewList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+    PatchedReview:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        handle:
+          type: string
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        content:
+          type: string
+          maxLength: 2000
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        bookTitle:
+          type: string
+          readOnly: true
+        bookId:
+          type: integer
+          readOnly: true
+    PatchedShelfCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
+    Register:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        handle:
+          type: string
+          maxLength: 30
+          pattern: ^[a-z]{3,30}$
+        display_name:
+          type: string
+          default: ''
+          maxLength: 80
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 72
+          minLength: 6
+      required:
+      - email
+      - handle
+      - password
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        handle:
+          type: string
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        content:
+          type: string
+          maxLength: 2000
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        bookTitle:
+          type: string
+          readOnly: true
+        bookId:
+          type: integer
+          readOnly: true
+      required:
+      - bookId
+      - bookTitle
+      - content
+      - createdAt
+      - handle
+      - id
+      - rating
+    ReviewCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        content:
+          type: string
+          maxLength: 2000
+        bookId:
+          type: integer
+      required:
+      - bookId
+      - content
+      - id
+      - rating
+    ScopedReviewCreate:
+      type: object
+      description: Review create for scoped endpoint /books/:id/reviews/. Book injected
+        from URL.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        content:
+          type: string
+          maxLength: 2000
+      required:
+      - content
+      - id
+      - rating
+    Series:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        status:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/SeriesStatusEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+      required:
+      - id
+      - name
+    SeriesStatusEnum:
+      enum:
+      - ONGOING
+      - COMPLETED
+      - CANCELLED
+      - HIATUS
+      type: string
+      description: |-
+        * `ONGOING` - Ongoing
+        * `COMPLETED` - Completed
+        * `CANCELLED` - Cancelled
+        * `HIATUS` - Hiatus
+    Shelf:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 80
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
+        book_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - book_count
+      - created_at
+      - id
+      - is_public
+      - name
+      - slug
+      - updated_at
+    ShelfCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
+      required:
+      - name
+    ShelfDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 80
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+          maxLength: 500
+        is_public:
+          type: boolean
+        book_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        books:
+          type: string
+          readOnly: true
+      required:
+      - book_count
+      - books
+      - created_at
+      - id
+      - is_public
+      - name
+      - slug
+      - updated_at
+    ShelfEntry:
+      type: object
+      properties:
+        book:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/ShelfEntryStatusEnum'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - book
+      - createdAt
+    ShelfEntryStatusEnum:
+      enum:
+      - WANT_TO_READ
+      - READING
+      - READ
+      type: string
+      description: |-
+        * `WANT_TO_READ` - Want To Read
+        * `READING` - Reading
+        * `READ` - Read
+    UserProfile:
+      type: object
+      properties:
+        handle:
+          type: string
+          maxLength: 30
+        display_name:
+          type: string
+          maxLength: 80
+        bio:
+          type: string
+          maxLength: 500
+        avatar_url:
+          type: string
+          readOnly: true
+        member_since:
+          type: string
+          format: date-time
+          readOnly: true
+        profile_public:
+          type: boolean
+      required:
+      - avatar_url
+      - handle
+      - member_since
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
