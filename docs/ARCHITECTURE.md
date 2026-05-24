@@ -4,7 +4,7 @@
 
 | Layer              | Technology                                                        |
 |--------------------|-------------------------------------------------------------------|
-| Frontend           | Vue 3 + Vite (Nginx w produkcji)                                  |
+| Frontend           | SvelteKit 2 + Svelte 5 + Tailwind v4 (Node adapter w produkcji)                                  |
 | Backend            | Django 6 + Django REST Framework                                  |
 | Auth               | JWT — access token w pamięci (reactive singleton), refresh token w HttpOnly cookie |
 | Message broker     | RabbitMQ (z dead letter exchange)                                 |
@@ -29,7 +29,7 @@ services:
   celery-ner   # NER worker (prefork pool, CPU-bound)
   celery-llm   # LLM worker (gevent pool, I/O-bound)
   flower       # Monitoring Celery (wszystkie workery)
-  vue          # Frontend SPA (Nginx)
+  svelte       # Frontend SSR (Node)
   caddy        # Reverse proxy, SSL
 ```
 
@@ -38,11 +38,11 @@ services:
 ## Przepływ danych
 
 ```
-Vue 3 (Nginx)
-    │  JWT: access token → reactive singleton (pamięć)
+SvelteKit 2 (Node)
+    │  JWT: access token → HttpOnly cookie passthrough
     │       refresh token → HttpOnly cookie
     ▼
-Caddy  (SSL termination, /api/* → django, /* → vue)
+Caddy  (SSL termination, /api/* → django, /* → svelte)
     ▼
 Django + DRF
     │  analyse_book.delay(book_id)
@@ -206,7 +206,7 @@ git push
 | 2 taski Celery                 | analyse_book + relations_for_book  | Było 5 tasków z race condition; uproszczenie bez utraty funkcjonalności       |
 | Broker vs result backend       | RabbitMQ (broker) + Redis (wyniki) | RabbitMQ: routing, DLQ, niezawodność; Redis: szybki odczyt wyników            |
 | Dwa oddzielne workery Celery   | prefork (NER) + gevent (LLM)       | spaCy jest CPU-bound; OpenRouter to I/O — różne modele współbieżności         |
-| Access token w pamięci         | Vue reactive singleton             | Odporność na XSS; refresh w HttpOnly cookie chroni przed CSRF                |
+| Access token w pamięci         | SvelteKit SSR cookie passthrough    | Odporność na XSS; refresh w HttpOnly cookie chroni przed CSRF                |
 
 ---
 

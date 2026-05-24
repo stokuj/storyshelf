@@ -69,10 +69,5 @@ jobs:
           file: backend-django/Dockerfile
           push: true
           tags: ghcr.io/stokuj/storyshelf-django:main
-      - uses: docker/build-push-action@v6
-        with:
-          context: frontend
-          file: frontend/Dockerfile.prod
-          push: true
-          tags: ghcr.io/stokuj/storyshelf-frontend:main
+      # SvelteKit build step added in phase/2.6-svelte-setup
 

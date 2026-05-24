@@ -43,7 +43,11 @@ odczytać access token z `request.COOKIES`, potem z headera Authorization (fallb
 - Refresh token w osobnym cookie z `path=` ogranicza wysyłkę tylko do endpointu refresh
 - Logout: `clear_jwt_cookies()` ustawia wygasające cookies (`Max-Age=0`)
 
+## SvelteKit SSR note (Phase 2.6)
+
+SvelteKit `hooks.server.ts` forwards the browser's `cookie` header to the Django API via `event.fetch`. This is **cookie passthrough**, not a second session layer. The refresh token stored in HttpOnly cookie is forwarded unchanged — Django handles token validation and silent refresh exactly as in ADR-001. SvelteKit has no knowledge of JWT internals.
+
 ## Linki
 
 - Commits: `992ce90`, `2b32ff3`, `0432ef2`, `9028719`, `429e1a7`
-- Kod: `backend-django/users/cookie_auth.py`, `backend-django/users/views.py`, `frontend/src/api.js`
+- Kod: `backend-django/users/cookie_auth.py`, `backend-django/users/views.py`, `svelte-frontend/src/hooks.server.ts`

@@ -1,18 +1,4 @@
 services:
-  frontend:
-    image: ghcr.io/stokuj/storyshelf-frontend:main
-    container_name: frontend
-    expose:
-      - "80"
-    restart: unless-stopped
-    depends_on:
-      - django
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:80/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
   django:
     image: ghcr.io/stokuj/storyshelf-django:main
     container_name: storyshelf-django
@@ -127,7 +113,6 @@ services:
       - caddy-config:/config
     restart: unless-stopped
     depends_on:
-      - frontend
       - django
 
   db:

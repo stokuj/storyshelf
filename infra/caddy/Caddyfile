@@ -28,7 +28,7 @@
 	}
 
 	handle {
-		reverse_proxy frontend:80
+		respond "Storyshelf frontend not deployed yet" 503
 	}
 
 	encode gzip

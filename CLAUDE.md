@@ -4,7 +4,7 @@
 
 ## Co to jest
 
-StoryShelf — book-tracking + literary analysis. Django 6 REST API + Vue 3 SPA, Docker Compose.
+StoryShelf — book-tracking + literary analysis. Django 6 REST API + SvelteKit 2 SSR, Docker Compose.
 NER (spaCy en_core_web_trf, CPU-only) i LLM (OpenRouter) w workerach Celery.
 
 ## Mapa dokumentacji
@@ -38,12 +38,14 @@ uv run ruff check .                                                        # lin
 uv run ruff check --fix .
 ```
 
-### Frontend (z `frontend/`)
+### Frontend (z `svelte-frontend/`)
 
 ```bash
-npm run dev          # Vite na 5173
-npm test             # Vitest jsdom
-npm run build
+npm run dev          # Vite na 5174
+npm run check        # svelte-check + TypeScript
+npm run lint         # ESLint + Prettier
+npm run build        # adapter-node build
+npm run types:api    # regeneruj typy z openapi.yml
 ```
 
 ### Docker dev stack
@@ -70,10 +72,10 @@ Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)
 
 ```
 backend-django/    Django 6 + DRF; apps: books, library, users, shelf, reviews, analysis, config
-frontend/src/      Vue 3 SPA; api.js, auth.js, router.js, views/, components/, composables/
+svelte-frontend/src/  SvelteKit 2 SSR; hooks.server.ts, lib/api/, lib/config.ts, routes/
 infra/             docker-compose (dev/prod), caddy, rabbitmq defs, scripts/seed.py
 docs/              ARCHITECTURE.md, ROADMAP.md, decisions/, superpowers/
 .claude/           settings, agents/
 ```
 
-API: `http://localhost:8000/api/` · Swagger: `/api/docs/` · Flower: `:5555` · Frontend: `:5173`
+API: `http://localhost:8000/api/` · Swagger: `/api/docs/` · Flower: `:5555` · Svelte: `:5174`

@@ -52,3 +52,10 @@ Vue jest traktowany jako **tymczasowy** od dnia podjecia decyzji o migracji na S
 - Plan: `docs/superpowers/plans/2026-05-23-phase2.0-foundation.md` (Task 6)
 - Powiazany ADR: [ADR-001](ADR-001-jwt-httponly-cookies.md) — JWT cookies (zostaja, Svelte ich uzywa)
 - Roadmapa: `docs/ROADMAP.md` pkt 5 "Następne"
+
+## Execution log
+
+**Date:** 2026-05-23 (plan written); executed 2026-05-24 in Phase 2.6 implementation.
+**Commit:** `chore: remove vue frontend` — SHA to be filled after commit.
+**Branch:** `phase/2.6-svelte-setup`
+**Result:** `frontend/` deleted, no consumers of old Vue API contract remain, SvelteKit serves from `svelte-frontend/`.

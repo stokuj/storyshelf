@@ -1,25 +1,5 @@
 # Development environment — no Caddy, open ports for local dev
 services:
-  frontend:
-    build:
-      context: ../../frontend
-      dockerfile: Dockerfile
-    image: storyshelf-frontend:local
-    container_name: frontend
-    ports:
-      - "5173:5173"
-    environment:
-      VITE_API_PROXY_TARGET: http://django:8000
-    restart: unless-stopped
-    depends_on:
-      django:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5173/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
   django:
     build: ../../backend-django
     container_name: storyshelf-django
