@@ -1,31 +1,21 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-05-23. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-05-24. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## 🎯 Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `phase/2.6-svelte-setup` (3 commity ahead of main)
+**Bieżący branch:** `main` (czysty)
 
-**ZADANIE:** Wypchnij branch na origin, zweryfikuj smoke-testem, utwórz PR.
+**ZADANIE:** Rozpocznij Phase 2.7 — Svelte foundation.
 
-Wszystkie specs i plany gotowe:
+```
+git checkout -b phase/2.7-svelte-foundation
+/executing-plans  # lub ręcznie wg svelte(wideframe)/handoff/prompts/01-04
+```
 
-| # | Spec | Plan |
-|---|---|---|
-| 2.0 | [`specs/phase2.0-foundation.md`](superpowers/specs/2026-05-23-phase2.0-foundation.md) ✅ | [`plans/phase2.0-foundation.md`](superpowers/plans/2026-05-23-phase2.0-foundation.md) ✅ |
-| 2.1 | [`specs/phase2.1-books-api.md`](superpowers/specs/2026-05-23-phase2.1-books-api.md) ✅ | [`plans/phase2.1-books-api.md`](superpowers/plans/2026-05-23-phase2.1-books-api.md) ✅ |
-| 2.2 | [`specs/phase2.2-ai-extraction.md`](superpowers/specs/2026-05-23-phase2.2-ai-extraction.md) ✅ | [`plans/phase2.2-ai-extraction.md`](superpowers/plans/2026-05-23-phase2.2-ai-extraction.md) ✅ |
-| 2.3 | [`specs/phase2.3-shelves.md`](superpowers/specs/2026-05-23-phase2.3-shelves.md) ✅ | [`plans/phase2.3-shelves.md`](superpowers/plans/2026-05-23-phase2.3-shelves.md) ✅ |
-| 2.4 | [`specs/phase2.4-account.md`](superpowers/specs/2026-05-23-phase2.4-account.md) ✅ | [`plans/phase2.4-account.md`](superpowers/plans/2026-05-23-phase2.4-account.md) ✅ |
-| 2.5 | [`specs/phase2.5-disambiguation.md`](superpowers/specs/2026-05-23-phase2.5-disambiguation.md) ✅ | [`plans/phase2.5-disambiguation.md`](superpowers/plans/2026-05-23-phase2.5-disambiguation.md) ✅ |
-| 2.6 | [`specs/phase2.6-svelte-setup.md`](superpowers/specs/2026-05-23-phase2.6-svelte-setup.md) ✅ | [`plans/phase2.6-svelte-setup.md`](superpowers/plans/2026-05-23-phase2.6-svelte-setup.md) ✅ |
-
-**Workflow implementacji:**
-1. `git push origin phase/2.0-foundation`
-2. Zacznij od Phase 2.0: `/executing-plans docs/superpowers/plans/2026-05-23-phase2.0-foundation.md`
-3. Po każdej fazie: PR → merge → nowy branch → następna faza
+Handoff prompts: `svelte(wideframe)/handoff/prompts/01-setup.md` … `04-discover.md`
 
 ---
 
@@ -39,28 +29,24 @@ Wszystkie specs i plany gotowe:
 | JWT przez HttpOnly cookies | Migracja z localStorage, `JWTCookieAuthentication`, silent refresh | [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md) |
 | Frontend audit fixes | useAsyncState, AlertMessage, NotFoundState, router auth init | — |
 | Django audit fixes | validators, unique constraints, signals, lint config | — |
-| SDD docs restructure | Wprowadzenie struktury `docs/` (ARCHITECTURE, ROADMAP, decisions/) + integracja z plugin superpowers (`/brainstorming` → `/writing-plans` → `/executing-plans` → PR) | PR #43 |
+| SDD docs restructure | Wprowadzenie struktury `docs/` (ARCHITECTURE, ROADMAP, decisions/) + integracja z plugin superpowers | PR #43 |
+| Phase 2.0 Foundation | OpenAPI snapshot, CORS+cookies cross-origin, ADR Vue removal | ✅ zmergowane do main |
+| Phase 2.1 Books API | Paginacja, slug, genre/sort, contains-character, scoped reviews | ✅ zmergowane do main |
+| Phase 2.2 AI extraction | Admin-gated endpointy, `source`+`confidence`+`slug`, `ai_extraction_status`, soft-delete `is_hidden` | ✅ zmergowane do main |
+| Phase 2.5 Disambiguation | Alias merge w obrębie książki | ✅ zmergowane do main |
+| Phase 2.6 Vue removal + SvelteKit setup | Vue usunięty, SvelteKit zainstalowany (szkielet routes) | ✅ zmergowane do main |
 
 ## W toku
 
-**Phase 2 — Migracja frontendu Vue 3 → SvelteKit** ([Issue #46](https://github.com/stokuj/storyshelf//issues/46))
+**Phase 2 — Implementacja frontendu SvelteKit** ([Issue #46](https://github.com/stokuj/storyshelf//issues/46))
 
-Etap 2.0 (Foundation) — spec + plan gotowe, czeka na implementację:
-- Spec: [`docs/superpowers/specs/2026-05-23-phase2.0-foundation.md`](superpowers/specs/2026-05-23-phase2.0-foundation.md)
-- Plan: [`docs/superpowers/plans/2026-05-23-phase2.0-foundation.md`](superpowers/plans/2026-05-23-phase2.0-foundation.md)
-
-Sub-etapy Phase 2 (kolejność wykonania):
+Sub-etapy pozostałe do implementacji:
 
 | # | Etap | Branch | Status |
 |---|------|--------|--------|
-| 2.0 | Foundation (OpenAPI snapshot, CORS+cookies cross-origin, ADR Vue removal) | `phase/2.0-foundation` | spec ✅, plan ✅ |
-| 2.1 | Books API extensions (paginacja, slug, genre/sort, contains-character, scoped reviews) | `phase/2.1-books-api` | spec ⏳ |
-| 2.2 | AI extraction API (endpointy admin-gated, `source`+`confidence`+`slug` na BookCharacter, `ai_extraction_status` na Book, soft-delete `is_hidden`, idempotentność) | `phase/2.2-ai-extraction` | spec ⏳ |
-| 2.3 | Multi-shelf collections (Shelf + ShelfMembership, public shelves endpoint) | `phase/2.3-shelves` | spec ⏳ |
-| 2.4 | Account management (PATCH /password, /email, multipart avatar + ImageField, GDPR export + DELETE) | `phase/2.4-account` | spec ⏳ |
-| 2.5 | Character disambiguation (alias merge w obrębie książki — zastępuje stary roadmap pkt 3) | `phase/2.5-disambiguation` | ✅ zrobione |
-| 2.6 | Vue removal + SvelteKit setup (zgodnie z ADR-004) | `phase/2.6-svelte-setup` | 🔧 w toku |
-| 2.7 | Svelte foundation (prompts 01-04 z `svelte(wideframe)/handoff/prompts/`) | `phase/2.7-svelte-foundation` | — |
+| 2.3 | Multi-shelf collections (Shelf + ShelfMembership, public shelves endpoint) | `phase/2.3-shelves` | spec ✅, plan ✅ — niezweryfikowane w kodzie |
+| 2.4 | Account management (PATCH /password, /email, multipart avatar + ImageField, GDPR export + DELETE) | `phase/2.4-account` | spec ✅, plan ✅ — niezweryfikowane w kodzie |
+| **2.7** | **Svelte foundation (prompts 01-04)** | `phase/2.7-svelte-foundation` | **← NASTĘPNY** |
 | 2.8 | Svelte books + characters + AI panel (prompts 05-07) | `phase/2.8-svelte-books` | — |
 | 2.9 | Svelte profile + settings + polish (prompts 08, 09, 11) | `phase/2.9-svelte-profile` | — |
 

@@ -8,6 +8,7 @@
 	import { runExtraction, getExtraction } from '$lib/api/ai';
 	import type { AIExtraction } from '$lib/types';
 	import { Sparkles, AlertTriangle, ExternalLink } from 'lucide-svelte';
+	import { untrack } from 'svelte';
 	import { resolve } from '$app/paths';
 
 	interface Props {
@@ -15,15 +16,19 @@
 		slug: string;
 		initialExtraction: AIExtraction | null;
 	}
-	let { bookId, slug, initialExtraction: initExtraction }: Props = $props();
-
-	const initialPanelReady = initExtraction?.status === 'ready';
+	let { bookId, slug, initialExtraction }: Props = $props();
 
 	type PanelState = 'idle' | 'pending' | 'ready' | 'failed';
-	let panelState: PanelState = $state(initialPanelReady ? 'ready' : 'idle');
-	let extraction: AIExtraction | null = $state(
-		initExtraction ? structuredClone(initExtraction) : null
+	let panelState: PanelState = $state(
+		untrack(() => (initialExtraction?.status === 'ready' ? 'ready' : 'idle'))
 	);
+	let extraction: AIExtraction | null = $state(null);
+
+	// Sync with server data on navigation (initialExtraction prop change).
+	$effect(() => {
+		extraction = initialExtraction ? structuredClone(initialExtraction) : null;
+		panelState = initialExtraction?.status === 'ready' ? 'ready' : 'idle';
+	});
 	let errorMessage = $state('');
 
 	async function generate() {
