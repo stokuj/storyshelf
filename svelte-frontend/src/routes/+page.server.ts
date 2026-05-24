@@ -1,7 +1,6 @@
-import { getCurrentUser } from '$lib/api/user';
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch }) => {
-	const { data: user, error } = await getCurrentUser(fetch);
-	return { user, authError: error };
+export const load: PageServerLoad = async () => {
+	throw redirect(307, '/discover');
 };

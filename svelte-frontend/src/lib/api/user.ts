@@ -5,10 +5,12 @@ export interface UserMe {
 	handle: string;
 	display_name: string;
 	email: string;
-	bio: string;
+	email_verified: boolean;
+	bio: string | null;
 	avatar_url: string | null;
-	member_since: string;
-	profile_public: boolean;
+	joined_at: string;
+	followers_count: number;
+	following_count: number;
 }
 
 export async function getCurrentUser(fetchFn: typeof fetch) {
