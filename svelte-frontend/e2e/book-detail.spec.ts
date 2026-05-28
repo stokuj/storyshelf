@@ -49,11 +49,12 @@ test.describe('Book detail page', () => {
 
 	test('cover image renders or fallback title is visible', async ({ page }) => {
 		await page.goto(`/books/${fellowshipSlug}`);
-		// The cover image or the book title should be visible
-		const hasImg = (await page.locator('img').count()) > 0;
-		const hasTitle =
-			(await page.getByRole('heading', { level: 1 }).first().count()) > 0;
-		expect(hasImg || hasTitle).toBeTruthy();
+		// BookCover renders either <img> or a fallback <span> with the title inside .aspect-[2/3]
+		const coverImg = page.locator('img').first();
+		const coverFallback = page
+			.locator('.aspect-\\[2\\/3\\]')
+			.getByText('The Fellowship of the Ring');
+		await expect(coverImg.or(coverFallback)).toBeVisible();
 	});
 
 	test('404 page for non-existent book slug', async ({ page }) => {
