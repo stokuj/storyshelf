@@ -43,8 +43,8 @@ test.describe('Book detail page', () => {
 		const authorLink = page.getByRole('link', { name: 'J.R.R. Tolkien' }).first();
 		await expect(authorLink).toBeVisible();
 		await authorLink.click();
-		await page.waitForURL(/\/discover/);
-		await expect(page).toHaveURL(/\/discover/);
+		await page.waitForURL(/\/discover\?.*author=/);
+		await expect(page).toHaveURL(/\/discover\?.*author=/);
 	});
 
 	test('cover image renders or fallback title is visible', async ({ page }) => {
