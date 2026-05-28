@@ -1,0 +1,193 @@
+[
+  {"model": "library.author", "pk": 1, "fields": {"name": "J.R.R. Tolkien", "bio": "", "birth_date": null}},
+  {"model": "library.author", "pk": 2, "fields": {"name": "George Orwell", "bio": "", "birth_date": null}},
+  {"model": "library.author", "pk": 3, "fields": {"name": "Jane Austen", "bio": "", "birth_date": null}},
+  {"model": "library.author", "pk": 4, "fields": {"name": "Frank Herbert", "bio": "", "birth_date": null}},
+  {"model": "library.author", "pk": 5, "fields": {"name": "Isaac Asimov", "bio": "", "birth_date": null}},
+  {"model": "library.author", "pk": 6, "fields": {"name": "Fyodor Dostoevsky", "bio": "", "birth_date": null}},
+  {"model": "library.author", "pk": 7, "fields": {"name": "Leo Tolstoy", "bio": "", "birth_date": null}},
+  {"model": "library.author", "pk": 8, "fields": {"name": "Gabriel Garcia Marquez", "bio": "", "birth_date": null}},
+
+  {"model": "library.genre", "pk": 1, "fields": {"name": "fantasy", "created_at": "2026-01-01T00:00:00Z"}},
+  {"model": "library.genre", "pk": 2, "fields": {"name": "science fiction", "created_at": "2026-01-01T00:00:00Z"}},
+  {"model": "library.genre", "pk": 3, "fields": {"name": "classic", "created_at": "2026-01-01T00:00:00Z"}},
+  {"model": "library.genre", "pk": 4, "fields": {"name": "dystopia", "created_at": "2026-01-01T00:00:00Z"}},
+
+  {"model": "library.tag", "pk": 1, "fields": {"name": "epic"}},
+  {"model": "library.tag", "pk": 2, "fields": {"name": "must-read"}},
+  {"model": "library.tag", "pk": 3, "fields": {"name": "award-winner"}},
+
+  {"model": "books.book", "pk": 1, "fields": {
+    "serie": null, "title": "The Fellowship of the Ring", "cover_url": "",
+    "year": 1954, "isbn": "978-0618574940", "description": "The first part of The Lord of the Rings.",
+    "page_count": 423, "position_in_series": 1, "avg_rating": 4.5, "ratings_count": 0,
+    "slug": "the-fellowship-of-the-ring", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 2, "fields": {
+    "serie": null, "title": "The Two Towers", "cover_url": "",
+    "year": 1954, "isbn": "978-0618574957", "description": "The second part of The Lord of the Rings.",
+    "page_count": 352, "position_in_series": 2, "avg_rating": 4.4, "ratings_count": 0,
+    "slug": "the-two-towers", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 3, "fields": {
+    "serie": null, "title": "The Return of the King", "cover_url": "",
+    "year": 1955, "isbn": "978-0618574964", "description": "The third part of The Lord of the Rings.",
+    "page_count": 416, "position_in_series": 3, "avg_rating": 4.6, "ratings_count": 0,
+    "slug": "the-return-of-the-king", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 4, "fields": {
+    "serie": null, "title": "The Hobbit", "cover_url": "",
+    "year": 1937, "isbn": "978-0547928227", "description": "A hobbit's unexpected journey.",
+    "page_count": 310, "position_in_series": null, "avg_rating": 4.3, "ratings_count": 0,
+    "slug": "the-hobbit", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 5, "fields": {
+    "serie": null, "title": "1984", "cover_url": "",
+    "year": 1949, "isbn": "978-0451524935", "description": "A dystopian novel set in a totalitarian state.",
+    "page_count": 328, "position_in_series": null, "avg_rating": 4.2, "ratings_count": 0,
+    "slug": "1984", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 6, "fields": {
+    "serie": null, "title": "Animal Farm", "cover_url": "",
+    "year": 1945, "isbn": "978-0451526342", "description": "A satirical allegory of Soviet Russia.",
+    "page_count": 112, "position_in_series": null, "avg_rating": 3.9, "ratings_count": 0,
+    "slug": "animal-farm", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 7, "fields": {
+    "serie": null, "title": "Pride and Prejudice", "cover_url": "",
+    "year": 1813, "isbn": "978-0141439518", "description": "A classic romantic novel.",
+    "page_count": 432, "position_in_series": null, "avg_rating": 4.3, "ratings_count": 0,
+    "slug": "pride-and-prejudice", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 8, "fields": {
+    "serie": null, "title": "Sense and Sensibility", "cover_url": "",
+    "year": 1811, "isbn": "978-0141439662", "description": "A novel of manners and romance.",
+    "page_count": 374, "position_in_series": null, "avg_rating": 4.1, "ratings_count": 0,
+    "slug": "sense-and-sensibility", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 9, "fields": {
+    "serie": null, "title": "Dune", "cover_url": "",
+    "year": 1965, "isbn": "978-0441013593", "description": "A science fiction epic set on the desert planet Arrakis.",
+    "page_count": 688, "position_in_series": 1, "avg_rating": 4.4, "ratings_count": 0,
+    "slug": "dune", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 10, "fields": {
+    "serie": null, "title": "Dune Messiah", "cover_url": "",
+    "year": 1969, "isbn": "978-0441172696", "description": "The second book in the Dune series.",
+    "page_count": 226, "position_in_series": 2, "avg_rating": 4.0, "ratings_count": 0,
+    "slug": "dune-messiah", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 11, "fields": {
+    "serie": null, "title": "Foundation", "cover_url": "",
+    "year": 1951, "isbn": "978-0553293357", "description": "The fall and rise of a galactic empire.",
+    "page_count": 244, "position_in_series": 1, "avg_rating": 4.2, "ratings_count": 0,
+    "slug": "foundation", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 12, "fields": {
+    "serie": null, "title": "Foundation and Empire", "cover_url": "",
+    "year": 1952, "isbn": "978-0553293371", "description": "The second book of the Foundation series.",
+    "page_count": 247, "position_in_series": 2, "avg_rating": 4.1, "ratings_count": 0,
+    "slug": "foundation-and-empire", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 13, "fields": {
+    "serie": null, "title": "Second Foundation", "cover_url": "",
+    "year": 1953, "isbn": "978-0553293388", "description": "The third book of the Foundation series.",
+    "page_count": 244, "position_in_series": 3, "avg_rating": 4.1, "ratings_count": 0,
+    "slug": "second-foundation", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 14, "fields": {
+    "serie": null, "title": "Crime and Punishment", "cover_url": "",
+    "year": 1866, "isbn": "978-0140449136", "description": "A psychological novel about guilt and redemption.",
+    "page_count": 671, "position_in_series": null, "avg_rating": 4.3, "ratings_count": 0,
+    "slug": "crime-and-punishment", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 15, "fields": {
+    "serie": null, "title": "The Brothers Karamazov", "cover_url": "",
+    "year": 1880, "isbn": "978-0374528379", "description": "A philosophical novel about faith, doubt, and morality.",
+    "page_count": 796, "position_in_series": null, "avg_rating": 4.4, "ratings_count": 0,
+    "slug": "the-brothers-karamazov", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 16, "fields": {
+    "serie": null, "title": "War and Peace", "cover_url": "",
+    "year": 1869, "isbn": "978-0192833983", "description": "An epic novel of Russian society during the Napoleonic era.",
+    "page_count": 1225, "position_in_series": null, "avg_rating": 4.2, "ratings_count": 0,
+    "slug": "war-and-peace", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 17, "fields": {
+    "serie": null, "title": "Anna Karenina", "cover_url": "",
+    "year": 1877, "isbn": "978-0143035008", "description": "A tragic novel of love and infidelity in Russian society.",
+    "page_count": 864, "position_in_series": null, "avg_rating": 4.1, "ratings_count": 0,
+    "slug": "anna-karenina", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 18, "fields": {
+    "serie": null, "title": "One Hundred Years of Solitude", "cover_url": "",
+    "year": 1967, "isbn": "978-0060883287", "description": "A multigenerational saga of the Buendia family.",
+    "page_count": 417, "position_in_series": null, "avg_rating": 4.1, "ratings_count": 0,
+    "slug": "one-hundred-years-of-solitude", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 19, "fields": {
+    "serie": null, "title": "Love in the Time of Cholera", "cover_url": "",
+    "year": 1985, "isbn": "978-0307389732", "description": "A story of unrequited love spanning fifty years.",
+    "page_count": 348, "position_in_series": null, "avg_rating": 3.9, "ratings_count": 0,
+    "slug": "love-in-the-time-of-cholera", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+  {"model": "books.book", "pk": 20, "fields": {
+    "serie": null, "title": "I Robot", "cover_url": "",
+    "year": 1950, "isbn": "978-0553382563", "description": "Short stories exploring the laws of robotics.",
+    "page_count": 253, "position_in_series": null, "avg_rating": 4.2, "ratings_count": 0,
+    "slug": "i-robot", "created_at": "2026-01-01", "updated_at": "2026-01-01"
+  }},
+
+  {"model": "books.bookauthor", "pk": 1, "fields": {"book": 1, "author": 1}},
+  {"model": "books.bookauthor", "pk": 2, "fields": {"book": 2, "author": 1}},
+  {"model": "books.bookauthor", "pk": 3, "fields": {"book": 3, "author": 1}},
+  {"model": "books.bookauthor", "pk": 4, "fields": {"book": 4, "author": 1}},
+  {"model": "books.bookauthor", "pk": 5, "fields": {"book": 5, "author": 2}},
+  {"model": "books.bookauthor", "pk": 6, "fields": {"book": 6, "author": 2}},
+  {"model": "books.bookauthor", "pk": 7, "fields": {"book": 7, "author": 3}},
+  {"model": "books.bookauthor", "pk": 8, "fields": {"book": 8, "author": 3}},
+  {"model": "books.bookauthor", "pk": 9, "fields": {"book": 9, "author": 4}},
+  {"model": "books.bookauthor", "pk": 10, "fields": {"book": 10, "author": 4}},
+  {"model": "books.bookauthor", "pk": 11, "fields": {"book": 11, "author": 5}},
+  {"model": "books.bookauthor", "pk": 12, "fields": {"book": 12, "author": 5}},
+  {"model": "books.bookauthor", "pk": 13, "fields": {"book": 13, "author": 5}},
+  {"model": "books.bookauthor", "pk": 14, "fields": {"book": 14, "author": 6}},
+  {"model": "books.bookauthor", "pk": 15, "fields": {"book": 15, "author": 6}},
+  {"model": "books.bookauthor", "pk": 16, "fields": {"book": 16, "author": 7}},
+  {"model": "books.bookauthor", "pk": 17, "fields": {"book": 17, "author": 7}},
+  {"model": "books.bookauthor", "pk": 18, "fields": {"book": 18, "author": 8}},
+  {"model": "books.bookauthor", "pk": 19, "fields": {"book": 19, "author": 8}},
+  {"model": "books.bookauthor", "pk": 20, "fields": {"book": 20, "author": 5}},
+
+  {"model": "books.bookgenre", "pk": 1, "fields": {"book": 1, "genre": 1}},
+  {"model": "books.bookgenre", "pk": 2, "fields": {"book": 2, "genre": 1}},
+  {"model": "books.bookgenre", "pk": 3, "fields": {"book": 3, "genre": 1}},
+  {"model": "books.bookgenre", "pk": 4, "fields": {"book": 4, "genre": 1}},
+  {"model": "books.bookgenre", "pk": 5, "fields": {"book": 5, "genre": 4}},
+  {"model": "books.bookgenre", "pk": 6, "fields": {"book": 6, "genre": 4}},
+  {"model": "books.bookgenre", "pk": 7, "fields": {"book": 7, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 8, "fields": {"book": 8, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 9, "fields": {"book": 9, "genre": 2}},
+  {"model": "books.bookgenre", "pk": 10, "fields": {"book": 10, "genre": 2}},
+  {"model": "books.bookgenre", "pk": 11, "fields": {"book": 11, "genre": 2}},
+  {"model": "books.bookgenre", "pk": 12, "fields": {"book": 12, "genre": 2}},
+  {"model": "books.bookgenre", "pk": 13, "fields": {"book": 13, "genre": 2}},
+  {"model": "books.bookgenre", "pk": 14, "fields": {"book": 14, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 15, "fields": {"book": 15, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 16, "fields": {"book": 16, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 17, "fields": {"book": 17, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 18, "fields": {"book": 18, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 19, "fields": {"book": 19, "genre": 3}},
+  {"model": "books.bookgenre", "pk": 20, "fields": {"book": 20, "genre": 2}},
+
+  {"model": "books.booktag", "pk": 1, "fields": {"book": 1, "tag": 1}},
+  {"model": "books.booktag", "pk": 2, "fields": {"book": 1, "tag": 2}},
+  {"model": "books.booktag", "pk": 3, "fields": {"book": 4, "tag": 2}},
+  {"model": "books.booktag", "pk": 4, "fields": {"book": 5, "tag": 2}},
+  {"model": "books.booktag", "pk": 5, "fields": {"book": 7, "tag": 2}},
+  {"model": "books.booktag", "pk": 6, "fields": {"book": 9, "tag": 1}},
+  {"model": "books.booktag", "pk": 7, "fields": {"book": 9, "tag": 3}},
+  {"model": "books.booktag", "pk": 8, "fields": {"book": 11, "tag": 3}},
+  {"model": "books.booktag", "pk": 9, "fields": {"book": 14, "tag": 2}},
+  {"model": "books.booktag", "pk": 10, "fields": {"book": 18, "tag": 3}}
+]

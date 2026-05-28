@@ -3,6 +3,8 @@ services:
   django:
     build: ../../backend-django
     container_name: storyshelf-django
+    ports:
+      - "8000:8000"
     volumes:
       - ../../backend-django:/app
       - /app/.venv

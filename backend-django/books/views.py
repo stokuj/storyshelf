@@ -1,115 +1,100 @@
-from django.db.models import Prefetch, Q
-from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
-from shelf.models import ShelfEntry
+from analysis.models import BookCharacter
+from config.pagination import StandardPagination
 
 from .models import Book
-from .serializers import BookDetailSerializer, BookListSerializer
-
-SORT_MAP = {
-    "rating": ["-avg_rating", "-ratings_count"],
-    "recent": ["-created_at", "-id"],
-    "popular": ["-ratings_count", "-avg_rating"],
-}
-DEFAULT_ORDER = ["title"]
+from .permissions import IsAdminOrReadOnly
+from .serializers import BookDetailSerializer, BookListSerializer, BookWriteSerializer
 
 
-class BookListView(generics.ListAPIView):
-    serializer_class = BookListSerializer
-    permission_classes = [permissions.AllowAny]
+class BookPagination(StandardPagination):
+    page_size = 12
+
+
+class BookViewSet(ModelViewSet):
+    queryset = Book.objects.prefetch_related("authors", "genres", "tags").select_related("serie")
+    serializer_class = BookDetailSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = BookPagination
+    lookup_field = "slug"
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ["title", "authors__name"]
+    ordering_fields = ["title", "year", "avg_rating"]
+    ordering = ["title"]
 
     def get_queryset(self):
-        qs = Book.objects.defer("text").prefetch_related(
-            Prefetch("authors", to_attr="_prefetched_authors"),
-            "tags",
-            "genres",
-        )
-
-        q = self.request.query_params.get("q", "").strip()
-        if q:
-            qs = qs.filter(
-                Q(title__icontains=q)
-                | Q(bookauthor__author__name__icontains=q)
-                | Q(genres__name__icontains=q)
-            ).distinct()
-
-        genre = self.request.query_params.get("genre", "").strip()
+        qs = super().get_queryset()
+        author = self.request.query_params.get("author")
+        genre = self.request.query_params.get("genre")
+        year_min = self.request.query_params.get("year_min")
+        year_max = self.request.query_params.get("year_max")
+        if author:
+            qs = qs.filter(authors__name__icontains=author)
         if genre:
-            qs = qs.filter(genres__name__iexact=genre).distinct()
-
-        sort = self.request.query_params.get("sort", "").strip()
-        qs = qs.order_by(*SORT_MAP.get(sort, DEFAULT_ORDER))
-
+            qs = qs.filter(genres__name__iexact=genre)
+        if year_min:
+            try:
+                qs = qs.filter(year__gte=int(year_min))
+            except (ValueError, TypeError):
+                raise ValidationError({"year_min": "Must be an integer."})
+        if year_max:
+            try:
+                qs = qs.filter(year__lte=int(year_max))
+            except (ValueError, TypeError):
+                raise ValidationError({"year_max": "Must be an integer."})
         return qs
 
-    def list(self, request, *args, **kwargs):
-        if request.query_params.get("paginate") == "false":
-            queryset = self.filter_queryset(self.get_queryset())
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        return super().list(request, *args, **kwargs)
+    def get_serializer_class(self):
+        if self.action == "list":
+            return BookListSerializer
+        if self.action in ("create", "update", "partial_update"):
+            return BookWriteSerializer
+        return BookDetailSerializer
 
-
-class BookRetrieveView(generics.RetrieveAPIView):
-    serializer_class = BookDetailSerializer
-    permission_classes = [permissions.AllowAny]
-
-    def get_serializer_context(self):
-        ctx = super().get_serializer_context()
-        ctx["is_admin"] = bool(
-            self.request.user and self.request.user.is_staff
-        )
-        return ctx
-
-    def get_object(self):
-        from analysis.models import BookCharacter
-
-        id_or_slug = self.kwargs.get("id_or_slug") or str(self.kwargs.get("pk", ""))
-        is_admin = bool(self.request.user and self.request.user.is_staff)
-
-        chars_qs = (
-            BookCharacter.all_objects.all()
-            if is_admin
-            else BookCharacter.objects.filter(canonical__isnull=True)
-        )
-
-        qs = Book.objects.select_related("serie").prefetch_related(
-            Prefetch("characters", queryset=chars_qs, to_attr="_prefetched_characters"),
-            "authors",
-            "tags",
-            "genres",
-            "character_relationships__from_character",
-            "character_relationships__to_character",
-        )
-        if self.request.user.is_authenticated:
-            qs = qs.prefetch_related(
-                Prefetch(
-                    "shelf_entries",
-                    queryset=ShelfEntry.objects.filter(user=self.request.user),
-                    to_attr="current_user_shelf_entries",
-                )
-            )
-
-        # Try lookup by integer pk first, then by slug.
-        if id_or_slug.isdigit():
-            return get_object_or_404(qs, pk=int(id_or_slug))
-        return get_object_or_404(qs, slug=id_or_slug)
-
-
-class BookContainsCharacterView(generics.ListAPIView):
-    serializer_class = BookListSerializer
-    permission_classes = [permissions.AllowAny]
-
-    def get_queryset(self):
-        name = self.request.query_params.get("name", "").strip()
-        if not name:
-            return Book.objects.none()
-        return (
-            Book.objects.filter(characters__name__icontains=name, characters__is_hidden=False)
+    def _detail_response(self, book, http_status_code):
+        """Return a response using BookDetailSerializer (re-fetch with relations)."""
+        book.refresh_from_db()
+        serializer = BookDetailSerializer(
+            Book.objects.prefetch_related("authors", "genres", "tags")
             .select_related("serie")
-            .prefetch_related("authors", "genres", "tags")
-            .distinct()
-            .order_by("title")
+            .get(pk=book.pk),
+            context=self.get_serializer_context(),
         )
+        return Response(serializer.data, status=http_status_code)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        book = serializer.save()
+        return self._detail_response(book, status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        book = serializer.save()
+        return self._detail_response(book, status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="contains-character")
+    def contains_character(self, request):
+        name = request.query_params.get("name", "").strip()
+        if not name:
+            page = self.paginate_queryset(Book.objects.none())
+            return self.get_paginated_response(
+                BookListSerializer(page, many=True).data
+            )
+        book_ids = (
+            BookCharacter.objects.filter(name__icontains=name)
+            .values_list("book_id", flat=True)
+            .distinct()
+        )
+        qs = Book.objects.filter(pk__in=book_ids).prefetch_related("authors", "genres")
+        page = self.paginate_queryset(qs)
+        return self.get_paginated_response(BookListSerializer(page, many=True).data)

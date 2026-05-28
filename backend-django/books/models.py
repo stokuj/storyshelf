@@ -30,6 +30,7 @@ class Book(models.Model):
         related_name="books",
     )
     title = models.CharField(max_length=500)
+    cover_url = models.URLField(max_length=500, blank=True, default="")
     year = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1)])
     isbn = models.CharField(max_length=20, unique=True, null=True, blank=True, default=None)
     description = models.TextField(blank=True, default="")

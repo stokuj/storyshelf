@@ -1,61 +1,24 @@
-from rest_framework import generics, permissions
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from .models import Author, Genre, Serie
-from .serializers import AuthorSerializer, GenreSerializer, SeriesSerializer
+from .models import Author, Genre, Serie, Tag
+from .serializers import AuthorSerializer, GenreSerializer, SerieSerializer, TagSerializer
 
 
-class AuthorListView(generics.ListAPIView):
-    """Płaska lista wszystkich autorów. Tylko odczyt — zarządzanie przez Django Admin."""
-
+class AuthorViewSet(ReadOnlyModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [permissions.AllowAny]
-    pagination_class = None
 
 
-class AuthorRetrieveView(generics.RetrieveAPIView):
-    """Szczegóły autora: imię, bio, data urodzenia.
-
-    avatar_url zarezerwowany na przyszłość (obecnie null).
-    """
-
-    queryset = Author.objects.all()
-    serializer_class = AuthorSerializer
-    permission_classes = [permissions.AllowAny]
-
-
-class SeriesListView(generics.ListAPIView):
-    """Płaska lista wszystkich serii. Tylko odczyt — zarządzanie przez Django Admin."""
-
+class SerieViewSet(ReadOnlyModelViewSet):
     queryset = Serie.objects.all()
-    serializer_class = SeriesSerializer
-    permission_classes = [permissions.AllowAny]
-    pagination_class = None
+    serializer_class = SerieSerializer
 
 
-class SeriesRetrieveView(generics.RetrieveAPIView):
-    """Szczegóły serii: nazwa, opis, status (ONGOING/COMPLETED/CANCELLED/HIATUS).
-
-    cover_url obecnie null.
-    """
-
-    queryset = Serie.objects.all()
-    serializer_class = SeriesSerializer
-    permission_classes = [permissions.AllowAny]
-
-
-class GenreListView(generics.ListAPIView):
-    """Płaska lista wszystkich gatunków, sortowana alfabetycznie. Tylko odczyt."""
-
+class GenreViewSet(ReadOnlyModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [permissions.AllowAny]
-    pagination_class = None
 
 
-class GenreRetrieveView(generics.RetrieveAPIView):
-    """Szczegóły gatunku."""
-
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = [permissions.AllowAny]
+class TagViewSet(ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer

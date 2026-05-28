@@ -4,14 +4,27 @@ import { listBooks } from '$lib/api/books';
 export const load: PageServerLoad = async ({ fetch, url }) => {
 	const q = url.searchParams.get('q') ?? '';
 	const genre = url.searchParams.get('genre') ?? '';
-	const sort = url.searchParams.get('sort') ?? 'title';
-	const page = Number(url.searchParams.get('page') ?? 1);
+	const sort = url.searchParams.get('sort') ?? '';
+	const author = url.searchParams.get('author') ?? '';
 
-	const { data: books, error } = await listBooks(fetch, { q, genre, sort, page });
+	const { data, error } = await listBooks(fetch, {
+		q: q || undefined,
+		genre: genre || undefined,
+		author: author || undefined,
+		sort: sort || undefined,
+		page: 1,
+		perPage: 12
+	});
 
-	if (error) {
-		return { books: { data: [] as never[], page: 1, per_page: 20, total: 0 } };
-	}
-
-	return { books };
+	return {
+		initialBooks: data?.data ?? [],
+		initialPage: data?.page ?? 1,
+		initialPerPage: data?.per_page ?? 12,
+		initialTotal: data?.total ?? 0,
+		initialQ: q,
+		initialGenre: genre,
+		initialSort: sort,
+		initialAuthor: author,
+		loadError: error ? { status: error.status, detail: error.detail } : null
+	};
 };

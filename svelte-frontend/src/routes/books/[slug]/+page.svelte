@@ -3,6 +3,7 @@
 	import BookCover from '$lib/components/book/BookCover.svelte';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
 	import BookActions from '$lib/components/book/BookActions.svelte';
+	import BookMeta from '$lib/components/book/BookMeta.svelte';
 	import BookDescription from '$lib/components/book/BookDescription.svelte';
 	import ReviewList from '$lib/components/book/ReviewList.svelte';
 	import ReviewComposer from '$lib/components/book/ReviewComposer.svelte';
@@ -72,6 +73,7 @@
 		<!-- Middle: info + reviews -->
 		<div class="space-y-8 min-w-0">
 			<BookHeader {book} />
+			<BookMeta {book} />
 			<BookDescription description={book.description} />
 			<Separator />
 			<div class="space-y-4">

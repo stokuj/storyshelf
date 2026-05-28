@@ -5,3 +5,6 @@ build/
 .env.*
 !.env.example
 src/lib/types/api.generated.ts
+e2e/.seed-slugs.json
+test-results/
+playwright-report/

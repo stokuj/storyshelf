@@ -1,12 +1,15 @@
+from django.db import transaction
 from rest_framework import serializers
 
-from analysis.models import BookCharacter
-from analysis.serializers import BookCharacterSerializer, CharacterRelationSerializer
+from library.models import Author, Genre, Serie, Tag
+from library.serializers import SerieSerializer
 
-from .models import Book
+from .models import Book, BookAuthor, BookGenre, BookTag
 
 
 class BookPreviewSerializer(serializers.ModelSerializer):
+    """Minimal preview used by user profile/recently-read endpoints."""
+
     author = serializers.SerializerMethodField()
 
     class Meta:
@@ -18,116 +21,111 @@ class BookPreviewSerializer(serializers.ModelSerializer):
         return authors[0].name if authors else None
 
 
+class _SerieWriteSerializer(serializers.Serializer):
+    name = serializers.CharField()
+
+
 class BookListSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField()
-    genres = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
+    authors = serializers.StringRelatedField(many=True)
+    genres = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Book
-        fields = (
-            "id",
-            "slug",
-            "title",
-            "author",
-            "year",
-            "isbn",
-            "description",
-            "page_count",
-            "genres",
-            "tags",
-            "avg_rating",
-            "ratings_count",
-        )
-
-    def get_author(self, obj):
-        # Prefetched via Prefetch("authors", to_attr="_prefetched_authors") in BookListView
-        authors = list(obj.authors.all())
-        return authors[0].name if authors else None
-
-    def get_genres(self, obj):
-        return [g.name for g in obj.genres.all()]
-
-    def get_tags(self, obj):
-        return [t.name for t in obj.tags.all()]
+        fields = ["id", "title", "slug", "cover_url", "authors", "genres", "avg_rating", "year"]
 
 
 class BookDetailSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField()
-    genres = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
-    ratingsCount = serializers.IntegerField(source="ratings_count")  # noqa: N815
-
-    def get_author(self, obj):
-        authors = list(obj.authors.all())
-        return authors[0].name if authors else None
-
-    def get_genres(self, obj):
-        return [g.name for g in obj.genres.all()]
-
-    def get_tags(self, obj):
-        return [t.name for t in obj.tags.all()]
+    authors = serializers.StringRelatedField(many=True)
+    genres = serializers.StringRelatedField(many=True)
+    tags = serializers.StringRelatedField(many=True)
+    serie = SerieSerializer(read_only=True)
 
     class Meta:
         model = Book
-        fields = (
-            "id",
-            "slug",
-            "title",
-            "author",
-            "year",
-            "isbn",
-            "description",
-            "page_count",
-            "genres",
-            "tags",
-            "avg_rating",
-            "ratingsCount",
-        )
+        fields = [
+            "title", "slug", "cover_url", "authors", "genres", "tags", "serie",
+            "description", "page_count", "isbn", "avg_rating", "year",
+            "position_in_series", "ratings_count", "created_at", "updated_at",
+        ]
 
-    def to_representation(self, instance):
-        request = self.context.get("request")
-        book_data = super().to_representation(instance)
 
-        is_admin = self.context.get("is_admin", False)
+class BookWriteSerializer(serializers.ModelSerializer):
+    authors = serializers.ListField(
+        child=serializers.CharField(), write_only=True, required=False, default=list
+    )
+    genres = serializers.ListField(
+        child=serializers.CharField(), write_only=True, required=False, default=list
+    )
+    tags = serializers.ListField(
+        child=serializers.CharField(), write_only=True, required=False, default=list
+    )
+    serie = _SerieWriteSerializer(required=False, write_only=True)
 
-        book_data["analysisStatus"] = {
-            "analysisFinished": instance.ai_extraction_status == "done",
-            "status": instance.ai_extraction_status,
-        }
-        book_data["seriesName"] = instance.serie.name if instance.serie else None
+    class Meta:
+        model = Book
+        fields = [
+            "title", "year", "isbn", "description", "page_count", "cover_url",
+            "avg_rating", "serie", "authors", "genres", "tags", "position_in_series",
+        ]
 
-        shelf_entry = None
-        if request and request.user.is_authenticated:
-            entries = getattr(instance, "current_user_shelf_entries", None)
-            entry = entries[0] if entries else None
-            if entry is not None:
-                shelf_entry = {
-                    "status": entry.status,
-                    "createdAt": entry.created_at.isoformat(),
-                }
-
-        # Use view-side Prefetch (to_attr="_prefetched_characters") to avoid re-query.
-        chars = getattr(instance, "_prefetched_characters", None)
-        if chars is None:
-            chars_qs = (
-                BookCharacter.all_objects.filter(book=instance, canonical__isnull=True) if is_admin
-                else instance.characters.filter(canonical__isnull=True)
+    def _resolve_m2m(self, names, model_cls, normalize):
+        objs = []
+        for raw in names:
+            if normalize == "title":
+                normalized = raw.strip().title()
+            else:
+                normalized = raw.strip().lower()
+            obj, _ = model_cls.objects.get_or_create(
+                defaults={"name": normalized},
+                **{"name__iexact": normalized},
             )
-            chars = chars_qs
-        characters = BookCharacterSerializer(chars, many=True).data
+            objs.append(obj)
+        return objs
 
-        rels_qs = instance.character_relationships.all()
-        if not is_admin:
-            rels_qs = rels_qs.filter(
-                from_character__is_hidden=False,
-                to_character__is_hidden=False,
-            )
-        relations = CharacterRelationSerializer(rels_qs, many=True).data
+    def _set_m2m(self, book, names, model_cls, normalize, through_cls, rel_attr):
+        through_cls.objects.filter(book=book).delete()
+        for obj in self._resolve_m2m(names, model_cls, normalize):
+            through_cls.objects.create(book=book, **{rel_attr: obj})
 
-        return {
-            "book": book_data,
-            "shelfEntry": shelf_entry,
-            "characters": characters,
-            "relations": relations,
-        }
+    @transaction.atomic
+    def create(self, validated_data):
+        authors_data = validated_data.pop("authors", [])
+        genres_data = validated_data.pop("genres", [])
+        tags_data = validated_data.pop("tags", [])
+        serie_data = validated_data.pop("serie", None)
+
+        if serie_data:
+            serie, _ = Serie.objects.get_or_create(name=serie_data["name"])
+            validated_data["serie"] = serie
+
+        book = Book.objects.create(**validated_data)
+        self._set_m2m(book, authors_data, Author, "title", BookAuthor, "author")
+        self._set_m2m(book, genres_data, Genre, "lower", BookGenre, "genre")
+        self._set_m2m(book, tags_data, Tag, "lower", BookTag, "tag")
+        return book
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        authors_data = validated_data.pop("authors", None)
+        genres_data = validated_data.pop("genres", None)
+        tags_data = validated_data.pop("tags", None)
+        serie_data = validated_data.pop("serie", None)
+
+        if serie_data:
+            serie, _ = Serie.objects.get_or_create(name=serie_data["name"])
+            instance.serie = serie
+        elif serie_data is not None:
+            instance.serie = None
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if authors_data is not None:
+            self._set_m2m(instance, authors_data, Author, "title", BookAuthor, "author")
+        if genres_data is not None:
+            self._set_m2m(instance, genres_data, Genre, "lower", BookGenre, "genre")
+        if tags_data is not None:
+            self._set_m2m(instance, tags_data, Tag, "lower", BookTag, "tag")
+
+        return instance

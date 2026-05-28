@@ -11,6 +11,8 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"test": "vitest run",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
 		"types:api": "openapi-typescript ../docs/api/openapi.yml -o ./src/lib/types/api.generated.ts"
 	},
 	"dependencies": {
@@ -30,6 +32,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.0",
+		"@playwright/test": "^1.60.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tailwindcss/vite": "^4.0.0",
 		"@types/node": "^22.0.0",

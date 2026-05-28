@@ -83,8 +83,19 @@ paths:
   /api/authors/:
     get:
       operationId: authors_list
-      description: Płaska lista wszystkich autorów. Tylko odczyt — zarządzanie przez
-        Django Admin.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - authors
       security:
@@ -95,22 +106,17 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Author'
+                $ref: '#/components/schemas/PaginatedAuthorList'
           description: ''
   /api/authors/{id}/:
     get:
       operationId: authors_retrieve
-      description: |-
-        Szczegóły autora: imię, bio, data urodzenia.
-
-        avatar_url zarezerwowany na przyszłość (obecnie null).
       parameters:
       - in: path
         name: id
         schema:
           type: integer
+        description: A unique integer value identifying this author.
         required: true
       tags:
       - authors
@@ -128,6 +134,12 @@ paths:
     get:
       operationId: books_list
       parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
       - name: page
         required: false
         in: query
@@ -140,17 +152,47 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - books
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedBookListList'
+          description: ''
+    post:
+      operationId: books_create
+      tags:
+      - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookWrite'
           description: ''
   /api/books/{book_id}/ai/extract/:
     post:
@@ -226,27 +268,6 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/books/{id_or_slug}/:
-    get:
-      operationId: books_retrieve
-      parameters:
-      - in: path
-        name: id_or_slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - books
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BookDetail'
-          description: ''
   /api/books/{id_or_slug}/reviews/:
     get:
       operationId: books_reviews_list
@@ -315,20 +336,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ScopedReviewCreate'
           description: ''
-  /api/books/{id}/:
+  /api/books/{slug}/:
     get:
-      operationId: books_retrieve_2
+      operationId: books_retrieve
       parameters:
       - in: path
-        name: id
+        name: slug
         schema:
-          type: integer
+          type: string
         required: true
       tags:
       - books
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -336,9 +356,99 @@ paths:
               schema:
                 $ref: '#/components/schemas/BookDetail'
           description: ''
+    put:
+      operationId: books_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookWrite'
+          description: ''
+    patch:
+      operationId: books_partial_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBookWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBookWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBookWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookWrite'
+          description: ''
+    delete:
+      operationId: books_destroy
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/books/contains-character/:
     get:
-      operationId: books_contains_character_list
+      operationId: books_contains_character_retrieve
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
+          description: ''
+  /api/genres/:
+    get:
+      operationId: genres_list
       parameters:
       - name: page
         required: false
@@ -353,23 +463,6 @@ paths:
         schema:
           type: integer
       tags:
-      - books
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedBookListList'
-          description: ''
-  /api/genres/:
-    get:
-      operationId: genres_list
-      description: Płaska lista wszystkich gatunków, sortowana alfabetycznie. Tylko
-        odczyt.
-      tags:
       - genres
       security:
       - jwtAuth: []
@@ -379,19 +472,17 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Genre'
+                $ref: '#/components/schemas/PaginatedGenreList'
           description: ''
   /api/genres/{id}/:
     get:
       operationId: genres_retrieve
-      description: Szczegóły gatunku.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
+        description: A unique integer value identifying this genre.
         required: true
       tags:
       - genres
@@ -586,8 +677,19 @@ paths:
   /api/series/:
     get:
       operationId: series_list
-      description: Płaska lista wszystkich serii. Tylko odczyt — zarządzanie przez
-        Django Admin.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - series
       security:
@@ -598,22 +700,17 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Series'
+                $ref: '#/components/schemas/PaginatedSerieList'
           description: ''
   /api/series/{id}/:
     get:
       operationId: series_retrieve
-      description: |-
-        Szczegóły serii: nazwa, opis, status (ONGOING/COMPLETED/CANCELLED/HIATUS).
-
-        cover_url obecnie null.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
+        description: A unique integer value identifying this serie.
         required: true
       tags:
       - series
@@ -625,7 +722,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Series'
+                $ref: '#/components/schemas/Serie'
           description: ''
   /api/shelf/:
     get:
@@ -931,6 +1028,56 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/tags/:
+    get:
+      operationId: tags_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - tags
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTagList'
+          description: ''
+  /api/tags/{id}/:
+    get:
+      operationId: tags_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this tag.
+        required: true
+      tags:
+      - tags
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
   /api/u/{handle}/:
     get:
       operationId: u_retrieve
@@ -1207,20 +1354,36 @@ components:
     BookDetail:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        title:
+          type: string
+          maxLength: 500
         slug:
           type: string
           maxLength: 255
           pattern: ^[-a-zA-Z0-9_]+$
-        title:
+        cover_url:
           type: string
+          format: uri
           maxLength: 500
-        author:
-          type: string
+        authors:
+          type: array
+          items:
+            type: string
+        genres:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        serie:
+          allOf:
+          - $ref: '#/components/schemas/Serie'
           readOnly: true
-        year:
+        description:
+          type: string
+        page_count:
           type: integer
           maximum: 2147483647
           minimum: 1
@@ -1229,84 +1392,80 @@ components:
           type: string
           nullable: true
           maxLength: 20
-        description:
-          type: string
-        page_count:
+        avg_rating:
+          type: number
+          format: double
+        year:
           type: integer
           maximum: 2147483647
           minimum: 1
           nullable: true
-        genres:
-          type: string
-          readOnly: true
-        tags:
-          type: string
-          readOnly: true
-        avg_rating:
-          type: number
-          format: double
-        ratingsCount:
+        position_in_series:
           type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        ratings_count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        created_at:
+          type: string
+          format: date
+          readOnly: true
+        updated_at:
+          type: string
+          format: date
+          readOnly: true
       required:
-      - author
+      - authors
+      - created_at
       - genres
-      - id
-      - ratingsCount
+      - serie
       - tags
       - title
+      - updated_at
     BookList:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
+        title:
+          type: string
+          maxLength: 500
         slug:
           type: string
           maxLength: 255
           pattern: ^[-a-zA-Z0-9_]+$
-        title:
+        cover_url:
           type: string
+          format: uri
           maxLength: 500
-        author:
-          type: string
-          readOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+        genres:
+          type: array
+          items:
+            type: string
+        avg_rating:
+          type: number
+          format: double
         year:
           type: integer
           maximum: 2147483647
           minimum: 1
           nullable: true
-        isbn:
-          type: string
-          nullable: true
-          maxLength: 20
-        description:
-          type: string
-        page_count:
-          type: integer
-          maximum: 2147483647
-          minimum: 1
-          nullable: true
-        genres:
-          type: string
-          readOnly: true
-        tags:
-          type: string
-          readOnly: true
-        avg_rating:
-          type: number
-          format: double
-        ratings_count:
-          type: integer
-          maximum: 2147483647
-          minimum: -2147483648
       required:
-      - author
+      - authors
       - genres
       - id
-      - tags
       - title
     BookPreview:
       type: object
+      description: Minimal preview used by user profile/recently-read endpoints.
       properties:
         id:
           type: integer
@@ -1327,6 +1486,61 @@ components:
       required:
       - author
       - id
+      - title
+    BookWrite:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        isbn:
+          type: string
+          nullable: true
+          maxLength: 20
+        description:
+          type: string
+        page_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        cover_url:
+          type: string
+          format: uri
+          maxLength: 500
+        avg_rating:
+          type: number
+          format: double
+        serie:
+          allOf:
+          - $ref: '#/components/schemas/_SerieWrite'
+          writeOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        genres:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        tags:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        position_in_series:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+      required:
       - title
     Follow:
       type: object
@@ -1358,12 +1572,38 @@ components:
         name:
           type: string
           maxLength: 100
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
       required:
+      - created_at
       - id
       - name
     NullEnum:
       enum:
       - null
+    PaginatedAuthorList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Author'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
     PaginatedBookListList:
       type: object
       required:
@@ -1385,6 +1625,27 @@ components:
         total:
           type: integer
           example: 100
+    PaginatedGenreList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Genre'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
     PaginatedReviewList:
       type: object
       required:
@@ -1397,6 +1658,27 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Review'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+    PaginatedSerieList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Serie'
         page:
           type: integer
           example: 1
@@ -1448,6 +1730,80 @@ components:
         total:
           type: integer
           example: 100
+    PaginatedTagList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
+    PatchedBookWrite:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        isbn:
+          type: string
+          nullable: true
+          maxLength: 20
+        description:
+          type: string
+        page_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        cover_url:
+          type: string
+          format: uri
+          maxLength: 500
+        avg_rating:
+          type: number
+          format: double
+        serie:
+          allOf:
+          - $ref: '#/components/schemas/_SerieWrite'
+          writeOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        genres:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        tags:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        position_in_series:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
     PatchedReview:
       type: object
       properties:
@@ -1581,7 +1937,7 @@ components:
       - content
       - id
       - rating
-    Series:
+    Serie:
       type: object
       properties:
         id:
@@ -1595,13 +1951,18 @@ components:
         status:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/SeriesStatusEnum'
+          - $ref: '#/components/schemas/SerieStatusEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
       required:
+      - created_at
       - id
       - name
-    SeriesStatusEnum:
+    SerieStatusEnum:
       enum:
       - ONGOING
       - COMPLETED
@@ -1741,6 +2102,18 @@ components:
         * `WANT_TO_READ` - Want To Read
         * `READING` - Reading
         * `READ` - Read
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - id
+      - name
     UserProfile:
       type: object
       properties:
@@ -1766,6 +2139,13 @@ components:
       - avatar_url
       - handle
       - member_since
+    _SerieWrite:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+      - name
   securitySchemes:
     jwtAuth:
       type: http

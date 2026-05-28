@@ -22,7 +22,7 @@ class AuthorListViewTest(AuthTestHelper, APITestCase):
         Author.objects.all().delete()
         resp = self.client.get("/api/authors/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data, [])
+        self.assertEqual(resp.data["data"], [])
 
 
 class AuthorRetrieveViewTest(AuthTestHelper, APITestCase):
@@ -116,14 +116,13 @@ class GenreListViewTest(AuthTestHelper, APITestCase):
     def test_get_list_returns_200_with_array(self):
         resp = self.client.get("/api/genres/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(resp.data, list)
-        self.assertGreaterEqual(len(resp.data), 1)
+        self.assertIsInstance(resp.data["data"], list)
+        self.assertGreaterEqual(len(resp.data["data"]), 1)
 
     def test_get_list_sorted_alphabetically(self):
-
         Genre.objects.create(name="Adventure")
         resp = self.client.get("/api/genres/")
-        names = [g["name"] for g in resp.data]
+        names = [g["name"] for g in resp.data["data"]]
         self.assertEqual(names, sorted(names))
 
 

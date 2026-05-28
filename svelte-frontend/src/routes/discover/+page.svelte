@@ -1,32 +1,152 @@
 <script lang="ts">
-	import type { PageProps } from './$types';
-	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { SearchX } from 'lucide-svelte';
-	import BookGrid from '$lib/components/book/BookGrid.svelte';
+	import { goto } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 	import FilterBar from '$lib/components/discover/FilterBar.svelte';
+	import BookGridDiscover from '$lib/components/discover/BookGridDiscover.svelte';
+	import LoadMore from '$lib/components/discover/LoadMore.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import { BookOpen, SearchX } from 'lucide-svelte';
+	import { listBooks, fetchGenres } from '$lib/api/books';
+	import type { Genre } from '$lib/api/books';
+	import type { Book } from '$lib/types/book';
+	import type { PageData } from './$types';
 
-	let { data }: PageProps = $props();
-	let books = $derived(data.books?.data ?? []);
-	let total = $derived(data.books?.total ?? 0);
-	let currentPage = $derived(Number($page.url.searchParams.get('page') ?? 1));
+	let { data }: { data: PageData } = $props();
 
-	function loadMore() {
-		const next = currentPage + 1;
+	const {
+		initialBooks,
+		initialPage,
+		initialPerPage,
+		initialTotal,
+		initialQ,
+		initialGenre,
+		initialSort,
+		loadError
+	} = data;
+
+	let books = $state<Book[]>(initialBooks);
+	let currentPage = $state(initialPage);
+	let perPage = $state(initialPerPage);
+	let total = $state(initialTotal);
+	let loading = $state(false);
+	let loadingMore = $state(false);
+	let genres = $state<Genre[]>([]);
+
+	let currentQ = $state(initialQ);
+	let currentGenre = $state(initialGenre);
+	let currentSort = $state(initialSort);
+
+	let hasFilters = $derived(currentQ !== '' || currentGenre !== '' || currentSort !== '');
+	let hasMore = $derived(books.length < total);
+
+	if (loadError) {
+		toast.error('Failed to load books', {
+			description: loadError.detail
+		});
+	}
+
+	function buildUrl(): URL {
 		const url = new URL($page.url);
-		url.searchParams.set('page', String(next));
-		goto(url, { keepFocus: true });
+		if (currentQ) url.searchParams.set('q', currentQ);
+		else url.searchParams.delete('q');
+		if (currentGenre) url.searchParams.set('genre', currentGenre);
+		else url.searchParams.delete('genre');
+		if (currentSort) url.searchParams.set('sort', currentSort);
+		else url.searchParams.delete('sort');
+		return url;
+	}
+
+	$effect(() => {
+		if (genres.length === 0) {
+			fetchGenres(fetch).then(({ data: result }) => {
+				if (result) genres = result.data;
+			});
+		}
+	});
+
+	async function loadBooks() {
+		loading = true;
+		const url = buildUrl();
+		// Sync URL without adding history entry; noScroll + keepFocus prevent jarring jumps.
+		goto(url, { replaceState: true, keepFocus: true, noScroll: true });
+
+		const { data: result, error: apiErr } = await listBooks(fetch, {
+			q: currentQ || undefined,
+			genre: currentGenre || undefined,
+			sort: currentSort || undefined,
+			page: 1,
+			perPage
+		});
+
+		if (apiErr) {
+			toast.error('Failed to load books', {
+				description: apiErr.detail,
+				action: { label: 'Retry', onClick: () => loadBooks() }
+			});
+		} else if (result) {
+			books = result.data;
+			currentPage = result.page;
+			total = result.total;
+		}
+		loading = false;
+	}
+
+	async function loadMore() {
+		loadingMore = true;
+		const nextPage = currentPage + 1;
+
+		const { data: result, error: apiErr } = await listBooks(fetch, {
+			q: currentQ || undefined,
+			genre: currentGenre || undefined,
+			sort: currentSort || undefined,
+			page: nextPage,
+			perPage
+		});
+
+		if (apiErr) {
+			toast.error('Failed to load more', {
+				description: apiErr.detail,
+				action: { label: 'Retry', onClick: () => loadMore() }
+			});
+		} else if (result) {
+			books = [...books, ...result.data];
+			currentPage = result.page;
+			total = result.total;
+		}
+		loadingMore = false;
+	}
+
+	function handleSearch(q: string) {
+		currentQ = q;
+		loadBooks();
+	}
+
+	function handleGenreChange(genre: string) {
+		currentGenre = genre;
+		loadBooks();
+	}
+
+	function handleSortChange(sort: string) {
+		currentSort = sort;
+		loadBooks();
+	}
+
+	function clearFilters() {
+		currentQ = '';
+		currentGenre = '';
+		currentSort = '';
+		loadBooks();
 	}
 </script>
 
 <svelte:head>
-	<title>Discover Books — Storyshelf</title>
+	<title>Discover — Storyshelf</title>
 	<meta name="description" content="Discover and track your favorite books on Storyshelf." />
 </svelte:head>
 
-<div class="max-w-[1240px] mx-auto px-6 md:px-10 py-8">
+<main class="max-w-[1240px] mx-auto px-6 md:px-10 py-10">
 	<div class="mb-8">
 		<h1 class="font-display text-4xl md:text-5xl tracking-tight font-medium text-ink mb-2">
 			Discover
@@ -36,33 +156,36 @@
 		</p>
 	</div>
 
-	<FilterBar />
+	<FilterBar
+		query={currentQ}
+		genre={currentGenre}
+		sort={currentSort}
+		{genres}
+		onsearch={handleSearch}
+		ongenrechange={handleGenreChange}
+		onsortchange={handleSortChange}
+	/>
 
-	{#if books.length === 0}
+	{#if books.length > 0}
+		<BookGridDiscover {books} loading={loading && books.length === 0} />
+		<LoadMore loading={loadingMore} {hasMore} onloadmore={loadMore} />
+	{:else if loading}
+		<BookGridDiscover books={[]} loading />
+	{:else if total === 0 && !hasFilters}
+		<EmptyState
+			icon={BookOpen}
+			title="No books yet"
+			description="The catalog is empty. Check back later for new additions."
+		/>
+	{:else}
 		<EmptyState
 			icon={SearchX}
 			title="No books found"
-			description="Try adjusting your filters or search query."
+			description="Try adjusting your search or filters."
+			cta={{ label: 'Clear filters', href: '/discover' }}
 		/>
-	{:else}
-		<BookGrid
-			books={books.map((b) => ({
-				id: b.id,
-				slug: b.slug,
-				title: b.title,
-				author: b.author,
-				coverUrl: b.cover_url,
-				genres: b.genres,
-				avgRating: b.avg_rating
-			}))}
-		/>
-
-		{#if books.length < total}
-			<div class="mt-8 text-center">
-				<Button variant="outline" onclick={loadMore}>
-					Load more ({total - books.length} remaining)
-				</Button>
-			</div>
-		{/if}
+		<div class="flex justify-center mt-2">
+			<Button variant="ghost" size="sm" onclick={clearFilters}>Clear all filters</Button>
+		</div>
 	{/if}
-</div>
+</main>
