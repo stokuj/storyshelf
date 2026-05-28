@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -36,9 +37,15 @@ class BookViewSet(ModelViewSet):
         if genre:
             qs = qs.filter(genres__name__iexact=genre)
         if year_min:
-            qs = qs.filter(year__gte=year_min)
+            try:
+                qs = qs.filter(year__gte=int(year_min))
+            except (ValueError, TypeError):
+                raise ValidationError({"year_min": "Must be an integer."})
         if year_max:
-            qs = qs.filter(year__lte=year_max)
+            try:
+                qs = qs.filter(year__lte=int(year_max))
+            except (ValueError, TypeError):
+                raise ValidationError({"year_max": "Must be an integer."})
         return qs
 
     def get_serializer_class(self):

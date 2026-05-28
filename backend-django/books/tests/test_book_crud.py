@@ -227,3 +227,25 @@ class BookValidationTests(APITestCase):
         resp = self.client.post("/api/books/", payload, format="json")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("title", resp.data)
+
+
+class BookNonStaffPermissionTests(APITestCase):
+    """Authenticated non-staff users cannot write."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.regular_user = User.objects.create_user(
+            handle="regular", email="regular@test.com", password="secret"
+        )
+
+    def setUp(self):
+        self.client.force_authenticate(user=self.regular_user)
+
+    def test_non_staff_cannot_post(self):
+        resp = self.client.post("/api/books/", {"title": "Unauthorized"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_non_staff_cannot_delete(self):
+        book = Book.objects.create(title="Protected")
+        resp = self.client.delete(f"/api/books/{book.slug}/")
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
