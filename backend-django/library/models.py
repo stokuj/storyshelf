@@ -6,6 +6,9 @@ class Author(models.Model):
     bio = models.TextField(blank=True, default="")
     birth_date = models.DateField(null=True, blank=True)
 
+    class Meta:
+        ordering = ["name"]
+
     def __str__(self):
         return self.name
 
@@ -23,6 +26,7 @@ class Serie(models.Model):  # "Series" clashes with Django test internals
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        ordering = ["name"]
         verbose_name_plural = "series"
 
     def __str__(self):
@@ -42,6 +46,9 @@ class Genre(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self):
         return self.name

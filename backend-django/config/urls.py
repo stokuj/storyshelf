@@ -6,14 +6,12 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/", include("library.urls")),
     path("api/auth/", include("users.urls.auth")),
     path("api/users/", include("users.urls.users")),
     path("api/u/", include("users.urls.public")),
     path("api/books/", include("books.urls")),
     path("api/shelf/", include("shelf.urls")),
-    path("api/authors/", include("library.urls.authors")),
-    path("api/series/", include("library.urls.series")),
-    path("api/genres/", include("library.urls.genres")),
     path("api/reviews/", include("reviews.urls")),
     path("api/", include("analysis.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
