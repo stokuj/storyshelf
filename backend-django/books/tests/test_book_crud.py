@@ -1,9 +1,8 @@
 from django.contrib.auth import get_user_model
-
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from books.models import Book, BookAuthor, BookGenre, BookTag
+from books.models import Book, BookAuthor, BookGenre
 from library.models import Author, Genre, Tag
 
 User = get_user_model()
@@ -158,7 +157,7 @@ class BookNestedM2MTests(APITestCase):
     def test_patch_replaces_m2m_relations(self):
         book = Book.objects.create(title="Replace Test")
         author_a = Author.objects.create(name="Author A")
-        author_b = Author.objects.create(name="Author B")
+        Author.objects.create(name="Author B")
         BookAuthor.objects.create(book=book, author=author_a)
         payload = {
             "authors": ["Author B"],
