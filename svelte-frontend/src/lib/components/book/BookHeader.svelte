@@ -12,19 +12,19 @@
 	<h1 class="font-display text-4xl md:text-5xl tracking-tight font-medium text-ink">
 		{book.title}
 	</h1>
-	<p class="font-display italic text-ink-2">{book.authors?.join(', ') ?? book.author ?? ''}</p>
-	{#if book.year || book.page_count}
-		<div class="flex flex-wrap items-center gap-2 text-sm text-muted">
-			{#if book.year}
-				<span>{book.year}</span>
-			{/if}
-			{#if book.year && book.page_count}
-				<span aria-hidden="true">·</span>
-			{/if}
-			{#if book.page_count}
-				<span>{book.page_count} pages</span>
-			{/if}
-		</div>
+	{#if book.authors?.length}
+		<p class="font-display italic text-ink-2">
+			{#each book.authors as author, i (author)}
+				<a
+					href="/discover?author={encodeURIComponent(author)}"
+					class="hover:text-accent transition-colors"
+				>
+					{author}
+				</a>
+				{#if i < book.authors.length - 1},
+				{/if}
+			{/each}
+		</p>
 	{/if}
 	{#if book.genres?.length}
 		<div class="flex flex-wrap gap-1.5">
