@@ -1,4 +1,6 @@
+from rest_framework import status
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from config.pagination import StandardPagination
@@ -45,3 +47,28 @@ class BookViewSet(ModelViewSet):
         if self.action in ("create", "update", "partial_update"):
             return BookWriteSerializer
         return BookDetailSerializer
+
+    def _detail_response(self, book, http_status_code):
+        """Return a response using BookDetailSerializer (re-fetch with relations)."""
+        book.refresh_from_db()
+        serializer = BookDetailSerializer(
+            Book.objects.prefetch_related("authors", "genres", "tags")
+            .select_related("serie")
+            .get(pk=book.pk),
+            context=self.get_serializer_context(),
+        )
+        return Response(serializer.data, status=http_status_code)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        book = serializer.save()
+        return self._detail_response(book, status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        book = serializer.save()
+        return self._detail_response(book, status.HTTP_200_OK)

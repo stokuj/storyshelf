@@ -7,6 +7,20 @@ from library.serializers import SerieSerializer
 from .models import Book, BookAuthor, BookGenre, BookTag
 
 
+class BookPreviewSerializer(serializers.ModelSerializer):
+    """Minimal preview used by user profile/recently-read endpoints."""
+
+    author = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Book
+        fields = ("id", "slug", "title", "author", "avg_rating")
+
+    def get_author(self, obj):
+        authors = list(obj.authors.all())
+        return authors[0].name if authors else None
+
+
 class _SerieWriteSerializer(serializers.Serializer):
     name = serializers.CharField()
 
@@ -36,8 +50,12 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
 
 class BookWriteSerializer(serializers.ModelSerializer):
-    authors = serializers.ListField(child=serializers.CharField(), write_only=True)
-    genres = serializers.ListField(child=serializers.CharField(), write_only=True)
+    authors = serializers.ListField(
+        child=serializers.CharField(), write_only=True, required=False, default=list
+    )
+    genres = serializers.ListField(
+        child=serializers.CharField(), write_only=True, required=False, default=list
+    )
     tags = serializers.ListField(
         child=serializers.CharField(), write_only=True, required=False, default=list
     )
