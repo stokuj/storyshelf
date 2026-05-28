@@ -1,21 +1,21 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-05-24. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-05-28. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## 🎯 Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `main` (czysty)
+**Bieżący branch:** `main` (czysty, M2 zmergowane)
 
-**ZADANIE:** Rozpocznij Phase 2.7 — Svelte foundation.
+**ZADANIE:** Rozpocznij M3 — Rating + Shelf.
 
 ```
-git checkout -b phase/2.7-svelte-foundation
-/executing-plans  # lub ręcznie wg svelte(wideframe)/handoff/prompts/01-04
+git checkout -b phase/m3-rating-shelf
+/subagent-driven-development  # wg planów docs/superpowers/plans/2026-05-27-phase-3a..3e
 ```
 
-Handoff prompts: `svelte(wideframe)/handoff/prompts/01-setup.md` … `04-discover.md`
+Plany: `docs/superpowers/plans/2026-05-27-phase-3a-rating-api.md` … `phase-3e-rating-widget.md`
 
 ---
 
@@ -35,20 +35,18 @@ Handoff prompts: `svelte(wideframe)/handoff/prompts/01-setup.md` … `04-discove
 | Phase 2.2 AI extraction | Admin-gated endpointy, `source`+`confidence`+`slug`, `ai_extraction_status`, soft-delete `is_hidden` | ✅ zmergowane do main |
 | Phase 2.5 Disambiguation | Alias merge w obrębie książki | ✅ zmergowane do main |
 | Phase 2.6 Vue removal + SvelteKit setup | Vue usunięty, SvelteKit zainstalowany (szkielet routes) | ✅ zmergowane do main |
+| Phase 2.7 Svelte foundation | AppShell, atomy, typy, API wrappery, mock fixtures, `/discover` | ✅ zmergowane do main |
+| Phase 2.8 Svelte books + characters + AI | `/books/[slug]`, AICastPanel, RelationGraph, character pages | ✅ zmergowane do main |
+| Phase 2.9 Svelte profile + settings + polish | `/u/[handle]`, `/settings/*`, login/signup, a11y, meta | ✅ zmergowane do main |
+| M2 Catalog milestone (E2E + bugfixy) | Playwright E2E, dropdown fix, getApiBase SSR, RabbitMQ fix, shelf/profile | ✅ zmergowane do main (PR #60) |
 
 ## W toku
 
-**Phase 2 — Implementacja frontendu SvelteKit** ([Issue #46](https://github.com/stokuj/storyshelf//issues/46))
+Brak. Wybór następnego etapu z "Następne".
 
-Sub-etapy pozostałe do implementacji:
-
-| # | Etap | Branch | Status |
-|---|------|--------|--------|
-| 2.3 | Multi-shelf collections (Shelf + ShelfMembership, public shelves endpoint) | `phase/2.3-shelves` | spec ✅, plan ✅ — niezweryfikowane w kodzie |
-| 2.4 | Account management (PATCH /password, /email, multipart avatar + ImageField, GDPR export + DELETE) | `phase/2.4-account` | spec ✅, plan ✅ — niezweryfikowane w kodzie |
-| **2.7** | **Svelte foundation (prompts 01-04)** | `phase/2.7-svelte-foundation` | **← NASTĘPNY** |
-| 2.8 | Svelte books + characters + AI panel (prompts 05-07) | `phase/2.8-svelte-books` | — |
-| 2.9 | Svelte profile + settings + polish (prompts 08, 09, 11) | `phase/2.9-svelte-profile` | — |
+**Decyzja 2026-05-25:** profil ma dwie osobne sekcje shelf:
+- **Recently read** — publiczna, 6 okładek, widoczna dla wszystkich (endpoint `/users/<handle>/recently-read/`)
+- **My reading list** — prywatna, pełna lista ShelfEntry pogrupowana po statusach, widoczna tylko dla właściciela profilu (endpoint `/api/shelf/`)
 
 **Decyzje grilling-sessions z 2026-05-23** (źródło: rozmowa wokół `svelte(wideframe)/handoff/`):
 
@@ -61,17 +59,32 @@ Sub-etapy pozostałe do implementacji:
 - Activity feed WYCIĘTY (zamiast tego "Recently read" 6 covers)
 - Vue umiera w Phase 2.6, brak okresu przejściowego — API zmiany nie wymagają wstecznej kompatybilności
 
-**Workflow:** plan frontendu Svelte (`svelte(wideframe)/handoff/`) → analiza → backend extensions (2.0-2.5) → Vue removal (2.6) → Svelte implementation (2.7-2.9).
-
 ## Następne (priorytetyzowane)
 
-> Etapy po zakończeniu Phase 2. Kolejność do rewizji po Phase 2.
+### M3 — Rating + Shelf (plany gotowe)
+
+| # | Etap | Plan | Status |
+|---|------|------|--------|
+| 3a | Rating API (`ratings/` app, upsert, signal → avg_rating) | [phase-3a](superpowers/plans/2026-05-27-phase-3a-rating-api.md) | plan ✅ |
+| 3b | ShelfEntry CRUD API (status, progress, user_rating via Subquery) | [phase-3b](superpowers/plans/2026-05-27-phase-3b-shelfentry-api.md) | plan ✅ |
+| 3c | `/shelf` Frontend (tabs, inline actions, RatingStars, ProgressBar) | [phase-3c](superpowers/plans/2026-05-27-phase-3c-shelf-frontend.md) | plan ✅ |
+| 3d | Shelf E2E tests (7 scenariuszy: tabs, status, rating, progress, cross-user) | [phase-3d](superpowers/plans/2026-05-27-phase-3d-e2e-shelf.md) | plan ✅ |
+| 3e | RatingWidget na `/books/[slug]` (interaktywne gwiazdki + avg community) | [phase-3e](superpowers/plans/2026-05-27-phase-3e-rating-widget.md) | plan ✅ |
+
+### M4 — Reviews (plany wymagają `/writing-plans`)
+
+| # | Etap | Status |
+|---|------|--------|
+| 4a | Review API (CRUD, pagination, avg update) | spec potrzebny |
+| 4b | Reviews frontend (`/books/[slug]` sekcja recenzji) | spec potrzebny |
+| 4c | Reviews E2E tests | spec potrzebny |
+
+### Dalej
 
 1. **Wdrożenie produkcyjne** — odkomentowanie deploy step w `.github/workflows/ci.yml`, Caddy z Let's Encrypt zamiast `tls internal`, sekrety na VPS (DigitalOcean). Wymaga konfiguracji `CORS_ALLOWED_ORIGINS` i `JWT_COOKIE_DOMAIN` per [Spec 2.0](superpowers/specs/2026-05-23-phase2.0-foundation.md).
-2. **Phase 3 — End-to-end tests with Playwright** ([Issue #47](https://github.com/stokuj/storyshelf//issues/47))
-3. **Phase 4 — AI/LLM pipeline expansion** ([Issue #48](https://github.com/stokuj/storyshelf//issues/48)) — m.in. AI chat z SSE (wycięte z Phase 2 MVP), cross-book Character disambiguation z LLM-assisted merge
-4. **Idempotentność `analyse_book`** — wchodzi w skład Phase 2.2 (soft-delete `is_hidden` + stabilne slugi przy re-analyze)
-5. **Manualny merge cross-book Character** w Django Admin — wymaga ADR-005 (nowy model `Character` + M2M z BookCharacter)
+2. **AI/LLM pipeline expansion** — AI chat z SSE (wycięte z Phase 2 MVP), cross-book Character disambiguation z LLM-assisted merge
+3. **Idempotentność `analyse_book`** — soft-delete `is_hidden` + stabilne slugi przy re-analyze
+4. **Manualny merge cross-book Character** w Django Admin — wymaga ADR-005 (nowy model `Character` + M2M z BookCharacter)
 
 ## Kiedyś (bez priorytetu)
 
