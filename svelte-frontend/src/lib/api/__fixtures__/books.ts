@@ -5,9 +5,9 @@ export const fixtureBooks: Book[] = [
 		id: 1,
 		slug: 'dune',
 		title: 'Dune',
-		author: 'Frank Herbert',
+		authors: ['Frank Herbert'],
 		cover_url: 'https://covers.openlibrary.org/b/id/12170164-L.jpg',
-		publication_year: 1965,
+		year: 1965,
 		genres: ['Science Fiction', 'Adventure'],
 		description:
 			"Set on the desert planet Arrakis, Dune is the story of Paul Atreides—who would become known as Muad'Dib—and of a great family's ambition to bring to fruition mankind's most ancient and unattainable dream.",
@@ -22,9 +22,9 @@ export const fixtureBooks: Book[] = [
 		id: 2,
 		slug: 'project-hail-mary',
 		title: 'Project Hail Mary',
-		author: 'Andy Weir',
+		authors: ['Andy Weir'],
 		cover_url: 'https://covers.openlibrary.org/b/id/12678411-L.jpg',
-		publication_year: 2021,
+		year: 2021,
 		genres: ['Science Fiction'],
 		description:
 			'Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish.',
@@ -51,7 +51,7 @@ export const fixtureBookCards: FixtureBookCardData[] = fixtureBooks.map((b) => (
 	id: b.id,
 	slug: b.slug,
 	title: b.title,
-	author: b.author,
+	author: b.authors[0] ?? 'Unknown',
 	coverUrl: b.cover_url,
 	genres: b.genres,
 	avgRating: b.avg_rating
