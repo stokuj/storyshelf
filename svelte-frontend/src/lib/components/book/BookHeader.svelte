@@ -12,13 +12,13 @@
 	<h1 class="font-display text-4xl md:text-5xl tracking-tight font-medium text-ink">
 		{book.title}
 	</h1>
-	<p class="font-display italic text-ink-2">{book.author}</p>
-	{#if book.publication_year || book.page_count}
+	<p class="font-display italic text-ink-2">{book.authors?.join(', ') ?? book.author ?? ''}</p>
+	{#if book.year || book.page_count}
 		<div class="flex flex-wrap items-center gap-2 text-sm text-muted">
-			{#if book.publication_year}
-				<span>{book.publication_year}</span>
+			{#if book.year}
+				<span>{book.year}</span>
 			{/if}
-			{#if book.publication_year && book.page_count}
+			{#if book.year && book.page_count}
 				<span aria-hidden="true">·</span>
 			{/if}
 			{#if book.page_count}
