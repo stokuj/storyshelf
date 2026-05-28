@@ -22,7 +22,7 @@
 		{/if}
 	</p>
 	<div class="flex items-center justify-center gap-3">
-		<Button variant="outline" href="/discover">Browse discover</Button>
+		<Button variant="outline" href="/discover">Browse books</Button>
 		<Button variant="ghost" onclick={() => window.location.reload()}>Try again</Button>
 	</div>
 </div>
