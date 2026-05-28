@@ -23,7 +23,6 @@
 		initialQ,
 		initialGenre,
 		initialSort,
-		initialAuthor,
 		loadError
 	} = data;
 
@@ -38,7 +37,6 @@
 	let currentQ = $state(initialQ);
 	let currentGenre = $state(initialGenre);
 	let currentSort = $state(initialSort);
-	let currentAuthor = $state(initialAuthor);
 
 	let hasFilters = $derived(currentQ !== '' || currentGenre !== '' || currentSort !== '');
 	let hasMore = $derived(books.length < total);
@@ -61,9 +59,11 @@
 	}
 
 	$effect(() => {
-		fetchGenres(fetch).then(({ data: result }) => {
-			if (result) genres = result.data;
-		});
+		if (genres.length === 0) {
+			fetchGenres(fetch).then(({ data: result }) => {
+				if (result) genres = result.data;
+			});
+		}
 	});
 
 	async function loadBooks() {
@@ -75,7 +75,6 @@
 		const { data: result, error: apiErr } = await listBooks(fetch, {
 			q: currentQ || undefined,
 			genre: currentGenre || undefined,
-			author: currentAuthor || undefined,
 			sort: currentSort || undefined,
 			page: 1,
 			perPage
@@ -101,7 +100,6 @@
 		const { data: result, error: apiErr } = await listBooks(fetch, {
 			q: currentQ || undefined,
 			genre: currentGenre || undefined,
-			author: currentAuthor || undefined,
 			sort: currentSort || undefined,
 			page: nextPage,
 			perPage
