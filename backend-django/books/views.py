@@ -1,9 +1,11 @@
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from analysis.models import BookCharacter
 from config.pagination import StandardPagination
 
 from .models import Book
@@ -79,3 +81,20 @@ class BookViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         book = serializer.save()
         return self._detail_response(book, status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="contains-character")
+    def contains_character(self, request):
+        name = request.query_params.get("name", "").strip()
+        if not name:
+            page = self.paginate_queryset(Book.objects.none())
+            return self.get_paginated_response(
+                BookListSerializer(page, many=True).data
+            )
+        book_ids = (
+            BookCharacter.objects.filter(name__icontains=name)
+            .values_list("book_id", flat=True)
+            .distinct()
+        )
+        qs = Book.objects.filter(pk__in=book_ids).prefetch_related("authors", "genres")
+        page = self.paginate_queryset(qs)
+        return self.get_paginated_response(BookListSerializer(page, many=True).data)

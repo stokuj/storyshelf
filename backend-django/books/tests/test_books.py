@@ -26,13 +26,13 @@ class BookListViewTest(AuthTestHelper, APITestCase):
         self.assertGreaterEqual(resp.data["total"], 2)
 
     def test_get_list_with_search_returns_filtered(self):
-        resp = self.client.get("/api/books/?q=First")
+        resp = self.client.get("/api/books/?search=First")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         titles = [b["title"] for b in resp.data["data"]]
         self.assertIn("First Book", titles)
 
     def test_get_list_with_nonexistent_query_returns_empty(self):
-        resp = self.client.get("/api/books/?q=zzzzzzz")
+        resp = self.client.get("/api/books/?search=zzzzzzz")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["data"], [])
         self.assertEqual(resp.data["total"], 0)
@@ -48,15 +48,14 @@ class BookDetailTest(AuthTestHelper, APITestCase):
         cls.book.tags.set([])
 
     def test_get_detail_returns_200_with_book_data(self):
-        resp = self.client.get(f"/api/books/{self.book.id}/")
+        resp = self.client.get(f"/api/books/{self.book.slug}/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("book", resp.data)
-        self.assertIn("characters", resp.data)
-        self.assertIn("relations", resp.data)
-        self.assertEqual(resp.data["book"]["title"], "Detail Book")
+        self.assertEqual(resp.data["title"], "Detail Book")
+        self.assertIn("authors", resp.data)
+        self.assertIn("genres", resp.data)
 
     def test_get_nonexistent_book_returns_404(self):
-        resp = self.client.get("/api/books/99999/")
+        resp = self.client.get("/api/books/this-slug-does-not-exist/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
 
@@ -70,7 +69,7 @@ class BookSearchByAuthorTest(AuthTestHelper, APITestCase):
         cls.book.tags.set([])
 
     def test_search_by_author_name_finds_book(self):
-        resp = self.client.get("/api/books/?q=austen")
+        resp = self.client.get("/api/books/?search=austen")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["total"], 1)
         self.assertEqual(resp.data["data"][0]["title"], "Pride")

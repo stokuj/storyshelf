@@ -67,10 +67,9 @@ export default async function globalSetup(): Promise<void> {
 		}
 		console.log('[e2e] Django backend healthcheck OK');
 	} catch (err) {
-		throw new Error(
-			`Django backend not reachable at ${BASE_API_URL}. Start with: make dev-up`,
-			{ cause: err }
-		);
+		throw new Error(`Django backend not reachable at ${BASE_API_URL}. Start with: make dev-up`, {
+			cause: err
+		});
 	}
 
 	// 2. Admin login
