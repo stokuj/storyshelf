@@ -46,6 +46,22 @@ export default tseslint.config(
 		}
 	},
 	{
+		// Playwright fixtures are used for side effects (e.g. authUser logs in)
+		// even when the fixture value itself is not referenced in the test body.
+		files: ['e2e/**/*.ts'],
+		rules: {
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					destructuredArrayIgnorePattern: '^_',
+					ignoreRestSiblings: true,
+					args: 'none'
+				}
+			]
+		}
+	},
+	{
 		rules: {
 			// `resolve()` from $app/paths requires literal route strings,
 			// which breaks dynamic URLs (new URL(...)) and variable-based hrefs.
