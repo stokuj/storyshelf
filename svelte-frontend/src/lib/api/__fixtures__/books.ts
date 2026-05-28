@@ -9,11 +9,14 @@ export const fixtureBooks: Book[] = [
 		cover_url: 'https://covers.openlibrary.org/b/id/12170164-L.jpg',
 		year: 1965,
 		genres: ['Science Fiction', 'Adventure'],
+		tags: [],
+		isbn: '9780441013593',
 		description:
 			"Set on the desert planet Arrakis, Dune is the story of Paul Atreides—who would become known as Muad'Dib—and of a great family's ambition to bring to fruition mankind's most ancient and unattainable dream.",
 		page_count: 412,
 		avg_rating: 4.5,
 		ratings_count: 128,
+		serie: { name: 'Dune Chronicles', position_in_series: 1 },
 		characters_count: 8,
 		relations_count: 6,
 		ai_extraction_status: 'ready'
@@ -26,11 +29,14 @@ export const fixtureBooks: Book[] = [
 		cover_url: 'https://covers.openlibrary.org/b/id/12678411-L.jpg',
 		year: 2021,
 		genres: ['Science Fiction'],
+		tags: [],
+		isbn: null,
 		description:
 			'Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish.',
 		page_count: 496,
 		avg_rating: 4.7,
 		ratings_count: 95,
+		serie: null,
 		characters_count: 0,
 		relations_count: 0,
 		ai_extraction_status: 'none'
