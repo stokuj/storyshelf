@@ -134,6 +134,12 @@ paths:
     get:
       operationId: books_list
       parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
       - name: page
         required: false
         in: query
@@ -146,17 +152,47 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - books
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedBookListList'
+          description: ''
+    post:
+      operationId: books_create
+      tags:
+      - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookWrite'
           description: ''
   /api/books/{book_id}/ai/extract/:
     post:
@@ -232,27 +268,6 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/books/{id_or_slug}/:
-    get:
-      operationId: books_retrieve
-      parameters:
-      - in: path
-        name: id_or_slug
-        schema:
-          type: string
-        required: true
-      tags:
-      - books
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BookDetail'
-          description: ''
   /api/books/{id_or_slug}/reviews/:
     get:
       operationId: books_reviews_list
@@ -321,20 +336,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/ScopedReviewCreate'
           description: ''
-  /api/books/{id}/:
+  /api/books/{slug}/:
     get:
-      operationId: books_retrieve_2
+      operationId: books_retrieve
       parameters:
       - in: path
-        name: id
+        name: slug
         schema:
-          type: integer
+          type: string
         required: true
       tags:
       - books
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -342,33 +356,95 @@ paths:
               schema:
                 $ref: '#/components/schemas/BookDetail'
           description: ''
-  /api/books/contains-character/:
-    get:
-      operationId: books_contains_character_list
+    put:
+      operationId: books_update
       parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
+      - in: path
+        name: slug
         schema:
-          type: integer
-      - name: per_page
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
+          type: string
+        required: true
       tags:
       - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BookWrite'
+        required: true
       security:
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedBookListList'
+                $ref: '#/components/schemas/BookWrite'
+          description: ''
+    patch:
+      operationId: books_partial_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBookWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBookWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBookWrite'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookWrite'
+          description: ''
+    delete:
+      operationId: books_destroy
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/books/contains-character/:
+    get:
+      operationId: books_contains_character_retrieve
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookDetail'
           description: ''
   /api/genres/:
     get:
@@ -1278,20 +1354,36 @@ components:
     BookDetail:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
+        title:
+          type: string
+          maxLength: 500
         slug:
           type: string
           maxLength: 255
           pattern: ^[-a-zA-Z0-9_]+$
-        title:
+        cover_url:
           type: string
+          format: uri
           maxLength: 500
-        author:
-          type: string
+        authors:
+          type: array
+          items:
+            type: string
+        genres:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        serie:
+          allOf:
+          - $ref: '#/components/schemas/Serie'
           readOnly: true
-        year:
+        description:
+          type: string
+        page_count:
           type: integer
           maximum: 2147483647
           minimum: 1
@@ -1300,84 +1392,80 @@ components:
           type: string
           nullable: true
           maxLength: 20
-        description:
-          type: string
-        page_count:
+        avg_rating:
+          type: number
+          format: double
+        year:
           type: integer
           maximum: 2147483647
           minimum: 1
           nullable: true
-        genres:
-          type: string
-          readOnly: true
-        tags:
-          type: string
-          readOnly: true
-        avg_rating:
-          type: number
-          format: double
-        ratingsCount:
+        position_in_series:
           type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+        ratings_count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        created_at:
+          type: string
+          format: date
+          readOnly: true
+        updated_at:
+          type: string
+          format: date
+          readOnly: true
       required:
-      - author
+      - authors
+      - created_at
       - genres
-      - id
-      - ratingsCount
+      - serie
       - tags
       - title
+      - updated_at
     BookList:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
+        title:
+          type: string
+          maxLength: 500
         slug:
           type: string
           maxLength: 255
           pattern: ^[-a-zA-Z0-9_]+$
-        title:
+        cover_url:
           type: string
+          format: uri
           maxLength: 500
-        author:
-          type: string
-          readOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+        genres:
+          type: array
+          items:
+            type: string
+        avg_rating:
+          type: number
+          format: double
         year:
           type: integer
           maximum: 2147483647
           minimum: 1
           nullable: true
-        isbn:
-          type: string
-          nullable: true
-          maxLength: 20
-        description:
-          type: string
-        page_count:
-          type: integer
-          maximum: 2147483647
-          minimum: 1
-          nullable: true
-        genres:
-          type: string
-          readOnly: true
-        tags:
-          type: string
-          readOnly: true
-        avg_rating:
-          type: number
-          format: double
-        ratings_count:
-          type: integer
-          maximum: 2147483647
-          minimum: -2147483648
       required:
-      - author
+      - authors
       - genres
       - id
-      - tags
       - title
     BookPreview:
       type: object
+      description: Minimal preview used by user profile/recently-read endpoints.
       properties:
         id:
           type: integer
@@ -1398,6 +1486,61 @@ components:
       required:
       - author
       - id
+      - title
+    BookWrite:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        isbn:
+          type: string
+          nullable: true
+          maxLength: 20
+        description:
+          type: string
+        page_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        cover_url:
+          type: string
+          format: uri
+          maxLength: 500
+        avg_rating:
+          type: number
+          format: double
+        serie:
+          allOf:
+          - $ref: '#/components/schemas/_SerieWrite'
+          writeOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        genres:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        tags:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        position_in_series:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+      required:
       - title
     Follow:
       type: object
@@ -1608,6 +1751,59 @@ components:
         total:
           type: integer
           example: 100
+    PatchedBookWrite:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        year:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        isbn:
+          type: string
+          nullable: true
+          maxLength: 20
+        description:
+          type: string
+        page_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+          nullable: true
+        cover_url:
+          type: string
+          format: uri
+          maxLength: 500
+        avg_rating:
+          type: number
+          format: double
+        serie:
+          allOf:
+          - $ref: '#/components/schemas/_SerieWrite'
+          writeOnly: true
+        authors:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        genres:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        tags:
+          type: array
+          items:
+            type: string
+          writeOnly: true
+        position_in_series:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
     PatchedReview:
       type: object
       properties:
@@ -1943,6 +2139,13 @@ components:
       - avatar_url
       - handle
       - member_since
+    _SerieWrite:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+      - name
   securitySchemes:
     jwtAuth:
       type: http
