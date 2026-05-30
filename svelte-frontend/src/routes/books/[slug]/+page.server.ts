@@ -1,32 +1,26 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getBook, getReviews } from '$lib/api/books';
-import { getExtraction } from '$lib/api/ai';
-import { getShelfEntry, type ShelfStatus } from '$lib/api/shelves';
+import { getBook } from '$lib/api/books';
+import { fetchUserRating } from '$lib/api/ratings';
+import { fetchShelfEntry } from '$lib/api/shelf';
 
 export const load: PageServerLoad = async ({ fetch, params, parent }) => {
-	const [{ user }, bookRes, reviewsRes] = await Promise.all([
-		parent(),
+	const { user } = await parent();
+
+	const [bookRes, ratingRes, entryRes] = await Promise.all([
 		getBook(fetch, params.slug),
-		getReviews(fetch, params.slug)
+		user ? fetchUserRating(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
+		user ? fetchShelfEntry(fetch, params.slug, true) : Promise.resolve({ data: null, error: null })
 	]);
 
 	if (bookRes.error) {
 		throw error(bookRes.error.status || 500, bookRes.error.detail);
 	}
 
-	const book = bookRes.data!;
-
-	// Load in parallel: extraction (if ready) + shelf status (if logged in)
-	const [extractionRes, shelfRes] = await Promise.all([
-		book.ai_extraction_status === 'ready' ? getExtraction(fetch, book.id) : Promise.resolve(null),
-		user ? getShelfEntry(fetch, book.id) : Promise.resolve(null)
-	]);
-
 	return {
-		book,
-		reviews: reviewsRes.data ?? { data: [], page: 1, per_page: 20, total: 0 },
-		extraction: extractionRes?.data ?? null,
-		shelfStatus: (shelfRes?.data?.status ?? 'none') as ShelfStatus | 'none'
+		book: bookRes.data!,
+		user,
+		userRating: ratingRes.data ? { id: ratingRes.data.id, rating: ratingRes.data.rating } : null,
+		shelfEntry: entryRes.data ?? null
 	};
 };

@@ -16,10 +16,7 @@ export const fixtureBooks: Book[] = [
 		page_count: 412,
 		avg_rating: 4.5,
 		ratings_count: 128,
-		serie: { name: 'Dune Chronicles', position_in_series: 1 },
-		characters_count: 8,
-		relations_count: 6,
-		ai_extraction_status: 'ready'
+		serie: { name: 'Dune Chronicles', position_in_series: 1 }
 	},
 	{
 		id: 2,
@@ -36,10 +33,7 @@ export const fixtureBooks: Book[] = [
 		page_count: 496,
 		avg_rating: 4.7,
 		ratings_count: 95,
-		serie: null,
-		characters_count: 0,
-		relations_count: 0,
-		ai_extraction_status: 'none'
+		serie: null
 	}
 ];
 

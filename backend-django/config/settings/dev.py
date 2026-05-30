@@ -7,7 +7,6 @@ DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "django"]
 # >=32 bytes silences InsecureKeyLengthWarning during tests
 SECRET_KEY = "dev-not-for-production-padding-padding-padding"
-CELERY_TASK_ALWAYS_EAGER = True
 CORS_ALLOW_ALL_ORIGINS = True
 # JWT cookies dev: same-origin (Vue 5173 + API 8000), brak HTTPS lokalnie
 JWT_COOKIE_SAMESITE = "Lax"

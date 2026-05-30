@@ -4,8 +4,7 @@
 	import { Card } from '$lib/components/ui/card';
 	import { enhance } from '$app/forms';
 
-	// eslint-disable-next-line no-empty-pattern
-	let {} = $props();
+	let { data } = $props();
 </script>
 
 <svelte:head>
@@ -19,6 +18,13 @@
 		<form method="POST" action="?/privacy" use:enhance class="space-y-4">
 			<div class="flex items-center justify-between">
 				<div>
+					<p class="text-sm font-medium text-ink">Public profile</p>
+					<p class="text-xs text-muted">Allow anyone to view your profile page.</p>
+				</div>
+				<Switch name="profile_public" checked={data.profilePublic} />
+			</div>
+			<div class="flex items-center justify-between">
+				<div>
 					<p class="text-sm font-medium text-ink">Show real name</p>
 					<p class="text-xs text-muted">Display your real name on your profile.</p>
 				</div>
@@ -30,13 +36,6 @@
 					<p class="text-xs text-muted">Show your reading activity to others.</p>
 				</div>
 				<Switch name="show_activity" />
-			</div>
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-ink">AI learning</p>
-					<p class="text-xs text-muted">Allow AI to learn from your notes and reviews.</p>
-				</div>
-				<Switch name="ai_learn_from_notes" />
 			</div>
 			<div class="flex items-center justify-between">
 				<div>

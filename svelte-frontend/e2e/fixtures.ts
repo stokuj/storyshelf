@@ -27,6 +27,12 @@ function uniqueDisplayName(): string {
 	return `Test ${randomUUID().slice(0, 6)}`;
 }
 
+function uniqueHandle(): string {
+	// Django requires handle to match ^[a-z]{3,30}$ (lowercase letters only).
+	const letters = (randomUUID() + randomUUID()).replace(/[^a-f]/g, '');
+	return `t${letters}`.slice(0, 30);
+}
+
 /**
  * Remove the HTML `required` attribute from an input so the browser doesn't
  * block form submission before server-side validation runs.
@@ -38,7 +44,7 @@ export async function bypassRequired(locator: import('@playwright/test').Locator
 /**
  * Register a new user via the Django API. Returns user info and auth cookies.
  * Cookies come from api.storageState() — avoids hand-rolled Set-Cookie parsing.
- * Django endpoint: POST /api/auth/register/ with { email, display_name, password }
+ * Django endpoint: POST /api/auth/register/ with { email, handle, display_name, password }
  */
 async function registerUser(api: APIRequestContext): Promise<{
 	user: AuthUser;
@@ -47,9 +53,10 @@ async function registerUser(api: APIRequestContext): Promise<{
 	const email = uniqueEmail();
 	const password = TEST_PASSWORD;
 	const displayName = uniqueDisplayName();
+	const handle = uniqueHandle();
 
 	const res = await api.post('/api/auth/register/', {
-		data: { email, display_name: displayName, password }
+		data: { email, display_name: displayName, password, handle }
 	});
 
 	if (!res.ok()) {

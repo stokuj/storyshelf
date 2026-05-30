@@ -26,10 +26,9 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "users.apps.UsersConfig",
     "books.apps.BooksConfig",
-    "reviews.apps.ReviewsConfig",
-    "shelf.apps.ShelfConfig",
     "library.apps.LibraryConfig",
-    "analysis.apps.AnalysisConfig",
+    "ratings.apps.RatingsConfig",
+    "shelf.apps.ShelfConfig",
 ]
 
 MIDDLEWARE = [
@@ -133,19 +132,6 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
-
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://rabbitmq:5672//")
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TASK_DEFAULT_RETRY_DELAY = 10
-CELERY_TASK_MAX_RETRIES = 3
-
-CELERY_TASK_ROUTES = {
-    "analysis.tasks.analyse_book": {"queue": "ner"},
-    "analysis.tasks.relations_for_book": {"queue": "llm"},
-}
 
 # --- CORS (django-cors-headers) ---
 # Cross-origin policy: explicit allowlist + credentials (wymagane dla cookies JWT).

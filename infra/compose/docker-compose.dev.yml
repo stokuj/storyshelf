@@ -13,12 +13,8 @@ services:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
@@ -48,70 +44,6 @@ services:
       timeout: 3s
       retries: 5
 
-  celery-ner:
-    build: ../../backend-django
-    container_name: storyshelf-celery-ner
-    volumes:
-      - ../../backend-django:/app
-      - /app/.venv
-    environment:
-      DJANGO_ENV: dev
-      DJANGO_SECRET_KEY: dev-secret-key
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-    restart: unless-stopped
-    depends_on:
-      - django
-      - rabbitmq
-    command: celery -A config worker -Q ner -l info -c 2 --pool prefork
-
-  celery-llm:
-    build: ../../backend-django
-    container_name: storyshelf-celery-llm
-    volumes:
-      - ../../backend-django:/app
-      - /app/.venv
-    environment:
-      DJANGO_ENV: dev
-      DJANGO_SECRET_KEY: dev-secret-key
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-    restart: unless-stopped
-    depends_on:
-      - django
-      - rabbitmq
-    command: celery -A config worker -Q llm -l info -c 10 --pool gevent
-
-  flower:
-    image: mher/flower:2.0
-    container_name: storyshelf-flower
-    ports:
-      - "5555:5555"
-    environment:
-      CELERY_BROKER_URL: amqp://celery:celery@rabbitmq:5672//
-    depends_on:
-      - rabbitmq
-    command: celery -A config flower --port=5555 --broker=amqp://celery:celery@rabbitmq:5672//
-
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: storyshelf-rabbitmq
-    ports:
-      - "127.0.0.1:15672:15672"
-    volumes:
-      - ../rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
-    environment:
-      RABBITMQ_DEFAULT_USER: celery
-      RABBITMQ_DEFAULT_PASS: celery
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   db:
     image: postgres:16
     container_name: books-db
@@ -129,14 +61,6 @@ services:
     ports:
       - "5432:5432"
 
-  redis:
-    image: redis:7-alpine
-    container_name: storyweave-redis
-    volumes:
-      - redis-data:/data
-    restart: unless-stopped
-
 volumes:
   db-data:
-  redis-data:
   media:

@@ -65,7 +65,7 @@ class BookWriteSerializer(serializers.ModelSerializer):
         model = Book
         fields = [
             "title", "year", "isbn", "description", "page_count", "cover_url",
-            "avg_rating", "serie", "authors", "genres", "tags", "position_in_series",
+            "serie", "authors", "genres", "tags", "position_in_series",
         ]
 
     def _resolve_m2m(self, names, model_cls, normalize):

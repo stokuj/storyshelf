@@ -56,7 +56,9 @@
       "Bash(DJANGO_ENV=prod DJANGO_SECRET_KEY=t ALLOWED_HOSTS=e.com CSRF_TRUSTED_ORIGINS=https://e.com JWT_COOKIE_SAMESITE=None JWT_COOKIE_SECURE=true uv run python manage.py check)",
       "Bash(DJANGO_ENV=prod DJANGO_SECRET_KEY=t ALLOWED_HOSTS=e.com CSRF_TRUSTED_ORIGINS=https://e.com JWT_COOKIE_SAMESITE=None JWT_COOKIE_SECURE=false uv run python manage.py check)",
       "Bash(npx prettier *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(claude --version)",
+      "Bash(npm list *)"
     ]
   }
 }

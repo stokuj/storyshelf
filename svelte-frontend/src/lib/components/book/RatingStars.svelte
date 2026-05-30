@@ -2,20 +2,27 @@
 	import { Star } from 'lucide-svelte';
 
 	interface Props {
-		value?: number;
+		rating?: number | null;
+		onRate?: (rating: number) => Promise<void>;
 		readonly?: boolean;
 		size?: 'sm' | 'md';
 	}
-	let { value = $bindable(0), readonly = false, size = 'md' }: Props = $props();
 
-	const sizeMap: Record<string, string> = { sm: 'size-3', md: 'size-4' };
-	const sizeCls = $derived(sizeMap[size] ?? 'size-4');
+	let { rating = null, onRate = undefined, readonly = false, size = 'md' }: Props = $props();
 
+	const sizeCls = $derived(size === 'sm' ? 'size-3' : 'size-4');
 	let hoverValue = $state(0);
+	let loading = $state(false);
 
-	function handleClick(star: number) {
-		if (!readonly) {
-			value = star;
+	const displayValue = $derived(hoverValue > 0 ? hoverValue : (rating ?? 0));
+
+	async function handleClick(star: number) {
+		if (readonly || loading || !onRate) return;
+		loading = true;
+		try {
+			await onRate(star);
+		} finally {
+			loading = false;
 		}
 	}
 </script>
@@ -24,22 +31,25 @@
 	{#each [1, 2, 3, 4, 5] as star (star)}
 		<button
 			type="button"
-			class="transition-colors {readonly
+			data-testid="rating-star"
+			data-rating={star}
+			data-selected={star <= (rating ?? 0)}
+			class="transition-transform {readonly || !onRate
 				? 'cursor-default'
-				: 'cursor-pointer hover:scale-110 transition-transform'}"
-			class:text-accent={star <= value || star <= hoverValue}
-			class:text-rule={star > value && star > hoverValue}
-			disabled={readonly}
+				: 'cursor-pointer hover:scale-110'}"
+			class:text-accent={star <= displayValue}
+			class:text-rule={star > displayValue}
+			disabled={readonly || loading}
+			aria-label="{star} star{star > 1 ? 's' : ''}"
 			onclick={() => handleClick(star)}
 			onmouseenter={() => {
-				if (!readonly) hoverValue = star;
+				if (!readonly && !loading && onRate) hoverValue = star;
 			}}
 			onmouseleave={() => {
 				hoverValue = 0;
 			}}
-			aria-label="{star} star{star > 1 ? 's' : ''}"
 		>
-			<Star class={sizeCls} fill={star <= value || star <= hoverValue ? 'currentColor' : 'none'} />
+			<Star class={sizeCls} fill={star <= displayValue ? 'currentColor' : 'none'} />
 		</button>
 	{/each}
 </div>

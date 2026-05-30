@@ -4,8 +4,6 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from reviews.views import BookReviewListCreateView
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("library.urls")),
@@ -13,10 +11,8 @@ urlpatterns = [
     path("api/users/", include("users.urls.users")),
     path("api/u/", include("users.urls.public")),
     path("api/", include("books.urls")),
-    path("api/books/<str:id_or_slug>/reviews/", BookReviewListCreateView.as_view()),
+    path("api/", include("ratings.urls")),
     path("api/shelf/", include("shelf.urls")),
-    path("api/reviews/", include("reviews.urls")),
-    path("api/", include("analysis.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",

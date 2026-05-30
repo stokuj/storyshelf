@@ -3,7 +3,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Card } from '$lib/components/ui/card';
-	import CharacterAvatar from '$lib/components/character/CharacterAvatar.svelte';
+	import Avatar from '$lib/components/Avatar.svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
 	import type { UserMe } from '$lib/api/user';
@@ -23,7 +23,7 @@
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Avatar</h2>
 		<div class="flex items-center gap-4">
-			<CharacterAvatar name={user?.display_name ?? 'User'} avatarUrl={user?.avatar_url} size="xl" />
+			<Avatar name={user?.display_name ?? 'User'} avatarUrl={user?.avatar_url} size="xl" />
 			<div>
 				<form method="POST" action="?/avatar" enctype="multipart/form-data" use:enhance>
 					<input type="file" name="avatar" accept="image/*" class="hidden" id="avatar-upload" />

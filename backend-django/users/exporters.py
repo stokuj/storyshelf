@@ -27,43 +27,6 @@ def build_user_export_zip(user):
         }
         zf.writestr("user.json", json.dumps(user_data, indent=2, cls=_DatetimeEncoder))
 
-        # shelf_entries.json
-        entries = list(
-            user.shelf_entries.select_related("book").order_by("-created_at")
-        )
-        shelf_entries_data = [
-            {
-                "book_id": e.book_id,
-                "book_title": e.book.title,
-                "status": e.status,
-                "start_date": e.start_date.isoformat() if e.start_date else None,
-                "finish_date": e.finish_date.isoformat() if e.finish_date else None,
-                "personal_rating": e.personal_rating,
-                "created_at": e.created_at.isoformat(),
-            }
-            for e in entries
-        ]
-        zf.writestr(
-            "shelf_entries.json",
-            json.dumps(shelf_entries_data, indent=2, cls=_DatetimeEncoder),
-        )
-
-        # reviews.json
-        reviews = list(
-            user.review_set.select_related("book").order_by("-created_at")
-        )
-        reviews_data = [
-            {
-                "book_id": r.book_id,
-                "book_title": r.book.title,
-                "rating": r.rating,
-                "content": r.content,
-                "created_at": r.created_at.isoformat(),
-            }
-            for r in reviews
-        ]
-        zf.writestr("reviews.json", json.dumps(reviews_data, indent=2, cls=_DatetimeEncoder))
-
         # follows.json
         following_qs = user.following_set.select_related("following").order_by("following__handle")
         follower_qs = user.follower_set.select_related("follower").order_by("follower__handle")
@@ -78,6 +41,35 @@ def build_user_export_zip(user):
             ],
         }
         zf.writestr("follows.json", json.dumps(follows_data, indent=2, cls=_DatetimeEncoder))
+
+        # shelf_entries.json
+        shelf_qs = user.shelf_entries.select_related("book").order_by("-created_at")
+        shelf_data = [
+            {
+                "book_title": e.book.title,
+                "book_slug": e.book.slug,
+                "status": e.status,
+                "start_date": e.start_date,
+                "finish_date": e.finish_date,
+                "current_page": e.current_page,
+                "created_at": e.created_at,
+            }
+            for e in shelf_qs
+        ]
+        zf.writestr("shelf_entries.json", json.dumps(shelf_data, indent=2, cls=_DatetimeEncoder))
+
+        # ratings.json
+        ratings_qs = user.ratings.select_related("book").order_by("-created_at")
+        ratings_data = [
+            {
+                "book_title": r.book.title,
+                "book_slug": r.book.slug,
+                "rating": r.rating,
+                "created_at": r.created_at,
+            }
+            for r in ratings_qs
+        ]
+        zf.writestr("ratings.json", json.dumps(ratings_data, indent=2, cls=_DatetimeEncoder))
 
         # avatar
         if user.avatar and user.avatar.name:
@@ -94,11 +86,11 @@ def build_user_export_zip(user):
             f"Generated: {date.today().isoformat()}\n"
             f"User: {user.handle}\n\n"
             f"Contents:\n"
-            f"  user.json         — profile data\n"
-            f"  shelf_entries.json — reading history\n"
-            f"  reviews.json      — book reviews\n"
+            f"  user.json          — profile data\n"
             f"  follows.json       — followers and following\n"
-            f"  avatar_*          — profile picture (if set)\n"
+            f"  shelf_entries.json — reading shelf (status, progress, dates)\n"
+            f"  ratings.json       — book ratings\n"
+            f"  avatar_*           — profile picture (if set)\n"
         )
         zf.writestr("README.txt", readme)
 

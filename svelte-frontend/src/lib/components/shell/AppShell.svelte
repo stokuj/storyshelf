@@ -31,9 +31,9 @@
 			</a>
 			<nav class="hidden md:flex items-center gap-1">
 				<Button variant="ghost" size="sm" href={resolve('/discover')}>Discover</Button>
-				<Button variant="ghost" size="sm" href={user ? resolve('/u/me/shelf') : resolve('/login')}
-					>My Shelf</Button
-				>
+				{#if user}
+					<Button variant="ghost" size="sm" href={resolve('/shelf')}>Shelf</Button>
+				{/if}
 			</nav>
 		</div>
 

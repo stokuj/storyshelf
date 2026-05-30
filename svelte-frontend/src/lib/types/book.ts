@@ -11,8 +11,6 @@ export interface SerieInfo {
 	position_in_series: number | null;
 }
 
-export type AIExtractionStatus = 'none' | 'pending' | 'ready' | 'failed';
-
 export interface Book {
 	id: number;
 	slug: string;
@@ -30,7 +28,4 @@ export interface Book {
 	avg_rating: number;
 	ratings_count: number;
 	serie: SerieInfo | null;
-	characters_count?: number;
-	relations_count?: number;
-	ai_extraction_status?: AIExtractionStatus;
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
 	import { cn } from '$lib/utils';
 
 	interface Props {
@@ -8,12 +9,25 @@
 	}
 
 	let { class: className = '', children, ...restProps }: Props = $props();
+
+	const menu = getContext('dropdown-menu') as { toggle: () => void };
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			menu.toggle();
+		}
+	}
 </script>
 
-<button
+<!-- Wrapper is a div (not a button) so consumers can place an inner button (e.g. avatar) without invalid nested buttons. -->
+<div
 	class={cn('inline-flex items-center justify-center', className)}
-	type="button"
+	role="button"
+	tabindex="0"
+	onclick={() => menu.toggle()}
+	onkeydown={handleKeydown}
 	{...restProps}
 >
 	{@render children()}
-</button>
+</div>

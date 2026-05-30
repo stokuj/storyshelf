@@ -151,9 +151,7 @@
 		<h1 class="font-display text-4xl md:text-5xl tracking-tight font-medium text-ink mb-2">
 			Discover
 		</h1>
-		<p class="text-ink-2 text-[15px] leading-relaxed">
-			Browse books, find your next read, and explore AI-extracted characters.
-		</p>
+		<p class="text-ink-2 text-[15px] leading-relaxed">Browse books and find your next read.</p>
 	</div>
 
 	<FilterBar
