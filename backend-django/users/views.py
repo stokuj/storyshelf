@@ -4,7 +4,6 @@ from datetime import date
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from django.db.models import F
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, serializers, status, views
@@ -16,10 +15,6 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from books.models import Book
-from books.serializers import BookPreviewSerializer
-from shelf.models import Shelf, ShelfEntry
-from shelf.serializers import ShelfSerializer
 from users.cookie_auth import clear_jwt_cookies, set_jwt_cookies
 from users.models import User, UserFollow
 from users.serializers import (
@@ -374,44 +369,3 @@ class FollowListView(generics.ListAPIView):
         )
 
 
-class PublicUserShelvesView(generics.ListAPIView):
-    """Publiczne półki użytkownika, szanujące profile_public."""
-
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = ShelfSerializer
-    pagination_class = None
-
-    def get_queryset(self):
-        handle = self.kwargs["handle"]
-        target = get_object_or_404(User, handle=handle)
-        if not target.profile_public and target != self.request.user:
-            raise Http404("No User matches the given query.")
-        qs = Shelf.objects.filter(user=target).prefetch_related("memberships")
-        if target != self.request.user:
-            qs = qs.filter(is_public=True)
-        return qs.order_by("-created_at")
-
-
-class PublicUserRecentlyReadView(generics.ListAPIView):
-    """Do 6 ostatnio przeczytanych książek, szanujące profile_public."""
-
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = BookPreviewSerializer
-    pagination_class = None
-
-    def get_queryset(self):
-        handle = self.kwargs["handle"]
-        target = get_object_or_404(User, handle=handle)
-        if not target.profile_public and target != self.request.user:
-            raise Http404("No User matches the given query.")
-        return (
-            Book.objects.filter(
-                shelf_entries__user=target,
-                shelf_entries__status=ShelfEntry.Status.READ,
-            )
-            .order_by(
-                F("shelf_entries__finish_date").desc(nulls_last=True),
-                "-shelf_entries__created_at",
-            )
-            .distinct()[:6]
-        )

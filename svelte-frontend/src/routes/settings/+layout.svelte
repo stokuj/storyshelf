@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { User, Shield, Bell, Sparkles, Database } from 'lucide-svelte';
+	import { User, Shield, Bell, Database } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -12,7 +12,6 @@
 		{ label: 'Account', href: '/settings', icon: User },
 		{ label: 'Profile & privacy', href: '/settings/profile', icon: Shield },
 		{ label: 'Notifications', href: '/settings/notifications', icon: Bell },
-		{ label: 'AI preferences', href: '/settings/ai', icon: Sparkles },
 		{ label: 'Data & export', href: '/settings/data', icon: Database }
 	];
 </script>

@@ -3,14 +3,6 @@ from django.db import IntegrityError, models, transaction
 from django.utils.text import slugify
 
 
-class AIExtractionStatus(models.TextChoices):
-    NONE = "none"
-    PENDING = "pending"
-    RUNNING = "running"
-    DONE = "done"
-    FAILED = "failed"
-
-
 def _generate_unique_slug(title: str) -> str:
     base = slugify(title)[:200] or "book"
     slug = base
@@ -36,18 +28,9 @@ class Book(models.Model):
     description = models.TextField(blank=True, default="")
     page_count = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(1)])
     position_in_series = models.IntegerField(null=True, blank=True)
-    text = models.TextField(blank=True, default="")
     avg_rating = models.FloatField(default=0.0)
     ratings_count = models.IntegerField(default=0)
     slug = models.SlugField(max_length=255, unique=True, blank=True, default="")
-    ai_extraction_status = models.CharField(
-        max_length=20,
-        choices=AIExtractionStatus.choices,
-        default=AIExtractionStatus.NONE,
-    )
-    ai_extraction_started_at = models.DateTimeField(null=True, blank=True)
-    ai_extraction_finished_at = models.DateTimeField(null=True, blank=True)
-    ai_extraction_failure_reason = models.TextField(blank=True, default="")
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
     authors = models.ManyToManyField("library.Author", through="BookAuthor")

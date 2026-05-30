@@ -2,19 +2,12 @@ from django.db import migrations, models
 
 
 def backfill_extraction_status(apps, schema_editor):
-    Book = apps.get_model("books", "Book")
-    done_ids = (
-        Book.objects.filter(characters__isnull=False)
-        .values_list("id", flat=True)
-        .distinct()
-    )
-    Book.objects.filter(id__in=done_ids).update(ai_extraction_status="done")
+    pass  # analysis app removed; no-op
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("analysis", "0004_bookcharacter_ai_fields"),
         ("books", "0005_bookcharacter_ai_fields"),
     ]
 

@@ -10,8 +10,7 @@ dev-up:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) up -d
 	@printf '\n%s\n' 'Dev services:'
 	@printf '%s\n' '  svelte: http://localhost:5174'
-	@printf '%s\n' '  rabbitmq UI: http://127.0.0.1:15672'
-	@printf '%s\n' '  flower: http://localhost:5555'
+	@printf '%s\n' '  django api: http://localhost:8000/api/'
 	@printf '%s\n' '  admin panel: http://localhost:8000/admin/'
 
 dev-down:

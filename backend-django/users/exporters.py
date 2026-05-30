@@ -27,43 +27,6 @@ def build_user_export_zip(user):
         }
         zf.writestr("user.json", json.dumps(user_data, indent=2, cls=_DatetimeEncoder))
 
-        # shelf_entries.json
-        entries = list(
-            user.shelf_entries.select_related("book").order_by("-created_at")
-        )
-        shelf_entries_data = [
-            {
-                "book_id": e.book_id,
-                "book_title": e.book.title,
-                "status": e.status,
-                "start_date": e.start_date.isoformat() if e.start_date else None,
-                "finish_date": e.finish_date.isoformat() if e.finish_date else None,
-                "personal_rating": e.personal_rating,
-                "created_at": e.created_at.isoformat(),
-            }
-            for e in entries
-        ]
-        zf.writestr(
-            "shelf_entries.json",
-            json.dumps(shelf_entries_data, indent=2, cls=_DatetimeEncoder),
-        )
-
-        # reviews.json
-        reviews = list(
-            user.review_set.select_related("book").order_by("-created_at")
-        )
-        reviews_data = [
-            {
-                "book_id": r.book_id,
-                "book_title": r.book.title,
-                "rating": r.rating,
-                "content": r.content,
-                "created_at": r.created_at.isoformat(),
-            }
-            for r in reviews
-        ]
-        zf.writestr("reviews.json", json.dumps(reviews_data, indent=2, cls=_DatetimeEncoder))
-
         # follows.json
         following_qs = user.following_set.select_related("following").order_by("following__handle")
         follower_qs = user.follower_set.select_related("follower").order_by("follower__handle")
@@ -95,8 +58,6 @@ def build_user_export_zip(user):
             f"User: {user.handle}\n\n"
             f"Contents:\n"
             f"  user.json         — profile data\n"
-            f"  shelf_entries.json — reading history\n"
-            f"  reviews.json      — book reviews\n"
             f"  follows.json       — followers and following\n"
             f"  avatar_*          — profile picture (if set)\n"
         )

@@ -14,18 +14,8 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 		throw error(profileErr.status === 404 ? 404 : 500, profileErr.detail);
 	}
 
-	// Get shelves
-	const { data: shelves } = await apiFetch<
-		{ name: string; book_count: string; is_public: boolean }[]
-	>(fetch, `/users/${params.handle}/shelves/`, undefined, true);
-
-	// Check if viewer is owner
 	const { user: viewer } = await parent();
 	const isOwner = viewer?.handle === params.handle;
 
-	return {
-		profile,
-		shelves: shelves ?? [],
-		isOwner
-	};
+	return { profile, isOwner };
 };

@@ -2,19 +2,40 @@
 	import type { PageProps } from './$types';
 	import BookCover from '$lib/components/book/BookCover.svelte';
 	import BookHeader from '$lib/components/book/BookHeader.svelte';
-	import BookActions from '$lib/components/book/BookActions.svelte';
 	import BookMeta from '$lib/components/book/BookMeta.svelte';
 	import BookDescription from '$lib/components/book/BookDescription.svelte';
-	import ReviewList from '$lib/components/book/ReviewList.svelte';
-	import ReviewComposer from '$lib/components/book/ReviewComposer.svelte';
-	import AICastPanel from '$lib/components/ai/AICastPanel.svelte';
-	import { Separator } from '$lib/components/ui/separator';
+	import { toast } from 'svelte-sonner';
+	import RatingStars from '$lib/components/book/RatingStars.svelte';
+	import ShelfControl from '$lib/components/shelf/ShelfControl.svelte';
+	import { upsertRating, deleteRatingById } from '$lib/api/ratings';
 
 	let { data }: PageProps = $props();
 	let book = $derived(data.book!);
-	let reviews = $derived(data.reviews);
-	let extraction = $derived(data.extraction);
-	let shelfStatus = $derived(data.shelfStatus);
+
+	let userRating = $state(data.userRating?.rating ?? null);
+	let ratingId = $state(data.userRating?.id ?? null);
+	let savingRating = $state(false);
+
+	async function handleRate(star: number) {
+		if (savingRating) return;
+		savingRating = true;
+		if (star === userRating && ratingId) {
+			const { error } = await deleteRatingById(fetch, ratingId);
+			if (error) toast.error('Failed to remove rating');
+			else {
+				userRating = null;
+				ratingId = null;
+			}
+		} else {
+			const { data: result, error } = await upsertRating(fetch, data.book.slug, star);
+			if (error || !result) toast.error('Failed to save rating');
+			else {
+				userRating = result.rating;
+				ratingId = result.id;
+			}
+		}
+		savingRating = false;
+	}
 </script>
 
 <svelte:head>
@@ -25,67 +46,53 @@
 </svelte:head>
 
 <div class="max-w-[1240px] mx-auto px-6 md:px-10 py-8">
-	<!-- Mobile: stacked layout -->
-	<div class="lg:hidden space-y-6">
-		<div class="flex gap-6">
+	<div class="flex flex-col gap-6 lg:grid lg:grid-cols-[140px_1fr] lg:gap-8 lg:items-start">
+		<!-- Cover column (desktop) / cover + header row (mobile) -->
+		<div class="flex gap-6 lg:block lg:space-y-4">
 			<BookCover coverUrl={book.cover_url} title={book.title} size="md" />
-			<div class="flex-1">
+			<!-- Mobile: header beside cover -->
+			<div class="flex-1 lg:hidden">
 				<BookHeader {book} />
-				<div class="mt-3">
-					<BookActions bookId={book.id} initialStatus={shelfStatus} />
-				</div>
-				<div class="mt-2 text-sm text-muted">
-					★ {book.avg_rating?.toFixed(1) ?? '—'} · {book.ratings_count} ratings
-				</div>
+				<div class="mt-2 text-sm text-muted">★ {book.avg_rating?.toFixed(1) ?? '—'}</div>
 			</div>
-		</div>
-		<BookDescription description={book.description} />
-		<Separator />
-
-		<!-- Mobile tab sections (no tab widget, just visual sections) -->
-		<div class="space-y-6">
-			<section>
-				<h2 class="font-display text-xl font-medium text-ink mb-4">Reviews</h2>
-				<ReviewComposer slug={book.slug} />
-				<div class="mt-4">
-					<ReviewList {reviews} />
-				</div>
-			</section>
-			<Separator />
-			<section>
-				<h2 class="font-display text-xl font-medium text-ink mb-4">AI Cast</h2>
-				<AICastPanel bookId={book.id} slug={book.slug} initialExtraction={extraction} />
-			</section>
-		</div>
-	</div>
-
-	<!-- Desktop: 3-column -->
-	<div class="hidden lg:grid lg:grid-cols-[140px_1fr_260px] gap-8">
-		<!-- Left: cover + actions -->
-		<div class="space-y-4">
-			<BookCover coverUrl={book.cover_url} title={book.title} size="md" />
-			<BookActions bookId={book.id} initialStatus={shelfStatus} />
-			<div class="text-center text-sm text-muted">
-				★ {book.avg_rating?.toFixed(1) ?? '—'} · {book.ratings_count} ratings
+			<!-- Desktop: avg under cover -->
+			<div class="hidden lg:block text-center text-sm text-muted">
+				★ {book.avg_rating?.toFixed(1) ?? '—'}
 			</div>
 		</div>
 
-		<!-- Middle: info + reviews -->
-		<div class="space-y-8 min-w-0">
-			<BookHeader {book} />
-			<BookMeta {book} />
+		<!-- Main content column (reflows below cover row on mobile) -->
+		<div class="space-y-6 lg:space-y-8 min-w-0">
+			<!-- Desktop: header in content column -->
+			<div class="hidden lg:block">
+				<BookHeader {book} />
+			</div>
+
+			<!-- Rating + shelf controls — rendered exactly once -->
+			<div class="flex flex-col gap-3">
+				<div class="flex items-center gap-2">
+					<RatingStars
+						rating={userRating}
+						onRate={data.user ? handleRate : undefined}
+						readonly={!data.user}
+					/>
+					{#if data.book.ratings_count > 0}
+						<span class="text-sm text-muted"
+							>{data.book.avg_rating.toFixed(1)} ({data.book.ratings_count})</span
+						>
+					{/if}
+				</div>
+				{#if data.user}
+					<ShelfControl bookSlug={data.book.slug} initialEntry={data.shelfEntry} />
+				{/if}
+			</div>
+
+			<!-- BookMeta: desktop only (mobile intentionally omits it, as before) -->
+			<div class="hidden lg:block">
+				<BookMeta {book} />
+			</div>
+
 			<BookDescription description={book.description} />
-			<Separator />
-			<div class="space-y-4">
-				<h2 class="font-display text-2xl font-medium text-ink">Reviews</h2>
-				<ReviewComposer slug={book.slug} />
-				<ReviewList {reviews} />
-			</div>
-		</div>
-
-		<!-- Right: AI panel -->
-		<div class="sticky top-20 self-start">
-			<AICastPanel bookId={book.id} slug={book.slug} initialExtraction={extraction} />
 		</div>
 	</div>
 </div>

@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
-import { PUBLIC_API_URL } from '$lib/config';
+import { serverApiBase } from '$lib/server/api';
 import { forwardSetCookies } from '$lib/server/cookies';
 
 export const actions: Actions = {
@@ -13,7 +13,7 @@ export const actions: Actions = {
 			return fail(400, { email, missing: !email ? 'email' : 'password' });
 		}
 
-		const res = await fetch(`${PUBLIC_API_URL}/auth/login/`, {
+		const res = await fetch(`${serverApiBase()}/auth/login/`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ email, password }),

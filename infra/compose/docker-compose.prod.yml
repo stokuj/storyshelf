@@ -10,12 +10,8 @@ services:
       DJANGO_ENV: prod
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       db:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     volumes:
       - media:/app/media
@@ -44,78 +40,6 @@ services:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
       interval: 10s
       timeout: 3s
-      retries: 5
-
-  celery-ner:
-    image: ghcr.io/stokuj/storyshelf-django:main
-    container_name: storyshelf-celery-ner
-    restart: unless-stopped
-    env_file:
-      - ../../.env
-    environment:
-      DJANGO_ENV: prod
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-    depends_on:
-      django:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    command: celery -A config worker -Q ner -l info -c 2 --pool prefork
-
-  celery-llm:
-    image: ghcr.io/stokuj/storyshelf-django:main
-    container_name: storyshelf-celery-llm
-    restart: unless-stopped
-    env_file:
-      - ../../.env
-    environment:
-      DJANGO_ENV: prod
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
-      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-    depends_on:
-      django:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    command: celery -A config worker -Q llm -l info -c 10 --pool gevent
-
-  flower:
-    image: mher/flower:2.0
-    container_name: storyshelf-flower
-    restart: unless-stopped
-    expose:
-      - "5555"
-    environment:
-      CELERY_BROKER_URL: amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
-      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH:?FLOWER_BASIC_AUTH must be set (user:pass) — Flower would otherwise start unauthenticated}
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    command: >-
-      celery -A config flower
-      --port=5555
-      --broker=amqp://${RABBITMQ_USER:-celery}:${RABBITMQ_PASSWORD:-celery}@rabbitmq:5672//
-      --basic-auth=${FLOWER_BASIC_AUTH}
-
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: storyshelf-rabbitmq
-    restart: unless-stopped
-    volumes:
-      - ../rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-celery}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-celery}
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 10s
-      timeout: 5s
       retries: 5
 
   caddy:
@@ -149,16 +73,8 @@ services:
       retries: 20
     restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
-    container_name: storyweave-redis
-    volumes:
-      - redis-data:/data
-    restart: unless-stopped
-
 volumes:
   db-data:
-  redis-data:
   caddy-data:
   caddy-config:
   media:

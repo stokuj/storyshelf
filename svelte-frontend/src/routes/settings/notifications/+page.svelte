@@ -30,13 +30,6 @@
 				</div>
 				<Switch name="notify_recommendations" />
 			</div>
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-sm font-medium text-ink">AI extraction complete</p>
-					<p class="text-xs text-muted">When a character extraction finishes.</p>
-				</div>
-				<Switch name="notify_ai" />
-			</div>
 			<div class="flex justify-end">
 				<Button size="sm" type="submit">Save</Button>
 			</div>

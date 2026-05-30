@@ -21,9 +21,7 @@
 	<!-- Export -->
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-2">Export your data</h2>
-		<p class="text-sm text-ink-2 mb-4">
-			Download all your books, reviews, notes, and AI extraction data in a portable format.
-		</p>
+		<p class="text-sm text-ink-2 mb-4">Download your account data in a portable format.</p>
 		<form method="POST" action="?/export" use:enhance>
 			<Button variant="outline" size="sm" type="submit">
 				<Download class="mr-2 size-4" />

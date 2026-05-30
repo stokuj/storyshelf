@@ -1,69 +1,73 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
-from books.serializers import BookPreviewSerializer
+from books.models import Book
 
-from .models import Shelf, ShelfEntry
+from .models import ShelfEntry
+
+
+class ShelfBookSerializer(serializers.ModelSerializer):
+    # StringRelatedField → list[str], matching the M2 Book serializer and the
+    # frontend `Book` type (authors: string[], genres: string[]).
+    authors = serializers.StringRelatedField(many=True)
+    genres = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Book
+        fields = ["slug", "title", "cover_url", "authors", "genres", "avg_rating", "page_count"]
 
 
 class ShelfEntrySerializer(serializers.ModelSerializer):
-    book = serializers.SerializerMethodField()
-    createdAt = serializers.DateTimeField(source="created_at", read_only=True)
-    startDate = serializers.DateField(source="start_date", read_only=True)
-    finishDate = serializers.DateField(source="finish_date", read_only=True)
-    personalRating = serializers.IntegerField(source="personal_rating", read_only=True)
+    book_slug = serializers.SlugRelatedField(
+        slug_field="slug", queryset=Book.objects.all(), source="book", write_only=True
+    )
+    book = ShelfBookSerializer(read_only=True)
+    user_rating = serializers.SerializerMethodField()
 
     class Meta:
         model = ShelfEntry
-        fields = ("book", "status", "startDate", "finishDate", "personalRating", "createdAt")
-
-    def get_book(self, obj):
-        author = obj.book.authors.first().name if obj.book.authors.exists() else None
-        return {"id": obj.book.id, "title": obj.book.title, "author": author}
-
-
-class ShelfSerializer(serializers.ModelSerializer):
-    book_count = serializers.SerializerMethodField()
-    class Meta:
-        model = Shelf
-        fields = (
+        fields = [
             "id",
-            "name",
-            "slug",
-            "description",
-            "is_public",
-            "book_count",
-            "created_at",
-            "updated_at",
-        )
-        read_only_fields = ("id", "slug", "book_count", "created_at", "updated_at")
+            "book_slug",
+            "status",
+            "start_date",
+            "finish_date",
+            "current_page",
+            "user_rating",
+            "book",
+        ]
+        read_only_fields = ["id", "book", "user_rating"]
 
-    def get_book_count(self, obj):
-        return obj.memberships.count()
+    def get_user_rating(self, obj):
+        # Populated by the view's Subquery annotation on list/retrieve;
+        # absent on a freshly created instance → None.
+        return getattr(obj, "user_rating", None)
 
+    def validate(self, attrs):
+        request = self.context["request"]
+        user = request.user
+        book = attrs.get("book", getattr(self.instance, "book", None))
 
-class ShelfDetailSerializer(ShelfSerializer):
-    books = serializers.SerializerMethodField()
+        # Uniqueness (user is not a serializer field, so DRF can't auto-check it).
+        if self.instance is None and ShelfEntry.objects.filter(user=user, book=book).exists():
+            raise serializers.ValidationError(
+                {"book_slug": "This book is already on your shelf."}
+            )
 
-    class Meta(ShelfSerializer.Meta):
-        fields = ShelfSerializer.Meta.fields + ("books",)
+        # Book is immutable after creation.
+        if self.instance is not None and "book" in attrs:
+            raise serializers.ValidationError(
+                {"book_slug": "Cannot change the book of an existing shelf entry."}
+            )
 
-    def get_books(self, obj):
-        memberships = (
-            obj.memberships.select_related("book")
-            .prefetch_related("book__authors")
-            .order_by("position", "-added_at")
-        )
-        return BookPreviewSerializer(
-            [m.book for m in memberships], many=True, context=self.context
-        ).data
-
-
-class ShelfCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Shelf
-        fields = ("name", "description", "is_public")
-
-    def validate_name(self, value):
-        if not value or not value.strip():
-            raise serializers.ValidationError("Name cannot be blank.")
-        return value.strip()
+        # Reuse model.clean() for current_page / date validation (DRY).
+        entry = self.instance or ShelfEntry()
+        entry.user = user
+        for field in ("book", "status", "start_date", "finish_date", "current_page"):
+            if field in attrs:
+                setattr(entry, field, attrs[field])
+        try:
+            entry.clean()
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.message_dict)
+        return attrs
