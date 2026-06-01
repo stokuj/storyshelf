@@ -101,6 +101,18 @@
 		}
 	}
 
+	async function handleProgressChange(entryId: number, currentPage: number) {
+		const i = entries.findIndex((e) => e.id === entryId);
+		if (i === -1) return;
+		const prev = entries[i].current_page;
+		entries[i] = { ...entries[i], current_page: currentPage };
+		const { error } = await updateShelfEntry(fetch, entryId, { current_page: currentPage });
+		if (error) {
+			entries[i] = { ...entries[i], current_page: prev };
+			toast.error('Failed to update progress');
+		}
+	}
+
 	async function handleDelete(entryId: number) {
 		const i = entries.findIndex((e) => e.id === entryId);
 		if (i === -1) return;
@@ -154,6 +166,7 @@
 					onDelete={handleDelete}
 					onRate={handleRate}
 					onStatusChange={handleStatusChange}
+					onProgressChange={handleProgressChange}
 				/>
 			{/each}
 		</div>

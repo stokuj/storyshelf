@@ -13,9 +13,10 @@
 		onDelete: (id: number) => void;
 		onRate: (bookSlug: string, rating: number, entryId: number) => Promise<void>;
 		onStatusChange: (entryId: number, status: ShelfStatus) => Promise<void>;
+		onProgressChange: (entryId: number, currentPage: number) => Promise<void>;
 	}
 
-	let { entry, onDelete, onRate, onStatusChange }: Props = $props();
+	let { entry, onDelete, onRate, onStatusChange, onProgressChange }: Props = $props();
 
 	const book = $derived(entry.book);
 	const authors = $derived(book.authors.join(', '));
@@ -76,6 +77,19 @@
 
 		{#if entry.status === 'READING'}
 			<ProgressBar current={entry.current_page} total={book.page_count} />
+			<div class="flex items-center gap-2 pt-1">
+				<label class="text-xs text-muted" for="page-{entry.id}">Page</label>
+				<input
+					id="page-{entry.id}"
+					type="number"
+					min="0"
+					max={book.page_count ?? undefined}
+					value={entry.current_page ?? 0}
+					data-testid="current-page-input"
+					class="w-20 rounded-md border border-rule bg-surface px-2 py-1 text-xs text-ink"
+					onchange={(e) => onProgressChange(entry.id, Number(e.currentTarget.value))}
+				/>
+			</div>
 		{/if}
 
 		<div class="flex items-center justify-between gap-2 pt-1">

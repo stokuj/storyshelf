@@ -3,13 +3,12 @@
 	import { Card } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Separator } from '$lib/components/ui/separator';
-	import { Download, Pause, Trash2 } from 'lucide-svelte';
+	import { Download, Trash2 } from 'lucide-svelte';
 	import { enhance } from '$app/forms';
 
 	// eslint-disable-next-line no-empty-pattern
 	let {} = $props();
 
-	let deleteHandle = $state('');
 	let showDeleteDialog = $state(false);
 </script>
 
@@ -22,26 +21,10 @@
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-2">Export your data</h2>
 		<p class="text-sm text-ink-2 mb-4">Download your account data in a portable format.</p>
-		<form method="POST" action="?/export" use:enhance>
-			<Button variant="outline" size="sm" type="submit">
-				<Download class="mr-2 size-4" />
-				Export all data
-			</Button>
-		</form>
-	</Card>
-
-	<!-- Pause account -->
-	<Card class="p-5">
-		<h2 class="font-sans text-base font-semibold text-ink mb-2">Pause account</h2>
-		<p class="text-sm text-ink-2 mb-4">
-			Your profile will be hidden and you won't receive notifications. You can reactivate anytime.
-		</p>
-		<form method="POST" action="?/pause" use:enhance>
-			<Button variant="outline" size="sm" type="submit">
-				<Pause class="mr-2 size-4" />
-				Pause account
-			</Button>
-		</form>
+		<Button href="/settings/data/export" variant="outline" size="sm" data-sveltekit-reload>
+			<Download class="mr-2 size-4" />
+			Export all data
+		</Button>
 	</Card>
 
 	<Separator />
@@ -80,17 +63,12 @@
 				>
 					<h2 class="font-sans text-base font-semibold text-danger mb-2">Delete your account?</h2>
 					<p class="text-sm text-ink-2 mb-4">
-						This will permanently delete your account, all your data, and cannot be undone. Type <strong
-							class="text-ink">your handle</strong
-						> to confirm.
+						This will permanently delete your account, all your data, and cannot be undone. Enter
+						your
+						<strong class="text-ink">password</strong> to confirm.
 					</p>
 					<form method="POST" action="?/delete" use:enhance class="space-y-3">
-						<Input
-							name="confirm"
-							placeholder="Type your handle..."
-							bind:value={deleteHandle}
-							required
-						/>
+						<Input name="current_password" type="password" placeholder="Your password" required />
 						<div class="flex justify-end gap-2">
 							<Button variant="ghost" size="sm" onclick={() => (showDeleteDialog = false)}>
 								Cancel

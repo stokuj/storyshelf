@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { resolve } from '$app/paths';
-	import { Search } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import UserMenu from './UserMenu.svelte';
 	import type { UserMe } from '$lib/api/user';
@@ -37,11 +36,8 @@
 			</nav>
 		</div>
 
-		<!-- Right: search + user -->
+		<!-- Right: user -->
 		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="icon" aria-label="Search">
-				<Search class="size-5" />
-			</Button>
 			<UserMenu {user} />
 		</div>
 	</div>
