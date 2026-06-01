@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase
 from books.models import Book
 from config.test_helpers import AuthTestHelper
 from ratings.models import Rating
+from reviews.models import Review
 from shelf.models import ShelfEntry
 
 User = get_user_model()
@@ -78,6 +79,18 @@ class DataExportTest(AuthTestHelper, APITestCase):
         self.assertEqual(len(ratings), 1)
         self.assertEqual(ratings[0]["rating"], 4)
         self.assertEqual(ratings[0]["book_slug"], self.book.slug)
+
+    def test_export_reviews_contains_data(self):
+        Review.objects.create(user=self.user, book=self.book, body="My review")
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.post("/api/users/me/export/")
+        zf = zipfile.ZipFile(BytesIO(resp.content))
+        names = zf.namelist()
+        self.assertIn("reviews.json", names)
+        reviews = json.loads(zf.read("reviews.json"))
+        self.assertEqual(len(reviews), 1)
+        self.assertEqual(reviews[0]["body"], "My review")
+        self.assertEqual(reviews[0]["book_slug"], self.book.slug)
 
     def test_export_unauthenticated_returns_401(self):
         resp = self.client.post("/api/users/me/export/")

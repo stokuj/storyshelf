@@ -7,6 +7,7 @@
 	import { toast } from 'svelte-sonner';
 	import RatingStars from '$lib/components/book/RatingStars.svelte';
 	import ShelfControl from '$lib/components/shelf/ShelfControl.svelte';
+	import ReviewSection from '$lib/components/review/ReviewSection.svelte';
 	import { upsertRating, deleteRatingById } from '$lib/api/ratings';
 
 	let { data }: PageProps = $props();
@@ -93,6 +94,14 @@
 			</div>
 
 			<BookDescription description={book.description} />
+
+			<ReviewSection
+				bookSlug={data.book.slug}
+				initialReviews={data.reviews}
+				initialTotal={data.reviewsTotal}
+				myReview={data.myReview}
+				isAuthenticated={!!data.user}
+			/>
 		</div>
 	</div>
 </div>
