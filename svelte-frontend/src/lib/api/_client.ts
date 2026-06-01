@@ -71,7 +71,7 @@ export async function apiFetch<T>(
 	options?: RequestInit,
 	isServerSide = false
 ): Promise<{ data: T | null; error: ApiError | null }> {
-	const base = isServerSide ? await getInternalApi() : '/api';
+	const base = isServerSide ? getInternalApi() : '/api';
 	const url = `${base}${path}`;
 
 	// Server-side timeout to prevent hung SSR renders.

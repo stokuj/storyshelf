@@ -32,8 +32,8 @@
 				<span class="w-24 flex-shrink-0 text-ink-2">Series</span>
 				<span class="text-ink">
 					{book.serie.name}
-					{#if book.serie.position_in_series != null}
-						<span class="text-muted"> #{book.serie.position_in_series}</span>
+					{#if book.position_in_series != null}
+						<span class="text-muted"> #{book.position_in_series}</span>
 					{/if}
 				</span>
 			</div>
