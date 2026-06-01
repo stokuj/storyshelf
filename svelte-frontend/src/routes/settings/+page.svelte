@@ -26,7 +26,14 @@
 			<Avatar name={user?.display_name ?? 'User'} avatarUrl={user?.avatar_url} size="xl" />
 			<div>
 				<form method="POST" action="?/avatar" enctype="multipart/form-data" use:enhance>
-					<input type="file" name="avatar" accept="image/*" class="hidden" id="avatar-upload" />
+					<input
+						type="file"
+						name="avatar"
+						accept="image/*"
+						class="hidden"
+						id="avatar-upload"
+						onchange={(e) => e.currentTarget.form?.requestSubmit()}
+					/>
 					<Button
 						variant="outline"
 						size="sm"
@@ -68,11 +75,6 @@
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Email</h2>
 		<form method="POST" action="?/email" use:enhance class="space-y-3">
 			<Input name="email" value={user?.email ?? ''} type="email" placeholder="you@example.com" />
-			{#if user?.email_verified}
-				<p class="text-xs text-success">✓ Verified</p>
-			{:else}
-				<p class="text-xs text-warning">Not verified. Check your inbox.</p>
-			{/if}
 			<div class="flex justify-end">
 				<Button size="sm" type="submit">Change email</Button>
 			</div>

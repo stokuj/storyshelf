@@ -123,6 +123,23 @@ test.describe('Shelf', () => {
 		await cleanupShelfEntries(cookies, playwright);
 	});
 
+	test('user can set reading progress', async ({ page, authUser, playwright }) => {
+		const cookies = await page.context().cookies();
+		await seedShelfEntry(
+			{ book_slug: BOOKS.H.slug, status: 'READING', current_page: 100 },
+			cookies,
+			playwright
+		);
+		await gotoReady(page, '/shelf?tab=reading');
+
+		const input = page.getByTestId('current-page-input').first();
+		await input.fill('42');
+		await input.blur();
+		await expect(page.getByTestId('progress-bar').first()).toHaveAttribute('data-current', '42');
+
+		await cleanupShelfEntries(cookies, playwright);
+	});
+
 	test('empty states per tab when shelf is empty', async ({ page, authUser }) => {
 		await gotoReady(page, '/shelf');
 		await expect(page.locator('[data-testid="shelf-empty"]')).toBeVisible();

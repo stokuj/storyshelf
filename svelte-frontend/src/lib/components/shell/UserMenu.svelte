@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { setMode } from 'mode-watcher';
 	import { User, Settings, LogOut, Sun, Moon } from 'lucide-svelte';
@@ -18,6 +19,8 @@
 		user: UserMe | null | undefined;
 	}
 	let { user }: Props = $props();
+
+	let logoutForm: HTMLFormElement | undefined = $state();
 
 	function initials(name: string): string {
 		return name
@@ -54,11 +57,9 @@
 				<Sun class="mr-2 size-4" /> Light mode
 			</DropdownMenuItem>
 			<DropdownMenuSeparator />
-			<form method="POST" action="/logout">
-				<DropdownMenuItem>
-					<button type="submit" class="flex w-full items-center">
-						<LogOut class="mr-2 size-4" /> Sign out
-					</button>
+			<form method="POST" action="/logout" use:enhance bind:this={logoutForm}>
+				<DropdownMenuItem onclick={() => logoutForm?.requestSubmit()}>
+					<LogOut class="mr-2 size-4" /> Sign out
 				</DropdownMenuItem>
 			</form>
 		</DropdownMenuContent>

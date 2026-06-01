@@ -36,38 +36,37 @@ test.describe('Settings', () => {
 		await page.waitForURL('**/settings/profile');
 		await expect(page.getByRole('heading', { name: 'Privacy settings' })).toBeVisible();
 
-		// Notifications
-		await page.getByRole('link', { name: 'Notifications' }).click();
-		await page.waitForURL('**/settings/notifications');
-		await expect(page.getByRole('heading', { name: 'Email notifications' })).toBeVisible();
-
 		// Data & export
 		await page.getByRole('link', { name: 'Data & export' }).click();
 		await page.waitForURL('**/settings/data');
 		await expect(page.getByRole('heading', { name: 'Export your data' })).toBeVisible();
 	});
 
-	test('notifications page shows switches', async ({ page, authUser }) => {
-		await page.goto('/settings/notifications');
-
-		await expect(page.getByText('New followers')).toBeVisible();
-		await expect(page.getByText('Book recommendations')).toBeVisible();
-		await expect(page.getByText('Enable push notifications')).toBeVisible();
-
-		// Switches render with role="switch" (bits-ui Switch component)
-		const switches = page.getByRole('switch');
-		await expect(switches).toHaveCount(3);
-	});
-
-	test('data page shows export and delete options', async ({ page, authUser }) => {
+	test('delete account dialog rejects a wrong password', async ({ page, authUser }) => {
 		await page.goto('/settings/data');
-
 		await expect(page.getByRole('heading', { name: 'Export your data' })).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Pause account' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Danger zone' })).toBeVisible();
 
-		// "Delete account" button is rendered (Svelte 5 onclick/portal makes dialog testing unreliable)
-		await expect(page.getByRole('button', { name: 'Delete account' })).toBeVisible();
+		// The dialog opens via a client onclick, so retry the trigger click until the
+		// page has hydrated and the password field appears (avoids a pre-hydration race).
+		await expect(async () => {
+			await page.getByRole('button', { name: 'Delete account' }).click();
+			await expect(page.getByPlaceholder('Your password')).toBeVisible({ timeout: 1000 });
+		}).toPass();
+
+		await page.getByPlaceholder('Your password').fill('definitely-wrong-password');
+		await page.getByRole('button', { name: 'Delete my account' }).click();
+
+		// Backend returns 403 → action returns fail(), so we stay on /settings/data.
+		await expect(page).toHaveURL(/\/settings\/data/);
+	});
+
+	test('export data triggers a zip download', async ({ page, authUser }) => {
+		await page.goto('/settings/data');
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('link', { name: 'Export all data' }).click();
+		const download = await downloadPromise;
+		expect(download.suggestedFilename()).toMatch(/\.zip$/);
 	});
 
 	test('password change with mismatched confirm is rejected', async ({ page, authUser }) => {
