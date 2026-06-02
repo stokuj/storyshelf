@@ -33,7 +33,10 @@ class BookViewSet(ModelViewSet):
         year_min = self.request.query_params.get("year_min")
         year_max = self.request.query_params.get("year_max")
         if author:
-            qs = qs.filter(authors__name__icontains=author)
+            # icontains across the authors M2M can match several rows per book,
+            # so distinct() is required to avoid duplicate results (which would
+            # also inflate the paginated `total`).
+            qs = qs.filter(authors__name__icontains=author).distinct()
         if genre:
             qs = qs.filter(genres__name__iexact=genre)
         if year_min:
