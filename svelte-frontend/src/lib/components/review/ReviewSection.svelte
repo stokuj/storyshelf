@@ -23,13 +23,19 @@
 	let hasMore = $derived(reviews.length < total);
 
 	function onSaved(review: Review) {
+		// `mine === null` before reassignment ⇒ this is a brand-new review, not an edit.
+		const isNew = mine === null;
 		mine = review;
 		const idx = reviews.findIndex((r) => r.id === review.id);
-		if (idx >= 0) reviews[idx] = review;
-		else {
-			reviews = [review, ...reviews];
+		if (idx >= 0) {
+			reviews[idx] = review; // visible review edited in place
+		} else if (isNew) {
+			reviews = [review, ...reviews]; // genuinely new → pin at top, bump count
 			total += 1;
 		}
+		// else: editing a review that lives on a not-yet-loaded page — leave the
+		// list and total untouched (it's already counted; its page will show the
+		// updated body when loaded). Prepending here would double-count it.
 	}
 
 	function onDeleted() {
