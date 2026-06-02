@@ -62,11 +62,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def me(self, request):
-        book_slug = request.query_params.get("book_slug")
-        qs = self.get_queryset().filter(user=request.user)
-        if book_slug:
-            qs = qs.filter(book__slug=book_slug)
-        review = qs.first()
+        # get_queryset() already applies the optional ?book_slug filter.
+        review = self.get_queryset().filter(user=request.user).first()
         if review is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(self.get_serializer(review).data)
