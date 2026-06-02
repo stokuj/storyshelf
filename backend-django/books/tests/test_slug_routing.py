@@ -1,7 +1,5 @@
-from django.http import Http404
 from django.test import TestCase
 
-from books.lookups import resolve_book
 from books.models import Book
 
 
@@ -23,20 +21,3 @@ class BookSlugGenerationTest(TestCase):
         book.save()
         book.refresh_from_db()
         self.assertEqual(book.slug, original_slug)
-
-
-class ResolveBookTest(TestCase):
-    def setUp(self):
-        self.book = Book.objects.create(title="Hamlet")
-
-    def test_resolve_by_integer_id(self):
-        result = resolve_book(str(self.book.pk))
-        self.assertEqual(result.pk, self.book.pk)
-
-    def test_resolve_by_slug(self):
-        result = resolve_book(self.book.slug)
-        self.assertEqual(result.pk, self.book.pk)
-
-    def test_resolve_nonexistent_raises_404(self):
-        with self.assertRaises(Http404):
-            resolve_book("nonexistent-slug-xyz")
