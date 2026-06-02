@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from books.models import Book
-from library.models import Genre
+from library.models import Author, Genre
 
 
 class BookFiltersTest(TestCase):
@@ -55,6 +55,20 @@ class BookFiltersTest(TestCase):
         response = self.client.get("/api/books/?genre=Fantasy&ordering=-avg_rating&search=Fantasy")
         self.assertEqual(response.status_code, 200)
         self.assertIn("data", response.data)
+
+    def test_author_filter_does_not_duplicate_multi_author_books(self):
+        # A book whose authors both match the query must appear exactly once,
+        # and the paginated `total` must not be inflated by the M2M join.
+        book = Book.objects.create(title="Good Omens")
+        book.authors.add(
+            Author.objects.create(name="Terry Pratchett"),
+            Author.objects.create(name="Neil Gaiman (with Terry)"),
+        )
+        response = self.client.get("/api/books/?author=terry")
+        self.assertEqual(response.status_code, 200)
+        ids = [b["id"] for b in response.data["data"]]
+        self.assertEqual(ids.count(book.pk), 1)
+        self.assertEqual(response.data["total"], 1)
 
     def test_paginated_shape(self):
         response = self.client.get("/api/books/")
