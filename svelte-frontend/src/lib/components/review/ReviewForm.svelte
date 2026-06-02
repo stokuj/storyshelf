@@ -12,7 +12,9 @@
 	}
 	let { bookSlug, myReview, onsaved, ondeleted }: Props = $props();
 
-	let body = $state(myReview?.body ?? '');
+	// Writable derived: mirrors the prop but stays locally editable; resets when
+	// the parent swaps in a different review (props change without a remount).
+	let body = $derived(myReview?.body ?? '');
 	let saving = $state(false);
 
 	async function save() {

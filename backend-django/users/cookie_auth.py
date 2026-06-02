@@ -67,8 +67,8 @@ def clear_jwt_cookies(response):
 
     The deletion cookie must carry the same domain/samesite as the original,
     otherwise the browser treats it as a different cookie and the real one
-    survives logout (relevant for the cross-origin prod setup where
-    JWT_COOKIE_DOMAIN / SameSite=None are set).
+    survives logout (matters whenever JWT_COOKIE_DOMAIN / a non-default
+    SameSite are configured).
     """
     flags = _cookie_flags()
     domain = flags.get("domain")

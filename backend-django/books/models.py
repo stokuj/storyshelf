@@ -48,8 +48,12 @@ class Book(models.Model):
                 with transaction.atomic():
                     super().save(*args, **kwargs)
                 return
-            except IntegrityError:
-                # TOCTOU race: slug was taken between exists() check and save().
+            except IntegrityError as exc:
+                # Only a slug clash is a retryable TOCTOU race (slug taken between
+                # the exists() check and save()). Any other integrity error
+                # (e.g. a duplicate isbn) is real and must surface immediately.
+                if "slug" not in str(exc).lower():
+                    raise
                 self.slug = _generate_unique_slug(self.title)
         # Retries exhausted — let the last attempt raise naturally.
         super().save(*args, **kwargs)

@@ -12,6 +12,10 @@
 
 	let { data }: PageProps = $props();
 
+	// Deep-reactive local copy: handlers mutate entries in place (entries[i] = …),
+	// which needs a $state proxy — a writable $derived would mutate the raw loader
+	// array without triggering reactivity. Intentional one-time snapshot.
+	// svelte-ignore state_referenced_locally
 	let entries = $state(data.entries);
 	let activeTab = $state<ShelfStatus>('WANT_TO_READ');
 

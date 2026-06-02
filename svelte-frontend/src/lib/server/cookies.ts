@@ -18,7 +18,7 @@ export function forwardSetCookies(response: Response, cookies: Cookies): void {
 		let path = '/';
 		let maxAge: number | undefined;
 		let sameSite: 'lax' | 'strict' | 'none' = 'lax';
-		let httpOnly = true;
+		let httpOnly = false;
 
 		for (const attr of parts.slice(1)) {
 			const lower = attr.toLowerCase();

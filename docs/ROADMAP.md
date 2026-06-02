@@ -1,14 +1,14 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-06-01. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-06-02. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `phase/m4-reviews` (gotowy do merge → `main`)
+**Bieżący branch:** `main` (M4 Reviews zmergowane, PR #64).
 
-**ZADANIE:** Po merge M4 — wybór następnego etapu z "Następne" (wdrożenie prod / M5 Custom shelves).
+**ZADANIE:** Wybór następnego etapu z "Następne" (wdrożenie prod / M5 Custom shelves).
 
 ---
 
