@@ -72,7 +72,6 @@ class UserMePatchSerializer(serializers.ModelSerializer):
 
 
 class UserMeSerializer(serializers.ModelSerializer):
-    profile_public = serializers.SerializerMethodField()
     avatar_url = serializers.SerializerMethodField()
     member_since = serializers.DateTimeField(source="created_at", read_only=True)
 
@@ -88,9 +87,6 @@ class UserMeSerializer(serializers.ModelSerializer):
             "member_since",
             "profile_public",
         )
-
-    def get_profile_public(self, obj):
-        return obj.profile_public
 
     def get_avatar_url(self, obj):
         if obj.avatar:
