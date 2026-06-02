@@ -63,6 +63,17 @@ def set_jwt_cookies(response, access_token, refresh_token=None):
 
 
 def clear_jwt_cookies(response):
-    """Expire both JWT cookies."""
-    response.delete_cookie(ACCESS_COOKIE)
-    response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
+    """Expire both JWT cookies.
+
+    The deletion cookie must carry the same domain/samesite as the original,
+    otherwise the browser treats it as a different cookie and the real one
+    survives logout (relevant for the cross-origin prod setup where
+    JWT_COOKIE_DOMAIN / SameSite=None are set).
+    """
+    flags = _cookie_flags()
+    domain = flags.get("domain")
+    samesite = flags["samesite"]
+    response.delete_cookie(ACCESS_COOKIE, domain=domain, samesite=samesite)
+    response.delete_cookie(
+        REFRESH_COOKIE, path=REFRESH_COOKIE_PATH, domain=domain, samesite=samesite
+    )

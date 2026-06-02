@@ -113,3 +113,13 @@ class ClearJWTCookiesTest(TestCase):
         calls = [c.args[0] for c in response.delete_cookie.call_args_list]
         self.assertIn(ACCESS_COOKIE, calls)
         self.assertIn(REFRESH_COOKIE, calls)
+
+    def test_passes_cookie_domain_when_set(self):
+        from django.test import override_settings
+
+        response = MagicMock()
+        with override_settings(JWT_COOKIE_DOMAIN=".storyshelf.example.com"):
+            clear_jwt_cookies(response)
+        # Deletion must target the same domain or the browser keeps the cookie.
+        for call in response.delete_cookie.call_args_list:
+            self.assertEqual(call.kwargs["domain"], ".storyshelf.example.com")
