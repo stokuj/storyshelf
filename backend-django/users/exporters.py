@@ -71,6 +71,19 @@ def build_user_export_zip(user):
         ]
         zf.writestr("ratings.json", json.dumps(ratings_data, indent=2, cls=_DatetimeEncoder))
 
+        # reviews.json
+        reviews_qs = user.reviews.select_related("book").order_by("-created_at")
+        reviews_data = [
+            {
+                "book_title": r.book.title,
+                "book_slug": r.book.slug,
+                "body": r.body,
+                "created_at": r.created_at,
+            }
+            for r in reviews_qs
+        ]
+        zf.writestr("reviews.json", json.dumps(reviews_data, indent=2, cls=_DatetimeEncoder))
+
         # avatar
         if user.avatar and user.avatar.name:
             try:
@@ -90,6 +103,7 @@ def build_user_export_zip(user):
             f"  follows.json       — followers and following\n"
             f"  shelf_entries.json — reading shelf (status, progress, dates)\n"
             f"  ratings.json       — book ratings\n"
+            f"  reviews.json       — book reviews\n"
             f"  avatar_*           — profile picture (if set)\n"
         )
         zf.writestr("README.txt", readme)

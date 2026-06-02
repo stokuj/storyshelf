@@ -52,3 +52,20 @@ export async function cleanupShelfEntries(
 	}
 	await api.dispose();
 }
+
+export async function cleanupMyReview(
+	bookSlug: string,
+	cookies: Cookie[],
+	playwright: typeof import('@playwright/test').playwright
+): Promise<void> {
+	const api = await playwright.request.newContext({
+		baseURL: API_BASE_URL,
+		storageState: { cookies, origins: [] }
+	});
+	const res = await api.get(`/api/reviews/me/?book_slug=${bookSlug}`);
+	if (res.ok()) {
+		const review = await res.json();
+		await api.delete(`/api/reviews/${review.id}/`);
+	}
+	await api.dispose();
+}

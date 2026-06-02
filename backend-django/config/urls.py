@@ -13,6 +13,7 @@ urlpatterns = [
     path("api/", include("books.urls")),
     path("api/", include("ratings.urls")),
     path("api/shelf/", include("shelf.urls")),
+    path("api/", include("reviews.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
