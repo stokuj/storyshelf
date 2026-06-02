@@ -206,7 +206,7 @@ class EmailChangeView(views.APIView):
     throttle_scope = "user_email_change"
 
     def patch(self, request):
-        serializer = EmailChangeSerializer(data=request.data)
+        serializer = EmailChangeSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         user = request.user
         if not user.check_password(serializer.validated_data["current_password"]):

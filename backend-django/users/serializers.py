@@ -136,7 +136,12 @@ class EmailChangeSerializer(serializers.Serializer):
 
     def validate_new_email(self, value):
         value = value.lower().strip()
-        if User.objects.filter(email=value).exists():
+        taken = User.objects.filter(email=value)
+        request = self.context.get("request")
+        if request is not None and request.user.is_authenticated:
+            # Re-submitting one's own unchanged email is a no-op, not a clash.
+            taken = taken.exclude(pk=request.user.pk)
+        if taken.exists():
             raise serializers.ValidationError("This email is already in use.")
         return value
 

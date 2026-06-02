@@ -59,6 +59,14 @@ class EmailChangeTest(AuthTestHelper, APITestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_change_email_to_own_address_is_noop_not_duplicate(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.patch(
+            "/api/users/me/email/",
+            {"new_email": self.user.email, "current_password": USER_PASSWORD},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_change_email_sends_notification_to_old_address(self):
         old_email = self.user.email
