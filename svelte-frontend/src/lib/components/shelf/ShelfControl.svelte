@@ -12,7 +12,9 @@
 	}
 
 	let { bookSlug, initialEntry }: Props = $props();
-	let entry = $state<ShelfEntry | null>(initialEntry);
+	// Writable derived: locally mutable, resets when the parent swaps in a
+	// different book (same-route navigation reuses this component, no remount).
+	let entry = $derived(initialEntry);
 	let busy = $state(false);
 
 	async function add() {

@@ -13,8 +13,10 @@
 	let { data }: PageProps = $props();
 	let book = $derived(data.book!);
 
-	let userRating = $state(data.userRating?.rating ?? null);
-	let ratingId = $state(data.userRating?.id ?? null);
+	// Writable derived: locally mutable, resets when navigating to a different
+	// book (same-route navigation reuses this page component, no remount).
+	let userRating = $derived(data.userRating?.rating ?? null);
+	let ratingId = $derived(data.userRating?.id ?? null);
 	let savingRating = $state(false);
 
 	async function handleRate(star: number) {

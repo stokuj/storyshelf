@@ -14,13 +14,25 @@
 	}
 	let { bookSlug, initialReviews, initialTotal, myReview, isAuthenticated }: Props = $props();
 
+	// svelte-ignore state_referenced_locally
 	let reviews = $state<Review[]>(initialReviews);
+	// svelte-ignore state_referenced_locally
 	let total = $state(initialTotal);
 	let currentPage = $state(1);
 	let loadingMore = $state(false);
+	// svelte-ignore state_referenced_locally
 	let mine = $state<Review | null>(myReview);
 
 	let hasMore = $derived(reviews.length < total);
+
+	// Re-seed when the parent swaps in a different book (same-route navigation
+	// reuses this component, so the props change without a remount).
+	$effect(() => {
+		reviews = initialReviews;
+		total = initialTotal;
+		mine = myReview;
+		currentPage = 1;
+	});
 
 	function onSaved(review: Review) {
 		// `mine === null` before reassignment ⇒ this is a brand-new review, not an edit.

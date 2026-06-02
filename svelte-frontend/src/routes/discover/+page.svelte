@@ -15,6 +15,9 @@
 
 	let { data }: { data: PageData } = $props();
 
+	// Intentional one-time snapshot: this page self-manages pagination/filter
+	// state and syncs the URL via goto(), so it does not react to later `data`.
+	// svelte-ignore state_referenced_locally
 	const {
 		initialBooks,
 		initialPage,
