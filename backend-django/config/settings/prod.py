@@ -25,8 +25,11 @@ SECURE_REFERRER_POLICY = "same-origin"
 
 CORS_ALLOWED_ORIGINS = [o for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o]
 
-# JWT cookies prod: cross-origin (Svelte na osobnej domenie), wymaga HTTPS
-JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "None")
+# JWT cookies prod: same-origin za Caddy (front + /api z jednego origin, ADR-002).
+# SameSite=Lax wystarcza i jest jedyna ochrona CSRF dla JWTCookieAuthentication
+# (DRF nie wymusza tokenu CSRF dla tej klasy). Cross-origin (SameSite=None) tylko
+# swiadomie przez env — wtedy wymaga JWT_COOKIE_SECURE i osobnej ochrony CSRF.
+JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "Lax")
 JWT_COOKIE_SECURE = os.getenv("JWT_COOKIE_SECURE", "true").lower() == "true"
 JWT_COOKIE_DOMAIN = os.getenv("JWT_COOKIE_DOMAIN") or None
 
