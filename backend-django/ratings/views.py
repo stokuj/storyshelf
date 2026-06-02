@@ -27,7 +27,7 @@ class RatingViewSet(viewsets.ModelViewSet):
         try:
             book = Book.objects.get(slug=book_slug)
         except Book.DoesNotExist:
-            return Response({"book_slug": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
 
         # Validate the rating value via the serializer (honours 1..5 validators).
         serializer = self.get_serializer(data=request.data)
