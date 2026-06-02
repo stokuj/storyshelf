@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
 
 from books.models import Book
@@ -25,9 +26,19 @@ class ReviewSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "author", "author_rating", "created_at", "updated_at"]
 
+    @extend_schema_field(
+        inline_serializer(
+            name="ReviewAuthor",
+            fields={
+                "handle": serializers.CharField(),
+                "display_name": serializers.CharField(),
+            },
+        )
+    )
     def get_author(self, obj):
         return {"handle": obj.user.handle, "display_name": obj.user.display_name}
 
+    @extend_schema_field(serializers.IntegerField(allow_null=True))
     def get_author_rating(self, obj):
         # Populated by the view's Subquery annotation on list; None otherwise.
         return getattr(obj, "author_rating", None)

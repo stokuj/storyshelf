@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from books.models import Book
@@ -38,6 +39,7 @@ class ShelfEntrySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "book", "user_rating"]
 
+    @extend_schema_field(serializers.IntegerField(allow_null=True))
     def get_user_rating(self, obj):
         # Populated by the view's Subquery annotation on list/retrieve;
         # absent on a freshly created instance → None.

@@ -1358,7 +1358,8 @@ components:
           minimum: 0
           nullable: true
         user_rating:
-          type: string
+          type: integer
+          nullable: true
           readOnly: true
         book:
           allOf:
@@ -1415,10 +1416,12 @@ components:
         body:
           type: string
         author:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/ReviewAuthor'
           readOnly: true
         author_rating:
-          type: string
+          type: integer
+          nullable: true
           readOnly: true
         created_at:
           type: string
@@ -1436,6 +1439,16 @@ components:
       - created_at
       - id
       - updated_at
+    ReviewAuthor:
+      type: object
+      properties:
+        handle:
+          type: string
+        display_name:
+          type: string
+      required:
+      - display_name
+      - handle
     Serie:
       type: object
       properties:
@@ -1532,7 +1545,8 @@ components:
           minimum: 0
           nullable: true
         user_rating:
-          type: string
+          type: integer
+          nullable: true
           readOnly: true
         book:
           allOf:
