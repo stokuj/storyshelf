@@ -7,16 +7,17 @@ export interface Author {
 }
 
 export interface SerieInfo {
+	id: number;
 	name: string;
-	position_in_series: number | null;
+	description: string;
+	status: string;
+	created_at: string;
 }
 
 export interface Book {
 	id: number;
 	slug: string;
 	title: string;
-	/** @deprecated use authors[] instead */
-	author?: string;
 	authors: string[];
 	cover_url: string | null;
 	year: number | null;
@@ -27,5 +28,6 @@ export interface Book {
 	page_count: number | null;
 	avg_rating: number;
 	ratings_count: number;
+	position_in_series: number | null;
 	serie: SerieInfo | null;
 }
