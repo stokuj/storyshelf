@@ -27,10 +27,11 @@ htmlcov/
 caddy-data/
 caddy-config/
 
-# IDE
+# IDE / local tooling
 .idea/
 *.iml
 .vscode/
+.claude/
 
 # Worktrees
 .worktrees/
