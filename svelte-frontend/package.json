@@ -12,8 +12,7 @@
 		"format": "prettier --write .",
 		"test": "vitest run",
 		"test:e2e": "playwright test",
-		"test:e2e:ui": "playwright test --ui",
-		"types:api": "openapi-typescript ../docs/api/openapi.yml -o ./src/lib/types/api.generated.ts"
+		"test:e2e:ui": "playwright test --ui"
 	},
 	"dependencies": {
 		"@sveltejs/adapter-node": "^5.5.4",

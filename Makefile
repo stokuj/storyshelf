@@ -1,4 +1,4 @@
-.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs verify regenerate-openapi svelte-install svelte-types svelte-dev svelte-build svelte-check
+.PHONY: dev-up dev-down dev-status dev-build dev-superuser prod-up prod-down prod-status prod-logs verify regenerate-openapi svelte-install svelte-dev svelte-build svelte-check
 
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPOSE_DIR := $(ROOT_DIR)infra/compose
@@ -42,7 +42,6 @@ verify:
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python -m pytest
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py test config.tests.test_openapi_schema --noinput
-	cd $(ROOT_DIR)svelte-frontend && npm run types:api
 	cd $(ROOT_DIR)svelte-frontend && npm run check
 	cd $(ROOT_DIR)svelte-frontend && npm run lint
 
@@ -51,9 +50,6 @@ regenerate-openapi:
 
 svelte-install:
 	cd $(ROOT_DIR)svelte-frontend && npm install
-
-svelte-types:
-	cd $(ROOT_DIR)svelte-frontend && npm run types:api
 
 svelte-dev:
 	cd $(ROOT_DIR)svelte-frontend && npm run dev

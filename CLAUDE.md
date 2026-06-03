@@ -44,7 +44,6 @@ npm run dev          # Vite na 5174
 npm run check        # svelte-check + TypeScript
 npm run lint         # ESLint + Prettier
 npm run build        # adapter-node build
-npm run types:api    # regeneruj typy z openapi.yml
 ```
 
 ### Docker dev stack
