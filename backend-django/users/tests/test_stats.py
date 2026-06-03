@@ -1,7 +1,9 @@
-from datetime import date, timedelta
+from datetime import date
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from rest_framework import status as http_status
+from rest_framework.test import APITestCase
 
 from books.models import Book
 from ratings.models import Rating
@@ -106,9 +108,6 @@ class BuildUserStatsTest(TestCase):
         self.assertEqual(stats["status_counts"]["read"], 2)
         self.assertEqual(stats["totals"]["avg_rating_given"], 4.0)
 
-
-from rest_framework import status as http_status
-from rest_framework.test import APITestCase
 
 STATS_URL = "/api/users/me/stats/"
 
