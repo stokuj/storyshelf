@@ -1,44 +1,13 @@
-# Compiled class file
-*.class
-
-# Log file
+# Logs
 *.log
 
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs
-hs_err_pid*
-replay_pid*
-
-# Environment
+# Environment (matches .env in any dir, incl. infra/.env; keeps *.env.example tracked)
 .env
-frontend/node_modules/
 
-# IDE files
-.idea/
-*.iml
-.vscode/
-.ruff_cache/
-.classpath
-.factorypath
-.project
-.settings/
-
-# Frontend build artifacts
-frontend/dist/
+# Node / frontend
+node_modules/
+svelte-frontend/build/
+svelte-frontend/.svelte-kit/
 
 # Python
 __pycache__/
@@ -52,14 +21,17 @@ venv/
 .pytest_cache/
 .coverage
 htmlcov/
+.ruff_cache/
 
-# Docker
+# Docker / Caddy runtime
 caddy-data/
 caddy-config/
 
-# Celery
-celerybeat-schedule
-celerybeat.pid
+# IDE / local tooling
+.idea/
+*.iml
+.vscode/
+.claude/
 
 # Worktrees
 .worktrees/

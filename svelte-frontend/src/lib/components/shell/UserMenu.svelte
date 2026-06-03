@@ -66,4 +66,5 @@
 	</DropdownMenu>
 {:else}
 	<Button variant="ghost" size="sm" href={resolve('/login')}>Sign in</Button>
+	<Button size="sm" href={resolve('/signup')}>Sign up</Button>
 {/if}

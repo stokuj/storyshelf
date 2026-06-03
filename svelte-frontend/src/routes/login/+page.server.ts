@@ -4,7 +4,7 @@ import { serverApiBase } from '$lib/server/api';
 import { forwardSetCookies } from '$lib/server/cookies';
 
 export const actions: Actions = {
-	default: async ({ request, fetch, cookies }) => {
+	default: async ({ request, fetch, cookies, url }) => {
 		const formData = await request.formData();
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
@@ -27,6 +27,10 @@ export const actions: Actions = {
 
 		forwardSetCookies(res, cookies);
 
-		throw redirect(303, '/discover');
+		// Honor ?next= from auth guards, but only same-origin relative paths
+		// (a leading single slash) to avoid open-redirect.
+		const next = url.searchParams.get('next');
+		const target = next && next.startsWith('/') && !next.startsWith('//') ? next : '/discover';
+		throw redirect(303, target);
 	}
 };

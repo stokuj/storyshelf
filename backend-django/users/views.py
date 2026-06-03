@@ -263,8 +263,9 @@ class UserSettingsView(views.APIView):
         serializer = UserSettingsPatchSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = request.user
-        user.profile_public = serializer.validated_data["profile_public"]
-        user.save(update_fields=["profile_public"])
+        if "profile_public" in serializer.validated_data:
+            user.profile_public = serializer.validated_data["profile_public"]
+            user.save(update_fields=["profile_public"])
         return Response({"profile_public": user.profile_public})
 
 
@@ -356,15 +357,17 @@ class FollowListView(generics.ListAPIView):
     def get_queryset(self):
         handle = self.kwargs["handle"]
         user = get_object_or_404(User, handle=handle)
+        if not user.profile_public and user != self.request.user:
+            raise Http404
         if self.follower_view:
             return (
                 UserFollow.objects.filter(following=user)
-                .select_related("follower")
+                .select_related("follower", "following")
                 .order_by("-followed_at")
             )
         return (
             UserFollow.objects.filter(follower=user)
-            .select_related("following")
+            .select_related("follower", "following")
             .order_by("-followed_at")
         )
 

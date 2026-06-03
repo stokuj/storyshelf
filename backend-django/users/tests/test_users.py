@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from config.test_helpers import AuthTestHelper
+from users.serializers import RegisterSerializer
 
 User = get_user_model()
 
@@ -62,6 +63,29 @@ class UserSettingsTest(AuthTestHelper, APITestCase):
     def test_get_settings_unauthenticated_returns_401(self):
         resp = self.client.get("/api/users/me/")
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_patch_settings_empty_body_returns_200_noop(self):
+        # Regression: empty PATCH must not raise KeyError -> 500.
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.patch("/api/users/me/settings/", {})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn("profile_public", resp.data)
+
+    def test_patch_settings_toggles_profile_public(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.patch("/api/users/me/settings/", {"profile_public": True})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data["profile_public"])
+
+    def test_register_serializer_rejects_weak_password(self):
+        # Regression: registration must run Django password validators.
+        # "abc123" passes the field's min_length=6 but fails Django's
+        # MinimumLengthValidator (8), which only runs via validate_password.
+        serializer = RegisterSerializer(
+            data={"email": "weak@test.com", "handle": "weakpwuser", "password": "abc123"}
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("password", serializer.errors)
 
     def test_patch_settings_updates_bio(self):
         self.client.force_authenticate(user=self.user)
@@ -134,6 +158,7 @@ class FollowListTest(AuthTestHelper, APITestCase):
             email="target3@test.com",
             handle="target3",
             password="pw",
+            profile_public=True,
         )
 
     def test_list_followers_returns_200(self):
@@ -159,6 +184,13 @@ class FollowListTest(AuthTestHelper, APITestCase):
 
     def test_list_followers_nonexistent_user_returns_404(self):
         resp = self.client.get("/api/users/nobody/followers/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_followers_private_profile_returns_404(self):
+        private = User.objects.create_user(
+            email="priv@test.com", handle="privuser", password="pw"
+        )
+        resp = self.client.get(f"/api/users/{private.handle}/followers/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
 
