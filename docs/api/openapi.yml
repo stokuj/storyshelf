@@ -1137,6 +1137,21 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/users/me/stats/:
+    get:
+      operationId: users_me_stats_retrieve
+      description: Own reading statistics. Authenticated; own data only.
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStats'
+          description: ''
 components:
   schemas:
     Author:
@@ -2004,6 +2019,41 @@ components:
       - handle
       - is_following
       - member_since
+    UserStats:
+      type: object
+      properties:
+        status_counts:
+          $ref: '#/components/schemas/_StatusCounts'
+        totals:
+          $ref: '#/components/schemas/_StatsTotals'
+        books_per_year:
+          type: array
+          items:
+            $ref: '#/components/schemas/_YearCount'
+        rating_distribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/_RatingCount'
+        time_on_shelf_days:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - books_per_year
+      - rating_distribution
+      - status_counts
+      - time_on_shelf_days
+      - totals
+    _RatingCount:
+      type: object
+      properties:
+        rating:
+          type: integer
+        count:
+          type: integer
+      required:
+      - count
+      - rating
     _SerieWrite:
       type: object
       properties:
@@ -2011,6 +2061,44 @@ components:
           type: string
       required:
       - name
+    _StatsTotals:
+      type: object
+      properties:
+        total_books:
+          type: integer
+        pages_read:
+          type: integer
+        avg_rating_given:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - avg_rating_given
+      - pages_read
+      - total_books
+    _StatusCounts:
+      type: object
+      properties:
+        want_to_read:
+          type: integer
+        reading:
+          type: integer
+        read:
+          type: integer
+      required:
+      - read
+      - reading
+      - want_to_read
+    _YearCount:
+      type: object
+      properties:
+        year:
+          type: integer
+        count:
+          type: integer
+      required:
+      - count
+      - year
   securitySchemes:
     jwtAuth:
       type: http
