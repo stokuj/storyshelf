@@ -677,6 +677,165 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/shelves/:
+    get:
+      operationId: shelves_list
+      tags:
+      - shelves
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shelf'
+          description: ''
+    post:
+      operationId: shelves_create
+      tags:
+      - shelves
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Shelf'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Shelf'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Shelf'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+          description: ''
+  /api/shelves/{slug}/:
+    get:
+      operationId: shelves_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelves
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShelfDetail'
+          description: ''
+    patch:
+      operationId: shelves_partial_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelves
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedShelf'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedShelf'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedShelf'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+          description: ''
+    delete:
+      operationId: shelves_destroy
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelves
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/shelves/{slug}/books/:
+    post:
+      operationId: shelves_books_create
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelves
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Shelf'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Shelf'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Shelf'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shelf'
+          description: ''
+  /api/shelves/{slug}/books/{book_slug}/:
+    delete:
+      operationId: shelves_books_destroy
+      parameters:
+      - in: path
+        name: book_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - shelves
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/tags/:
     get:
       operationId: tags_list
@@ -750,6 +909,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/u/{handle}/shelves/:
+    get:
+      operationId: u_shelves_list
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicShelf'
+          description: ''
+  /api/u/{handle}/shelves/{slug}/:
+    get:
+      operationId: u_shelves_retrieve
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicShelfDetail'
           description: ''
   /api/users/{handle}/follow/:
     post:
@@ -1333,6 +1541,39 @@ components:
           maximum: 2147483647
           minimum: -2147483648
           nullable: true
+    PatchedShelf:
+      type: object
+      description: List/create/update view of a shelf (no books).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        is_public:
+          type: boolean
+        book_count:
+          type: integer
+          readOnly: true
+        contains_book:
+          type: boolean
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
     PatchedShelfEntry:
       type: object
       properties:
@@ -1365,6 +1606,58 @@ components:
           allOf:
           - $ref: '#/components/schemas/ShelfBook'
           readOnly: true
+    PublicShelf:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        book_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - book_count
+      - created_at
+      - name
+    PublicShelfDetail:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        book_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        books:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShelfBook'
+          readOnly: true
+      required:
+      - book_count
+      - books
+      - created_at
+      - name
     Rating:
       type: object
       properties:
@@ -1486,6 +1779,47 @@ components:
         * `COMPLETED` - Completed
         * `CANCELLED` - Cancelled
         * `HIATUS` - Hiatus
+    Shelf:
+      type: object
+      description: List/create/update view of a shelf (no books).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        is_public:
+          type: boolean
+        book_count:
+          type: integer
+          readOnly: true
+        contains_book:
+          type: boolean
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - book_count
+      - contains_book
+      - created_at
+      - id
+      - name
+      - slug
+      - updated_at
     ShelfBook:
       type: object
       properties:
@@ -1520,6 +1854,53 @@ components:
       - authors
       - genres
       - title
+    ShelfDetail:
+      type: object
+      description: 'Retrieve view: shelf + its books (newest first).'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        is_public:
+          type: boolean
+        book_count:
+          type: integer
+          readOnly: true
+        contains_book:
+          type: boolean
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        books:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShelfBook'
+          readOnly: true
+      required:
+      - book_count
+      - books
+      - contains_book
+      - created_at
+      - id
+      - name
+      - slug
+      - updated_at
     ShelfEntry:
       type: object
       properties:

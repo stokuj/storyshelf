@@ -37,3 +37,44 @@ export interface RatingResponse {
 	book_slug: string;
 	rating: number;
 }
+
+export interface Shelf {
+	id: number;
+	name: string;
+	slug: string;
+	description: string;
+	is_public: boolean;
+	book_count: number;
+	/** Present only when the list is fetched with a bookSlug filter; else null. */
+	contains_book: boolean | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface ShelfDetail extends Shelf {
+	books: ShelfBook[];
+}
+
+export interface PublicShelf {
+	name: string;
+	slug: string;
+	description: string;
+	book_count: number;
+	created_at: string;
+}
+
+export interface PublicShelfDetail extends PublicShelf {
+	books: ShelfBook[];
+}
+
+export interface ShelfCreate {
+	name: string;
+	description?: string;
+	is_public?: boolean;
+}
+
+export interface ShelfUpdate {
+	name?: string;
+	description?: string;
+	is_public?: boolean;
+}

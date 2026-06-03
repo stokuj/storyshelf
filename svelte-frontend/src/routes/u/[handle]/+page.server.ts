@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { apiFetch } from '$lib/api/_client';
+import { fetchPublicShelves } from '$lib/api/shelves';
 import type { User } from '$lib/types';
 
 export const load: PageServerLoad = async ({ fetch, params, parent }) => {
@@ -17,5 +18,7 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 	const { user: viewer } = await parent();
 	const isOwner = viewer?.handle === params.handle;
 
-	return { profile, isOwner };
+	const { data: shelves } = await fetchPublicShelves(fetch, params.handle, true);
+
+	return { profile, isOwner, shelves: shelves ?? [] };
 };
