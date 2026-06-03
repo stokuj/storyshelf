@@ -105,3 +105,45 @@ class BuildUserStatsTest(TestCase):
         # Unchanged by other user's data.
         self.assertEqual(stats["status_counts"]["read"], 2)
         self.assertEqual(stats["totals"]["avg_rating_given"], 4.0)
+
+
+from rest_framework import status as http_status
+from rest_framework.test import APITestCase
+
+STATS_URL = "/api/users/me/stats/"
+
+
+class MyStatsEndpointTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            email="me@test.com", handle="mona", password="password123"
+        )
+        book = Book.objects.create(title="X", slug="x", page_count=120)
+        ShelfEntry.objects.create(
+            user=cls.user, book=book, status="READ", finish_date=date(2025, 6, 1)
+        )
+        Rating.objects.create(user=cls.user, book=book, rating=4)
+
+    def test_requires_auth(self):
+        resp = self.client.get(STATS_URL)
+        self.assertEqual(resp.status_code, http_status.HTTP_401_UNAUTHORIZED)
+
+    def test_returns_stats_shape(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.get(STATS_URL)
+        self.assertEqual(resp.status_code, http_status.HTTP_200_OK)
+        self.assertEqual(
+            set(resp.data.keys()),
+            {
+                "status_counts",
+                "totals",
+                "books_per_year",
+                "rating_distribution",
+                "time_on_shelf_days",
+            },
+        )
+        self.assertEqual(resp.data["status_counts"]["read"], 1)
+        self.assertEqual(resp.data["totals"]["pages_read"], 120)
+        self.assertEqual(resp.data["books_per_year"], [{"year": 2025, "count": 1}])
+        self.assertEqual(len(resp.data["rating_distribution"]), 5)
