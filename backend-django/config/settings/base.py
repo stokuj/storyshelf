@@ -134,6 +134,9 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
 
+# --- Google Books import (books/management/commands/import_books.py) ---
+GOOGLE_BOOKS_API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY", "")
+
 # --- CORS (django-cors-headers) ---
 # Cross-origin policy: explicit allowlist + credentials (wymagane dla cookies JWT).
 # Konkretne origins ustawia kazde srodowisko (dev.py / prod.py).

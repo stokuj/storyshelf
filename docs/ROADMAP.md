@@ -6,9 +6,9 @@
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `phase/m5-custom-shelves` (M5 Custom shelves zaimplementowane; M4 zmergowane PR #64 + poprawki po review #65–#67).
+**Bieżący branch:** `feat/google-books-import` (Google Books import zaimplementowany, PR #69 otwarty; M5 zmergowane PR #68).
 
-**ZADANIE:** Domknąć M5 (review + merge), potem wdrożenie produkcyjne.
+**ZADANIE:** Domknąć Google Books import (review + merge PR #69), potem wdrożenie produkcyjne.
 
 ---
 
@@ -25,7 +25,8 @@
 | PRE-M3 cleanup | Usunięcie AI/Celery kodu (analysis, reviews, shelf apps), uproszczenie infra do 3 kontenerów | ✅ branch fix/pre-m3-cleanup |
 | M3 Rating + Shelf | `ratings/` (PUT-upsert, sygnał → avg_rating), `shelf/` (ShelfEntry CRUD, status, current_page), frontend `/shelf` + kontrolki na `/books/[slug]`, E2E | ✅ zmergowane do main (PR #62 + post-M3 fixes #63) |
 | M4 Reviews | `reviews/` (Review = body, unique user+book, PUT-upsert, publiczna lista, `/me`, owner-only delete, `author_rating` z Rating via Subquery), eksport danych, frontend sekcja recenzji na `/books/[slug]` (LoadMore), E2E (4 scenariusze) | ✅ zmergowane do main (PR #64 + poprawki po review #65–#67) |
-| M5 Custom shelves | `shelf/` (Shelf + ShelfMembership obok ShelfEntry; owner CRUD `/api/shelves/`, membership add/remove idempotentne, publiczny odczyt `/api/u/{handle}/shelves/` bramkowany `profile_public`), eksport danych, frontend (zakładka „Moje półki" na `/shelf`, `/shelf/[slug]`, kontrolka na `/books/[slug]`, publiczny `/u/[handle]/shelves/[slug]`), E2E (4 scenariusze) | ✅ branch phase/m5-custom-shelves (backend 270/270, E2E 4/4) |
+| M5 Custom shelves | `shelf/` (Shelf + ShelfMembership obok ShelfEntry; owner CRUD `/api/shelves/`, membership add/remove idempotentne, publiczny odczyt `/api/u/{handle}/shelves/` bramkowany `profile_public`), eksport danych, frontend (zakładka „Moje półki" na `/shelf`, `/shelf/[slug]`, kontrolka na `/books/[slug]`, publiczny `/u/[handle]/shelves/[slug]`), E2E (4 scenariusze) | ✅ zmergowane do main (PR #68) |
+| Google Books import | `import_books` management command (CLI) — import po ISBN, dedup+update po `isbn`, `categories` → split na osobne `genres`, reuse `BookWriteSerializer`, stdlib `urllib` (zero nowych deps); `--file`, `--dry-run`; M2M (authors/genres/tags) zachowane gdy Google ich nie zwróci; testy z mockiem `urlopen` | ✅ PR #69 (czeka na merge) |
 
 ## W toku
 
@@ -41,7 +42,7 @@ Brak. Wybór następnego etapu z "Następne".
 
 - Rekomendacje (collaborative + content-based)
 - System tagowania społecznościowego (tagi user-defined poza adminem)
-- Importer książek z OpenLibrary / Goodreads
+- Importer książek z OpenLibrary / Goodreads (Google Books — zrobione, patrz „Zrobione")
 - PWA (krok przed natywnym mobile)
 - Statystyki czytania per użytkownik (wykresy, time-on-shelf)
 - Social: feed znajomych, recenzje publiczne, polubienia
