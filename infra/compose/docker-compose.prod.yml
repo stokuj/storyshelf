@@ -5,7 +5,7 @@ services:
     expose:
       - "8000"
     env_file:
-      - ../../.env
+      - ../.env
     environment:
       DJANGO_ENV: prod
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}

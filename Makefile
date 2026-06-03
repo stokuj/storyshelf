@@ -2,7 +2,7 @@
 
 ROOT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 COMPOSE_DIR := $(ROOT_DIR)infra/compose
-ENV_FILE := $(ROOT_DIR).env
+ENV_FILE := $(ROOT_DIR)infra/.env
 DEV_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml
 PROD_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml
 
