@@ -11,6 +11,7 @@
 	import { upsertRating, deleteRatingById } from '$lib/api/ratings';
 	import { addBookToShelf, removeBookFromShelf } from '$lib/api/shelves';
 	import type { Shelf } from '$lib/types/shelf';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	let { data }: PageProps = $props();
 	let book = $derived(data.book!);
@@ -18,12 +19,18 @@
 	// Writable derived: toggle reassigns via `.map(...)`, resets on navigation
 	// to a different book (same-route navigation reuses this page component).
 	let myShelves = $derived(data.myShelves);
+	// Shelf ids with an in-flight toggle — guards against double-clicks applying
+	// the optimistic book_count delta twice (the API itself is idempotent).
+	const togglingShelfIds = new SvelteSet<number>();
 
 	async function toggleShelf(shelf: Shelf) {
+		if (togglingShelfIds.has(shelf.id)) return;
+		togglingShelfIds.add(shelf.id);
 		const wasIn = shelf.contains_book === true;
 		const { error } = await (wasIn
 			? removeBookFromShelf(fetch, shelf.slug, data.book.slug)
 			: addBookToShelf(fetch, shelf.slug, data.book.slug));
+		togglingShelfIds.delete(shelf.id);
 		if (error) {
 			toast.error(wasIn ? 'Failed to remove from shelf' : 'Failed to add to shelf');
 			return;
@@ -126,6 +133,7 @@
 										<input
 											type="checkbox"
 											checked={shelf.contains_book === true}
+											disabled={togglingShelfIds.has(shelf.id)}
 											onclick={() => toggleShelf(shelf)}
 										/>
 										<span class="flex-1">{shelf.name}</span>

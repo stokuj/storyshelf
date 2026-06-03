@@ -102,6 +102,12 @@ class ShelfCrudTests(APITestCase):
         res = self.client.post("/api/shelves/", {"name": "Fantasy"})
         self.assertEqual(res.status_code, 400)
 
+    def test_duplicate_name_case_insensitive_returns_400(self):
+        Shelf.objects.create(owner=self.alice, name="Fantasy")
+        self.client.force_authenticate(self.alice)
+        res = self.client.post("/api/shelves/", {"name": "fantasy"})
+        self.assertEqual(res.status_code, 400)
+
     def test_create_requires_auth(self):
         res = self.client.post("/api/shelves/", {"name": "Fantasy"})
         self.assertEqual(res.status_code, 401)

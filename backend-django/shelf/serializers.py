@@ -112,8 +112,9 @@ class ShelfSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("Shelf name cannot be empty.")
         # owner is set in the view (not a serializer field) → check uniqueness here.
+        # Case-insensitive so "Fantasy" and "fantasy" can't coexist for one owner.
         user = self.context["request"].user
-        qs = Shelf.objects.filter(owner=user, name=value)
+        qs = Shelf.objects.filter(owner=user, name__iexact=value)
         if self.instance is not None:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
