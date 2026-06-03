@@ -27,6 +27,10 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate_email(self, value):
         return value.lower().strip()
 
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 
