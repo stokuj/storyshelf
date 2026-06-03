@@ -57,7 +57,13 @@ def build_user_stats(user) -> dict:
     pairs = read_entries.filter(finish_date__isnull=False).values_list(
         "created_at", "finish_date"
     )
-    deltas = [(finish - created.date()).days for created, finish in pairs]
+    # Only count real "on shelf" durations; a finish_date predating created_at
+    # (backdated/historical) is not a meaningful duration and is excluded.
+    deltas = [
+        (finish - created.date()).days
+        for created, finish in pairs
+        if (finish - created.date()).days >= 0
+    ]
     time_on_shelf_days = round(sum(deltas) / len(deltas), 1) if deltas else None
 
     return {

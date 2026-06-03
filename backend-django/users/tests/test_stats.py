@@ -73,11 +73,29 @@ class BuildUserStatsTest(TestCase):
         )
 
     def test_time_on_shelf_days(self):
-        # Both READ entries were created today (auto_now_add), finished in the
-        # past relative to nothing — created_at is "now", finish_date is fixed.
-        # So delta = finish_date - today (can be negative); assert it is a float.
+        # Both READ entries were created today (auto_now_add) but have past
+        # finish_dates, so every delta is negative and excluded. With no
+        # non-negative durations left, the average is None.
         stats = build_user_stats(self.user)
-        self.assertIsInstance(stats["time_on_shelf_days"], float)
+        self.assertIsNone(stats["time_on_shelf_days"])
+
+    def test_time_on_shelf_days_positive_delta(self):
+        import datetime
+
+        from django.utils import timezone
+
+        u = User.objects.create_user(
+            email="tos@test.com", handle="tess", password="password123"
+        )
+        book = Book.objects.create(title="TOS", slug="tos-book", page_count=50)
+        entry = ShelfEntry.objects.create(
+            user=u, book=book, status="READ", finish_date=date(2025, 1, 11)
+        )
+        created = timezone.make_aware(datetime.datetime(2025, 1, 1, 12, 0))
+        ShelfEntry.objects.filter(pk=entry.pk).update(created_at=created)
+        stats = build_user_stats(u)
+        # 2025-01-11 minus 2025-01-01 = 10 days.
+        self.assertEqual(stats["time_on_shelf_days"], 10.0)
 
     def test_empty_user(self):
         empty = User.objects.create_user(

@@ -389,8 +389,6 @@ class FollowListView(generics.ListAPIView):
         )
 
 
-
-
 class MyStatsView(views.APIView):
     """Own reading statistics. Authenticated; own data only."""
 
