@@ -4,8 +4,7 @@
 
 ## Co to jest
 
-StoryShelf — book-tracking + literary analysis. Django 6 REST API + SvelteKit 2 SSR, Docker Compose.
-NER (spaCy en_core_web_trf, CPU-only) i LLM (OpenRouter) w workerach Celery.
+StoryShelf — book-tracking app (katalog, oceny, półki, recenzje). Django 6 REST API + SvelteKit 2 SSR, Docker Compose. Bez AI/Celery — 3 kontenery (db, django, svelte).
 
 ## Mapa dokumentacji
 
@@ -13,7 +12,7 @@ NER (spaCy en_core_web_trf, CPU-only) i LLM (OpenRouter) w workerach Celery.
 - Roadmapa: @docs/ROADMAP.md
 - Decyzje (ADR): @docs/decisions/
 - Aktywny etap: @docs/superpowers/specs/ + @docs/superpowers/plans/
-- Konwencje stylu: egzekwowane przez `ruff check` (Python) i `vitest` + `eslint` (Vue)
+- Konwencje stylu: egzekwowane przez `ruff check` (Python) i `svelte-check` + `eslint`/`prettier` (frontend)
 
 ## Workflow (Spec-Driven Development z superpowers)
 
@@ -33,7 +32,7 @@ uv run python manage.py runserver 0.0.0.0:8000
 uv run python manage.py check
 uv run python manage.py migrate
 DJANGO_ENV=dev uv run python manage.py test                                # wszystkie testy
-DJANGO_ENV=dev uv run python -m pytest analysis/tests/                     # NLP (pytest)
+DJANGO_ENV=dev uv run python -m pytest                                      # testy (pytest)
 uv run ruff check .                                                        # lint
 uv run ruff check --fix .
 ```
@@ -51,7 +50,7 @@ npm run types:api    # regeneruj typy z openapi.yml
 ### Docker dev stack
 
 ```bash
-make dev-up          # db, redis, rabbitmq, django, celery-ner, celery-llm, flower, frontend
+make dev-up          # db, django, svelte
 make dev-down
 make dev-build
 make verify          # lint + testy (CI equivalent)
@@ -71,11 +70,11 @@ Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)
 ## Layout (skrót)
 
 ```
-backend-django/    Django 6 + DRF; apps: books, library, users, shelf, reviews, analysis, config
+backend-django/    Django 6 + DRF; apps: books, library, users, ratings, shelf, reviews, config
 svelte-frontend/src/  SvelteKit 2 SSR; hooks.server.ts, lib/api/, lib/config.ts, routes/
-infra/             docker-compose (dev/prod), caddy, rabbitmq defs, scripts/seed.py
+infra/             compose (dev/prod), caddy, scripts/ (seed, deploy, openapi), .env(.example)
 docs/              ARCHITECTURE.md, ROADMAP.md, decisions/, superpowers/
 .claude/           settings, agents/
 ```
 
-API: `http://localhost:8000/api/` · Swagger: `/api/docs/` · Flower: `:5555` · Svelte: `:5174`
+API: `http://localhost:8000/api/` · Swagger: `/api/docs/` · Admin: `/admin/` · Svelte: `:5174`
