@@ -6,27 +6,18 @@
 }
 
 {$DOMAIN:http://:80} {
-	handle_path /v3/api-docs* {
+	# Django REST API — incl. schema at /api/schema/ and Swagger UI at /api/docs/.
+	# Use handle (not handle_path) so the /api prefix is preserved for Django.
+	handle /api/* {
 		reverse_proxy django:8000
 	}
 
-	handle_path /swagger-ui/* {
+	# Django admin
+	handle /admin/* {
 		reverse_proxy django:8000
 	}
 
-	handle /docs {
-		rewrite * /swagger-ui/index.html
-		reverse_proxy django:8000
-	}
-
-	handle_path /api/internal/* {
-		respond "Forbidden" 403
-	}
-
-	handle_path /api/* {
-		reverse_proxy django:8000
-	}
-
+	# SvelteKit SSR — everything else
 	handle {
 		reverse_proxy svelte:3000
 	}
