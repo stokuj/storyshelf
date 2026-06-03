@@ -4,6 +4,7 @@ from datetime import date
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from django.db.models import Count
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, serializers, status, views
@@ -22,6 +23,7 @@ from users.serializers import (
     AvatarUploadSerializer,
     EmailChangeSerializer,
     FollowSerializer,
+    FollowUserSerializer,
     LoginSerializer,
     PasswordChangeSerializer,
     RegisterSerializer,
@@ -292,7 +294,14 @@ class UserProfileView(generics.RetrieveAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserProfileSerializer
     lookup_field = "handle"
-    queryset = User.objects.all()
+
+    def get_queryset(self):
+        # related_name is reversed: follower_set = people who follow this user,
+        # following_set = people this user follows. distinct=True avoids JOIN fan-out.
+        return User.objects.annotate(
+            followers_count=Count("follower_set", distinct=True),
+            following_count=Count("following_set", distinct=True),
+        )
 
     def get_object(self):
         user = super().get_object()
@@ -350,9 +359,14 @@ class FollowListView(generics.ListAPIView):
     """
 
     permission_classes = (permissions.AllowAny,)
-    serializer_class = FollowSerializer
+    serializer_class = FollowUserSerializer
     pagination_class = None
     follower_view = False
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["follower_view"] = self.follower_view
+        return context
 
     def get_queryset(self):
         handle = self.kwargs["handle"]

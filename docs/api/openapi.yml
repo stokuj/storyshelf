@@ -1022,7 +1022,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Follow'
+                  $ref: '#/components/schemas/FollowUser'
           description: ''
   /api/users/{handle}/following/:
     get:
@@ -1048,7 +1048,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Follow'
+                  $ref: '#/components/schemas/FollowUser'
           description: ''
   /api/users/me/:
     get:
@@ -1324,16 +1324,23 @@ components:
           nullable: true
       required:
       - title
-    Follow:
+    FollowUser:
       type: object
+      description: |-
+        Serializes the OTHER user of a UserFollow row as a compact user card.
+        The "other" user depends on which list we serve (context["follower_view"]):
+          followers list: queryset is filter(following=viewed_user), so the other
+            user is the row's `follower` -> follower_view=True  -> obj.follower
+          following list: queryset is filter(follower=viewed_user), so the other
+            user is the row's `following` -> follower_view=False -> obj.following
       properties:
-        id:
-          type: integer
-          readOnly: true
-        follower_handle:
+        handle:
           type: string
           readOnly: true
-        following_handle:
+        display_name:
+          type: string
+          readOnly: true
+        avatar_url:
           type: string
           readOnly: true
         followed_at:
@@ -1341,10 +1348,10 @@ components:
           format: date-time
           readOnly: true
       required:
+      - avatar_url
+      - display_name
       - followed_at
-      - follower_handle
-      - following_handle
-      - id
+      - handle
     Genre:
       type: object
       properties:
@@ -1981,9 +1988,21 @@ components:
           readOnly: true
         profile_public:
           type: boolean
+        followers_count:
+          type: integer
+          readOnly: true
+        following_count:
+          type: integer
+          readOnly: true
+        is_following:
+          type: boolean
+          readOnly: true
       required:
       - avatar_url
+      - followers_count
+      - following_count
       - handle
+      - is_following
       - member_since
     _SerieWrite:
       type: object

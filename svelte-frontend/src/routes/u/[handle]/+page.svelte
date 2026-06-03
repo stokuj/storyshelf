@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import FollowButton from '$lib/components/FollowButton.svelte';
 	import { Calendar } from 'lucide-svelte';
 	import type { User } from '$lib/types';
 	import type { PublicShelf } from '$lib/types/shelf';
@@ -9,7 +10,11 @@
 	let { data }: PageProps = $props();
 	let profile: User = $derived(data.profile!);
 	let isOwner = $derived(data.isOwner);
+	let isLoggedIn = $derived(data.isLoggedIn);
 	let shelves: PublicShelf[] = $derived(data.shelves);
+	// Writable $derived: optimistic count updates from FollowButton override locally,
+	// and it auto-resyncs when navigating to another profile.
+	let followersCount = $derived(profile.followers_count);
 </script>
 
 <svelte:head>
@@ -36,11 +41,23 @@
 					<Calendar class="size-3.5" />
 					Joined {new Date(profile.member_since).getFullYear()}
 				</span>
+				<a href="/u/{profile.handle}/followers" class="hover:text-ink transition-colors">
+					<span class="font-medium text-ink">{followersCount}</span> Followers
+				</a>
+				<a href="/u/{profile.handle}/following" class="hover:text-ink transition-colors">
+					<span class="font-medium text-ink">{profile.following_count}</span> Following
+				</a>
 			</div>
 		</div>
 
 		{#if isOwner}
 			<Button variant="outline" size="sm" href="/settings">Edit profile</Button>
+		{:else if isLoggedIn}
+			<FollowButton
+				handle={profile.handle}
+				isFollowing={profile.is_following}
+				onFollowChange={(f) => (followersCount += f ? 1 : -1)}
+			/>
 		{/if}
 	</div>
 

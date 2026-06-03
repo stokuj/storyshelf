@@ -5,4 +5,7 @@ export interface User {
 	avatar_url: string | null;
 	member_since: string;
 	profile_public: boolean;
+	followers_count: number;
+	following_count: number;
+	is_following: boolean;
 }
