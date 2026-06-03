@@ -26,6 +26,7 @@
 		initialQ,
 		initialGenre,
 		initialSort,
+		initialAuthor,
 		loadError
 	} = data;
 
@@ -40,8 +41,13 @@
 	let currentQ = $state(initialQ);
 	let currentGenre = $state(initialGenre);
 	let currentSort = $state(initialSort);
+	// Set from the URL (e.g. author links on book pages); not edited in the UI,
+	// but must persist across search/sort/load-more instead of being dropped.
+	let currentAuthor = $state(initialAuthor);
 
-	let hasFilters = $derived(currentQ !== '' || currentGenre !== '' || currentSort !== '');
+	let hasFilters = $derived(
+		currentQ !== '' || currentGenre !== '' || currentSort !== '' || currentAuthor !== ''
+	);
 	let hasMore = $derived(books.length < total);
 
 	if (loadError) {
@@ -58,6 +64,8 @@
 		else url.searchParams.delete('genre');
 		if (currentSort) url.searchParams.set('sort', currentSort);
 		else url.searchParams.delete('sort');
+		if (currentAuthor) url.searchParams.set('author', currentAuthor);
+		else url.searchParams.delete('author');
 		return url;
 	}
 
@@ -78,6 +86,7 @@
 		const { data: result, error: apiErr } = await listBooks(fetch, {
 			q: currentQ || undefined,
 			genre: currentGenre || undefined,
+			author: currentAuthor || undefined,
 			sort: currentSort || undefined,
 			page: 1,
 			perPage
@@ -103,6 +112,7 @@
 		const { data: result, error: apiErr } = await listBooks(fetch, {
 			q: currentQ || undefined,
 			genre: currentGenre || undefined,
+			author: currentAuthor || undefined,
 			sort: currentSort || undefined,
 			page: nextPage,
 			perPage
@@ -140,6 +150,7 @@
 		currentQ = '';
 		currentGenre = '';
 		currentSort = '';
+		currentAuthor = '';
 		loadBooks();
 	}
 </script>
