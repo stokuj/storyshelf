@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -61,6 +63,17 @@ class ShelfEntrySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"book_slug": "Cannot change the book of an existing shelf entry."}
             )
+
+        # Auto-set finish_date the first time an entry becomes READ, so reading
+        # stats (books/year, time-on-shelf) have a date to work with. Never
+        # overwrite an existing or explicitly-provided finish_date.
+        result_status = attrs.get("status", getattr(self.instance, "status", None))
+        if (
+            result_status == ShelfEntry.Status.READ
+            and "finish_date" not in attrs
+            and getattr(self.instance, "finish_date", None) is None
+        ):
+            attrs["finish_date"] = date.today()
 
         # Reuse model.clean() for current_page / date validation (DRY).
         entry = self.instance or ShelfEntry()
