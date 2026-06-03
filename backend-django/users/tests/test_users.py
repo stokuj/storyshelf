@@ -46,6 +46,33 @@ class UserProfileTest(AuthTestHelper, APITestCase):
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    def test_profile_includes_follow_counts_and_is_following(self):
+        # self.user follows self.target → target has 1 follower, 0 following
+        self.client.force_authenticate(user=self.user)
+        follow_resp = self.client.post(f"/api/users/{self.target.handle}/follow/")
+        self.assertEqual(follow_resp.status_code, status.HTTP_201_CREATED)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["followers_count"], 1)
+        self.assertEqual(resp.data["following_count"], 0)
+        self.assertTrue(resp.data["is_following"])
+
+    def test_profile_is_following_false_for_non_follower(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.get(self.url)
+        self.assertFalse(resp.data["is_following"])
+        self.assertEqual(resp.data["followers_count"], 0)
+        self.assertEqual(resp.data["following_count"], 0)
+
+    def test_profile_is_following_false_for_anon(self):
+        resp = self.client.get(self.url)
+        self.assertFalse(resp.data["is_following"])
+
+    def test_profile_is_following_false_on_own_profile(self):
+        self.client.force_authenticate(user=self.target)
+        resp = self.client.get(self.url)
+        self.assertFalse(resp.data["is_following"])
+
 
 class UserSettingsTest(AuthTestHelper, APITestCase):
     @classmethod
@@ -167,7 +194,10 @@ class FollowListTest(AuthTestHelper, APITestCase):
         resp = self.client.get(f"/api/users/{self.target.handle}/followers/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["follower_handle"], "testuser")
+        self.assertEqual(resp.data[0]["handle"], "testuser")
+        self.assertEqual(resp.data[0]["display_name"], self.user.display_name)
+        self.assertIn("avatar_url", resp.data[0])
+        self.assertIn("followed_at", resp.data[0])
 
     def test_list_following_returns_200(self):
         self.client.force_authenticate(user=self.user)
@@ -175,7 +205,8 @@ class FollowListTest(AuthTestHelper, APITestCase):
         resp = self.client.get("/api/users/testuser/following/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
-        self.assertEqual(resp.data[0]["following_handle"], "target3")
+        self.assertEqual(resp.data[0]["handle"], "target3")
+        self.assertEqual(resp.data[0]["display_name"], self.target.display_name)
 
     def test_list_followers_empty_returns_200(self):
         resp = self.client.get(f"/api/users/{self.target.handle}/followers/")

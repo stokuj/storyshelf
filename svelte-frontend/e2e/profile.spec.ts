@@ -17,10 +17,15 @@ test.describe('Public profile', () => {
 		await expect(page.getByRole('link', { name: 'Edit profile' })).toBeVisible();
 	});
 
-	test('non-owner sees "Follow" button on public profile', async ({ page, guestUser }) => {
-		// Unauthenticated browser viewing guestUser's profile
+	test('guest does NOT see Follow button on public profile', async ({ page, guestUser }) => {
+		// Unauthenticated browser — Follow button must be hidden for guests
 		await page.goto(`/u/${guestUser.handle}`);
+		await expect(page.getByRole('button', { name: 'Follow' })).toHaveCount(0);
+	});
 
+	test('logged-in non-owner sees Follow button', async ({ page, authUser, guestUser }) => {
+		// authUser cookies are in the browser context — visiting guestUser's profile
+		await page.goto(`/u/${guestUser.handle}`);
 		await expect(page.getByRole('button', { name: 'Follow' })).toBeVisible();
 	});
 

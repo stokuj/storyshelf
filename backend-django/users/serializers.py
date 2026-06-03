@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -102,6 +104,9 @@ class UserMeSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     member_since = serializers.DateTimeField(source="created_at", read_only=True)
     avatar_url = serializers.SerializerMethodField()
+    followers_count = serializers.IntegerField(read_only=True)
+    following_count = serializers.IntegerField(read_only=True)
+    is_following = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -112,6 +117,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "avatar_url",
             "member_since",
             "profile_public",
+            "followers_count",
+            "following_count",
+            "is_following",
         )
 
     def get_avatar_url(self, obj):
@@ -119,6 +127,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             request = self.context.get("request")
             return request.build_absolute_uri(obj.avatar.url) if request else obj.avatar.url
         return None
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_is_following(self, obj):
+        # NOTE: 1 extra query per request — safe for this detail-only endpoint.
+        # Would become N+1 if this serializer is ever reused for a list.
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated or request.user == obj:
+            return False
+        return UserFollow.objects.filter(follower=request.user, following=obj).exists()
 
 
 class UserSettingsPatchSerializer(serializers.Serializer):
@@ -183,3 +200,36 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFollow
         fields = ("id", "follower_handle", "following_handle", "followed_at")
+
+
+class FollowUserSerializer(serializers.Serializer):
+    """
+    Serializes the OTHER user of a UserFollow row as a compact user card.
+    The "other" user depends on which list we serve (context["follower_view"]):
+      followers list: queryset is filter(following=viewed_user), so the other
+        user is the row's `follower` -> follower_view=True  -> obj.follower
+      following list: queryset is filter(follower=viewed_user), so the other
+        user is the row's `following` -> follower_view=False -> obj.following
+    """
+
+    handle = serializers.SerializerMethodField()
+    display_name = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
+    followed_at = serializers.DateTimeField(read_only=True)
+
+    def _target(self, obj):
+        # The viewed user is the fixed side of the query; the other FK is who we show.
+        return obj.follower if self.context.get("follower_view") else obj.following
+
+    def get_handle(self, obj):
+        return self._target(obj).handle
+
+    def get_display_name(self, obj):
+        return self._target(obj).display_name
+
+    def get_avatar_url(self, obj):
+        user = self._target(obj)
+        if user.avatar:
+            request = self.context.get("request")
+            return request.build_absolute_uri(user.avatar.url) if request else user.avatar.url
+        return None

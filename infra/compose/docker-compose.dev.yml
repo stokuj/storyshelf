@@ -13,6 +13,7 @@ services:
       DJANGO_ENV: dev
       DJANGO_SECRET_KEY: dev-secret-key
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
+      GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

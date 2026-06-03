@@ -17,8 +17,9 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 
 	const { user: viewer } = await parent();
 	const isOwner = viewer?.handle === params.handle;
+	const isLoggedIn = !!viewer;
 
 	const { data: shelves } = await fetchPublicShelves(fetch, params.handle, true);
 
-	return { profile, isOwner, shelves: shelves ?? [] };
+	return { profile, isOwner, isLoggedIn, shelves: shelves ?? [] };
 };
