@@ -6,9 +6,9 @@
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `main` (M4 Reviews zmergowane, PR #64).
+**Bieżący branch:** `phase/m5-custom-shelves` (M5 Custom shelves zaimplementowane; M4 zmergowane PR #64 + poprawki po review #65–#67).
 
-**ZADANIE:** Wybór następnego etapu z "Następne" (wdrożenie prod / M5 Custom shelves).
+**ZADANIE:** Domknąć M5 (review + merge), potem wdrożenie produkcyjne.
 
 ---
 
@@ -24,7 +24,8 @@
 | M2 Katalog książek | Books API (paginacja, slug, filtry/search/sort), SvelteKit frontend (/discover, /books/[slug]), E2E | ✅ zmergowane do main (PR #60) |
 | PRE-M3 cleanup | Usunięcie AI/Celery kodu (analysis, reviews, shelf apps), uproszczenie infra do 3 kontenerów | ✅ branch fix/pre-m3-cleanup |
 | M3 Rating + Shelf | `ratings/` (PUT-upsert, sygnał → avg_rating), `shelf/` (ShelfEntry CRUD, status, current_page), frontend `/shelf` + kontrolki na `/books/[slug]`, E2E | ✅ zmergowane do main (PR #62 + post-M3 fixes #63) |
-| M4 Reviews | `reviews/` (Review = body, unique user+book, PUT-upsert, publiczna lista, `/me`, owner-only delete, `author_rating` z Rating via Subquery), eksport danych, frontend sekcja recenzji na `/books/[slug]` (LoadMore), E2E (4 scenariusze) | ✅ branch phase/m4-reviews (243/243 backend, E2E 4/4) |
+| M4 Reviews | `reviews/` (Review = body, unique user+book, PUT-upsert, publiczna lista, `/me`, owner-only delete, `author_rating` z Rating via Subquery), eksport danych, frontend sekcja recenzji na `/books/[slug]` (LoadMore), E2E (4 scenariusze) | ✅ zmergowane do main (PR #64 + poprawki po review #65–#67) |
+| M5 Custom shelves | `shelf/` (Shelf + ShelfMembership obok ShelfEntry; owner CRUD `/api/shelves/`, membership add/remove idempotentne, publiczny odczyt `/api/u/{handle}/shelves/` bramkowany `profile_public`), eksport danych, frontend (zakładka „Moje półki" na `/shelf`, `/shelf/[slug]`, kontrolka na `/books/[slug]`, publiczny `/u/[handle]/shelves/[slug]`), E2E (4 scenariusze) | ✅ branch phase/m5-custom-shelves (backend 270/270, E2E 4/4) |
 
 ## W toku
 
@@ -35,7 +36,6 @@ Brak. Wybór następnego etapu z "Następne".
 ## Następne (priorytetyzowane)
 
 1. **Wdrożenie produkcyjne** — odkomentowanie deploy step w `.github/workflows/ci.yml`, Caddy z Let's Encrypt, sekrety na VPS (DigitalOcean). Wymaga konfiguracji `CORS_ALLOWED_ORIGINS` i `JWT_COOKIE_DOMAIN`.
-2. **M5 Custom shelves** — Shelf + ShelfMembership CRUD, publiczny widok `/u/[handle]/shelves/[slug]`
 
 ## Kiedyś (bez priorytetu)
 

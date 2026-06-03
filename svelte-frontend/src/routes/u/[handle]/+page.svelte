@@ -4,10 +4,12 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Calendar } from 'lucide-svelte';
 	import type { User } from '$lib/types';
+	import type { PublicShelf } from '$lib/types/shelf';
 
 	let { data }: PageProps = $props();
 	let profile: User = $derived(data.profile!);
 	let isOwner = $derived(data.isOwner);
+	let shelves: PublicShelf[] = $derived(data.shelves);
 </script>
 
 <svelte:head>
@@ -41,4 +43,23 @@
 			<Button variant="outline" size="sm" href="/settings">Edit profile</Button>
 		{/if}
 	</div>
+
+	{#if shelves.length > 0}
+		<section class="mt-10">
+			<h2 class="font-display text-xl font-medium text-ink mb-4">Shelves</h2>
+			<ul class="flex flex-col gap-2">
+				{#each shelves as shelf (shelf.slug)}
+					<li>
+						<a
+							href="/u/{profile.handle}/shelves/{shelf.slug}"
+							class="flex items-center justify-between rounded-lg border border-rule bg-surface px-4 py-3 hover:bg-paper-2 transition-colors"
+						>
+							<span class="text-ink font-medium">{shelf.name}</span>
+							<span class="text-sm text-muted">{shelf.book_count} books</span>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
 </div>

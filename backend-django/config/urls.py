@@ -10,10 +10,12 @@ urlpatterns = [
     path("api/auth/", include("users.urls.auth")),
     path("api/users/", include("users.urls.users")),
     path("api/u/", include("users.urls.public")),
+    path("api/u/<str:handle>/shelves/", include("shelf.urls_public")),
     path("api/", include("books.urls")),
     path("api/", include("ratings.urls")),
     path("api/shelf/", include("shelf.urls")),
     path("api/", include("reviews.urls")),
+    path("api/", include("shelf.urls_shelves")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",

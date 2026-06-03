@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from books.models import Book
 
-from .models import ShelfEntry
+from .models import Shelf, ShelfEntry
 
 
 class ShelfBookSerializer(serializers.ModelSerializer):
@@ -73,3 +73,98 @@ class ShelfEntrySerializer(serializers.ModelSerializer):
         except DjangoValidationError as exc:
             raise serializers.ValidationError(exc.message_dict)
         return attrs
+
+
+class ShelfSerializer(serializers.ModelSerializer):
+    """List/create/update view of a shelf (no books)."""
+
+    book_count = serializers.SerializerMethodField()
+    contains_book = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Shelf
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "description",
+            "is_public",
+            "book_count",
+            "contains_book",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "slug", "book_count", "contains_book", "created_at", "updated_at"]
+
+    @extend_schema_field(serializers.IntegerField())
+    def get_book_count(self, obj):
+        # Annotated by the view; fall back to a count for un-annotated instances.
+        count = getattr(obj, "book_count", None)
+        return count if count is not None else obj.memberships.count()
+
+    @extend_schema_field(serializers.BooleanField(allow_null=True))
+    def get_contains_book(self, obj):
+        # Only annotated when the list view is filtered by ?book_slug; else None.
+        return getattr(obj, "contains_book", None)
+
+    def validate_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Shelf name cannot be empty.")
+        # owner is set in the view (not a serializer field) → check uniqueness here.
+        user = self.context["request"].user
+        qs = Shelf.objects.filter(owner=user, name=value)
+        if self.instance is not None:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("You already have a shelf with this name.")
+        return value
+
+
+class ShelfDetailSerializer(ShelfSerializer):
+    """Retrieve view: shelf + its books (newest first)."""
+
+    books = serializers.SerializerMethodField()
+
+    class Meta(ShelfSerializer.Meta):
+        fields = ShelfSerializer.Meta.fields + ["books"]
+
+    @extend_schema_field(ShelfBookSerializer(many=True))
+    def get_books(self, obj):
+        books = [
+            m.book
+            for m in obj.memberships.select_related("book").prefetch_related(
+                "book__authors", "book__genres"
+            )
+        ]
+        return ShelfBookSerializer(books, many=True).data
+
+
+class PublicShelfSerializer(serializers.ModelSerializer):
+    book_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Shelf
+        fields = ["name", "slug", "description", "book_count", "created_at"]
+
+    @extend_schema_field(serializers.IntegerField())
+    def get_book_count(self, obj):
+        count = getattr(obj, "book_count", None)
+        return count if count is not None else obj.memberships.count()
+
+
+class PublicShelfDetailSerializer(PublicShelfSerializer):
+    books = serializers.SerializerMethodField()
+
+    class Meta(PublicShelfSerializer.Meta):
+        fields = PublicShelfSerializer.Meta.fields + ["books"]
+
+    @extend_schema_field(ShelfBookSerializer(many=True))
+    def get_books(self, obj):
+        books = [
+            m.book
+            for m in obj.memberships.select_related("book").prefetch_related(
+                "book__authors", "book__genres"
+            )
+        ]
+        return ShelfBookSerializer(books, many=True).data

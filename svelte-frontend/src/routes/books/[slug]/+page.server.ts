@@ -4,16 +4,18 @@ import { getBook } from '$lib/api/books';
 import { fetchUserRating } from '$lib/api/ratings';
 import { fetchShelfEntry } from '$lib/api/shelf';
 import { fetchReviews, fetchMyReview } from '$lib/api/reviews';
+import { fetchMyShelves } from '$lib/api/shelves';
 
 export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 	const { user } = await parent();
 
-	const [bookRes, ratingRes, entryRes, reviewsRes, myReviewRes] = await Promise.all([
+	const [bookRes, ratingRes, entryRes, reviewsRes, myReviewRes, myShelvesRes] = await Promise.all([
 		getBook(fetch, params.slug),
 		user ? fetchUserRating(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
 		user ? fetchShelfEntry(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
 		fetchReviews(fetch, params.slug, 1, true),
-		user ? fetchMyReview(fetch, params.slug, true) : Promise.resolve({ data: null, error: null })
+		user ? fetchMyReview(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
+		user ? fetchMyShelves(fetch, params.slug, true) : Promise.resolve({ data: null, error: null })
 	]);
 
 	if (bookRes.error) {
@@ -27,6 +29,7 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 		shelfEntry: entryRes.data ?? null,
 		reviews: reviewsRes.data?.data ?? [],
 		reviewsTotal: reviewsRes.data?.total ?? 0,
-		myReview: myReviewRes.data ?? null
+		myReview: myReviewRes.data ?? null,
+		myShelves: myShelvesRes.data ?? []
 	};
 };

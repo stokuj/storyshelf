@@ -2,12 +2,14 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { fetchShelfEntries } from '$lib/api/shelf';
 import { fetchRatings } from '$lib/api/ratings';
+import { fetchMyShelves } from '$lib/api/shelves';
 import type { ShelfEntryWithRating } from '$lib/types/shelf';
 
 export const load: PageServerLoad = async ({ fetch }) => {
-	const [entriesRes, ratingsRes] = await Promise.all([
+	const [entriesRes, ratingsRes, shelvesRes] = await Promise.all([
 		fetchShelfEntries(fetch, true),
-		fetchRatings(fetch, true)
+		fetchRatings(fetch, true),
+		fetchMyShelves(fetch, undefined, true)
 	]);
 
 	if (entriesRes.error) {
@@ -22,5 +24,5 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		rating_id: ratingIdBySlug.get(e.book.slug) ?? null
 	}));
 
-	return { entries };
+	return { entries, shelves: shelvesRes.data ?? [] };
 };

@@ -84,6 +84,21 @@ def build_user_export_zip(user):
         ]
         zf.writestr("reviews.json", json.dumps(reviews_data, indent=2, cls=_DatetimeEncoder))
 
+        # shelves.json
+        shelves_qs = user.shelves.prefetch_related("memberships__book").order_by("-created_at")
+        shelves_data = [
+            {
+                "name": s.name,
+                "slug": s.slug,
+                "description": s.description,
+                "is_public": s.is_public,
+                "created_at": s.created_at,
+                "books": [m.book.slug for m in s.memberships.all()],
+            }
+            for s in shelves_qs
+        ]
+        zf.writestr("shelves.json", json.dumps(shelves_data, indent=2, cls=_DatetimeEncoder))
+
         # avatar
         if user.avatar and user.avatar.name:
             try:
@@ -104,6 +119,7 @@ def build_user_export_zip(user):
             f"  shelf_entries.json — reading shelf (status, progress, dates)\n"
             f"  ratings.json       — book ratings\n"
             f"  reviews.json       — book reviews\n"
+            f"  shelves.json       — custom shelves and their books\n"
             f"  avatar_*           — profile picture (if set)\n"
         )
         zf.writestr("README.txt", readme)

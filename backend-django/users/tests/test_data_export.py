@@ -92,6 +92,20 @@ class DataExportTest(AuthTestHelper, APITestCase):
         self.assertEqual(reviews[0]["body"], "My review")
         self.assertEqual(reviews[0]["book_slug"], self.book.slug)
 
+    def test_export_includes_shelves(self):
+        from shelf.models import Shelf, ShelfMembership
+        from users.exporters import build_user_export_zip
+
+        shelf = Shelf.objects.create(owner=self.user, name="Fantasy", is_public=True)
+        ShelfMembership.objects.create(shelf=shelf, book=self.book)
+
+        data = build_user_export_zip(self.user)
+        zf = zipfile.ZipFile(BytesIO(data))
+        shelves = json.loads(zf.read("shelves.json"))
+        self.assertEqual(len(shelves), 1)
+        self.assertEqual(shelves[0]["name"], "Fantasy")
+        self.assertEqual(shelves[0]["books"], [self.book.slug])
+
     def test_export_unauthenticated_returns_401(self):
         resp = self.client.post("/api/users/me/export/")
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)

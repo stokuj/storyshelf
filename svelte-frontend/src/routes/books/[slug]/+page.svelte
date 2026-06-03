@@ -9,9 +9,31 @@
 	import ShelfControl from '$lib/components/shelf/ShelfControl.svelte';
 	import ReviewSection from '$lib/components/review/ReviewSection.svelte';
 	import { upsertRating, deleteRatingById } from '$lib/api/ratings';
+	import { addBookToShelf, removeBookFromShelf } from '$lib/api/shelves';
+	import type { Shelf } from '$lib/types/shelf';
 
 	let { data }: PageProps = $props();
 	let book = $derived(data.book!);
+
+	// Writable derived: toggle reassigns via `.map(...)`, resets on navigation
+	// to a different book (same-route navigation reuses this page component).
+	let myShelves = $derived(data.myShelves);
+
+	async function toggleShelf(shelf: Shelf) {
+		const wasIn = shelf.contains_book === true;
+		const { error } = await (wasIn
+			? removeBookFromShelf(fetch, shelf.slug, data.book.slug)
+			: addBookToShelf(fetch, shelf.slug, data.book.slug));
+		if (error) {
+			toast.error(wasIn ? 'Failed to remove from shelf' : 'Failed to add to shelf');
+			return;
+		}
+		myShelves = myShelves.map((s) =>
+			s.id === shelf.id
+				? { ...s, contains_book: !wasIn, book_count: s.book_count + (wasIn ? -1 : 1) }
+				: s
+		);
+	}
 
 	// Writable derived: locally mutable, resets when navigating to a different
 	// book (same-route navigation reuses this page component, no remount).
@@ -87,6 +109,37 @@
 				</div>
 				{#if data.user}
 					<ShelfControl bookSlug={data.book.slug} initialEntry={data.shelfEntry} />
+					<details class="relative w-fit" data-testid="add-to-shelf-dropdown">
+						<summary
+							class="flex items-center gap-1.5 w-fit cursor-pointer list-none rounded-md border border-rule bg-surface px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-paper-2"
+						>
+							Add to shelf
+						</summary>
+						<ul
+							class="absolute top-full left-0 mt-1 z-20 min-w-48 rounded-md border border-rule bg-surface shadow-lg py-1"
+						>
+							{#each myShelves as shelf (shelf.id)}
+								<li>
+									<label
+										class="flex items-center gap-2 px-2.5 py-1.5 text-xs cursor-pointer hover:bg-paper-2"
+									>
+										<input
+											type="checkbox"
+											checked={shelf.contains_book === true}
+											onclick={() => toggleShelf(shelf)}
+										/>
+										<span class="flex-1">{shelf.name}</span>
+										<span class="text-muted">{shelf.book_count}</span>
+									</label>
+								</li>
+							{/each}
+							{#if myShelves.length === 0}
+								<li class="px-2.5 py-1.5 text-xs">
+									<a href="/shelf" class="text-info hover:underline">Create your first shelf</a>
+								</li>
+							{/if}
+						</ul>
+					</details>
 				{/if}
 			</div>
 
