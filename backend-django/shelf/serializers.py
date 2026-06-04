@@ -1,6 +1,5 @@
-from datetime import date
-
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -73,7 +72,7 @@ class ShelfEntrySerializer(serializers.ModelSerializer):
             and "finish_date" not in attrs
             and getattr(self.instance, "finish_date", None) is None
         ):
-            attrs["finish_date"] = date.today()
+            attrs["finish_date"] = timezone.localdate()
 
         # Reuse model.clean() for current_page / date validation (DRY).
         entry = self.instance or ShelfEntry()

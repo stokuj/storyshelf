@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -176,7 +177,9 @@ class FinishDateAutoSetTest(APITestCase):
             email="fd@test.com", handle="finn", password="password123"
         )
         cls.book = Book.objects.create(title="Dune", slug="dune", page_count=412)
-        cls.today = date.today()
+        # Match the serializer's timezone.localdate() (app TIME_ZONE), not the
+        # host clock, so the assertion holds regardless of container TZ.
+        cls.today = timezone.localdate()
 
     def _detail(self, pk):
         return f"{URL}{pk}/"
