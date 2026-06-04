@@ -153,4 +153,10 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "StoryShelf API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    # Pin the shelf status enum name: once `status` appears in a second serializer
+    # (PublicShelfEntrySerializer), drf-spectacular can't derive it from one
+    # serializer and falls back to a hash-suffixed name. Keep the stable component.
+    "ENUM_NAME_OVERRIDES": {
+        "ShelfEntryStatusEnum": "shelf.models.ShelfEntry.Status",
+    },
 }

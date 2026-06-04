@@ -1694,7 +1694,7 @@ components:
           type: string
           writeOnly: true
         status:
-          $ref: '#/components/schemas/StatusCfdEnum'
+          $ref: '#/components/schemas/ShelfEntryStatusEnum'
         start_date:
           type: string
           format: date
@@ -1773,7 +1773,7 @@ components:
       description: Read-only view of another user's reading entry (M11).
       properties:
         status:
-          $ref: '#/components/schemas/StatusCfdEnum'
+          $ref: '#/components/schemas/ShelfEntryStatusEnum'
         start_date:
           type: string
           format: date
@@ -2051,7 +2051,7 @@ components:
           type: string
           writeOnly: true
         status:
-          $ref: '#/components/schemas/StatusCfdEnum'
+          $ref: '#/components/schemas/ShelfEntryStatusEnum'
         start_date:
           type: string
           format: date
@@ -2078,7 +2078,7 @@ components:
       - book_slug
       - id
       - user_rating
-    StatusCfdEnum:
+    ShelfEntryStatusEnum:
       enum:
       - WANT_TO_READ
       - READING
