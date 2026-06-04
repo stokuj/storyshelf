@@ -5,6 +5,11 @@ export function fetchShelfEntries(fetchFn: typeof fetch, isServerSide = false) {
 	return apiFetch<ShelfEntry[]>(fetchFn, '/shelf/entries/', undefined, isServerSide);
 }
 
+/** Another user's public default reading shelf (M11). */
+export function fetchPublicShelf(fetchFn: typeof fetch, handle: string, isServerSide = false) {
+	return apiFetch<ShelfEntry[]>(fetchFn, `/u/${handle}/shelf/`, undefined, isServerSide);
+}
+
 /** The current user's shelf entry for one book, or null. */
 export async function fetchShelfEntry(
 	fetchFn: typeof fetch,

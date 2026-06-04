@@ -1,8 +1,15 @@
 <script lang="ts">
 	import Avatar from '$lib/components/Avatar.svelte';
-	import type { FollowUser } from '$lib/types/follow';
 
-	let { user }: { user: FollowUser } = $props();
+	// Structural type = common subset of FollowUser and UserListItem, so this row
+	// is reusable by followers/following lists (no count) and /users (with count).
+	let {
+		user,
+		followersCount
+	}: {
+		user: { handle: string; display_name: string; avatar_url: string | null };
+		followersCount?: number;
+	} = $props();
 </script>
 
 <a
@@ -14,4 +21,7 @@
 		<p class="text-ink font-medium truncate">{user.display_name || user.handle}</p>
 		<p class="text-sm text-muted truncate">@{user.handle}</p>
 	</div>
+	{#if followersCount !== undefined}
+		<span class="ml-auto shrink-0 text-sm text-muted">{followersCount} followers</span>
+	{/if}
 </a>

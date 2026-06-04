@@ -6,11 +6,13 @@ from users.views import (
     EmailChangeView,
     MyStatsView,
     PasswordChangeView,
+    UserListView,
     UserMeView,
     UserSettingsView,
 )
 
 urlpatterns = [
+    path("", UserListView.as_view()),
     path("me/", UserMeView.as_view()),
     path("me/password/", PasswordChangeView.as_view()),
     path("me/email/", EmailChangeView.as_view()),

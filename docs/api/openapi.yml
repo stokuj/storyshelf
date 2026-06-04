@@ -1001,6 +1001,30 @@ paths:
                 items:
                   $ref: '#/components/schemas/FollowUser'
           description: ''
+  /api/u/{handle}/shelf/:
+    get:
+      operationId: u_shelf_list
+      description: Another user's default reading shelf (all statuses), gated by profile_public.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicShelfEntry'
+          description: ''
   /api/u/{handle}/shelves/:
     get:
       operationId: u_shelves_list
@@ -1049,6 +1073,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicShelfDetail'
+          description: ''
+  /api/users/:
+    get:
+      operationId: users_list
+      description: |-
+        Public, paginated list of public profiles. Search by handle/display_name;
+        order by follower count (default) or recency.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - users
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserListList'
           description: ''
   /api/users/me/:
     get:
@@ -1513,6 +1580,27 @@ components:
         total:
           type: integer
           example: 100
+    PaginatedUserListList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserList'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
     PatchedBookWrite:
       type: object
       properties:
@@ -1680,6 +1768,36 @@ components:
       - books
       - created_at
       - name
+    PublicShelfEntry:
+      type: object
+      description: Read-only view of another user's reading entry (M11).
+      properties:
+        status:
+          $ref: '#/components/schemas/ShelfEntryStatusEnum'
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        finish_date:
+          type: string
+          format: date
+          nullable: true
+        current_page:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        user_rating:
+          type: integer
+          nullable: true
+          readOnly: true
+        book:
+          allOf:
+          - $ref: '#/components/schemas/ShelfBook'
+          readOnly: true
+      required:
+      - book
+      - user_rating
     Rating:
       type: object
       properties:
@@ -1982,6 +2100,25 @@ components:
       required:
       - id
       - name
+    UserList:
+      type: object
+      properties:
+        handle:
+          type: string
+          maxLength: 30
+        display_name:
+          type: string
+          maxLength: 80
+        avatar_url:
+          type: string
+          readOnly: true
+        followers_count:
+          type: integer
+          readOnly: true
+      required:
+      - avatar_url
+      - followers_count
+      - handle
     UserProfile:
       type: object
       properties:

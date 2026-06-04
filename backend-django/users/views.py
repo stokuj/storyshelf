@@ -8,7 +8,7 @@ from django.db.models import Count
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
-from rest_framework import generics, permissions, serializers, status, views
+from rest_framework import filters, generics, permissions, serializers, status, views
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -17,6 +17,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from config.pagination import StandardPagination
 from users.cookie_auth import clear_jwt_cookies, set_jwt_cookies
 from users.models import User, UserFollow
 from users.serializers import (
@@ -28,6 +29,7 @@ from users.serializers import (
     LoginSerializer,
     PasswordChangeSerializer,
     RegisterSerializer,
+    UserListSerializer,
     UserMePatchSerializer,
     UserMeSerializer,
     UserProfileSerializer,
@@ -311,6 +313,24 @@ class UserProfileView(generics.RetrieveAPIView):
         if not user.profile_public and user != self.request.user:
             raise Http404("No User matches the given query.")
         return user
+
+
+class UserListView(generics.ListAPIView):
+    """Public, paginated list of public profiles. Search by handle/display_name;
+    order by follower count (default) or recency."""
+
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = UserListSerializer
+    pagination_class = StandardPagination
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ("handle", "display_name")
+    ordering_fields = ("followers_count", "created_at")
+    ordering = ("-followers_count", "handle")
+
+    def get_queryset(self):
+        return User.objects.filter(profile_public=True).annotate(
+            followers_count=Count("follower_set", distinct=True)
+        )
 
 
 class UserFollowView(views.APIView):

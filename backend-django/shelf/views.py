@@ -13,6 +13,7 @@ from users.models import User
 from .models import Shelf, ShelfEntry, ShelfMembership
 from .serializers import (
     PublicShelfDetailSerializer,
+    PublicShelfEntrySerializer,
     PublicShelfSerializer,
     ShelfBookSerializer,
     ShelfDetailSerializer,
@@ -123,4 +124,25 @@ class PublicShelfDetailView(generics.RetrieveAPIView):
         owner = _public_owner_or_404(self.request, self.kwargs["handle"])
         return get_object_or_404(
             Shelf, owner=owner, slug=self.kwargs["slug"], is_public=True
+        )
+
+
+class PublicShelfEntryListView(generics.ListAPIView):
+    """Another user's default reading shelf (all statuses), gated by profile_public."""
+
+    permission_classes = [AllowAny]
+    serializer_class = PublicShelfEntrySerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        owner = _public_owner_or_404(self.request, self.kwargs["handle"])
+        user_rating = Rating.objects.filter(
+            user=OuterRef("user"), book=OuterRef("book")
+        ).values("rating")[:1]
+        return (
+            ShelfEntry.objects.filter(user=owner)
+            .annotate(user_rating=Subquery(user_rating))
+            .select_related("book")
+            .prefetch_related("book__authors", "book__genres")
+            .order_by("-created_at")
         )
