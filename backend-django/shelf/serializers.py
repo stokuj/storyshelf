@@ -153,6 +153,22 @@ class ShelfDetailSerializer(ShelfSerializer):
         return ShelfBookSerializer(books, many=True).data
 
 
+class PublicShelfEntrySerializer(serializers.ModelSerializer):
+    """Read-only view of another user's reading entry (M11)."""
+
+    book = ShelfBookSerializer(read_only=True)
+    user_rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ShelfEntry
+        fields = ["status", "start_date", "finish_date", "current_page", "user_rating", "book"]
+
+    @extend_schema_field(serializers.IntegerField(allow_null=True))
+    def get_user_rating(self, obj):
+        # Populated by the view's Subquery annotation; absent -> None.
+        return getattr(obj, "user_rating", None)
+
+
 class PublicShelfSerializer(serializers.ModelSerializer):
     book_count = serializers.SerializerMethodField()
 
