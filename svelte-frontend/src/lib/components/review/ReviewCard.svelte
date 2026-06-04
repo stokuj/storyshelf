@@ -12,7 +12,9 @@
 
 <article data-testid="review-card" class="border-b border-rule py-4">
 	<div class="flex items-center justify-between gap-2">
-		<span class="font-medium">{review.author.display_name || `@${review.author.handle}`}</span>
+		<a href="/u/{review.author.handle}" class="font-medium hover:text-accent transition-colors">
+			{review.author.display_name || `@${review.author.handle}`}
+		</a>
 		{#if review.author_rating}
 			<RatingStars rating={review.author_rating} readonly size="sm" />
 		{/if}

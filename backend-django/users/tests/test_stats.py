@@ -47,7 +47,6 @@ class BuildUserStatsTest(TestCase):
 
     def test_totals(self):
         stats = build_user_stats(self.user)
-        self.assertEqual(stats["totals"]["total_books"], 3)
         # pages_read = sum of READ books with page_count (100 + 200).
         self.assertEqual(stats["totals"]["pages_read"], 300)
         self.assertEqual(stats["totals"]["avg_rating_given"], 4.0)
@@ -105,7 +104,6 @@ class BuildUserStatsTest(TestCase):
         self.assertEqual(
             stats["status_counts"], {"want_to_read": 0, "reading": 0, "read": 0}
         )
-        self.assertEqual(stats["totals"]["total_books"], 0)
         self.assertEqual(stats["totals"]["pages_read"], 0)
         self.assertIsNone(stats["totals"]["avg_rating_given"])
         self.assertEqual(stats["books_per_year"], [])

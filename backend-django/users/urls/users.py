@@ -4,10 +4,8 @@ from users.views import (
     AvatarUploadView,
     DataExportView,
     EmailChangeView,
-    FollowListView,
     MyStatsView,
     PasswordChangeView,
-    UserFollowView,
     UserMeView,
     UserSettingsView,
 )
@@ -20,7 +18,4 @@ urlpatterns = [
     path("me/settings/", UserSettingsView.as_view()),
     path("me/export/", DataExportView.as_view()),
     path("me/stats/", MyStatsView.as_view()),
-    path("<str:handle>/follow/", UserFollowView.as_view()),
-    path("<str:handle>/followers/", FollowListView.as_view(follower_view=True)),
-    path("<str:handle>/following/", FollowListView.as_view(follower_view=False)),
 ]

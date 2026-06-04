@@ -910,6 +910,97 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProfile'
           description: ''
+  /api/u/{handle}/follow/:
+    post:
+      operationId: u_follow_create
+      description: |-
+        POST: Obserwuj użytkownika o podanym handle.
+              400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
+        DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    delete:
+      operationId: u_follow_destroy
+      description: |-
+        POST: Obserwuj użytkownika o podanym handle.
+              400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
+        DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/u/{handle}/followers/:
+    get:
+      operationId: u_followers_list
+      description: |-
+        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
+        follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FollowUser'
+          description: ''
+  /api/u/{handle}/following/:
+    get:
+      operationId: u_following_list
+      description: |-
+        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
+        follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FollowUser'
+          description: ''
   /api/u/{handle}/shelves/:
     get:
       operationId: u_shelves_list
@@ -958,97 +1049,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicShelfDetail'
-          description: ''
-  /api/users/{handle}/follow/:
-    post:
-      operationId: users_follow_create
-      description: |-
-        POST: Obserwuj użytkownika o podanym handle.
-              400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
-        DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
-      parameters:
-      - in: path
-        name: handle
-        schema:
-          type: string
-        required: true
-      tags:
-      - users
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
-    delete:
-      operationId: users_follow_destroy
-      description: |-
-        POST: Obserwuj użytkownika o podanym handle.
-              400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
-        DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
-      parameters:
-      - in: path
-        name: handle
-        schema:
-          type: string
-        required: true
-      tags:
-      - users
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/users/{handle}/followers/:
-    get:
-      operationId: users_followers_list
-      description: |-
-        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
-        follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
-      parameters:
-      - in: path
-        name: handle
-        schema:
-          type: string
-        required: true
-      tags:
-      - users
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FollowUser'
-          description: ''
-  /api/users/{handle}/following/:
-    get:
-      operationId: users_following_list
-      description: |-
-        Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
-        follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
-      parameters:
-      - in: path
-        name: handle
-        schema:
-          type: string
-        required: true
-      tags:
-      - users
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FollowUser'
           description: ''
   /api/users/me/:
     get:
@@ -2064,8 +2064,6 @@ components:
     _StatsTotals:
       type: object
       properties:
-        total_books:
-          type: integer
         pages_read:
           type: integer
         avg_rating_given:
@@ -2075,7 +2073,6 @@ components:
       required:
       - avg_rating_given
       - pages_read
-      - total_books
     _StatusCounts:
       type: object
       properties:

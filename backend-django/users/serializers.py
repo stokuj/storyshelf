@@ -242,7 +242,6 @@ class _StatusCountsSerializer(serializers.Serializer):
 
 
 class _StatsTotalsSerializer(serializers.Serializer):
-    total_books = serializers.IntegerField()
     pages_read = serializers.IntegerField()
     avg_rating_given = serializers.FloatField(allow_null=True)
 
