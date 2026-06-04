@@ -1,5 +1,6 @@
 from django.db.models import Avg, Count, Sum
 from django.db.models.functions import ExtractYear
+from django.utils import timezone
 
 from ratings.models import Rating
 from shelf.models import ShelfEntry
@@ -59,11 +60,13 @@ def build_user_stats(user) -> dict:
     )
     # Only count real "on shelf" durations; a finish_date predating created_at
     # (backdated/historical) is not a meaningful duration and is excluded.
-    deltas = [
-        (finish - created.date()).days
-        for created, finish in pairs
-        if (finish - created.date()).days >= 0
-    ]
+    # Normalize created_at (UTC, USE_TZ) to the app timezone so it compares
+    # like-for-like with finish_date, which is written via timezone.localdate().
+    deltas = []
+    for created, finish in pairs:
+        days = (finish - timezone.localtime(created).date()).days
+        if days >= 0:
+            deltas.append(days)
     time_on_shelf_days = round(sum(deltas) / len(deltas), 1) if deltas else None
 
     return {
