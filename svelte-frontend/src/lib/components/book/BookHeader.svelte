@@ -29,7 +29,9 @@
 	{#if book.genres?.length}
 		<div class="flex flex-wrap gap-1.5">
 			{#each book.genres as genre (genre)}
-				<Badge variant="secondary">{genre}</Badge>
+				<a href="/discover?genre={encodeURIComponent(genre)}">
+					<Badge variant="secondary" class="hover:bg-accent/15 transition-colors">{genre}</Badge>
+				</a>
 			{/each}
 		</div>
 	{/if}
