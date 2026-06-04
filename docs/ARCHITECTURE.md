@@ -33,7 +33,7 @@ Patrz [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md).
 
 | App       | Odpowiedzialność |
 |-----------|------------------|
-| `users/`  | Custom User (email, handle, display_name, bio, avatar_url, profile_public), auth, profil, follow, data export |
+| `users/`  | Custom User (email, handle, display_name, bio, avatar_url, profile_public), auth, profil, follow, data export, reading stats (`stats.py::build_user_stats`) |
 | `books/`  | Book CRUD, nested M2M (Author/Genre/Tag przez through-modele), Serie FK, slug, avg_rating; import z Google Books (`import_books` management command) |
 | `library/`| Read-only API — Author, Serie, Genre, Tag (publiczne) |
 | `ratings/`| Rating (PUT-upsert), sygnał przelicza `Book.avg_rating`/`ratings_count` |
@@ -57,12 +57,14 @@ Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating)
  └── Tag (M2M through BookTag)
 ```
 
-## API surface (M1–M5)
+## API surface (M1–M9; M7 admin-import odłożone)
 
 ```
 /api/auth/            register, login, refresh, logout
-/api/users/me/        profil, settings (profile_public), email, password, avatar, export
-/api/u/{handle}/      publiczny profil
+/api/users/me/        profil, settings (profile_public), email, password, avatar, export, stats
+/api/u/{handle}/      publiczny profil (+ followers_count/following_count/is_following)
+/api/u/{handle}/follow/        follow/unfollow (auth)
+/api/u/{handle}/followers/, /api/u/{handle}/following/   listy obserwujących/obserwowanych
 /api/u/{handle}/shelves/   publiczne custom półki (bramkowane profile_public)
 /api/authors/, /api/genres/, /api/series/, /api/tags/   (read-only)
 /api/books/           lista, szczegóły (slug), filtry/search/sort
