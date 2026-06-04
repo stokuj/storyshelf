@@ -6,9 +6,9 @@
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `chore/m10-audit-cleanup` (M9 zmergowane przez PR #72; M10 w toku — ostatni milestone przed wdrożeniem).
+**Bieżący branch:** `main` (faza post-MVP M6–M10 zamknięta; M10 zmergowane PR #73).
 
-**ZADANIE:** **M10 — Audyt / fix / cleanup**. Po M10: wdrożenie produkcyjne. Każdy milestone = osobny `/brainstorming` → spec → plan → implementacja.
+**ZADANIE:** **M11 — Discover users + cudza półka** (następny milestone), potem **M12 — Social feed**. Wdrożenie produkcyjne odłożone na decyzję użytkownika (osobny temat, nie milestone). Każdy milestone = osobny `/brainstorming` → spec → plan → implementacja.
 
 **M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70), po dacie audytu który je oznaczył jako half-wired. Zweryfikowane w kodzie: `settings/data/export/+server.ts` (proxy ZIP) + przycisk; `settings/+page.svelte` avatar `onchange`→`requestSubmit` + akcja `avatar`; `ShelfBookCard.svelte` input strony + `/shelf/+page.svelte` `handleProgressChange` (optymistyczny revert). Pozostałości poza zakresem M8: brak kontrolki progresu na `/books/[slug]`, navbar Search no-op — do ewentualnego „Kiedyś".
 
@@ -35,6 +35,7 @@
 | M6 Follow/obserwowanie (UI) | Profil: `followers_count`/`following_count`/`is_following` (annotacje + SerializerMethodField), `FollowUserSerializer` (wzbogacone listy), optymistyczny `FollowButton` (writable `$derived`, revert na realny błąd), klikalne liczniki, trasy `/u/[handle]/followers` i `/following` (`UserRow`/`FollowList`); E2E follow flow + gość-bez-przycisku; OpenAPI snapshot zregenerowany | ✅ zmergowane do main (PR #71) |
 | M8 Half-wired stories | Eksport danych (download ZIP), upload avatara, `current_page` jako progress czytania — wszystkie trzy okazały się już w pełni podpięte we froncie | ✅ zrobione wcześniej przy audycie (PR #70); M8 zamknięte bez osobnej pracy 2026-06-04 |
 | M9 Statystyki czytania | `GET /api/users/me/stats/` (auth, own-only) + `users/stats.py::build_user_stats` (liczby per status, książki/rok z `finish_date`, rozkład ocen, time-on-shelf); auto-set `ShelfEntry.finish_date` na przejściu do READ; frontend `/stats` + ręczny `BarChart` (zero deps); E2E `stats.spec.ts`; OpenAPI zregenerowany | ✅ zmergowane do main (PR #72) |
+| M10 Audyt / fix / cleanup | Audyt subagentami M6–M9: usunięcie `total_books` (redundantne), konsolidacja prefiksu follow → `/api/u/`, klikalne linki autor recenzji + gatunki (`ReviewCard`/`BookHeader`), sync `ARCHITECTURE.md`/`ROADMAP.md`, usunięcie martwego duplikatu `backend-django/docs/api/openapi.yml` | ✅ zmergowane do main (PR #73) |
 
 ## W toku
 
@@ -50,10 +51,11 @@ Brak. Wybór następnego etapu z "Następne".
 
 | Milestone | Zakres | Gałąź |
 |-----------|--------|-------|
-| **M10 — Audyt / fix / cleanup** — AKTYWNE | Osobna faza porządkowa po M6–M9: audyt subagentami (dead code, dokumentacja, infra), poprawki, aktualizacja `ARCHITECTURE.md`/`ROADMAP.md`. | `chore/m10-audit-cleanup` |
+| **M11 — Discover users + cudza półka** — NASTĘPNE | `GET /api/users/` (lista publicznych profili: paginacja, `?search=` po handle/display_name, `?ordering=`, filtr `profile_public`) + publiczny odczyt domyślnej półki `GET /api/u/{handle}/shelf/` (ShelfEntry, status/postęp, bramkowane `profile_public`); frontend `/users` (reuse `UserRow`/`FollowList`/`FollowButton` z M6) + sekcja „Reading" na `/u/[handle]`. Domyka M6 Follow — daje *jak* znaleźć userów. Decyzja do brainstormingu: publiczna półka = tylko domyślna `ShelfEntry` czy też custom (te już publiczne z M5). | `feat/m11-user-discovery` |
+| **M12 — Social feed + reakcje** | Feed aktywności obserwowanych `GET /api/feed/` (ocena / recenzja / skończona książka; rekomendacja: liczony „w locie" z Rating/Review/ShelfEntry, bez modelu `Activity`; bramkowane `profile_public`), publiczne recenzje na profilu `GET /api/u/{handle}/reviews/`, polubienia recenzji (`ReviewLike` unique user+review, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`+`is_liked`); frontend `/feed` + sekcja recenzji na `/u/[handle]`. Zależy od M11. YAGNI: bez powiadomień, komentarzy, repostów. | `feat/m12-social-feed` |
 | ~~**M7 — Import książek z UI admina** (A2)~~ **ODŁOŻONE** | Panel w SvelteKit uznany za przekomplikowany (patrz „Aktualny krok"). Wróci najpewniej jako lekki przycisk w Django adminie (opcja A). Działają już CLI `import_books` i Django admin. | `—` (gałąź `feat/m7-admin-import-ui` zostawiona pusta) |
 
-Po M10:
+Po M11–M12:
 
 1. **Wdrożenie produkcyjne** — odkomentowanie deploy step w `.github/workflows/ci.yml`, Caddy z Let's Encrypt, sekrety na VPS (DigitalOcean). Wymaga konfiguracji `CORS_ALLOWED_ORIGINS` i `JWT_COOKIE_DOMAIN`.
 
@@ -63,9 +65,9 @@ Po M10:
 - System tagowania społecznościowego (tagi user-defined poza adminem)
 - Importer książek z OpenLibrary / Goodreads (CSV z Goodreads, ISBN→OpenLibrary; Google Books — zrobione, patrz „Zrobione")
 - PWA (krok przed natywnym mobile)
-- Social: feed znajomych, recenzje publiczne, polubienia (buduje na M6 Follow)
-- Lista userów `/users` (browse/sort/search) + podgląd cudzej aktywności czytelniczej i domyślnej półki na profilu (`/u/[handle]/shelf`); profil prywatny niewidoczny na liście
-- Spersonalizowana strona główna `/` (Continue reading, aktywność followowanych, rekomendacje; dla gości trending + opis apki) zamiast redirectu na `/discover`
+- ~~Lista userów `/users` + cudza półka~~ → awansowane do **M11** (patrz „Następne")
+- ~~Social: feed, recenzje publiczne, polubienia~~ → awansowane do **M12** (patrz „Następne")
+- Spersonalizowana strona główna `/` (Continue reading, aktywność followowanych, rekomendacje; dla gości trending + opis apki) zamiast redirectu na `/discover` — naturalny kandydat na M13 po M11/M12
 - Rozszerzenia statystyk (po M9): reading streak (dni z rzędu), yearly wrap
 - AI — analiza książek (karty postaci, graf relacji, tematy/ton; per-book LLM call + pgvector) — **poza MVP**, patrz „Czego NIE robimy"
 - ML/DE do CV: semantic search + embeddingi (sentence-transformers + pgvector), pipeline analityczny w dbt, Character Knowledge Graph (NetworkX + LLM extraction)
