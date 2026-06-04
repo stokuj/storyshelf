@@ -31,7 +31,6 @@ def build_user_stats(user) -> dict:
     avg_rating_given = round(avg, 1) if avg is not None else None
 
     totals = {
-        "total_books": entries.count(),
         "pages_read": pages_read,
         "avg_rating_given": avg_rating_given,
     }

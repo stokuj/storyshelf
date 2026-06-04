@@ -2064,8 +2064,6 @@ components:
     _StatsTotals:
       type: object
       properties:
-        total_books:
-          type: integer
         pages_read:
           type: integer
         avg_rating_given:
@@ -2075,7 +2073,6 @@ components:
       required:
       - avg_rating_given
       - pages_read
-      - total_books
     _StatusCounts:
       type: object
       properties:
