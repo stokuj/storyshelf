@@ -49,7 +49,7 @@ class UserProfileTest(AuthTestHelper, APITestCase):
     def test_profile_includes_follow_counts_and_is_following(self):
         # self.user follows self.target → target has 1 follower, 0 following
         self.client.force_authenticate(user=self.user)
-        follow_resp = self.client.post(f"/api/users/{self.target.handle}/follow/")
+        follow_resp = self.client.post(f"/api/u/{self.target.handle}/follow/")
         self.assertEqual(follow_resp.status_code, status.HTTP_201_CREATED)
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -134,7 +134,7 @@ class UserFollowTest(AuthTestHelper, APITestCase):
             handle="target2",
             password="pw",
         )
-        self.url = f"/api/users/{self.target.handle}/follow/"
+        self.url = f"/api/u/{self.target.handle}/follow/"
 
     def test_post_follow_returns_201(self):
         self.client.force_authenticate(user=self.user)
@@ -145,7 +145,7 @@ class UserFollowTest(AuthTestHelper, APITestCase):
 
     def test_post_follow_self_returns_400(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.post(f"/api/users/{self.user.handle}/follow/")
+        resp = self.client.post(f"/api/u/{self.user.handle}/follow/")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_post_follow_already_following_returns_409(self):
@@ -171,7 +171,7 @@ class UserFollowTest(AuthTestHelper, APITestCase):
 
     def test_delete_follow_nonexistent_user_returns_404(self):
         self.client.force_authenticate(user=self.user)
-        resp = self.client.delete("/api/users/nobody/follow/")
+        resp = self.client.delete("/api/u/nobody/follow/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
 
@@ -190,8 +190,8 @@ class FollowListTest(AuthTestHelper, APITestCase):
 
     def test_list_followers_returns_200(self):
         self.client.force_authenticate(user=self.user)
-        self.client.post(f"/api/users/{self.target.handle}/follow/")
-        resp = self.client.get(f"/api/users/{self.target.handle}/followers/")
+        self.client.post(f"/api/u/{self.target.handle}/follow/")
+        resp = self.client.get(f"/api/u/{self.target.handle}/followers/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
         self.assertEqual(resp.data[0]["handle"], "testuser")
@@ -201,27 +201,27 @@ class FollowListTest(AuthTestHelper, APITestCase):
 
     def test_list_following_returns_200(self):
         self.client.force_authenticate(user=self.user)
-        self.client.post(f"/api/users/{self.target.handle}/follow/")
-        resp = self.client.get("/api/users/testuser/following/")
+        self.client.post(f"/api/u/{self.target.handle}/follow/")
+        resp = self.client.get("/api/u/testuser/following/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
         self.assertEqual(resp.data[0]["handle"], "target3")
         self.assertEqual(resp.data[0]["display_name"], self.target.display_name)
 
     def test_list_followers_empty_returns_200(self):
-        resp = self.client.get(f"/api/users/{self.target.handle}/followers/")
+        resp = self.client.get(f"/api/u/{self.target.handle}/followers/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data, [])
 
     def test_list_followers_nonexistent_user_returns_404(self):
-        resp = self.client.get("/api/users/nobody/followers/")
+        resp = self.client.get("/api/u/nobody/followers/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_followers_private_profile_returns_404(self):
         private = User.objects.create_user(
             email="priv@test.com", handle="privuser", password="pw"
         )
-        resp = self.client.get(f"/api/users/{private.handle}/followers/")
+        resp = self.client.get(f"/api/u/{private.handle}/followers/")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
 
