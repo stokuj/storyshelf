@@ -32,7 +32,9 @@
 			<div class="text-xs text-muted mt-1">Reading</div>
 		</Card>
 		<Card class="p-5 text-center">
-			<div class="text-2xl font-semibold text-ink">{stats.status_counts.read}</div>
+			<div class="text-2xl font-semibold text-ink" data-testid="stat-read">
+				{stats.status_counts.read}
+			</div>
 			<div class="text-xs text-muted mt-1">Read</div>
 		</Card>
 	</div>
@@ -40,17 +42,19 @@
 	<!-- Totals -->
 	<div class="grid grid-cols-3 gap-4">
 		<Card class="p-5 text-center">
-			<div class="text-2xl font-semibold text-ink">{stats.totals.pages_read}</div>
+			<div class="text-2xl font-semibold text-ink" data-testid="stat-pages-read">
+				{stats.totals.pages_read}
+			</div>
 			<div class="text-xs text-muted mt-1">Pages read</div>
 		</Card>
 		<Card class="p-5 text-center">
-			<div class="text-2xl font-semibold text-ink">
+			<div class="text-2xl font-semibold text-ink" data-testid="stat-avg-rating">
 				{stats.totals.avg_rating_given ?? '—'}
 			</div>
 			<div class="text-xs text-muted mt-1">Avg rating given</div>
 		</Card>
 		<Card class="p-5 text-center">
-			<div class="text-2xl font-semibold text-ink">
+			<div class="text-2xl font-semibold text-ink" data-testid="stat-time-on-shelf">
 				{stats.time_on_shelf_days ?? '—'}
 			</div>
 			<div class="text-xs text-muted mt-1">Avg days on shelf</div>
@@ -60,12 +64,16 @@
 	<!-- Books per year -->
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Books read per year</h2>
-		<BarChart bars={yearBars} ariaLabel="Books read per year" />
+		<div data-testid="chart-books-per-year">
+			<BarChart bars={yearBars} ariaLabel="Books read per year" />
+		</div>
 	</Card>
 
 	<!-- Rating distribution -->
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Your ratings</h2>
-		<BarChart bars={ratingBars} ariaLabel="Rating distribution" />
+		<div data-testid="chart-rating">
+			<BarChart bars={ratingBars} ariaLabel="Rating distribution" />
+		</div>
 	</Card>
 </div>

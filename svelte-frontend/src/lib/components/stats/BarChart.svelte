@@ -20,6 +20,7 @@
 					class="flex-1 rounded-t bg-accent min-h-[2px] transition-[height]"
 					style="height: {(bar.value / max) * 100}%"
 					title="{bar.label}: {bar.value}"
+					data-testid="bar"
 				></div>
 			{/each}
 		</div>
