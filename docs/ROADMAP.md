@@ -1,14 +1,18 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-06-03. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-06-04. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `feat/m6-follow-ui` (M6 zaimplementowane, czeka na PR/merge; backend 297 testów, frontend check/lint clean, E2E follow zielone).
+**Bieżący branch:** `feat/m9-reading-stats` (M6 zmergowane przez PR #71; M7 odłożone; M8 okazało się już zrobione — patrz niżej).
 
-**ZADANIE:** Domknąć M6 (PR + merge), potem **M7 — Import książek z UI admina**. Każdy milestone = osobny `/brainstorming` → spec → plan → implementacja. Wdrożenie produkcyjne odłożone na po M10.
+**ZADANIE:** **M9 — Statystyki czytania** (agregacje w API + frontend, per user). Każdy milestone = osobny `/brainstorming` → spec → plan → implementacja. Wdrożenie produkcyjne odłożone na po M10.
+
+**M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70), po dacie audytu który je oznaczył jako half-wired. Zweryfikowane w kodzie: `settings/data/export/+server.ts` (proxy ZIP) + przycisk; `settings/+page.svelte` avatar `onchange`→`requestSubmit` + akcja `avatar`; `ShelfBookCard.svelte` input strony + `/shelf/+page.svelte` `handleProgressChange` (optymistyczny revert). Pozostałości poza zakresem M8: brak kontrolki progresu na `/books/[slug]`, navbar Search no-op — do ewentualnego „Kiedyś".
+
+**M7 odłożone (2026-06-04):** Osobny panel importu w SvelteKit uznany za przekomplikowany — import książek to rzadka, jednorazowa czynność robiona przez właściciela, a działają już CLI `import_books <isbn>` i Django admin (`/admin/`, staff-only). Gdy wróci, najpewniej w formie lekkiej **opcji A: przycisk/akcja „Import from Google Books" w Django adminie** (pole ISBN → reuse logiki importu), bez nowego API i tras we froncie. Pełny panel w SvelteKit tylko jeśli pojawią się nietechniczni admini bez dostępu do `/admin/`.
 
 ---
 
@@ -28,7 +32,8 @@
 | M5 Custom shelves | `shelf/` (Shelf + ShelfMembership obok ShelfEntry; owner CRUD `/api/shelves/`, membership add/remove idempotentne, publiczny odczyt `/api/u/{handle}/shelves/` bramkowany `profile_public`), eksport danych, frontend (zakładka „Moje półki" na `/shelf`, `/shelf/[slug]`, kontrolka na `/books/[slug]`, publiczny `/u/[handle]/shelves/[slug]`), E2E (4 scenariusze) | ✅ zmergowane do main (PR #68) |
 | Google Books import | `import_books` management command (CLI) — import po ISBN, dedup+update po `isbn`, `categories` → split na osobne `genres`, reuse `BookWriteSerializer`, stdlib `urllib` (zero nowych deps); `--file`, `--dry-run`; M2M (authors/genres/tags) zachowane gdy Google ich nie zwróci; testy z mockiem `urlopen` | ✅ zmergowane do main (PR #69) |
 | Audyt + cleanup | Audyt dokumentacji/infra (subagenci), `.env`→`infra/`, Caddy/porty/ścieżki, fixy B1/S1/B2 + F1/F3, usunięcie dead code; usunięcie `.claude/` ze śledzenia remote | ✅ zmergowane do main (PR #70) |
-| M6 Follow/obserwowanie (UI) | Profil: `followers_count`/`following_count`/`is_following` (annotacje + SerializerMethodField), `FollowUserSerializer` (wzbogacone listy), optymistyczny `FollowButton` (writable `$derived`, revert na realny błąd), klikalne liczniki, trasy `/u/[handle]/followers` i `/following` (`UserRow`/`FollowList`); E2E follow flow + gość-bez-przycisku; OpenAPI snapshot zregenerowany | ✅ zaimplementowane na `feat/m6-follow-ui` (czeka na PR/merge) |
+| M6 Follow/obserwowanie (UI) | Profil: `followers_count`/`following_count`/`is_following` (annotacje + SerializerMethodField), `FollowUserSerializer` (wzbogacone listy), optymistyczny `FollowButton` (writable `$derived`, revert na realny błąd), klikalne liczniki, trasy `/u/[handle]/followers` i `/following` (`UserRow`/`FollowList`); E2E follow flow + gość-bez-przycisku; OpenAPI snapshot zregenerowany | ✅ zmergowane do main (PR #71) |
+| M8 Half-wired stories | Eksport danych (download ZIP), upload avatara, `current_page` jako progress czytania — wszystkie trzy okazały się już w pełni podpięte we froncie | ✅ zrobione wcześniej przy audycie (PR #70); M8 zamknięte bez osobnej pracy 2026-06-04 |
 
 ## W toku
 
@@ -44,9 +49,8 @@ Brak. Wybór następnego etapu z "Następne".
 
 | Milestone | Zakres | Gałąź |
 |-----------|--------|-------|
-| **M7 — Import książek z UI admina** (A2) | Panel w aplikacji do importu po ISBN (dziś tylko CLI `import_books`/`docker exec`). Reuse istniejącej logiki importu; dostęp admin-only. | `feat/m7-admin-import-ui` |
-| **M8 — Dokończenie half-wired stories** (A3) | Wiring frontu dla gotowego backendu: eksport danych (download), upload avatara, `current_page` jako progress czytania. | `feat/m8-wire-user-stories` |
-| **M9 — Statystyki czytania** (B1) | Agregacje w API + frontend: książki/rok, rozkład ocen, time-on-shelf, wykresy per użytkownik. Moduł samodzielny, bez zależności od social. | `feat/m9-reading-stats` |
+| **M9 — Statystyki czytania** (B1) — AKTYWNE | Agregacje w API + frontend: książki/rok, rozkład ocen, time-on-shelf, wykresy per użytkownik. Moduł samodzielny, bez zależności od social. | `feat/m9-reading-stats` |
+| ~~**M7 — Import książek z UI admina** (A2)~~ **ODŁOŻONE** | Panel w SvelteKit uznany za przekomplikowany (patrz „Aktualny krok"). Wróci najpewniej jako lekki przycisk w Django adminie (opcja A). Działają już CLI `import_books` i Django admin. | `—` (gałąź `feat/m7-admin-import-ui` zostawiona pusta) |
 | **M10 — Audyt / fix / cleanup** | Osobna faza porządkowa po M6–M9: audyt subagentami (dead code, dokumentacja, infra), poprawki, aktualizacja `ARCHITECTURE.md`/`ROADMAP.md`. | `chore/m10-audit-cleanup` |
 
 Po M10:

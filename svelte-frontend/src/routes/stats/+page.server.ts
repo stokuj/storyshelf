@@ -1,0 +1,16 @@
+import { error, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+import { getMyStats } from '$lib/api/stats';
+
+export const load: PageServerLoad = async ({ fetch, parent, url }) => {
+	// Guest → friendly redirect to login (consistent with /shelf), not a 401 page.
+	const { user } = await parent();
+	if (!user) {
+		throw redirect(303, `/login?next=${encodeURIComponent(url.pathname)}`);
+	}
+	const { data, error: err } = await getMyStats(fetch, true);
+	if (err || !data) {
+		throw error(err?.status || 500, err?.detail || 'Failed to load stats');
+	}
+	return { stats: data };
+};

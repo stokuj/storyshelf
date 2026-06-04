@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.db.models import Count
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, serializers, status, views
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -31,7 +32,9 @@ from users.serializers import (
     UserMeSerializer,
     UserProfileSerializer,
     UserSettingsPatchSerializer,
+    UserStatsSerializer,
 )
+from users.stats import build_user_stats
 
 logger = logging.getLogger(__name__)
 
@@ -386,3 +389,12 @@ class FollowListView(generics.ListAPIView):
         )
 
 
+class MyStatsView(views.APIView):
+    """Own reading statistics. Authenticated; own data only."""
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @extend_schema(responses=UserStatsSerializer)
+    def get(self, request):
+        data = build_user_stats(request.user)
+        return Response(UserStatsSerializer(data).data)

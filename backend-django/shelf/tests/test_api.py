@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -167,3 +168,65 @@ class ShelfEntryAPITest(APITestCase):
         entry = ShelfEntry.objects.create(user=self.user, book=self.book)
         resp = self.client.get(self._detail(entry.id))
         self.assertIsNone(resp.data["user_rating"])
+
+
+class FinishDateAutoSetTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            email="fd@test.com", handle="finn", password="password123"
+        )
+        cls.book = Book.objects.create(title="Dune", slug="dune", page_count=412)
+        # Match the serializer's timezone.localdate() (app TIME_ZONE), not the
+        # host clock, so the assertion holds regardless of container TZ.
+        cls.today = timezone.localdate()
+
+    def _detail(self, pk):
+        return f"{URL}{pk}/"
+
+    def test_patch_to_read_sets_finish_date(self):
+        self.client.force_authenticate(self.user)
+        entry = ShelfEntry.objects.create(user=self.user, book=self.book)
+        resp = self.client.patch(
+            self._detail(entry.pk), {"status": "READ"}, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["finish_date"], self.today.isoformat())
+
+    def test_create_as_read_sets_finish_date(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(
+            URL, {"book_slug": "dune", "status": "READ"}, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp.data["finish_date"], self.today.isoformat())
+
+    def test_existing_finish_date_not_overwritten(self):
+        self.client.force_authenticate(self.user)
+        entry = ShelfEntry.objects.create(
+            user=self.user, book=self.book, status="READ",
+            finish_date=date(2020, 1, 1),
+        )
+        resp = self.client.patch(
+            self._detail(entry.pk), {"current_page": 10}, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["finish_date"], "2020-01-01")
+
+    def test_explicit_finish_date_respected(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(
+            URL,
+            {"book_slug": "dune", "status": "READ", "finish_date": "2019-05-05"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp.data["finish_date"], "2019-05-05")
+
+    def test_non_read_status_does_not_set_finish_date(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(
+            URL, {"book_slug": "dune", "status": "READING"}, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertIsNone(resp.data["finish_date"])

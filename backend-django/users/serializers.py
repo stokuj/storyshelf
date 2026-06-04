@@ -233,3 +233,33 @@ class FollowUserSerializer(serializers.Serializer):
             request = self.context.get("request")
             return request.build_absolute_uri(user.avatar.url) if request else user.avatar.url
         return None
+
+
+class _StatusCountsSerializer(serializers.Serializer):
+    want_to_read = serializers.IntegerField()
+    reading = serializers.IntegerField()
+    read = serializers.IntegerField()
+
+
+class _StatsTotalsSerializer(serializers.Serializer):
+    total_books = serializers.IntegerField()
+    pages_read = serializers.IntegerField()
+    avg_rating_given = serializers.FloatField(allow_null=True)
+
+
+class _YearCountSerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    count = serializers.IntegerField()
+
+
+class _RatingCountSerializer(serializers.Serializer):
+    rating = serializers.IntegerField()
+    count = serializers.IntegerField()
+
+
+class UserStatsSerializer(serializers.Serializer):
+    status_counts = _StatusCountsSerializer()
+    totals = _StatsTotalsSerializer()
+    books_per_year = _YearCountSerializer(many=True)
+    rating_distribution = _RatingCountSerializer(many=True)
+    time_on_shelf_days = serializers.FloatField(allow_null=True)
