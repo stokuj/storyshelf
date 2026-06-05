@@ -1,5 +1,4 @@
 from django.db.models import Count, Exists, OuterRef, Subquery
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
@@ -12,7 +11,7 @@ from rest_framework.response import Response
 
 from books.models import Book
 from ratings.models import Rating
-from users.models import User
+from users.selectors import public_owner_or_404
 
 from .models import Review, ReviewLike
 from .serializers import ReviewSerializer
@@ -103,9 +102,7 @@ class UserReviewListView(generics.ListAPIView):
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        owner = get_object_or_404(User, handle=self.kwargs["handle"])
-        if not owner.profile_public and owner != self.request.user:
-            raise Http404("No User matches the given query.")
+        owner = public_owner_or_404(self.request, self.kwargs["handle"])
         return annotate_reviews(
             Review.objects.filter(user=owner), self.request.user
         ).order_by("-updated_at")

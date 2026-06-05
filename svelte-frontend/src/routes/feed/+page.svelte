@@ -3,7 +3,7 @@
 	import type { FeedItem as FeedItemType } from '$lib/types/feed';
 	import FeedItemComponent from '$lib/components/feed/FeedItem.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
-	import { Button } from '$lib/components/ui/button';
+	import LoadMore from '$lib/components/discover/LoadMore.svelte';
 	import { fetchFeed } from '$lib/api/feed';
 	import { Rss } from 'lucide-svelte';
 
@@ -47,12 +47,6 @@
 				<FeedItemComponent {item} />
 			{/each}
 		</div>
-		{#if nextBefore}
-			<div class="flex justify-center mt-6">
-				<Button variant="ghost" size="sm" onclick={loadMore} disabled={loadingMore}>
-					{loadingMore ? 'Loading…' : 'Load more'}
-				</Button>
-			</div>
-		{/if}
+		<LoadMore loading={loadingMore} hasMore={!!nextBefore} onloadmore={loadMore} />
 	{/if}
 </div>

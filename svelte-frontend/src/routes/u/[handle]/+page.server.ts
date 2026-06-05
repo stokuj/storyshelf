@@ -21,9 +21,12 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 	const isOwner = viewer?.handle === params.handle;
 	const isLoggedIn = !!viewer;
 
-	const { data: shelves } = await fetchPublicShelves(fetch, params.handle, true);
-	const { data: reading } = await fetchPublicShelf(fetch, params.handle, true);
-	const { data: reviews } = await fetchUserReviews(fetch, params.handle, 1, true);
+	// Independent reads — run them concurrently rather than serially.
+	const [{ data: shelves }, { data: reading }, { data: reviews }] = await Promise.all([
+		fetchPublicShelves(fetch, params.handle, true),
+		fetchPublicShelf(fetch, params.handle, true),
+		fetchUserReviews(fetch, params.handle, 1, true)
+	]);
 
 	return {
 		profile,
