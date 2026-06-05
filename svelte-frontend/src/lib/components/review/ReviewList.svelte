@@ -8,8 +8,9 @@
 		hasMore: boolean;
 		loading: boolean;
 		onloadmore: () => void;
+		canLike?: boolean;
 	}
-	let { reviews, hasMore, loading, onloadmore }: Props = $props();
+	let { reviews, hasMore, loading, onloadmore, canLike = false }: Props = $props();
 </script>
 
 {#if reviews.length === 0}
@@ -17,7 +18,7 @@
 {:else}
 	<div data-testid="review-list">
 		{#each reviews as review (review.id)}
-			<ReviewCard {review} />
+			<ReviewCard {review} {canLike} />
 		{/each}
 	</div>
 	<LoadMore {loading} {hasMore} {onloadmore} />
