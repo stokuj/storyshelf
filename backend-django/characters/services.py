@@ -17,6 +17,8 @@ def store_characters(book, data: dict) -> None:
 
     by_name: dict[str, Character] = {}
     for order, item in enumerate(data.get("characters", [])[:MAX_CHARACTERS]):
+        if not isinstance(item, dict):
+            continue
         name = (item.get("name") or "").strip()
         if not name:
             continue
@@ -30,11 +32,16 @@ def store_characters(book, data: dict) -> None:
         )
         by_name[name] = character
 
+    seen: set[tuple] = set()
     for rel in data.get("relations", []):
+        if not isinstance(rel, dict):
+            continue
         source = by_name.get((rel.get("from") or "").strip())
         target = by_name.get((rel.get("to") or "").strip())
         label = (rel.get("label") or "").strip()[:120]
-        if source and target and label and source != target:
+        key = (id(source), id(target), label)
+        if source and target and label and source != target and key not in seen:
+            seen.add(key)
             CharacterRelation.objects.create(
                 book=book, from_character=source, to_character=target, label=label
             )

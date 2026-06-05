@@ -1,6 +1,7 @@
 from django.test import TestCase
 
 from books.models import Book
+from characters.ai import MAX_CHARACTERS
 from characters.models import Character, CharacterRelation
 from characters.services import store_characters
 
@@ -36,7 +37,7 @@ class StoreCharactersTests(TestCase):
             "relations": [],
         }
         store_characters(self.book, data)
-        self.assertEqual(Character.objects.filter(book=self.book).count(), 12)
+        self.assertEqual(Character.objects.filter(book=self.book).count(), MAX_CHARACTERS)
 
     def test_skips_relations_with_unknown_endpoints(self):
         data = {
@@ -57,3 +58,37 @@ class StoreCharactersTests(TestCase):
         )
         names = list(Character.objects.filter(book=self.book).values_list("name", flat=True))
         self.assertEqual(names, ["New"])
+
+    def test_skips_non_dict_character_items(self):
+        data = {
+            "characters": [None, "Paul", {"name": "Real", "role": "x", "description": "y"}],
+            "relations": [],
+        }
+        store_characters(self.book, data)
+        self.assertEqual(Character.objects.filter(book=self.book).count(), 1)
+        self.assertEqual(Character.objects.get(book=self.book).name, "Real")
+
+    def test_skips_self_relation(self):
+        data = {
+            "characters": [
+                {"name": "Paul", "role": "x", "description": "y"},
+                {"name": "Jess", "role": "x", "description": "y"},
+            ],
+            "relations": [{"from": "Paul", "to": "Paul", "label": "self"}],
+        }
+        store_characters(self.book, data)
+        self.assertEqual(CharacterRelation.objects.filter(book=self.book).count(), 0)
+
+    def test_dedupes_duplicate_relations(self):
+        data = {
+            "characters": [
+                {"name": "Paul", "role": "x", "description": "y"},
+                {"name": "Jess", "role": "x", "description": "y"},
+            ],
+            "relations": [
+                {"from": "Paul", "to": "Jess", "label": "knows"},
+                {"from": "Paul", "to": "Jess", "label": "knows"},
+            ],
+        }
+        store_characters(self.book, data)
+        self.assertEqual(CharacterRelation.objects.filter(book=self.book).count(), 1)
