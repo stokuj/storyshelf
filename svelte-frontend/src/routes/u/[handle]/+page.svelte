@@ -3,9 +3,11 @@
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import FollowButton from '$lib/components/FollowButton.svelte';
+	import ReviewCard from '$lib/components/review/ReviewCard.svelte';
 	import { Calendar } from 'lucide-svelte';
 	import type { User } from '$lib/types';
 	import type { PublicShelf, ShelfEntry } from '$lib/types/shelf';
+	import type { Review } from '$lib/types/review';
 
 	let { data }: PageProps = $props();
 	let profile: User = $derived(data.profile!);
@@ -13,6 +15,7 @@
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let shelves: PublicShelf[] = $derived(data.shelves);
 	let reading: ShelfEntry[] = $derived(data.reading);
+	let reviews: Review[] = $derived(data.reviews);
 
 	const STATUS_LABEL: Record<string, string> = {
 		WANT_TO_READ: 'Want to read',
@@ -118,6 +121,15 @@
 					</li>
 				{/each}
 			</ul>
+		</section>
+	{/if}
+
+	{#if reviews.length > 0}
+		<section class="mt-10">
+			<h2 class="font-display text-xl font-medium text-ink mb-4">Reviews</h2>
+			{#each reviews as review (review.id)}
+				<ReviewCard {review} canLike={isLoggedIn} />
+			{/each}
 		</section>
 	{/if}
 </div>

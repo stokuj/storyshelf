@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { apiFetch } from '$lib/api/_client';
 import { fetchPublicShelves } from '$lib/api/shelves';
 import { fetchPublicShelf } from '$lib/api/shelf';
+import { fetchUserReviews } from '$lib/api/reviews';
 import type { User } from '$lib/types';
 
 export const load: PageServerLoad = async ({ fetch, params, parent }) => {
@@ -22,6 +23,14 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 
 	const { data: shelves } = await fetchPublicShelves(fetch, params.handle, true);
 	const { data: reading } = await fetchPublicShelf(fetch, params.handle, true);
+	const { data: reviews } = await fetchUserReviews(fetch, params.handle, 1, true);
 
-	return { profile, isOwner, isLoggedIn, shelves: shelves ?? [], reading: reading ?? [] };
+	return {
+		profile,
+		isOwner,
+		isLoggedIn,
+		shelves: shelves ?? [],
+		reading: reading ?? [],
+		reviews: reviews?.data ?? []
+	};
 };
