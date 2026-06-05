@@ -79,5 +79,11 @@
 	{#if isAuthenticated}
 		<ReviewForm {bookSlug} myReview={mine} onsaved={onSaved} ondeleted={onDeleted} />
 	{/if}
-	<ReviewList {reviews} {hasMore} loading={loadingMore} onloadmore={loadMore} />
+	<ReviewList
+		{reviews}
+		{hasMore}
+		loading={loadingMore}
+		onloadmore={loadMore}
+		canLike={isAuthenticated}
+	/>
 </section>

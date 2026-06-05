@@ -10,4 +10,6 @@ export interface Review {
 	author_rating: number | null;
 	created_at: string;
 	updated_at: string;
+	likes_count: number;
+	is_liked: boolean;
 }

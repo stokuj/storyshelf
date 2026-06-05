@@ -40,3 +40,29 @@ export function upsertReview(fetchFn: typeof fetch, bookSlug: string, body: stri
 export function deleteReview(fetchFn: typeof fetch, id: number) {
 	return apiFetch<null>(fetchFn, `/reviews/${id}/`, { method: 'DELETE' });
 }
+
+export function likeReview(fetchFn: typeof fetch, id: number) {
+	return apiFetch<{ likes_count: number; is_liked: boolean }>(fetchFn, `/reviews/${id}/like/`, {
+		method: 'POST'
+	});
+}
+
+export function unlikeReview(fetchFn: typeof fetch, id: number) {
+	return apiFetch<{ likes_count: number; is_liked: boolean }>(fetchFn, `/reviews/${id}/like/`, {
+		method: 'DELETE'
+	});
+}
+
+export function fetchUserReviews(
+	fetchFn: typeof fetch,
+	handle: string,
+	page = 1,
+	isServerSide = false
+) {
+	return apiFetch<PaginatedResponse<Review>>(
+		fetchFn,
+		`/u/${encodeURIComponent(handle)}/reviews/?page=${page}`,
+		undefined,
+		isServerSide
+	);
+}

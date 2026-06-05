@@ -4,7 +4,7 @@ from rest_framework.test import APITestCase
 
 from books.models import Book
 from ratings.models import Rating
-from reviews.models import Review
+from reviews.models import Review, ReviewLike
 
 User = get_user_model()
 
@@ -128,3 +128,95 @@ class ReviewAPITest(APITestCase):
         resp = self.client.get(ME_URL, {"book_slug": "book-one"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["author_rating"], 2)
+
+
+class ReviewLikeAPITest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.author = User.objects.create_user(
+            email="auth@test.com", handle="author", password="password123"
+        )
+        cls.liker = User.objects.create_user(
+            email="lk@test.com", handle="lk", password="password123"
+        )
+        cls.book = Book.objects.create(title="B", slug="b")
+        cls.review = Review.objects.create(user=cls.author, book=cls.book, body="hello")
+
+    def _url(self):
+        return f"/api/reviews/{self.review.id}/like/"
+
+    def test_post_like_returns_count_and_flag(self):
+        self.client.force_authenticate(self.liker)
+        resp = self.client.post(self._url())
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data, {"likes_count": 1, "is_liked": True})
+
+    def test_post_like_is_idempotent(self):
+        self.client.force_authenticate(self.liker)
+        self.client.post(self._url())
+        resp = self.client.post(self._url())
+        self.assertEqual(resp.data["likes_count"], 1)
+
+    def test_delete_unlike(self):
+        self.client.force_authenticate(self.liker)
+        self.client.post(self._url())
+        resp = self.client.delete(self._url())
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data, {"likes_count": 0, "is_liked": False})
+
+    def test_delete_when_not_liked_is_idempotent(self):
+        self.client.force_authenticate(self.liker)
+        resp = self.client.delete(self._url())
+        self.assertEqual(resp.data, {"likes_count": 0, "is_liked": False})
+
+    def test_like_requires_auth(self):
+        resp = self.client.post(self._url())
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_like_unknown_review_404(self):
+        self.client.force_authenticate(self.liker)
+        resp = self.client.post("/api/reviews/99999/like/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_includes_likes_count_and_is_liked(self):
+        ReviewLike.objects.create(user=self.liker, review=self.review)
+        self.client.force_authenticate(self.liker)
+        resp = self.client.get("/api/reviews/?book_slug=b")
+        row = resp.data["data"][0]
+        self.assertEqual(row["likes_count"], 1)
+        self.assertTrue(row["is_liked"])
+
+    def test_list_anon_is_liked_false(self):
+        ReviewLike.objects.create(user=self.liker, review=self.review)
+        resp = self.client.get("/api/reviews/?book_slug=b")
+        row = resp.data["data"][0]
+        self.assertEqual(row["likes_count"], 1)
+        self.assertFalse(row["is_liked"])
+
+
+class PublicUserReviewsTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.pub = User.objects.create_user(
+            email="pub@test.com", handle="pub", password="password123", profile_public=True
+        )
+        cls.priv = User.objects.create_user(
+            email="priv@test.com", handle="priv", password="password123", profile_public=False
+        )
+        cls.book = Book.objects.create(title="B", slug="b")
+        Review.objects.create(user=cls.pub, book=cls.book, body="public review")
+        Review.objects.create(user=cls.priv, book=cls.book, body="private review")
+
+    def test_public_profile_reviews_listed(self):
+        resp = self.client.get("/api/u/pub/reviews/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["total"], 1)
+        self.assertEqual(resp.data["data"][0]["body"], "public review")
+
+    def test_private_profile_returns_404(self):
+        resp = self.client.get("/api/u/priv/reviews/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_unknown_handle_returns_404(self):
+        resp = self.client.get("/api/u/ghost/reviews/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

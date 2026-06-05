@@ -14,6 +14,11 @@ urlpatterns = [
         name="review-me",
     ),
     path(
+        "reviews/<int:pk>/like/",
+        ReviewViewSet.as_view({"post": "like", "delete": "like"}),
+        name="review-like",
+    ),
+    path(
         "reviews/<int:pk>/",
         ReviewViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
         name="review-detail",

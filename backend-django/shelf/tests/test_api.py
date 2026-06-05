@@ -230,3 +230,24 @@ class FinishDateAutoSetTest(APITestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertIsNone(resp.data["finish_date"])
+
+    def test_read_transition_sets_finished_at(self):
+        self.client.force_authenticate(self.user)
+        entry = ShelfEntry.objects.create(user=self.user, book=self.book)
+        self.client.patch(self._detail(entry.pk), {"status": "READ"}, format="json")
+        entry.refresh_from_db()
+        self.assertIsNotNone(entry.finished_at)
+
+    def test_finished_at_not_bumped_by_current_page(self):
+        self.client.force_authenticate(self.user)
+        original = timezone.now() - timedelta(days=30)
+        entry = ShelfEntry.objects.create(
+            user=self.user,
+            book=self.book,
+            status="READ",
+            finish_date=date(2020, 1, 1),
+            finished_at=original,
+        )
+        self.client.patch(self._detail(entry.pk), {"current_page": 10}, format="json")
+        entry.refresh_from_db()
+        self.assertEqual(entry.finished_at, original)

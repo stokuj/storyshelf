@@ -38,7 +38,8 @@ Patrz [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md).
 | `library/`| Read-only API — Author, Serie, Genre, Tag (publiczne) |
 | `ratings/`| Rating (PUT-upsert), sygnał przelicza `Book.avg_rating`/`ratings_count` |
 | `shelf/`  | ShelfEntry (status czytania, current_page) + custom półki (Shelf + ShelfMembership), publiczny odczyt bramkowany `profile_public` |
-| `reviews/`| Review (body, unique user+book, PUT-upsert, publiczna lista, owner-only delete, `author_rating`) |
+| `reviews/`| Review (body, unique user+book, PUT-upsert, publiczna lista, owner-only delete, `author_rating`, `likes_count`/`is_liked`); polubienia (`ReviewLike`, unique user+review); publiczne recenzje usera bramkowane `profile_public` |
+| `feed/`   | Read-only feed aktywności obserwowanych (`GET /api/feed/`) — liczony „w locie" z Rating/Review/ShelfEntry(READ), bez modelu; cursor po timestamp, bramkowany `profile_public` |
 | `config/` | Settings (dev/prod split), urls, pagination |
 
 ## Model relations
@@ -57,7 +58,7 @@ Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating)
  └── Tag (M2M through BookTag)
 ```
 
-## API surface (M1–M9; M7 admin-import odłożone)
+## API surface (M1–M12; M7 admin-import odłożone)
 
 ```
 /api/auth/            register, login, refresh, logout
@@ -66,12 +67,15 @@ Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating)
 /api/u/{handle}/follow/        follow/unfollow (auth)
 /api/u/{handle}/followers/, /api/u/{handle}/following/   listy obserwujących/obserwowanych
 /api/u/{handle}/shelves/   publiczne custom półki (bramkowane profile_public)
+/api/u/{handle}/reviews/   publiczne recenzje usera (bramkowane profile_public)
 /api/authors/, /api/genres/, /api/series/, /api/tags/   (read-only)
 /api/books/           lista, szczegóły (slug), filtry/search/sort
 /api/ratings/         PUT-upsert oceny (+ /api/ratings/{id}/)
 /api/shelf/entries/   ShelfEntry (status czytania, current_page)
 /api/shelves/         custom półki (owner CRUD) + add/remove książek
 /api/reviews/, /api/reviews/me/, /api/reviews/{id}/   recenzje
+/api/reviews/{id}/like/   polubienie recenzji (POST/DELETE, auth)
+/api/feed/            feed aktywności obserwowanych (auth, liczony w locie, cursor ?before=)
 /api/schema/, /api/docs/
 ```
 

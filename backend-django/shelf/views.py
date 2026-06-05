@@ -1,5 +1,4 @@
 from django.db.models import Count, Exists, OuterRef, Subquery
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
@@ -8,7 +7,7 @@ from rest_framework.response import Response
 
 from books.models import Book
 from ratings.models import Rating
-from users.models import User
+from users.selectors import public_owner_or_404
 
 from .models import Shelf, ShelfEntry, ShelfMembership
 from .serializers import (
@@ -94,21 +93,13 @@ class ShelfViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def _public_owner_or_404(request, handle):
-    owner = get_object_or_404(User, handle=handle)
-    # Profile gates shelves: a private profile hides all shelves from others.
-    if not owner.profile_public and owner != request.user:
-        raise Http404("No User matches the given query.")
-    return owner
-
-
 class PublicShelfListView(generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = PublicShelfSerializer
     pagination_class = None
 
     def get_queryset(self):
-        owner = _public_owner_or_404(self.request, self.kwargs["handle"])
+        owner = public_owner_or_404(self.request, self.kwargs["handle"])
         return (
             Shelf.objects.filter(owner=owner, is_public=True)
             .annotate(book_count=Count("memberships"))
@@ -121,7 +112,7 @@ class PublicShelfDetailView(generics.RetrieveAPIView):
     serializer_class = PublicShelfDetailSerializer
 
     def get_object(self):
-        owner = _public_owner_or_404(self.request, self.kwargs["handle"])
+        owner = public_owner_or_404(self.request, self.kwargs["handle"])
         return get_object_or_404(
             Shelf, owner=owner, slug=self.kwargs["slug"], is_public=True
         )
@@ -135,7 +126,7 @@ class PublicShelfEntryListView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        owner = _public_owner_or_404(self.request, self.kwargs["handle"])
+        owner = public_owner_or_404(self.request, self.kwargs["handle"])
         user_rating = Rating.objects.filter(
             user=OuterRef("user"), book=OuterRef("book")
         ).values("rating")[:1]

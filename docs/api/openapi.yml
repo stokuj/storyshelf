@@ -290,6 +290,26 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/feed/:
+    get:
+      operationId: feed_retrieve
+      parameters:
+      - in: query
+        name: before
+        schema:
+          type: string
+        description: ISO-8601 cursor; return activity strictly older than this.
+      tags:
+      - feed
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedResponse'
+          description: ''
   /api/genres/:
     get:
       operationId: genres_list
@@ -494,6 +514,53 @@ paths:
           description: ''
     delete:
       operationId: reviews_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/reviews/{id}/like/:
+    post:
+      operationId: reviews_like_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    delete:
+      operationId: reviews_like_destroy
       parameters:
       - in: path
         name: id
@@ -1001,6 +1068,40 @@ paths:
                 items:
                   $ref: '#/components/schemas/FollowUser'
           description: ''
+  /api/u/{handle}/reviews/:
+    get:
+      operationId: u_reviews_list
+      description: Public, paginated reviews by one user, gated by profile_public.
+      parameters:
+      - in: path
+        name: handle
+        schema:
+          type: string
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - u
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewList'
+          description: ''
   /api/u/{handle}/shelf/:
     get:
       operationId: u_shelf_list
@@ -1406,6 +1507,79 @@ components:
           nullable: true
       required:
       - title
+    FeedActor:
+      type: object
+      properties:
+        handle:
+          type: string
+        display_name:
+          type: string
+        avatar_url:
+          type: string
+          nullable: true
+      required:
+      - avatar_url
+      - display_name
+      - handle
+    FeedBook:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        cover_url:
+          type: string
+          nullable: true
+      required:
+      - cover_url
+      - slug
+      - title
+    FeedItem:
+      type: object
+      properties:
+        type:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        actor:
+          $ref: '#/components/schemas/FeedActor'
+        book:
+          $ref: '#/components/schemas/FeedBook'
+        rating:
+          type: integer
+          nullable: true
+        body:
+          type: string
+          nullable: true
+        finish_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - actor
+      - body
+      - book
+      - finish_date
+      - rating
+      - timestamp
+      - type
+    FeedResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedItem'
+        next_before:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - next_before
+      - results
     FollowUser:
       type: object
       description: |-
@@ -1856,6 +2030,14 @@ components:
           type: integer
           nullable: true
           readOnly: true
+        likes_count:
+          type: integer
+          readOnly: true
+          default: 0
+        is_liked:
+          type: boolean
+          readOnly: true
+          default: false
         created_at:
           type: string
           format: date-time
@@ -1871,6 +2053,8 @@ components:
       - book_slug
       - created_at
       - id
+      - is_liked
+      - likes_count
       - updated_at
     ReviewAuthor:
       type: object
