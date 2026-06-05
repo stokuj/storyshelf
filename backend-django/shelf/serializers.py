@@ -65,7 +65,8 @@ class ShelfEntrySerializer(serializers.ModelSerializer):
 
         # Auto-set finish_date the first time an entry becomes READ, so reading
         # stats (books/year, time-on-shelf) have a date to work with. Never
-        # overwrite an existing or explicitly-provided finish_date.
+        # overwrite an existing or explicitly-provided finish_date. finished_at
+        # is the matching stable datetime used for feed ordering.
         result_status = attrs.get("status", getattr(self.instance, "status", None))
         if (
             result_status == ShelfEntry.Status.READ
@@ -73,6 +74,10 @@ class ShelfEntrySerializer(serializers.ModelSerializer):
             and getattr(self.instance, "finish_date", None) is None
         ):
             attrs["finish_date"] = timezone.localdate()
+        if result_status == ShelfEntry.Status.READ and getattr(
+            self.instance, "finished_at", None
+        ) is None:
+            attrs.setdefault("finished_at", timezone.now())
 
         # Reuse model.clean() for current_page / date validation (DRY).
         entry = self.instance or ShelfEntry()

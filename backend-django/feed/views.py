@@ -61,7 +61,7 @@ def _review_entry(r, request):
 def _finished_entry(e, request):
     return {
         "type": "finished",
-        "timestamp": e.updated_at,
+        "timestamp": e.finished_at,
         "actor": _actor(e.user, request),
         "book": _book(e.book),
         "rating": None,
@@ -119,10 +119,11 @@ class FeedView(APIView):
             ShelfEntry.objects.filter(
                 user_id__in=following_ids,
                 status=ShelfEntry.Status.READ,
-                updated_at__lt=before,
+                finished_at__isnull=False,
+                finished_at__lt=before,
             )
             .select_related("user", "book")
-            .order_by("-updated_at")[:PAGE_SIZE]
+            .order_by("-finished_at")[:PAGE_SIZE]
         )
 
         items = (

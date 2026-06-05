@@ -28,11 +28,14 @@ class ShelfEntry(models.Model):
     )
     start_date = models.DateField(null=True, blank=True)
     finish_date = models.DateField(null=True, blank=True)
+    # Set once when the entry first becomes READ — a stable datetime for feed
+    # ordering of "finished" events (finish_date is date-only; auto_now would
+    # bump on later current_page edits and resurface old finishes in the feed).
+    finished_at = models.DateTimeField(null=True, blank=True)
     current_page = models.IntegerField(
         null=True, blank=True, validators=[MinValueValidator(0)]
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [

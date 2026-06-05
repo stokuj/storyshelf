@@ -15,6 +15,6 @@ class ShelfEntryModelTest(TestCase):
         )
         cls.book = Book.objects.create(title="Book One", slug="book-one")
 
-    def test_shelfentry_has_updated_at(self):
+    def test_shelfentry_finished_at_defaults_null(self):
         entry = ShelfEntry.objects.create(user=self.user, book=self.book)
-        self.assertIsNotNone(entry.updated_at)
+        self.assertIsNone(entry.finished_at)

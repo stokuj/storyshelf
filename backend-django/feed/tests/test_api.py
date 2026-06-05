@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -44,7 +45,10 @@ class FeedAPITest(APITestCase):
 
     def test_finished_book_appears(self):
         ShelfEntry.objects.create(
-            user=self.pub, book=self.book, status=ShelfEntry.Status.READ
+            user=self.pub,
+            book=self.book,
+            status=ShelfEntry.Status.READ,
+            finished_at=now(),
         )
         self.client.force_authenticate(self.me)
         resp = self.client.get(FEED_URL)
