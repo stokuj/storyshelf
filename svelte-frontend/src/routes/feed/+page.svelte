@@ -43,7 +43,7 @@
 		/>
 	{:else}
 		<div>
-			{#each items as item (item.actor.handle + item.timestamp)}
+			{#each items as item (item.type + item.actor.handle + item.book.slug + item.timestamp)}
 				<FeedItemComponent {item} />
 			{/each}
 		</div>

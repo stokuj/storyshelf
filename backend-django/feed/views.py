@@ -1,5 +1,5 @@
 from django.utils.dateparse import parse_datetime
-from django.utils.timezone import now
+from django.utils.timezone import is_naive, make_aware, now
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -92,10 +92,18 @@ class FeedView(APIView):
                 {"detail": "Invalid 'before' timestamp."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # A cursor without an offset (e.g. a hand-supplied one) parses as naive;
+        # comparing it to tz-aware columns warns/misbehaves under USE_TZ.
+        if is_naive(before):
+            before = make_aware(before)
 
-        following_ids = UserFollow.objects.filter(
-            follower=request.user, following__profile_public=True
-        ).values_list("following_id", flat=True)
+        # Evaluated once into an IN (...) list (reused across the three queries
+        # below); profile_public gating happens here, not as a post-filter.
+        following_ids = list(
+            UserFollow.objects.filter(
+                follower=request.user, following__profile_public=True
+            ).values_list("following_id", flat=True)
+        )
 
         ratings = (
             Rating.objects.filter(user_id__in=following_ids, updated_at__lt=before)
@@ -124,6 +132,9 @@ class FeedView(APIView):
         )
         items.sort(key=lambda x: x["timestamp"], reverse=True)
         page = items[:PAGE_SIZE]
+        # Timestamp-only cursor (strict <). Two events sharing the exact same
+        # microsecond at a page boundary could be skipped — practically
+        # impossible with auto_now precision per save; acceptable at this scale.
         next_before = (
             page[-1]["timestamp"].isoformat() if len(page) == PAGE_SIZE else None
         )
