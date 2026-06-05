@@ -32,6 +32,7 @@
 				<Button variant="ghost" size="sm" href={resolve('/discover')}>Discover</Button>
 				<Button variant="ghost" size="sm" href={resolve('/users')}>People</Button>
 				{#if user}
+					<Button variant="ghost" size="sm" href={resolve('/feed')}>Feed</Button>
 					<Button variant="ghost" size="sm" href={resolve('/shelf')}>Shelf</Button>
 					<Button variant="ghost" size="sm" href={resolve('/stats')}>Stats</Button>
 				{/if}
