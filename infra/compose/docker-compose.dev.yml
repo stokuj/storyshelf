@@ -14,11 +14,40 @@ services:
       DJANGO_SECRET_KEY: dev-secret-key
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
       GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-anthropic/claude-3.5-haiku}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:8000
+
+  celery:
+    build: ../../backend-django
+    container_name: storyshelf-celery
+    volumes:
+      - ../../backend-django:/app
+      - /app/.venv
+      - media:/app/media
+    environment:
+      DJANGO_ENV: dev
+      DJANGO_SECRET_KEY: dev-secret-key
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-anthropic/claude-3.5-haiku}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    command: celery -A config worker --loglevel=info --concurrency=4
 
   svelte:
     build:
@@ -44,6 +73,13 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+
+  redis:
+    image: redis:7
+    container_name: storyshelf-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 
   db:
     image: postgres:16
