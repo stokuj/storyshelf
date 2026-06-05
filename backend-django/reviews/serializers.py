@@ -12,6 +12,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
     author = serializers.SerializerMethodField()
     author_rating = serializers.SerializerMethodField()
+    likes_count = serializers.IntegerField(read_only=True, default=0)
+    is_liked = serializers.BooleanField(read_only=True, default=False)
 
     class Meta:
         model = Review
@@ -21,10 +23,20 @@ class ReviewSerializer(serializers.ModelSerializer):
             "body",
             "author",
             "author_rating",
+            "likes_count",
+            "is_liked",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "author", "author_rating", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "author",
+            "author_rating",
+            "likes_count",
+            "is_liked",
+            "created_at",
+            "updated_at",
+        ]
 
     @extend_schema_field(
         inline_serializer(

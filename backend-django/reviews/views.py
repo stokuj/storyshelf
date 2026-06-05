@@ -1,4 +1,5 @@
-from django.db.models import OuterRef, Subquery
+from django.db.models import Count, Exists, OuterRef, Subquery
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -7,13 +8,29 @@ from rest_framework.response import Response
 from books.models import Book
 from ratings.models import Rating
 
-from .models import Review
+from .models import Review, ReviewLike
 from .serializers import ReviewSerializer
+
+
+def annotate_reviews(qs, user):
+    """Attach author_rating, likes_count, is_liked to a Review queryset."""
+    author_rating = Rating.objects.filter(
+        user=OuterRef("user"), book=OuterRef("book")
+    ).values("rating")[:1]
+    qs = qs.annotate(
+        author_rating=Subquery(author_rating),
+        likes_count=Count("likes", distinct=True),
+    ).select_related("user", "book")
+    if user.is_authenticated:
+        qs = qs.annotate(
+            is_liked=Exists(ReviewLike.objects.filter(review=OuterRef("pk"), user=user))
+        )
+    return qs
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    http_method_names = ["get", "put", "delete", "head", "options"]
+    http_method_names = ["get", "post", "put", "delete", "head", "options"]
 
     def get_permissions(self):
         # Public read (list/retrieve); write/delete/me require auth.
@@ -22,14 +39,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
-        author_rating = Rating.objects.filter(
-            user=OuterRef("user"), book=OuterRef("book")
-        ).values("rating")[:1]
-        qs = (
-            Review.objects.annotate(author_rating=Subquery(author_rating))
-            .select_related("user", "book")
-            .order_by("-created_at")
-        )
+        qs = annotate_reviews(Review.objects.all(), self.request.user).order_by("-created_at")
         # Destroy is scoped to the owner so users can't delete others' reviews.
         if self.action == "destroy":
             qs = qs.filter(user=self.request.user)
@@ -67,3 +77,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if review is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(self.get_serializer(review).data)
+
+    @action(detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated])
+    def like(self, request, pk=None):
+        review = get_object_or_404(Review, pk=pk)
+        if request.method == "POST":
+            ReviewLike.objects.get_or_create(user=request.user, review=review)
+            is_liked = True
+        else:
+            ReviewLike.objects.filter(user=request.user, review=review).delete()
+            is_liked = False
+        return Response({"likes_count": review.likes.count(), "is_liked": is_liked})
