@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from reviews.views import UserReviewListView
 from shelf.views import PublicShelfEntryListView
 
 urlpatterns = [
@@ -13,6 +14,7 @@ urlpatterns = [
     path("api/users/", include("users.urls.users")),
     path("api/u/", include("users.urls.public")),
     path("api/u/<str:handle>/shelf/", PublicShelfEntryListView.as_view()),
+    path("api/u/<str:handle>/reviews/", UserReviewListView.as_view()),
     path("api/u/<str:handle>/shelves/", include("shelf.urls_public")),
     path("api/", include("books.urls")),
     path("api/", include("ratings.urls")),

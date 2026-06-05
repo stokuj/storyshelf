@@ -192,3 +192,31 @@ class ReviewLikeAPITest(APITestCase):
         row = resp.data["data"][0]
         self.assertEqual(row["likes_count"], 1)
         self.assertFalse(row["is_liked"])
+
+
+class PublicUserReviewsTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.pub = User.objects.create_user(
+            email="pub@test.com", handle="pub", password="password123", profile_public=True
+        )
+        cls.priv = User.objects.create_user(
+            email="priv@test.com", handle="priv", password="password123", profile_public=False
+        )
+        cls.book = Book.objects.create(title="B", slug="b")
+        Review.objects.create(user=cls.pub, book=cls.book, body="public review")
+        Review.objects.create(user=cls.priv, book=cls.book, body="private review")
+
+    def test_public_profile_reviews_listed(self):
+        resp = self.client.get("/api/u/pub/reviews/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["total"], 1)
+        self.assertEqual(resp.data["data"][0]["body"], "public review")
+
+    def test_private_profile_returns_404(self):
+        resp = self.client.get("/api/u/priv/reviews/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_unknown_handle_returns_404(self):
+        resp = self.client.get("/api/u/ghost/reviews/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

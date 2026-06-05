@@ -1,12 +1,18 @@
 from django.db.models import Count, Exists, OuterRef, Subquery
+from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
 from books.models import Book
 from ratings.models import Rating
+from users.models import User
 
 from .models import Review, ReviewLike
 from .serializers import ReviewSerializer
@@ -88,3 +94,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
             ReviewLike.objects.filter(user=request.user, review=review).delete()
             is_liked = False
         return Response({"likes_count": review.likes.count(), "is_liked": is_liked})
+
+
+class UserReviewListView(generics.ListAPIView):
+    """Public, paginated reviews by one user, gated by profile_public."""
+
+    permission_classes = [AllowAny]
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        owner = get_object_or_404(User, handle=self.kwargs["handle"])
+        if not owner.profile_public and owner != self.request.user:
+            raise Http404("No User matches the given query.")
+        return annotate_reviews(
+            Review.objects.filter(user=owner), self.request.user
+        ).order_by("-updated_at")
