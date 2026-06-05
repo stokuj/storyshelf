@@ -1,14 +1,14 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-06-04. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-06-05. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `feat/m12-social-feed` (M11 zmergowane PR #74).
+**Bieżący branch:** `main` (M12 zmergowane PR #75; M11 PR #74).
 
-**ZADANIE:** **M12 — Social feed + reakcje** (aktywny). Spec: `docs/superpowers/specs/2026-06-05-m12-social-feed-design.md`. Feed liczony „w locie" z Rating/Review/ShelfEntry (`GET /api/feed/`, auth-only, tylko obserwowani z `profile_public=True`), polubienia recenzji (`ReviewLike`), publiczne recenzje na profilu (`GET /api/u/{handle}/reviews/`). Wdrożenie produkcyjne odłożone na decyzję użytkownika (osobny temat, nie milestone). Każdy milestone = osobny `/brainstorming` → spec → plan → implementacja.
+**ZADANIE:** Brak aktywnego milestone — **M11 i M12 zamknięte**, lista „Następne" wyczerpana. Pozostaje jedynie **wdrożenie produkcyjne** (odłożone na decyzję użytkownika; osobny temat, nie milestone — patrz „Po M11–M12"). Ewentualny kolejny kierunek to kandydaci z „Kiedyś" (np. M13: spersonalizowana strona główna `/`). Każdy nowy milestone = osobny `/brainstorming` → spec → plan → implementacja.
 
 **M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70), po dacie audytu który je oznaczył jako half-wired. Zweryfikowane w kodzie: `settings/data/export/+server.ts` (proxy ZIP) + przycisk; `settings/+page.svelte` avatar `onchange`→`requestSubmit` + akcja `avatar`; `ShelfBookCard.svelte` input strony + `/shelf/+page.svelte` `handleProgressChange` (optymistyczny revert). Pozostałości poza zakresem M8: brak kontrolki progresu na `/books/[slug]`, navbar Search no-op — do ewentualnego „Kiedyś".
 
@@ -37,10 +37,11 @@
 | M9 Statystyki czytania | `GET /api/users/me/stats/` (auth, own-only) + `users/stats.py::build_user_stats` (liczby per status, książki/rok z `finish_date`, rozkład ocen, time-on-shelf); auto-set `ShelfEntry.finish_date` na przejściu do READ; frontend `/stats` + ręczny `BarChart` (zero deps); E2E `stats.spec.ts`; OpenAPI zregenerowany | ✅ zmergowane do main (PR #72) |
 | M10 Audyt / fix / cleanup | Audyt subagentami M6–M9: usunięcie `total_books` (redundantne), konsolidacja prefiksu follow → `/api/u/`, klikalne linki autor recenzji + gatunki (`ReviewCard`/`BookHeader`), sync `ARCHITECTURE.md`/`ROADMAP.md`, usunięcie martwego duplikatu `backend-django/docs/api/openapi.yml` | ✅ zmergowane do main (PR #73) |
 | M11 Discover users + cudza półka | `GET /api/users/` (lista publicznych profili: paginacja, `?search=`, `?ordering=`, filtr `profile_public`) + publiczny odczyt domyślnej półki `GET /api/u/{handle}/shelf/` (bramkowane `profile_public`); frontend `/users` + sekcja „Reading" na `/u/[handle]` + nav „People"; fix enum `ShelfEntryStatusEnum` | ✅ zmergowane do main (PR #74) |
+| M12 Social feed + reakcje | App `feed/` (`GET /api/feed/`, auth, merge w locie Rating/Review/ShelfEntry obserwowanych z `profile_public=True`, cursor `?before=`); polubienia recenzji (`ReviewLike`, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`/`is_liked`); publiczne recenzje `GET /api/u/{handle}/reviews/` (paginowane, bramkowane); `ShelfEntry.finished_at` (stabilny sort „finished", zastąpił `updated_at` po review); refactor `users/selectors.py::public_owner_or_404` (dedup gatingu shelf+reviews); frontend `/feed` + `FeedItem`, lajk na `ReviewCard` (optimistic), sekcja Reviews na `/u/[handle]` (load-more), nav „Feed"; E2E `social-feed.spec.ts` (3 scen.); OpenAPI zregenerowany | ✅ zmergowane do main (PR #75) |
 
 ## W toku
 
-**M12 — Social feed + reakcje** (gałąź `feat/m12-social-feed`). Spec: `docs/superpowers/specs/2026-06-05-m12-social-feed-design.md`. Feed w locie (`GET /api/feed/`), `ReviewLike`, publiczne recenzje `GET /api/u/{handle}/reviews/`.
+Brak aktywnego milestone. M11–M12 zamknięte; lista „Następne" wyczerpana. Otwarte tylko **wdrożenie produkcyjne** (decyzja użytkownika — patrz „Po M11–M12") oraz kandydaci z „Kiedyś".
 
 **Decyzja 2026-05-25:** profil publiczny/prywatny — bool `profile_public`, bez 3-state friends/private.
 
@@ -53,7 +54,7 @@
 | Milestone | Zakres | Gałąź |
 |-----------|--------|-------|
 | ~~**M11 — Discover users + cudza półka**~~ ✅ ZROBIONE (PR #74) | `GET /api/users/` (lista publicznych profili: paginacja, `?search=` po handle/display_name, `?ordering=`, filtr `profile_public`) + publiczny odczyt domyślnej półki `GET /api/u/{handle}/shelf/` (ShelfEntry, status/postęp, bramkowane `profile_public`); frontend `/users` (reuse `UserRow`/`FollowList`/`FollowButton` z M6) + sekcja „Reading" na `/u/[handle]`. Domyka M6 Follow — daje *jak* znaleźć userów. Decyzja do brainstormingu: publiczna półka = tylko domyślna `ShelfEntry` czy też custom (te już publiczne z M5). | `feat/m11-user-discovery` |
-| **M12 — Social feed + reakcje** — W TOKU | Feed aktywności obserwowanych `GET /api/feed/` (ocena / recenzja / skończona książka; rekomendacja: liczony „w locie" z Rating/Review/ShelfEntry, bez modelu `Activity`; bramkowane `profile_public`), publiczne recenzje na profilu `GET /api/u/{handle}/reviews/`, polubienia recenzji (`ReviewLike` unique user+review, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`+`is_liked`); frontend `/feed` + sekcja recenzji na `/u/[handle]`. Zależy od M11. YAGNI: bez powiadomień, komentarzy, repostów. | `feat/m12-social-feed` |
+| ~~**M12 — Social feed + reakcje**~~ ✅ ZROBIONE (PR #75) | Feed aktywności obserwowanych `GET /api/feed/` (ocena / recenzja / skończona książka; liczony „w locie" z Rating/Review/ShelfEntry, bez modelu `Activity`; bramkowane `profile_public`), publiczne recenzje na profilu `GET /api/u/{handle}/reviews/`, polubienia recenzji (`ReviewLike` unique user+review, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`+`is_liked`); frontend `/feed` + sekcja recenzji na `/u/[handle]`. Zależała od M11. YAGNI: bez powiadomień, komentarzy, repostów. | `feat/m12-social-feed` |
 | ~~**M7 — Import książek z UI admina** (A2)~~ **ODŁOŻONE** | Panel w SvelteKit uznany za przekomplikowany (patrz „Aktualny krok"). Wróci najpewniej jako lekki przycisk w Django adminie (opcja A). Działają już CLI `import_books` i Django admin. | `—` (gałąź `feat/m7-admin-import-ui` zostawiona pusta) |
 
 Po M11–M12:
