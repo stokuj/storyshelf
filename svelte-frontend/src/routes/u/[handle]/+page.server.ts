@@ -34,6 +34,7 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 		isLoggedIn,
 		shelves: shelves ?? [],
 		reading: reading ?? [],
-		reviews: reviews?.data ?? []
+		reviews: reviews?.data ?? [],
+		reviewsTotal: reviews?.total ?? 0
 	};
 };

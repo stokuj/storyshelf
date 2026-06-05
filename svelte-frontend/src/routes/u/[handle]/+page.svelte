@@ -4,6 +4,8 @@
 	import { Button } from '$lib/components/ui/button';
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import ReviewCard from '$lib/components/review/ReviewCard.svelte';
+	import LoadMore from '$lib/components/discover/LoadMore.svelte';
+	import { fetchUserReviews } from '$lib/api/reviews';
 	import { Calendar } from 'lucide-svelte';
 	import type { User } from '$lib/types';
 	import type { PublicShelf, ShelfEntry } from '$lib/types/shelf';
@@ -15,7 +17,26 @@
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let shelves: PublicShelf[] = $derived(data.shelves);
 	let reading: ShelfEntry[] = $derived(data.reading);
-	let reviews: Review[] = $derived(data.reviews);
+
+	// svelte-ignore state_referenced_locally
+	let reviews = $state<Review[]>(data.reviews);
+	// svelte-ignore state_referenced_locally
+	let reviewsTotal = $state(data.reviewsTotal);
+	let reviewsPage = $state(1);
+	let loadingReviews = $state(false);
+	let hasMoreReviews = $derived(reviews.length < reviewsTotal);
+
+	async function loadMoreReviews() {
+		if (loadingReviews) return;
+		loadingReviews = true;
+		const { data: res } = await fetchUserReviews(fetch, profile.handle, reviewsPage + 1);
+		if (res) {
+			reviews = [...reviews, ...res.data];
+			reviewsPage = res.page;
+			reviewsTotal = res.total;
+		}
+		loadingReviews = false;
+	}
 
 	const STATUS_LABEL: Record<string, string> = {
 		WANT_TO_READ: 'Want to read',
@@ -130,6 +151,7 @@
 			{#each reviews as review (review.id)}
 				<ReviewCard {review} canLike={isLoggedIn} />
 			{/each}
+			<LoadMore loading={loadingReviews} hasMore={hasMoreReviews} onloadmore={loadMoreReviews} />
 		</section>
 	{/if}
 </div>
