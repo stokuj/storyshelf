@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "ratings.apps.RatingsConfig",
     "shelf.apps.ShelfConfig",
     "reviews.apps.ReviewsConfig",
+    "feed.apps.FeedConfig",
 ]
 
 MIDDLEWARE = [
