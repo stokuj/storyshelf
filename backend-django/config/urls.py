@@ -17,6 +17,7 @@ urlpatterns = [
     path("api/u/<str:handle>/reviews/", UserReviewListView.as_view()),
     path("api/u/<str:handle>/shelves/", include("shelf.urls_public")),
     path("api/", include("books.urls")),
+    path("api/", include("characters.urls")),
     path("api/", include("ratings.urls")),
     path("api/shelf/", include("shelf.urls")),
     path("api/", include("reviews.urls")),
