@@ -1,14 +1,14 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-06-04. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-06-06. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `feat/m12-social-feed` (M11 zmergowane PR #74).
+**Bieżący branch:** `feat/m13-ai-characters` (M12 zmergowane PR #75).
 
-**ZADANIE:** **M12 — Social feed + reakcje** (aktywny). Spec: `docs/superpowers/specs/2026-06-05-m12-social-feed-design.md`. Feed liczony „w locie" z Rating/Review/ShelfEntry (`GET /api/feed/`, auth-only, tylko obserwowani z `profile_public=True`), polubienia recenzji (`ReviewLike`), publiczne recenzje na profilu (`GET /api/u/{handle}/reviews/`). Wdrożenie produkcyjne odłożone na decyzję użytkownika (osobny temat, nie milestone). Każdy milestone = osobny `/brainstorming` → spec → plan → implementacja.
+**ZADANIE:** M13 zakończone na gałęzi — implementacja `characters/` z Celery+Redis+OpenRouter. Faza AI projektu otwarta (patrz ADR-003); ograniczona do kart postaci per książka. Pozostałe pozycje AI z listy „Kiedyś" (pgvector, semantic search, pipeline dbt) nadal poza zakresem. Brak aktywnego kolejnego milestone — ewentualny M14 = osobny `/brainstorming`. Wdrożenie produkcyjne odłożone na decyzję użytkownika (osobny temat, nie milestone).
 
 **M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70), po dacie audytu który je oznaczył jako half-wired. Zweryfikowane w kodzie: `settings/data/export/+server.ts` (proxy ZIP) + przycisk; `settings/+page.svelte` avatar `onchange`→`requestSubmit` + akcja `avatar`; `ShelfBookCard.svelte` input strony + `/shelf/+page.svelte` `handleProgressChange` (optymistyczny revert). Pozostałości poza zakresem M8: brak kontrolki progresu na `/books/[slug]`, navbar Search no-op — do ewentualnego „Kiedyś".
 
@@ -37,14 +37,18 @@
 | M9 Statystyki czytania | `GET /api/users/me/stats/` (auth, own-only) + `users/stats.py::build_user_stats` (liczby per status, książki/rok z `finish_date`, rozkład ocen, time-on-shelf); auto-set `ShelfEntry.finish_date` na przejściu do READ; frontend `/stats` + ręczny `BarChart` (zero deps); E2E `stats.spec.ts`; OpenAPI zregenerowany | ✅ zmergowane do main (PR #72) |
 | M10 Audyt / fix / cleanup | Audyt subagentami M6–M9: usunięcie `total_books` (redundantne), konsolidacja prefiksu follow → `/api/u/`, klikalne linki autor recenzji + gatunki (`ReviewCard`/`BookHeader`), sync `ARCHITECTURE.md`/`ROADMAP.md`, usunięcie martwego duplikatu `backend-django/docs/api/openapi.yml` | ✅ zmergowane do main (PR #73) |
 | M11 Discover users + cudza półka | `GET /api/users/` (lista publicznych profili: paginacja, `?search=`, `?ordering=`, filtr `profile_public`) + publiczny odczyt domyślnej półki `GET /api/u/{handle}/shelf/` (bramkowane `profile_public`); frontend `/users` + sekcja „Reading" na `/u/[handle]` + nav „People"; fix enum `ShelfEntryStatusEnum` | ✅ zmergowane do main (PR #74) |
+| M12 Social feed + reakcje | app `feed/` (`GET /api/feed/`, auth, merge w locie Rating/Review/ShelfEntry obserwowanych z `profile_public=True`, cursor `?before=`); polubienia recenzji (`ReviewLike`, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`/`is_liked`); publiczne recenzje `GET /api/u/{handle}/reviews/` (paginowane, bramkowane); `ShelfEntry.finished_at`; refactor `users/selectors.py::public_owner_or_404`; frontend `/feed` + lajk na `ReviewCard` + sekcja Reviews na `/u/[handle]` + nav „Feed"; E2E `social-feed.spec.ts` (3 scen.); OpenAPI zregenerowany | ✅ zmergowane do main (PR #75) |
+| M13 AI Character Analysis | app `characters/` (Celery+Redis, OpenRouter); sekcja postaci pod książką (karty monogram), podstrona postaci + ego-graf relacji; `POST .../generate/` async, publiczny odczyt; ADR-003 | ✅ na gałęzi `feat/m13-ai-characters` |
 
 ## W toku
 
-**M12 — Social feed + reakcje** (gałąź `feat/m12-social-feed`). Spec: `docs/superpowers/specs/2026-06-05-m12-social-feed-design.md`. Feed w locie (`GET /api/feed/`), `ReviewLike`, publiczne recenzje `GET /api/u/{handle}/reviews/`.
+Brak aktywnego milestone. M12 zmergowane (PR #75); M13 zakończone na gałęzi `feat/m13-ai-characters` (oczekuje na PR/merge).
 
 **Decyzja 2026-05-25:** profil publiczny/prywatny — bool `profile_public`, bez 3-state friends/private.
 
 **Decyzja 2026-06-03:** faza post-MVP = M6–M10 (Follow UI, Admin import UI, dokończenie half-wired stories, statystyki czytania, audyt/cleanup). Każdy milestone osobna specka. Wdrożenie produkcyjne dopiero po M10.
+
+**Decyzja 2026-06-06:** M13 otworzył ograniczoną fazę AI (Celery+Redis+OpenRouter, karty postaci) — patrz ADR-003. Szerszy pipeline AI pozostaje w „Kiedyś".
 
 ## Następne (priorytetyzowane)
 
@@ -53,10 +57,10 @@
 | Milestone | Zakres | Gałąź |
 |-----------|--------|-------|
 | ~~**M11 — Discover users + cudza półka**~~ ✅ ZROBIONE (PR #74) | `GET /api/users/` (lista publicznych profili: paginacja, `?search=` po handle/display_name, `?ordering=`, filtr `profile_public`) + publiczny odczyt domyślnej półki `GET /api/u/{handle}/shelf/` (ShelfEntry, status/postęp, bramkowane `profile_public`); frontend `/users` (reuse `UserRow`/`FollowList`/`FollowButton` z M6) + sekcja „Reading" na `/u/[handle]`. Domyka M6 Follow — daje *jak* znaleźć userów. Decyzja do brainstormingu: publiczna półka = tylko domyślna `ShelfEntry` czy też custom (te już publiczne z M5). | `feat/m11-user-discovery` |
-| **M12 — Social feed + reakcje** — W TOKU | Feed aktywności obserwowanych `GET /api/feed/` (ocena / recenzja / skończona książka; rekomendacja: liczony „w locie" z Rating/Review/ShelfEntry, bez modelu `Activity`; bramkowane `profile_public`), publiczne recenzje na profilu `GET /api/u/{handle}/reviews/`, polubienia recenzji (`ReviewLike` unique user+review, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`+`is_liked`); frontend `/feed` + sekcja recenzji na `/u/[handle]`. Zależy od M11. YAGNI: bez powiadomień, komentarzy, repostów. | `feat/m12-social-feed` |
+| ~~**M12 — Social feed + reakcje**~~ ✅ ZROBIONE (PR #75) | Feed aktywności obserwowanych `GET /api/feed/` (ocena / recenzja / skończona książka; rekomendacja: liczony „w locie" z Rating/Review/ShelfEntry, bez modelu `Activity`; bramkowane `profile_public`), publiczne recenzje na profilu `GET /api/u/{handle}/reviews/`, polubienia recenzji (`ReviewLike` unique user+review, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`+`is_liked`); frontend `/feed` + sekcja recenzji na `/u/[handle]`. YAGNI: bez powiadomień, komentarzy, repostów. | `feat/m12-social-feed` |
 | ~~**M7 — Import książek z UI admina** (A2)~~ **ODŁOŻONE** | Panel w SvelteKit uznany za przekomplikowany (patrz „Aktualny krok"). Wróci najpewniej jako lekki przycisk w Django adminie (opcja A). Działają już CLI `import_books` i Django admin. | `—` (gałąź `feat/m7-admin-import-ui` zostawiona pusta) |
 
-Po M11–M12:
+Po M11–M13:
 
 1. **Wdrożenie produkcyjne** — odkomentowanie deploy step w `.github/workflows/ci.yml`, Caddy z Let's Encrypt, sekrety na VPS (DigitalOcean). Wymaga konfiguracji `CORS_ALLOWED_ORIGINS` i `JWT_COOKIE_DOMAIN`.
 
@@ -78,7 +82,7 @@ Po M11–M12:
 - **Skala >10k książek na jedną instancję** — projekt single-tenant, nie marketplace
 - **Real-time collaboration** — żadnych live cursors, presence, edytora wspólnego
 - **Native mobile (iOS/Android)** — PWA wystarczy
-- **AI/LLM w MVP** — brak Celery, RabbitMQ, Redis; NLP/AI pipeline odłożone poza M5
+- **AI/LLM w MVP** — brak Celery, RabbitMQ, Redis; NLP/AI pipeline odłożone poza M5. *(M13 post-MVP otworzył ograniczoną fazę AI: karty postaci per książka, Celery+Redis+OpenRouter — patrz [ADR-003](decisions/ADR-003-celery-redis-llm.md). Szeroki pipeline AI — pgvector, semantic search, dbt — nadal poza zakresem.)*
 - **Subskrypcje / płatności** — projekt hobbystyczny / portfoliowy
 
 ## Konwencja aktualizacji
