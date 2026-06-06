@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from django.conf import settings
 from django.test import TestCase
 
 from books.models import Book
@@ -22,6 +23,7 @@ class GenerateTaskTests(TestCase):
 
         self.analysis.refresh_from_db()
         self.assertEqual(self.analysis.status, CharacterAnalysis.Status.DONE)
+        self.assertEqual(self.analysis.model, settings.OPENROUTER_MODEL)
         self.assertEqual(Character.objects.filter(book=self.book).count(), 1)
 
     def test_failure_marks_failed_with_message(self):
