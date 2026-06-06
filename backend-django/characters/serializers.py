@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .models import Character
@@ -22,8 +23,8 @@ class CharacterDetailSerializer(serializers.ModelSerializer):
         model = Character
         fields = ["name", "slug", "role", "description", "relations"]
 
-    @staticmethod
-    def get_relations(obj):
+    @extend_schema_field(CharacterRelationSerializer(many=True))
+    def get_relations(self, obj):
         return CharacterRelationSerializer(obj.relations_from.all(), many=True).data
 
 

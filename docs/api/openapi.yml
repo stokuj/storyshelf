@@ -1597,7 +1597,9 @@ components:
         description:
           type: string
         relations:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/CharacterRelation'
           readOnly: true
       required:
       - name
@@ -1632,6 +1634,19 @@ components:
       required:
       - characters
       - status
+    CharacterRelation:
+      type: object
+      properties:
+        to_slug:
+          type: string
+        to_name:
+          type: string
+        label:
+          type: string
+      required:
+      - label
+      - to_name
+      - to_slug
     FeedActor:
       type: object
       properties:

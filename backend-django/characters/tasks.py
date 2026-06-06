@@ -8,7 +8,11 @@ from .services import store_characters
 
 @shared_task
 def generate_characters_task(book_id: int) -> None:
-    analysis = CharacterAnalysis.objects.select_related("book").get(book_id=book_id)
+    analysis = (
+        CharacterAnalysis.objects.select_related("book")
+        .prefetch_related("book__authors")
+        .get(book_id=book_id)
+    )
     analysis.status = CharacterAnalysis.Status.RUNNING
     analysis.error_message = ""
     analysis.save(update_fields=["status", "error_message", "updated_at"])
