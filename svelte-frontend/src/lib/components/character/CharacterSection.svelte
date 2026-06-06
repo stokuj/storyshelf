@@ -17,10 +17,14 @@
 		isAuthenticated: boolean;
 	} = $props();
 
+	const POLL_INTERVAL = 3000;
+	const MAX_POLLS = 40; // ~2 min ceiling so a stuck/erroring job never polls forever
+
 	let status = $state<CharacterAnalysisStatus>(initialStatus);
 	let characters = $state<CharacterSummary[]>(initialCharacters);
 	let starting = $state(false);
 	let pollTimer: ReturnType<typeof setTimeout> | undefined;
+	let polls = 0;
 
 	const isBusy = $derived(status === 'pending' || status === 'running');
 
@@ -29,14 +33,23 @@
 		pollTimer = undefined;
 	}
 
+	function armPolling() {
+		stopPolling();
+		polls = 0;
+		pollTimer = setTimeout(poll, POLL_INTERVAL);
+	}
+
 	async function poll() {
+		polls += 1;
 		const { data } = await fetchCharacters(fetch, bookSlug);
 		if (data) {
 			status = data.status;
 			characters = data.characters;
 		}
-		if (status === 'pending' || status === 'running') {
-			pollTimer = setTimeout(poll, 3000);
+		if ((status === 'pending' || status === 'running') && polls < MAX_POLLS) {
+			pollTimer = setTimeout(poll, POLL_INTERVAL);
+		} else {
+			stopPolling();
 		}
 	}
 
@@ -50,9 +63,22 @@
 			return;
 		}
 		status = data.status as CharacterAnalysisStatus;
-		stopPolling();
-		pollTimer = setTimeout(poll, 3000);
+		armPolling();
 	}
+
+	// Re-sync local state from SSR props and (re)start polling whenever bookSlug
+	// changes (same-route navigation reuses this component) or the page loads
+	// mid-generation. Runs on the client only.
+	$effect(() => {
+		void bookSlug; // track navigation between books
+		status = initialStatus;
+		characters = initialCharacters;
+		if (initialStatus === 'pending' || initialStatus === 'running') {
+			armPolling();
+		} else {
+			stopPolling();
+		}
+	});
 
 	onDestroy(stopPolling);
 </script>
