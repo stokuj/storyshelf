@@ -72,7 +72,7 @@ Po M11–M13:
 - PWA (krok przed natywnym mobile)
 - ~~Lista userów `/users` + cudza półka~~ → awansowane do **M11** (patrz „Następne")
 - ~~Social: feed, recenzje publiczne, polubienia~~ → awansowane do **M12** (patrz „Następne")
-- Spersonalizowana strona główna `/` (Continue reading, aktywność followowanych, rekomendacje; dla gości trending + opis apki) zamiast redirectu na `/discover` — naturalny kandydat na M13 po M11/M12
+- Spersonalizowana strona główna `/` (Continue reading, aktywność followowanych, rekomendacje; dla gości trending + opis apki) zamiast redirectu na `/discover` — naturalny kandydat na M14 po M11–M13
 - Rozszerzenia statystyk (po M9): reading streak (dni z rzędu), yearly wrap
 - AI — analiza książek (karty postaci, graf relacji, tematy/ton; per-book LLM call + pgvector) — **poza MVP**, patrz „Czego NIE robimy"
 - ML/DE do CV: semantic search + embeddingi (sentence-transformers + pgvector), pipeline analityczny w dbt, Character Knowledge Graph (NetworkX + LLM extraction)
