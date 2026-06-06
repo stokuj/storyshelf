@@ -110,6 +110,7 @@ REST_FRAMEWORK = {
         "user_email_change": "3/day",
         "user_data_export": "3/day",
         "user_delete": "3/hour",
+        "character_generate": os.getenv("THROTTLE_CHARACTER_GENERATE", "10/hour"),
     },
 }
 

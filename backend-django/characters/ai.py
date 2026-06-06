@@ -49,6 +49,9 @@ def generate_characters(book) -> dict:
         headers={
             "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
+            # OpenRouter attribution (optional, recommended).
+            "HTTP-Referer": "https://github.com/stokuj/storyshelf",
+            "X-Title": "StoryShelf",
         },
         method="POST",
     )

@@ -18,6 +18,7 @@ _status_response = inline_serializer(
 
 class GenerateCharactersView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_scope = "character_generate"
 
     @extend_schema(request=None, responses={202: _status_response})
     def post(self, request, slug):
