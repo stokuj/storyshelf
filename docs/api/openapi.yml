@@ -290,6 +290,73 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/books/{slug}/characters/:
+    get:
+      operationId: books_characters_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterListResponse'
+          description: ''
+  /api/books/{slug}/characters/{char_slug}/:
+    get:
+      operationId: books_characters_retrieve_2
+      parameters:
+      - in: path
+        name: char_slug
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterDetail'
+          description: ''
+  /api/books/{slug}/characters/generate/:
+    post:
+      operationId: books_characters_generate_create
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - books
+      security:
+      - jwtAuth: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterAnalysisStatus'
+          description: ''
   /api/feed/:
     get:
       operationId: feed_retrieve
@@ -1507,6 +1574,64 @@ components:
           nullable: true
       required:
       - title
+    CharacterAnalysisStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+      - status
+    CharacterDetail:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          maxLength: 220
+          pattern: ^[-a-zA-Z0-9_]+$
+        role:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+        relations:
+          type: string
+          readOnly: true
+      required:
+      - name
+      - relations
+      - slug
+    CharacterList:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          maxLength: 220
+          pattern: ^[-a-zA-Z0-9_]+$
+        role:
+          type: string
+          maxLength: 120
+      required:
+      - name
+      - slug
+    CharacterListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+        characters:
+          type: array
+          items:
+            $ref: '#/components/schemas/CharacterList'
+      required:
+      - characters
+      - status
     FeedActor:
       type: object
       properties:
