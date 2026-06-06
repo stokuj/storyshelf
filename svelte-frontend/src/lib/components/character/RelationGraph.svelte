@@ -31,7 +31,7 @@
 	<p class="text-sm text-muted">No relations recorded.</p>
 {:else}
 	<svg viewBox="0 0 {W} {H}" class="w-full max-w-md rounded-xl border border-rule bg-surface">
-		{#each nodes as node (node.rel.to_slug)}
+		{#each nodes as node (`${node.rel.to_slug}::${node.rel.label}`)}
 			<line x1={CX} y1={CY} x2={node.x} y2={node.y} stroke="#8884" stroke-width="2" />
 			<text
 				x={(CX + node.x) / 2}
@@ -43,8 +43,8 @@
 			>
 		{/each}
 
-		{#each nodes as node (node.rel.to_slug)}
-			<a href="/books/{bookSlug}/characters/{node.rel.to_slug}">
+		{#each nodes as node (`${node.rel.to_slug}::${node.rel.label}`)}
+			<a href="/books/{bookSlug}/characters/{node.rel.to_slug}" aria-label={node.rel.to_name}>
 				<circle cx={node.x} cy={node.y} r="26" fill={monogramColor(node.rel.to_name)} />
 				<text x={node.x} y={node.y + 4} fill="#fff" font-size="12" text-anchor="middle"
 					>{initials(node.rel.to_name)}</text
