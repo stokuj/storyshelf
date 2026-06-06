@@ -5,18 +5,27 @@ import { fetchUserRating } from '$lib/api/ratings';
 import { fetchShelfEntry } from '$lib/api/shelf';
 import { fetchReviews, fetchMyReview } from '$lib/api/reviews';
 import { fetchMyShelves } from '$lib/api/shelves';
+import { fetchCharacters } from '$lib/api/characters';
 
 export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 	const { user } = await parent();
 
-	const [bookRes, ratingRes, entryRes, reviewsRes, myReviewRes, myShelvesRes] = await Promise.all([
-		getBook(fetch, params.slug),
-		user ? fetchUserRating(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
-		user ? fetchShelfEntry(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
-		fetchReviews(fetch, params.slug, 1, true),
-		user ? fetchMyReview(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
-		user ? fetchMyShelves(fetch, params.slug, true) : Promise.resolve({ data: null, error: null })
-	]);
+	const [bookRes, ratingRes, entryRes, reviewsRes, myReviewRes, myShelvesRes, charactersRes] =
+		await Promise.all([
+			getBook(fetch, params.slug),
+			user
+				? fetchUserRating(fetch, params.slug, true)
+				: Promise.resolve({ data: null, error: null }),
+			user
+				? fetchShelfEntry(fetch, params.slug, true)
+				: Promise.resolve({ data: null, error: null }),
+			fetchReviews(fetch, params.slug, 1, true),
+			user ? fetchMyReview(fetch, params.slug, true) : Promise.resolve({ data: null, error: null }),
+			user
+				? fetchMyShelves(fetch, params.slug, true)
+				: Promise.resolve({ data: null, error: null }),
+			fetchCharacters(fetch, params.slug, true)
+		]);
 
 	if (bookRes.error) {
 		throw error(bookRes.error.status || 500, bookRes.error.detail);
@@ -30,6 +39,8 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 		reviews: reviewsRes.data?.data ?? [],
 		reviewsTotal: reviewsRes.data?.total ?? 0,
 		myReview: myReviewRes.data ?? null,
-		myShelves: myShelvesRes.data ?? []
+		myShelves: myShelvesRes.data ?? [],
+		charactersStatus: charactersRes.data?.status ?? null,
+		characters: charactersRes.data?.characters ?? []
 	};
 };
