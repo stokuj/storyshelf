@@ -12,6 +12,7 @@ dev-up:
 	@printf '%s\n' '  svelte: http://localhost:5174'
 	@printf '%s\n' '  django api: http://localhost:8000/api/'
 	@printf '%s\n' '  admin panel: http://localhost:8000/admin/'
+	@printf '%s\n' '  redis: localhost:6379 · celery worker: storyshelf-celery'
 
 dev-down:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) down

@@ -21,3 +21,5 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost:5174", "http://127.0.0.1:5174"]
 _IS_TEST_RUN = "test" in sys.argv or any("pytest" in a for a in sys.argv)
 if _IS_TEST_RUN:
     REST_FRAMEWORK = {**REST_FRAMEWORK, "DEFAULT_THROTTLE_CLASSES": []}
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True

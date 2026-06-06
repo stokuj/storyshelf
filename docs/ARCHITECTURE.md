@@ -15,9 +15,11 @@
 
 ```
 svelte (:5174 dev, :3000 prod) → django (:8000) → db (PostgreSQL :5432)
+                                       ↕
+                              redis (:6379) ← celery worker
 ```
 
-3 kontenery, bez workera/brokera kolejkowego (M1–M5 synchroniczne).
+M1–M12: 3 kontenery, synchroniczne. M13 dodaje `redis` (broker + result backend) i `celery` worker (ten sam obraz co django).
 
 ## Auth flow
 
@@ -40,6 +42,7 @@ Patrz [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md).
 | `shelf/`  | ShelfEntry (status czytania, current_page) + custom półki (Shelf + ShelfMembership), publiczny odczyt bramkowany `profile_public` |
 | `reviews/`| Review (body, unique user+book, PUT-upsert, publiczna lista, owner-only delete, `author_rating`, `likes_count`/`is_liked`); polubienia (`ReviewLike`, unique user+review); publiczne recenzje usera bramkowane `profile_public` |
 | `feed/`   | Read-only feed aktywności obserwowanych (`GET /api/feed/`) — liczony „w locie" z Rating/Review/ShelfEntry(READ), bez modelu; cursor po timestamp, bramkowany `profile_public` |
+| `characters/` | Karty postaci generowane przez LLM (OpenRouter) async (Celery): `CharacterAnalysis` (status), `Character`, `CharacterRelation`; publiczny odczyt, generacja auth |
 | `config/` | Settings (dev/prod split), urls, pagination |
 
 ## Model relations
@@ -55,10 +58,11 @@ Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating)
  ├── serie → FK Serie (nullable)
  ├── Author (M2M through BookAuthor)
  ├── Genre (M2M through BookGenre)
- └── Tag (M2M through BookTag)
+ ├── Tag (M2M through BookTag)
+ └── CharacterAnalysis (OneToOne) ── Character ── CharacterRelation (from/to)
 ```
 
-## API surface (M1–M12; M7 admin-import odłożone)
+## API surface (M1–M13; M7 admin-import odłożone)
 
 ```
 /api/auth/            register, login, refresh, logout
@@ -76,6 +80,9 @@ Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating)
 /api/reviews/, /api/reviews/me/, /api/reviews/{id}/   recenzje
 /api/reviews/{id}/like/   polubienie recenzji (POST/DELETE, auth)
 /api/feed/            feed aktywności obserwowanych (auth, liczony w locie, cursor ?before=)
+/api/books/{slug}/characters/            lista + status analizy (publiczny)
+/api/books/{slug}/characters/generate/   enqueue generacji (auth, 202)
+/api/books/{slug}/characters/{char_slug}/ postać + relacje (publiczny)
 /api/schema/, /api/docs/
 ```
 

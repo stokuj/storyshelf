@@ -35,3 +35,6 @@ caddy-config/
 
 # Worktrees
 .worktrees/
+
+# Brainstorming visual companion
+.superpowers/

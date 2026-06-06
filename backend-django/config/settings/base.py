@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "shelf.apps.ShelfConfig",
     "reviews.apps.ReviewsConfig",
     "feed.apps.FeedConfig",
+    "characters.apps.CharactersConfig",
 ]
 
 MIDDLEWARE = [
@@ -109,6 +110,7 @@ REST_FRAMEWORK = {
         "user_email_change": "3/day",
         "user_data_export": "3/day",
         "user_delete": "3/hour",
+        "character_generate": os.getenv("THROTTLE_CHARACTER_GENERATE", "10/hour"),
     },
 }
 
@@ -161,3 +163,14 @@ SPECTACULAR_SETTINGS = {
         "ShelfEntryStatusEnum": "shelf.models.ShelfEntry.Status",
     },
 }
+
+# --- Celery (background tasks) ---
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_WORKER_CONCURRENCY = int(os.getenv("CELERY_WORKER_CONCURRENCY", "4"))
+
+# --- OpenRouter (characters/ai.py) ---
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-haiku")
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"

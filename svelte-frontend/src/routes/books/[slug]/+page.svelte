@@ -8,6 +8,7 @@
 	import RatingStars from '$lib/components/book/RatingStars.svelte';
 	import ShelfControl from '$lib/components/shelf/ShelfControl.svelte';
 	import ReviewSection from '$lib/components/review/ReviewSection.svelte';
+	import CharacterSection from '$lib/components/character/CharacterSection.svelte';
 	import { upsertRating, deleteRatingById } from '$lib/api/ratings';
 	import { addBookToShelf, removeBookFromShelf } from '$lib/api/shelves';
 	import type { Shelf } from '$lib/types/shelf';
@@ -157,6 +158,13 @@
 			</div>
 
 			<BookDescription description={book.description} />
+
+			<CharacterSection
+				bookSlug={data.book.slug}
+				initialStatus={data.charactersStatus}
+				initialCharacters={data.characters}
+				isAuthenticated={!!data.user}
+			/>
 
 			<ReviewSection
 				bookSlug={data.book.slug}
