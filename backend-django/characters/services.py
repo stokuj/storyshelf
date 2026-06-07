@@ -4,6 +4,18 @@ from .ai import MAX_CHARACTERS
 from .models import Character, CharacterRelation, unique_character_slug
 from .relations import RelationType
 
+NAME_MAX = 200  # Character.name CharField length
+
+
+def _clean_str(value) -> str:
+    """LLM fields may be any JSON scalar; coerce non-strings to '' (skip), never raise."""
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _as_list(value) -> list:
+    """LLM may emit a non-list for characters/relations; treat anything else as empty."""
+    return value if isinstance(value, list) else []
+
 
 @transaction.atomic
 def store_characters(book, data: dict) -> None:
@@ -17,30 +29,30 @@ def store_characters(book, data: dict) -> None:
     Character.objects.filter(book=book).delete()
 
     by_name: dict[str, Character] = {}
-    for order, item in enumerate(data.get("characters", [])[:MAX_CHARACTERS]):
+    for order, item in enumerate(_as_list(data.get("characters"))[:MAX_CHARACTERS]):
         if not isinstance(item, dict):
             continue
-        name = (item.get("name") or "").strip()
+        name = _clean_str(item.get("name"))[:NAME_MAX]
         if not name:
             continue
         character = Character.objects.create(
             book=book,
             name=name,
             slug=unique_character_slug(book, name),
-            role=(item.get("role") or "").strip()[:120],
-            description=(item.get("description") or "").strip(),
+            role=_clean_str(item.get("role"))[:120],
+            description=_clean_str(item.get("description")),
             order=order,
         )
         by_name[name] = character
 
     valid_types = set(RelationType.values)
     seen: set[tuple] = set()
-    for rel in data.get("relations", []):
+    for rel in _as_list(data.get("relations")):
         if not isinstance(rel, dict):
             continue
-        source = by_name.get((rel.get("from") or "").strip())
-        target = by_name.get((rel.get("to") or "").strip())
-        raw_type = (rel.get("type") or "").strip().lower()
+        source = by_name.get(_clean_str(rel.get("from")))
+        target = by_name.get(_clean_str(rel.get("to")))
+        raw_type = _clean_str(rel.get("type")).lower()
         relation_type = raw_type if raw_type in valid_types else RelationType.OTHER
         key = (id(source), id(target), relation_type)
         if source and target and source != target and key not in seen:

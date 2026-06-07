@@ -2,8 +2,19 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from books.models import Book
-from characters.models import Character, CharacterRelation
+from characters.models import Character, CharacterRelation, unique_character_slug
 from characters.relations import RelationType
+
+
+class UniqueCharacterSlugTests(TestCase):
+    def setUp(self):
+        self.book = Book.objects.create(title="Dune")
+
+    def test_unicode_name_keeps_unicode_slug(self):
+        self.assertEqual(unique_character_slug(self.book, "Цири"), "цири")
+
+    def test_pure_symbol_name_falls_back_to_character(self):
+        self.assertEqual(unique_character_slug(self.book, "★"), "character")
 
 
 class CharacterRelationModelTests(TestCase):

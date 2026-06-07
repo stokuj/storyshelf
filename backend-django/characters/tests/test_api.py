@@ -67,3 +67,9 @@ class CharacterApiTests(APITestCase):
         self.assertEqual(rel["type"], "parent")
         self.assertEqual(rel["type_display"], "Parent")
         self.assertEqual(rel["group"], "family")
+
+    def test_character_detail_resolves_unicode_slug(self):
+        Character.objects.create(book=self.book, name="Цири", slug="цири", order=0)
+        res = self.client.get(f"/api/books/{self.book.slug}/characters/цири/")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["slug"], "цири")

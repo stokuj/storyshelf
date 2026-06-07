@@ -14,7 +14,7 @@ urlpatterns = [
         name="character-list",
     ),
     path(
-        "books/<slug:slug>/characters/<slug:char_slug>/",
+        "books/<slug:slug>/characters/<str:char_slug>/",
         CharacterDetailView.as_view(),
         name="character-detail",
     ),

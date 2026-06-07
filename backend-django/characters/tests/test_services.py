@@ -136,3 +136,60 @@ class StoreCharactersTests(TestCase):
         store_characters(self.book, data)
         rel = CharacterRelation.objects.get(book=self.book)
         self.assertEqual(rel.relation_type, RelationType.PARENT)
+
+    def test_skips_character_with_non_string_name(self):
+        data = {
+            "characters": [
+                {"name": ["Paul"], "role": "x", "description": "y"},
+                {"name": "Real", "role": "x", "description": "y"},
+            ],
+            "relations": [],
+        }
+        store_characters(self.book, data)
+        names = list(Character.objects.filter(book=self.book).values_list("name", flat=True))
+        self.assertEqual(names, ["Real"])
+
+    def test_non_string_relation_type_falls_back_to_other(self):
+        data = {
+            "characters": [
+                {"name": "Paul", "role": "x", "description": "y"},
+                {"name": "Jess", "role": "x", "description": "y"},
+            ],
+            "relations": [{"from": "Paul", "to": "Jess", "type": 42}],
+        }
+        store_characters(self.book, data)
+        rel = CharacterRelation.objects.get(book=self.book)
+        self.assertEqual(rel.relation_type, RelationType.OTHER)
+
+    def test_non_string_relation_endpoint_is_skipped(self):
+        data = {
+            "characters": [
+                {"name": "Paul", "role": "x", "description": "y"},
+                {"name": "Jess", "role": "x", "description": "y"},
+            ],
+            "relations": [{"from": ["Paul"], "to": "Jess", "type": "friend"}],
+        }
+        store_characters(self.book, data)
+        self.assertEqual(CharacterRelation.objects.filter(book=self.book).count(), 0)
+
+    def test_overlong_character_name_is_truncated(self):
+        data = {
+            "characters": [{"name": "P" * 5000, "role": "x", "description": "y"}],
+            "relations": [],
+        }
+        store_characters(self.book, data)
+        character = Character.objects.get(book=self.book)
+        self.assertEqual(len(character.name), 200)
+
+    def test_non_list_characters_is_ignored(self):
+        store_characters(self.book, {"characters": None, "relations": []})
+        self.assertEqual(Character.objects.filter(book=self.book).count(), 0)
+
+    def test_non_list_relations_is_ignored(self):
+        data = {
+            "characters": [{"name": "Paul", "role": "x", "description": "y"}],
+            "relations": None,
+        }
+        store_characters(self.book, data)
+        self.assertEqual(Character.objects.filter(book=self.book).count(), 1)
+        self.assertEqual(CharacterRelation.objects.filter(book=self.book).count(), 0)

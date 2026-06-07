@@ -6,7 +6,7 @@ from .relations import RelationType, relation_group
 
 def unique_character_slug(book, name: str) -> str:
     """Slug unique within one book. Dedups with a numeric suffix."""
-    base = slugify(name)[:200] or "character"
+    base = slugify(name, allow_unicode=True)[:200] or "character"
     slug = base
     counter = 1
     while Character.objects.filter(book=book, slug=slug).exists():
