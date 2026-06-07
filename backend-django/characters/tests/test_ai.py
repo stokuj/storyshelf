@@ -47,7 +47,7 @@ class GenerateCharactersTests(SimpleTestCase):
                     {"name": "Paul Atreides", "role": "Protagonist", "description": "Heir."},
                 ],
                 "relations": [
-                    {"from": "Paul Atreides", "to": "Lady Jessica", "label": "son"},
+                    {"from": "Paul Atreides", "to": "Lady Jessica", "type": "parent"},
                 ],
             }
         )
@@ -56,7 +56,14 @@ class GenerateCharactersTests(SimpleTestCase):
             data = generate_characters(FakeBook())
 
         self.assertEqual(data["characters"][0]["name"], "Paul Atreides")
-        self.assertEqual(data["relations"][0]["label"], "son")
+        self.assertEqual(data["relations"][0]["type"], "parent")
+
+    def test_prompt_lists_relation_types(self):
+        from characters.ai import _build_prompt
+
+        prompt = _build_prompt(FakeBook())
+        self.assertIn("parent", prompt)
+        self.assertIn("other", prompt)
 
     def test_invalid_json_raises(self):
         body = json.dumps({"choices": [{"message": {"content": "not json"}}]}).encode("utf-8")

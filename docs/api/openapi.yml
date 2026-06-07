@@ -1641,12 +1641,18 @@ components:
           type: string
         to_name:
           type: string
-        label:
+        type:
+          type: string
+        type_display:
+          type: string
+        group:
           type: string
       required:
-      - label
+      - group
       - to_name
       - to_slug
+      - type
+      - type_display
     FeedActor:
       type: object
       properties:

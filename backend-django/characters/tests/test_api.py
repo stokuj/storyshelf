@@ -52,11 +52,24 @@ class CharacterApiTests(APITestCase):
         paul = Character.objects.create(book=self.book, name="Paul", slug="paul", order=0)
         jess = Character.objects.create(book=self.book, name="Jessica", slug="jessica", order=1)
         from characters.models import CharacterRelation
+        from characters.relations import RelationType
 
         CharacterRelation.objects.create(
-            book=self.book, from_character=paul, to_character=jess, label="son"
+            book=self.book,
+            from_character=paul,
+            to_character=jess,
+            relation_type=RelationType.PARENT,
         )
         res = self.client.get(f"/api/books/{self.book.slug}/characters/paul/")
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.data["relations"][0]["to_slug"], "jessica")
-        self.assertEqual(res.data["relations"][0]["label"], "son")
+        rel = res.data["relations"][0]
+        self.assertEqual(rel["to_slug"], "jessica")
+        self.assertEqual(rel["type"], "parent")
+        self.assertEqual(rel["type_display"], "Parent")
+        self.assertEqual(rel["group"], "family")
+
+    def test_character_detail_resolves_unicode_slug(self):
+        Character.objects.create(book=self.book, name="Цири", slug="цири", order=0)
+        res = self.client.get(f"/api/books/{self.book.slug}/characters/цири/")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["slug"], "цири")
