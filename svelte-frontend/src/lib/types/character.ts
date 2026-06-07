@@ -9,7 +9,9 @@ export interface CharacterSummary {
 export interface CharacterRelation {
 	to_slug: string;
 	to_name: string;
-	label: string;
+	type: string;
+	type_display: string;
+	group: string;
 }
 
 export interface CharacterDetail extends CharacterSummary {
