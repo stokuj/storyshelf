@@ -2,6 +2,7 @@ from django.db import transaction
 
 from .ai import MAX_CHARACTERS
 from .models import Character, CharacterRelation, unique_character_slug
+from .relations import RelationType
 
 
 @transaction.atomic
@@ -32,16 +33,21 @@ def store_characters(book, data: dict) -> None:
         )
         by_name[name] = character
 
+    valid_types = set(RelationType.values)
     seen: set[tuple] = set()
     for rel in data.get("relations", []):
         if not isinstance(rel, dict):
             continue
         source = by_name.get((rel.get("from") or "").strip())
         target = by_name.get((rel.get("to") or "").strip())
-        label = (rel.get("label") or "").strip()[:120]
-        key = (id(source), id(target), label)
-        if source and target and label and source != target and key not in seen:
+        raw_type = (rel.get("type") or "").strip().lower()
+        relation_type = raw_type if raw_type in valid_types else RelationType.OTHER
+        key = (id(source), id(target), relation_type)
+        if source and target and source != target and key not in seen:
             seen.add(key)
             CharacterRelation.objects.create(
-                book=book, from_character=source, to_character=target, label=label
+                book=book,
+                from_character=source,
+                to_character=target,
+                relation_type=relation_type,
             )
