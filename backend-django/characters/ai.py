@@ -4,6 +4,8 @@ import urllib.request
 
 from django.conf import settings
 
+from .relations import RelationType
+
 HTTP_TIMEOUT = 60
 MAX_CHARACTERS = 12
 
@@ -12,19 +14,26 @@ class CharacterGenerationError(Exception):
     """Any failure while generating or parsing the LLM response."""
 
 
+_RELATION_TYPES = ", ".join(RelationType.values)
+
 PROMPT = (
     'For the book "{title}" by {authors}, list the up to {limit} characters most '
     "important to the story. Return STRICT JSON only, no prose, matching exactly:\n"
     '{{"characters": [{{"name": str, "role": short str, "description": one paragraph}}], '
-    '"relations": [{{"from": character name, "to": character name, "label": short relation}}]}}\n'
+    '"relations": [{{"from": character name, "to": character name, "type": relation type}}]}}\n'
     "Use only character names that appear in the characters list for relations. "
+    'Each relation "type" MUST be exactly one of: {types}. '
+    'The type is the role of "to" relative to "from" '
+    "(e.g. from=child, to=parent -> parent). If unsure which type fits, use other. "
     "If you do not know the book, return empty lists."
 )
 
 
 def _build_prompt(book) -> str:
     authors = ", ".join(book.authors.values_list("name", flat=True)) or "an unknown author"
-    return PROMPT.format(title=book.title, authors=authors, limit=MAX_CHARACTERS)
+    return PROMPT.format(
+        title=book.title, authors=authors, limit=MAX_CHARACTERS, types=_RELATION_TYPES
+    )
 
 
 def generate_characters(book) -> dict:
