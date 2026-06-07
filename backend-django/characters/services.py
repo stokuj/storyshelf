@@ -52,7 +52,7 @@ def store_characters(book, data: dict) -> None:
             continue
         source = by_name.get(_clean_str(rel.get("from")))
         target = by_name.get(_clean_str(rel.get("to")))
-        raw_type = _clean_str(rel.get("type")).lower()
+        raw_type = _clean_str(rel.get("type")).lower().replace("-", "_")
         relation_type = raw_type if raw_type in valid_types else RelationType.OTHER
         key = (id(source), id(target), relation_type)
         if source and target and source != target and key not in seen:

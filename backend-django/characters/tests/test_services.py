@@ -137,6 +137,18 @@ class StoreCharactersTests(TestCase):
         rel = CharacterRelation.objects.get(book=self.book)
         self.assertEqual(rel.relation_type, RelationType.PARENT)
 
+    def test_hyphenated_type_is_normalized(self):
+        data = {
+            "characters": [
+                {"name": "Paul", "role": "x", "description": "y"},
+                {"name": "Chani", "role": "x", "description": "y"},
+            ],
+            "relations": [{"from": "Paul", "to": "Chani", "type": "Ex-Partner"}],
+        }
+        store_characters(self.book, data)
+        rel = CharacterRelation.objects.get(book=self.book)
+        self.assertEqual(rel.relation_type, RelationType.EX_PARTNER)
+
     def test_skips_character_with_non_string_name(self):
         data = {
             "characters": [
