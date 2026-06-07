@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.text import slugify
 
+from .relations import RelationType, relation_group
+
 
 def unique_character_slug(book, name: str) -> str:
     """Slug unique within one book. Dedups with a numeric suffix."""
@@ -60,7 +62,21 @@ class CharacterRelation(models.Model):
     to_character = models.ForeignKey(
         Character, on_delete=models.CASCADE, related_name="relations_to"
     )
-    label = models.CharField(max_length=120)
+    relation_type = models.CharField(
+        max_length=20, choices=RelationType.choices, default=RelationType.OTHER
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["from_character", "to_character", "relation_type"],
+                name="unique_relation_type_per_pair",
+            ),
+        ]
+
+    @property
+    def group(self) -> str:
+        return relation_group(self.relation_type)
 
     def __str__(self):
-        return f"{self.from_character.name} → {self.to_character.name} ({self.label})"
+        return f"{self.from_character.name} → {self.to_character.name} ({self.relation_type})"
