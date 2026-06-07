@@ -67,6 +67,7 @@ class CharacterRelation(models.Model):
     )
 
     class Meta:
+        ordering = ("id",)
         constraints = [
             models.UniqueConstraint(
                 fields=["from_character", "to_character", "relation_type"],
