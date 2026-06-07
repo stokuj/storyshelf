@@ -13,7 +13,9 @@ class CharacterListSerializer(serializers.ModelSerializer):
 class CharacterRelationSerializer(serializers.Serializer):
     to_slug = serializers.CharField(source="to_character.slug")
     to_name = serializers.CharField(source="to_character.name")
-    label = serializers.CharField()
+    type = serializers.CharField(source="relation_type")
+    type_display = serializers.CharField(source="get_relation_type_display")
+    group = serializers.CharField()
 
 
 class CharacterDetailSerializer(serializers.ModelSerializer):
