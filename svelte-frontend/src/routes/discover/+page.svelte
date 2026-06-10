@@ -137,6 +137,11 @@
 		loadBooks();
 	}
 
+	function clearAuthor() {
+		currentAuthor = '';
+		loadBooks();
+	}
+
 	function handleGenreChange(genre: string) {
 		currentGenre = genre;
 		loadBooks();
@@ -178,6 +183,24 @@
 		ongenrechange={handleGenreChange}
 		onsortchange={handleSortChange}
 	/>
+
+	{#if currentAuthor}
+		<div class="mb-4 -mt-4">
+			<span
+				class="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1 text-sm text-ink"
+			>
+				Author: {currentAuthor}
+				<button
+					type="button"
+					aria-label="Clear author filter"
+					class="text-muted hover:text-ink"
+					onclick={clearAuthor}
+				>
+					×
+				</button>
+			</span>
+		</div>
+	{/if}
 
 	{#if books.length > 0}
 		<BookGridDiscover {books} loading={loading && books.length === 0} />
