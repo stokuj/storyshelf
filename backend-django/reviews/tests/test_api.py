@@ -45,6 +45,12 @@ class ReviewAPITest(APITestCase):
         resp = self.client.put(URL, {"book_slug": "nope", "body": "x"}, format="json")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_put_without_book_slug_returns_400(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.put(URL, {"body": "x"}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("book_slug", resp.data)
+
     def test_empty_body_returns_400(self):
         self.client.force_authenticate(self.user)
         resp = self.client.put(URL, {"book_slug": "book-one", "body": "   "}, format="json")

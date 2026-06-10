@@ -15,6 +15,7 @@ interface SeedBook {
 	authors: string[];
 	genres: string[];
 	tags: string[];
+	page_count?: number;
 	avg_rating?: number;
 }
 
@@ -51,6 +52,29 @@ const BOOK_SEED: SeedBook[] = [
 		genres: ['Dystopian'],
 		tags: ['classic', 'political'],
 		avg_rating: 4.0
+	},
+	{
+		title: 'The Hobbit',
+		year: 1937,
+		description:
+			'Bilbo Baggins, a comfort-loving hobbit, is swept into an epic quest to reclaim the Lonely Mountain from the dragon Smaug.',
+		cover_url: 'https://covers.openlibrary.org/b/id/14627509-L.jpg',
+		authors: ['J.R.R. Tolkien'],
+		genres: ['Fantasy'],
+		tags: ['classic'],
+		page_count: 423,
+		avg_rating: 4.4
+	},
+	{
+		title: 'The Two Towers',
+		year: 1954,
+		description:
+			'The second volume of The Lord of the Rings. The Fellowship is broken; Frodo and Sam continue toward Mordor.',
+		cover_url: 'https://covers.openlibrary.org/b/id/8474036-L.jpg',
+		authors: ['J.R.R. Tolkien'],
+		genres: ['Fantasy'],
+		tags: ['classic', 'epic'],
+		avg_rating: 4.4
 	}
 ];
 

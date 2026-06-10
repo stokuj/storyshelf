@@ -79,6 +79,12 @@ class RatingAPITest(APITestCase):
         resp = self.client.put(URL, {"book_slug": "nope", "rating": 3}, format="json")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_put_without_book_slug_returns_400(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.put(URL, {"rating": 4}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("book_slug", resp.data)
+
     # ── permissions / isolation ──
     def test_anonymous_put_returns_401(self):
         resp = self.client.put(URL, {"book_slug": "book-one", "rating": 3}, format="json")
@@ -90,3 +96,10 @@ class RatingAPITest(APITestCase):
         self.client.force_authenticate(self.user)
         resp = self.client.get(URL)
         self.assertEqual(len(resp.data), 0)
+
+    def test_delete_other_users_rating_returns_404(self):
+        rating = Rating.objects.create(user=self.user_b, book=self.book, rating=5)
+        self.client.force_authenticate(self.user)
+        resp = self.client.delete(f"{URL}{rating.id}/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Rating.objects.filter(id=rating.id).exists())

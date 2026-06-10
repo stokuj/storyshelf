@@ -14,6 +14,6 @@ Po kazdej zmianie API (nowy endpoint, zmiana serializera, nowe pole):
 
 Zacommittuj zmieniony `docs/api/openapi.yml` w tym samym PR-ze co zmiana backendu. Jezeli zapomnisz — CI faila na `config.tests.test_openapi_schema.OpenAPISchemaSnapshotTest`.
 
-## Konsumpcja (Phase 3.0+)
+## Konsumpcja
 
-Frontend Svelte generuje typy TS z tego pliku przez `openapi-typescript` (do dodania w Phase 3.0). W Phase 2.0 plik istnieje tylko jako test kontraktu — bezposrednich konsumentow w runtime brak.
+Plik służy wyłącznie jako snapshot kontraktu pilnowany testem `config/tests/test_openapi_schema.py`. Generacja typów TS (`openapi-typescript`) — niezaimplementowana; ewentualnie „Kiedyś" (patrz ROADMAP).

@@ -106,8 +106,8 @@ class UserSettingsTest(AuthTestHelper, APITestCase):
 
     def test_register_serializer_rejects_weak_password(self):
         # Regression: registration must run Django password validators.
-        # "abc123" passes the field's min_length=6 but fails Django's
-        # MinimumLengthValidator (8), which only runs via validate_password.
+        # "abc123" fails both the field's min_length=8 and Django's
+        # MinimumLengthValidator (8); the latter only runs via validate_password.
         serializer = RegisterSerializer(
             data={"email": "weak@test.com", "handle": "weakpwuser", "password": "abc123"}
         )

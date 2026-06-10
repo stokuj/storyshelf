@@ -19,7 +19,7 @@ svelte (:5174 dev, :3000 prod) → django (:8000) → db (PostgreSQL :5432)
                               redis (:6379) ← celery worker
 ```
 
-M1–M12: 3 kontenery, synchroniczne. M13 dodaje `redis` (broker + result backend) i `celery` worker (ten sam obraz co django).
+Od M13: `redis` (broker + result backend) i `celery` worker (ten sam obraz co django) — w dev i prod compose.
 
 ## Auth flow
 
@@ -35,7 +35,7 @@ Patrz [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md).
 
 | App       | Odpowiedzialność |
 |-----------|------------------|
-| `users/`  | Custom User (email, handle, display_name, bio, avatar_url, profile_public), auth, profil, follow, data export, reading stats (`stats.py::build_user_stats`) |
+| `users/`  | Custom User (email, handle, display_name, bio, avatar, profile_public), auth, profil, follow, data export, reading stats (`stats.py::build_user_stats`) |
 | `books/`  | Book CRUD, nested M2M (Author/Genre/Tag przez through-modele), Serie FK, slug, avg_rating; import z Google Books (`import_books` management command) |
 | `library/`| Read-only API — Author, Serie, Genre, Tag (publiczne) |
 | `ratings/`| Rating (PUT-upsert), sygnał przelicza `Book.avg_rating`/`ratings_count` |
@@ -51,25 +51,27 @@ Patrz [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md).
 User
  ├── UserFollow (follower/following)
  ├── Rating (user+book, unique)
- ├── ShelfEntry (user+book, status, current_page)
+ ├── ShelfEntry (user+book, status, current_page, finished_at)
  ├── Shelf (owner) ── ShelfMembership ── Book
  └── Review (user+book, unique)
-Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating)
+Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating, ratings_count)
  ├── serie → FK Serie (nullable)
  ├── Author (M2M through BookAuthor)
  ├── Genre (M2M through BookGenre)
  ├── Tag (M2M through BookTag)
- └── CharacterAnalysis (OneToOne) ── Character ── CharacterRelation (from/to)
+ └── CharacterAnalysis (OneToOne) ── Character ── CharacterRelation (from/to, relation_type)
 ```
 
-## API surface (M1–M13; M7 admin-import odłożone)
+## API surface (M1–M14; M7 admin-import odłożone)
 
 ```
 /api/auth/            register, login, refresh, logout
 /api/users/me/        profil, settings (profile_public), email, password, avatar, export, stats
+/api/users/           lista publicznych profili (paginacja, ?search=, ?ordering=)
 /api/u/{handle}/      publiczny profil (+ followers_count/following_count/is_following)
 /api/u/{handle}/follow/        follow/unfollow (auth)
 /api/u/{handle}/followers/, /api/u/{handle}/following/   listy obserwujących/obserwowanych
+/api/u/{handle}/shelf/    publiczna domyślna półka (bramkowane profile_public)
 /api/u/{handle}/shelves/   publiczne custom półki (bramkowane profile_public)
 /api/u/{handle}/reviews/   publiczne recenzje usera (bramkowane profile_public)
 /api/authors/, /api/genres/, /api/series/, /api/tags/   (read-only)

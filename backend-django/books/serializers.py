@@ -24,7 +24,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
     authors = serializers.StringRelatedField(many=True)
     genres = serializers.StringRelatedField(many=True)
     tags = serializers.StringRelatedField(many=True)
-    serie = SerieSerializer(read_only=True)
+    serie = SerieSerializer(read_only=True, allow_null=True)
 
     class Meta:
         model = Book

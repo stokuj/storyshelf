@@ -24,13 +24,13 @@ class JWTCookieAuthenticationTest(TestCase):
 
     def test_no_cookie_returns_none(self):
         factory = RequestFactory()
-        request = factory.get("/api/auth/me/")
+        request = factory.get("/api/users/me/")
         result = self.auth.authenticate(request)
         self.assertIsNone(result)
 
     def test_invalid_token_format_returns_none(self):
         factory = RequestFactory()
-        request = factory.get("/api/auth/me/")
+        request = factory.get("/api/users/me/")
         request.COOKIES[ACCESS_COOKIE] = "not.a.jwt"
         result = self.auth.authenticate(request)
         self.assertIsNone(result)
@@ -39,7 +39,7 @@ class JWTCookieAuthenticationTest(TestCase):
     def test_expired_token_returns_none(self, mock_get_validated_token):
         mock_get_validated_token.side_effect = InvalidToken("Token is invalid or expired")
         factory = RequestFactory()
-        request = factory.get("/api/auth/me/")
+        request = factory.get("/api/users/me/")
         request.COOKIES[ACCESS_COOKIE] = "expired.token.here"
         result = self.auth.authenticate(request)
         self.assertIsNone(result)
@@ -47,7 +47,7 @@ class JWTCookieAuthenticationTest(TestCase):
     def test_valid_token_returns_user_and_token(self):
         token = AccessToken.for_user(self.user)
         factory = RequestFactory()
-        request = factory.get("/api/auth/me/")
+        request = factory.get("/api/users/me/")
         request.COOKIES[ACCESS_COOKIE] = str(token)
         result = self.auth.authenticate(request)
         self.assertIsNotNone(result)

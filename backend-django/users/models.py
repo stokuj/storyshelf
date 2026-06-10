@@ -67,9 +67,6 @@ class UserFollow(models.Model):
                 name="userfollow_no_self_follow",
             ),
         ]
-        indexes = [
-            models.Index(fields=["following"], name="userfollow_following_idx"),
-        ]
 
     def __str__(self):
         return f"{self.follower.handle} → {self.following.handle}"

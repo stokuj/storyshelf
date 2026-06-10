@@ -13,7 +13,9 @@ COPY . .
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-RUN uv run python manage.py collectstatic --noinput 2>/dev/null || true
+# Must fail loudly: prod serves /static/* via Django behind Caddy, so a broken
+# collectstatic means missing admin/DRF/Swagger assets at runtime.
+RUN uv run python manage.py collectstatic --noinput
 
 EXPOSE 8000
 

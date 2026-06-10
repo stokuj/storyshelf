@@ -12,7 +12,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
-    password = serializers.CharField(min_length=6, max_length=72, write_only=True)
+    password = serializers.CharField(min_length=8, max_length=72, write_only=True)
     handle = serializers.RegexField(
         regex=r"^[a-z]{3,30}$",
         max_length=30,
@@ -94,6 +94,7 @@ class UserMeSerializer(serializers.ModelSerializer):
             "profile_public",
         )
 
+    @extend_schema_field(serializers.URLField(allow_null=True))
     def get_avatar_url(self, obj):
         if obj.avatar:
             request = self.context.get("request")
@@ -122,6 +123,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "is_following",
         )
 
+    @extend_schema_field(serializers.URLField(allow_null=True))
     def get_avatar_url(self, obj):
         if obj.avatar:
             request = self.context.get("request")
@@ -146,6 +148,7 @@ class UserListSerializer(serializers.ModelSerializer):
         model = User
         fields = ("handle", "display_name", "avatar_url", "followers_count")
 
+    @extend_schema_field(serializers.URLField(allow_null=True))
     def get_avatar_url(self, obj):
         if obj.avatar:
             request = self.context.get("request")
@@ -159,7 +162,7 @@ class UserSettingsPatchSerializer(serializers.Serializer):
 
 class PasswordChangeSerializer(serializers.Serializer):
     current_password = serializers.CharField(write_only=True)
-    new_password = serializers.CharField(min_length=6, max_length=72, write_only=True)
+    new_password = serializers.CharField(min_length=8, max_length=72, write_only=True)
 
     def validate_new_password(self, value):
         validate_password(value)
@@ -242,6 +245,7 @@ class FollowUserSerializer(serializers.Serializer):
     def get_display_name(self, obj):
         return self._target(obj).display_name
 
+    @extend_schema_field(serializers.URLField(allow_null=True))
     def get_avatar_url(self, obj):
         user = self._target(obj)
         if user.avatar:

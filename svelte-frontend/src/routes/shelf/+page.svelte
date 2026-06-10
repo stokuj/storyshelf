@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import { BookOpen, Library, BookMarked } from 'lucide-svelte';
@@ -82,7 +82,7 @@
 	});
 
 	$effect(() => {
-		const p = $page.url.searchParams.get('tab');
+		const p = page.url.searchParams.get('tab');
 		if (p === 'reading') activeTab = 'READING';
 		else if (p === 'read') activeTab = 'READ';
 		else if (p === 'want-to-read') activeTab = 'WANT_TO_READ';
@@ -90,7 +90,7 @@
 
 	function setTab(id: ShelfStatus) {
 		activeTab = id;
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set(
 			'tab',
 			{ WANT_TO_READ: 'want-to-read', READING: 'reading', READ: 'read' }[id]
@@ -175,6 +175,7 @@
 			data-testid="shelf-view-tab"
 			data-view="status"
 			aria-selected={viewTab === 'status'}
+			aria-controls="panel-status"
 			class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors {viewTab ===
 			'status'
 				? 'border-accent text-accent'
@@ -189,6 +190,7 @@
 			data-testid="shelf-view-tab"
 			data-view="shelves"
 			aria-selected={viewTab === 'shelves'}
+			aria-controls="panel-shelves"
 			class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors {viewTab ===
 			'shelves'
 				? 'border-accent text-accent'
@@ -208,6 +210,7 @@
 					data-testid="shelf-tab"
 					data-tab={tab.id.toLowerCase()}
 					aria-selected={activeTab === tab.id}
+					aria-controls="panel-status"
 					class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors {activeTab ===
 					tab.id
 						? 'border-accent text-accent'
@@ -224,81 +227,85 @@
 			{/each}
 		</div>
 
-		{#if filtered.length > 0}
-			<div class="space-y-3">
-				{#each filtered as entry (entry.id)}
-					<ShelfBookCard
-						{entry}
-						onDelete={handleDelete}
-						onRate={handleRate}
-						onStatusChange={handleStatusChange}
-						onProgressChange={handleProgressChange}
+		<div id="panel-status" role="tabpanel">
+			{#if filtered.length > 0}
+				<div class="space-y-3">
+					{#each filtered as entry (entry.id)}
+						<ShelfBookCard
+							{entry}
+							onDelete={handleDelete}
+							onRate={handleRate}
+							onStatusChange={handleStatusChange}
+							onProgressChange={handleProgressChange}
+						/>
+					{/each}
+				</div>
+			{:else}
+				{@const msg = emptyMessages[activeTab]}
+				<div data-testid="shelf-empty">
+					<EmptyState
+						icon={tabs.find((t) => t.id === activeTab)?.icon ?? BookOpen}
+						title={msg.title}
+						description={msg.description}
+						cta={msg.cta}
 					/>
-				{/each}
-			</div>
-		{:else}
-			{@const msg = emptyMessages[activeTab]}
-			<div data-testid="shelf-empty">
-				<EmptyState
-					icon={tabs.find((t) => t.id === activeTab)?.icon ?? BookOpen}
-					title={msg.title}
-					description={msg.description}
-					cta={msg.cta}
-				/>
-			</div>
-		{/if}
+				</div>
+			{/if}
+		</div>
 	{:else}
-		<form
-			class="flex flex-wrap items-end gap-3"
-			onsubmit={(e) => {
-				e.preventDefault();
-				handleCreate();
-			}}
-		>
-			<div class="flex-1 min-w-[200px] space-y-1.5">
-				<Label for="shelf-name">Shelf name</Label>
-				<Input id="shelf-name" name="name" bind:value={newName} data-testid="shelf-name-input" />
-			</div>
-			<label class="flex items-center gap-2 py-2.5 text-sm text-ink">
-				<input type="checkbox" bind:checked={newPublic} data-testid="shelf-public-input" />
-				<span>Public</span>
-			</label>
-			<Button type="submit" disabled={creating} data-testid="shelf-create-submit">Create</Button>
-		</form>
+		<div id="panel-shelves" role="tabpanel" class="space-y-6">
+			<form
+				class="flex flex-wrap items-end gap-3"
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleCreate();
+				}}
+			>
+				<div class="flex-1 min-w-[200px] space-y-1.5">
+					<Label for="shelf-name">Shelf name</Label>
+					<Input id="shelf-name" name="name" bind:value={newName} data-testid="shelf-name-input" />
+				</div>
+				<label class="flex items-center gap-2 py-2.5 text-sm text-ink">
+					<input type="checkbox" bind:checked={newPublic} data-testid="shelf-public-input" />
+					<span>Public</span>
+				</label>
+				<Button type="submit" disabled={creating} data-testid="shelf-create-submit">Create</Button>
+			</form>
 
-		{#if createError}
-			<p class="text-sm text-danger" data-testid="shelf-create-error">{createError}</p>
-		{/if}
+			{#if createError}
+				<p class="text-sm text-danger" data-testid="shelf-create-error">{createError}</p>
+			{/if}
 
-		{#if shelves.length > 0}
-			<div class="space-y-3">
-				{#each shelves as shelf (shelf.id)}
-					<a
-						href="/shelf/{shelf.slug}"
-						data-testid="shelf-card"
-						class="flex items-center justify-between rounded-lg border border-rule bg-paper px-4 py-3 transition-colors hover:border-accent"
-					>
-						<div>
-							<span class="font-medium text-ink">{shelf.name}</span>
-							<span class="ml-2 text-sm text-muted">{shelf.book_count} books</span>
-						</div>
-						{#if shelf.is_public}
-							<span
-								class="rounded-full bg-paper-2 px-2 py-0.5 text-[10px] font-medium text-muted leading-none"
-								>Public</span
-							>
-						{/if}
-					</a>
-				{/each}
-			</div>
-		{:else}
-			<div data-testid="shelves-empty">
-				<EmptyState
-					icon={Library}
-					title="No shelves yet"
-					description="Create your first shelf to organize books your way."
-				/>
-			</div>
-		{/if}
+			{#if shelves.length > 0}
+				<div class="space-y-3">
+					{#each shelves as shelf (shelf.id)}
+						<a
+							href="/shelf/{shelf.slug}"
+							data-testid="shelf-card"
+							class="flex items-center justify-between rounded-lg border border-rule bg-paper px-4 py-3 transition-colors hover:border-accent"
+						>
+							<div>
+								<span class="font-medium text-ink">{shelf.name}</span>
+								<span class="ml-2 text-sm text-muted">{shelf.book_count} books</span>
+							</div>
+							{#if shelf.is_public}
+								<span
+									class="rounded-full bg-paper-2 px-2 py-0.5 text-[10px] font-medium text-muted leading-none"
+									>Public</span
+								>
+							{/if}
+						</a>
+					{/each}
+				</div>
+			{:else}
+				<div data-testid="shelves-empty">
+					<EmptyState
+						icon={Library}
+						title="No shelves yet"
+						description="Create your first shelf to organize books your way."
+					/>
+				</div>
+			{/if}
+		</div>
 	{/if}
 </main>

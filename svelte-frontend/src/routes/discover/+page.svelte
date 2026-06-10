@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import FilterBar from '$lib/components/discover/FilterBar.svelte';
@@ -10,7 +10,7 @@
 	import { BookOpen, SearchX } from 'lucide-svelte';
 	import { listBooks, fetchGenres } from '$lib/api/books';
 	import type { Genre } from '$lib/api/books';
-	import type { Book } from '$lib/types/book';
+	import type { BookListItem } from '$lib/types/book';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -30,7 +30,7 @@
 		loadError
 	} = data;
 
-	let books = $state<Book[]>(initialBooks);
+	let books = $state<BookListItem[]>(initialBooks);
 	let currentPage = $state(initialPage);
 	let perPage = $state(initialPerPage);
 	let total = $state(initialTotal);
@@ -57,7 +57,7 @@
 	}
 
 	function buildUrl(): URL {
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		if (currentQ) url.searchParams.set('q', currentQ);
 		else url.searchParams.delete('q');
 		if (currentGenre) url.searchParams.set('genre', currentGenre);
@@ -71,8 +71,9 @@
 
 	$effect(() => {
 		if (genres.length === 0) {
-			fetchGenres(fetch).then(({ data: result }) => {
+			fetchGenres(fetch).then(({ data: result, error: apiErr }) => {
 				if (result) genres = result.data;
+				else if (apiErr) toast.error('Failed to load genres', { description: apiErr.detail });
 			});
 		}
 	});
@@ -136,6 +137,11 @@
 		loadBooks();
 	}
 
+	function clearAuthor() {
+		currentAuthor = '';
+		loadBooks();
+	}
+
 	function handleGenreChange(genre: string) {
 		currentGenre = genre;
 		loadBooks();
@@ -177,6 +183,24 @@
 		ongenrechange={handleGenreChange}
 		onsortchange={handleSortChange}
 	/>
+
+	{#if currentAuthor}
+		<div class="mb-4 -mt-4">
+			<span
+				class="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1 text-sm text-ink"
+			>
+				Author: {currentAuthor}
+				<button
+					type="button"
+					aria-label="Clear author filter"
+					class="text-muted hover:text-ink"
+					onclick={clearAuthor}
+				>
+					×
+				</button>
+			</span>
+		</div>
+	{/if}
 
 	{#if books.length > 0}
 		<BookGridDiscover {books} loading={loading && books.length === 0} />

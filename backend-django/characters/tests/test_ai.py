@@ -72,6 +72,18 @@ class GenerateCharactersTests(SimpleTestCase):
             with self.assertRaises(CharacterGenerationError):
                 generate_characters(FakeBook())
 
+    def test_empty_choices_raises(self):
+        body = json.dumps({"choices": []}).encode("utf-8")
+        with patch("characters.ai.urllib.request.urlopen", return_value=_MockResp(body)):
+            with self.assertRaises(CharacterGenerationError):
+                generate_characters(FakeBook())
+
+    def test_non_object_content_raises(self):
+        body = json.dumps({"choices": [{"message": {"content": "[]"}}]}).encode("utf-8")
+        with patch("characters.ai.urllib.request.urlopen", return_value=_MockResp(body)):
+            with self.assertRaises(CharacterGenerationError):
+                generate_characters(FakeBook())
+
     @override_settings(OPENROUTER_API_KEY="")
     def test_missing_api_key_raises(self):
         with self.assertRaises(CharacterGenerationError):

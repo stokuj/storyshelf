@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { User, Shield, Database } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 
@@ -25,10 +25,10 @@
 				<a
 					href={item.href}
 					class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-					class:bg-ink={$page.url.pathname === item.href}
-					class:text-paper={$page.url.pathname === item.href}
-					class:text-ink-2={$page.url.pathname !== item.href}
-					class:hover:bg-paper-2={$page.url.pathname !== item.href}
+					class:bg-ink={page.url.pathname === item.href}
+					class:text-paper={page.url.pathname === item.href}
+					class:text-ink-2={page.url.pathname !== item.href}
+					class:hover:bg-paper-2={page.url.pathname !== item.href}
 				>
 					<item.icon class="size-4" />
 					{item.label}

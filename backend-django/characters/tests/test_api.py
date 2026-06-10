@@ -24,7 +24,8 @@ class CharacterApiTests(APITestCase):
     def test_generate_enqueues_and_returns_pending(self):
         self.client.force_authenticate(self.user)
         with patch("characters.views.generate_characters_task.delay") as delay:
-            res = self.client.post(self._generate_url())
+            with self.captureOnCommitCallbacks(execute=True):
+                res = self.client.post(self._generate_url())
         self.assertEqual(res.status_code, 202)
         self.assertEqual(res.data["status"], "pending")
         delay.assert_called_once_with(self.book.id)
@@ -35,9 +36,43 @@ class CharacterApiTests(APITestCase):
             book=self.book, status=CharacterAnalysis.Status.RUNNING
         )
         with patch("characters.views.generate_characters_task.delay") as delay:
-            res = self.client.post(self._generate_url())
+            with self.captureOnCommitCallbacks(execute=True):
+                res = self.client.post(self._generate_url())
         self.assertEqual(res.status_code, 202)
         self.assertEqual(res.data["status"], "running")
+        delay.assert_not_called()
+
+    def test_generate_redispatches_after_done(self):
+        self.client.force_authenticate(self.user)
+        CharacterAnalysis.objects.create(book=self.book, status=CharacterAnalysis.Status.DONE)
+        with patch("characters.views.generate_characters_task.delay") as delay:
+            with self.captureOnCommitCallbacks(execute=True):
+                res = self.client.post(self._generate_url())
+        self.assertEqual(res.status_code, 202)
+        self.assertEqual(res.data["status"], "pending")
+        delay.assert_called_once_with(self.book.id)
+
+    def test_generate_redispatches_after_failed(self):
+        self.client.force_authenticate(self.user)
+        CharacterAnalysis.objects.create(
+            book=self.book, status=CharacterAnalysis.Status.FAILED, error_message="boom"
+        )
+        with patch("characters.views.generate_characters_task.delay") as delay:
+            with self.captureOnCommitCallbacks(execute=True):
+                res = self.client.post(self._generate_url())
+        self.assertEqual(res.status_code, 202)
+        delay.assert_called_once_with(self.book.id)
+        analysis = CharacterAnalysis.objects.get(book=self.book)
+        self.assertEqual(analysis.error_message, "")
+
+    def test_generate_is_idempotent_while_pending(self):
+        self.client.force_authenticate(self.user)
+        CharacterAnalysis.objects.create(book=self.book, status=CharacterAnalysis.Status.PENDING)
+        with patch("characters.views.generate_characters_task.delay") as delay:
+            with self.captureOnCommitCallbacks(execute=True):
+                res = self.client.post(self._generate_url())
+        self.assertEqual(res.status_code, 202)
+        self.assertEqual(res.data["status"], "pending")
         delay.assert_not_called()
 
     def test_list_is_public(self):
@@ -73,3 +108,13 @@ class CharacterApiTests(APITestCase):
         res = self.client.get(f"/api/books/{self.book.slug}/characters/цири/")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.data["slug"], "цири")
+
+    def test_list_without_analysis_returns_null_status(self):
+        res = self.client.get(f"/api/books/{self.book.slug}/characters/")
+        self.assertEqual(res.status_code, 200)
+        self.assertIsNone(res.data["status"])
+        self.assertEqual(res.data["characters"], [])
+
+    def test_detail_unknown_slug_returns_404(self):
+        res = self.client.get(f"/api/books/{self.book.slug}/characters/ghost/")
+        self.assertEqual(res.status_code, 404)

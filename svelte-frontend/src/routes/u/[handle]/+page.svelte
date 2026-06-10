@@ -8,7 +8,7 @@
 	import { fetchUserReviews } from '$lib/api/reviews';
 	import { Calendar } from 'lucide-svelte';
 	import type { User } from '$lib/types';
-	import type { PublicShelf, ShelfEntry } from '$lib/types/shelf';
+	import type { PublicShelf, PublicShelfEntry } from '$lib/types/shelf';
 	import type { Review } from '$lib/types/review';
 
 	let { data }: PageProps = $props();
@@ -16,7 +16,7 @@
 	let isOwner = $derived(data.isOwner);
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let shelves: PublicShelf[] = $derived(data.shelves);
-	let reading: ShelfEntry[] = $derived(data.reading);
+	let reading: PublicShelfEntry[] = $derived(data.reading);
 
 	// svelte-ignore state_referenced_locally
 	let reviews = $state<Review[]>(data.reviews);

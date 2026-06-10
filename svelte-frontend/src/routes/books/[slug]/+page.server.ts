@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ fetch, params, parent }) => {
 
 	const [bookRes, ratingRes, entryRes, reviewsRes, myReviewRes, myShelvesRes, charactersRes] =
 		await Promise.all([
-			getBook(fetch, params.slug),
+			getBook(fetch, params.slug, true),
 			user
 				? fetchUserRating(fetch, params.slug, true)
 				: Promise.resolve({ data: null, error: null }),

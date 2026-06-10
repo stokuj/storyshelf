@@ -28,5 +28,11 @@ else
     $COMPOSE up -d --force-recreate $SERVICES
 fi
 
+# Containers never run migrate on startup — apply migrations whenever django ships.
+if [ -z "$SERVICES" ] || [[ " $SERVICES " == *" django "* ]]; then
+    echo "Running migrations..."
+    $COMPOSE exec -T django python manage.py migrate --noinput
+fi
+
 echo "---"
 $COMPOSE ps

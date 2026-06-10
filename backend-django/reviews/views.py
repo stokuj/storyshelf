@@ -56,6 +56,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """PUT = upsert on (user, book). 201 if created, 200 if updated."""
         book_slug = request.data.get("book_slug")
+        if not book_slug:
+            return Response(
+                {"book_slug": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             book = Book.objects.get(slug=book_slug)
         except Book.DoesNotExist:
@@ -103,6 +108,8 @@ class UserReviewListView(generics.ListAPIView):
 
     def get_queryset(self):
         owner = public_owner_or_404(self.request, self.kwargs["handle"])
+        # Intentional: the public profile surfaces recently *edited* reviews,
+        # while the global list (ReviewViewSet) orders by creation date.
         return annotate_reviews(
             Review.objects.filter(user=owner), self.request.user
         ).order_by("-updated_at")

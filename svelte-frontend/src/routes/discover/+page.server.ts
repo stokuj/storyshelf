@@ -7,14 +7,18 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 	const sort = url.searchParams.get('sort') ?? '';
 	const author = url.searchParams.get('author') ?? '';
 
-	const { data, error } = await listBooks(fetch, {
-		q: q || undefined,
-		genre: genre || undefined,
-		author: author || undefined,
-		sort: sort || undefined,
-		page: 1,
-		perPage: 12
-	});
+	const { data, error } = await listBooks(
+		fetch,
+		{
+			q: q || undefined,
+			genre: genre || undefined,
+			author: author || undefined,
+			sort: sort || undefined,
+			page: 1,
+			perPage: 12
+		},
+		true
+	);
 
 	return {
 		initialBooks: data?.data ?? [],

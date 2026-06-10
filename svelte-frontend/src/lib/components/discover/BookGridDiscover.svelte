@@ -1,10 +1,10 @@
 <script lang="ts">
 	import BookCard from '$lib/components/book/BookCard.svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import type { Book } from '$lib/types/book';
+	import type { BookListItem } from '$lib/types/book';
 
 	interface Props {
-		books: Book[];
+		books: BookListItem[];
 		loading?: boolean;
 		skeletonCount?: number;
 	}

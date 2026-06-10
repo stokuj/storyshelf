@@ -10,7 +10,7 @@ class FeedActorSerializer(serializers.Serializer):
 class FeedBookSerializer(serializers.Serializer):
     title = serializers.CharField()
     slug = serializers.SlugField()
-    cover_url = serializers.CharField(allow_null=True)
+    cover_url = serializers.CharField(allow_blank=True)
 
 
 class FeedItemSerializer(serializers.Serializer):
