@@ -13,6 +13,7 @@ class BookAdmin(admin.ModelAdmin):
     list_display = ("title", "year", "avg_rating", "ratings_count")
     search_fields = ("title", "bookauthor__author__name")
     inlines = [BookAuthorInline]
+    readonly_fields = ("avg_rating", "ratings_count")
     fields = (
         "title", "year", "isbn", "description", "page_count",
         "serie", "position_in_series",
