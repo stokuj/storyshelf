@@ -108,6 +108,8 @@ class UserReviewListView(generics.ListAPIView):
 
     def get_queryset(self):
         owner = public_owner_or_404(self.request, self.kwargs["handle"])
+        # Intentional: the public profile surfaces recently *edited* reviews,
+        # while the global list (ReviewViewSet) orders by creation date.
         return annotate_reviews(
             Review.objects.filter(user=owner), self.request.user
         ).order_by("-updated_at")

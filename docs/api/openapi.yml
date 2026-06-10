@@ -27,19 +27,6 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/auth/me/:
-    get:
-      operationId: auth_me_retrieve
-      description: 'Zwraca stan sesji: authenticated, email, handle. Używane do inicjalizacji
-        auth w SPA.'
-      tags:
-      - auth
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
   /api/auth/refresh/:
     post:
       operationId: auth_refresh_create
@@ -1440,6 +1427,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/Serie'
           readOnly: true
+          nullable: true
         description:
           type: string
         page_count:
@@ -1677,7 +1665,6 @@ components:
           pattern: ^[-a-zA-Z0-9_]+$
         cover_url:
           type: string
-          nullable: true
       required:
       - cover_url
       - slug
@@ -1744,6 +1731,8 @@ components:
           readOnly: true
         avatar_url:
           type: string
+          format: uri
+          nullable: true
           readOnly: true
         followed_at:
           type: string
@@ -2152,7 +2141,7 @@ components:
           type: string
           writeOnly: true
           maxLength: 72
-          minLength: 6
+          minLength: 8
       required:
       - email
       - handle
@@ -2441,6 +2430,8 @@ components:
           maxLength: 80
         avatar_url:
           type: string
+          format: uri
+          nullable: true
           readOnly: true
         followers_count:
           type: integer
@@ -2463,6 +2454,8 @@ components:
           maxLength: 500
         avatar_url:
           type: string
+          format: uri
+          nullable: true
           readOnly: true
         member_since:
           type: string
