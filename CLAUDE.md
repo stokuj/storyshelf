@@ -4,7 +4,7 @@
 
 ## Co to jest
 
-StoryShelf — book-tracking app (katalog, oceny, półki, recenzje). Django 6 REST API + SvelteKit 2 SSR, Docker Compose. Bez AI/Celery — 3 kontenery (db, django, svelte).
+StoryShelf — book-tracking app (katalog, oceny, półki, recenzje). Django 6 REST API + SvelteKit 2 SSR, Docker Compose. Od M13 AI (karty postaci): Celery + Redis + OpenRouter — 5 kontenerów (db, django, celery, redis, svelte).
 
 ## Mapa dokumentacji
 
@@ -51,7 +51,7 @@ npm run build        # adapter-node build
 ### Docker dev stack
 
 ```bash
-make dev-up          # db, django, svelte
+make dev-up          # db, django, celery, redis, svelte
 make dev-down
 make dev-build
 make verify          # lint + testy (CI equivalent)
@@ -71,7 +71,7 @@ Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)
 ## Layout (skrót)
 
 ```
-backend-django/    Django 6 + DRF; apps: books, library, users, ratings, shelf, reviews, config
+backend-django/    Django 6 + DRF; apps: books, library, users, ratings, shelf, reviews, feed, characters, config
 svelte-frontend/src/  SvelteKit 2 SSR; hooks.server.ts, lib/api/, lib/config.ts, routes/
 infra/             compose (dev/prod), caddy, scripts/ (seed, deploy, openapi), .env(.example)
 docs/              ARCHITECTURE.md, ROADMAP.md, decisions/, superpowers/

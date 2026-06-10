@@ -26,7 +26,7 @@ zachowany jako fallback dla Swagger UI i narzędzi CLI (curl, httpie).
 
 Atrybuty cookies:
 - `access_token`: `HttpOnly`, `SameSite=Lax`, expire ~15 min
-- `refresh_token`: `HttpOnly`, `SameSite=Lax`, `path=/api/users/token/refresh/`, expire ~7 dni
+- `refresh_token`: `HttpOnly`, `SameSite=Lax`, `path=/api/auth/refresh/`, expire ~7 dni
 
 Klasa `JWTCookieAuthentication` (`backend-django/users/cookie_auth.py`) próbuje najpierw
 odczytać access token z `request.COOKIES`, potem z headera Authorization (fallback).
@@ -34,7 +34,7 @@ odczytać access token z `request.COOKIES`, potem z headera Authorization (fallb
 ## Konsekwencje
 
 - Frontend `api.js` uprasza się — bez ręcznego dodawania headerów
-- Silent refresh działa transparentnie: 401 → `POST /api/users/token/refresh/` → backend
+- Silent refresh działa transparentnie: 401 → `POST /api/auth/refresh/` → backend
   wystawia nowe ciasteczko → ponowienie oryginalnego fetcha
 - CSRF: `SameSite=Lax` chroni przed cross-site requests, dla endpointów mutujących Django
   domyślnie wymaga CSRF token (cookie + header)

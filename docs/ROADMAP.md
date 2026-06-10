@@ -1,14 +1,14 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-06-06. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-06-10. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `feat/m13-ai-characters` (M12 zmergowane PR #75; M11 PR #74).
+**Bieżący branch:** `chore/holistic-audit` — holistyczny audyt + fixy (24 findings, raport w `docs/superpowers/specs/`).
 
-**ZADANIE:** M13 zakończone na gałęzi — implementacja `characters/` z Celery+Redis+OpenRouter. Faza AI projektu otwarta (patrz ADR-003); ograniczona do kart postaci per książka. Pozostałe pozycje AI z listy „Kiedyś" (pgvector, semantic search, pipeline dbt) nadal poza zakresem. Brak aktywnego kolejnego milestone — ewentualny M14 = osobny `/brainstorming`. Wdrożenie produkcyjne odłożone na decyzję użytkownika (osobny temat, nie milestone).
+**ZADANIE:** M13 (PR #77) i M14 typed character relations (PR #78) zmergowane do main. Brak aktywnego milestone funkcyjnego — po mergu audytu następna decyzja: wdrożenie produkcyjne albo kolejny milestone (osobny `/brainstorming`).
 
 **M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70), po dacie audytu który je oznaczył jako half-wired. Zweryfikowane w kodzie: `settings/data/export/+server.ts` (proxy ZIP) + przycisk; `settings/+page.svelte` avatar `onchange`→`requestSubmit` + akcja `avatar`; `ShelfBookCard.svelte` input strony + `/shelf/+page.svelte` `handleProgressChange` (optymistyczny revert). Pozostałości poza zakresem M8: brak kontrolki progresu na `/books/[slug]`, navbar Search no-op — do ewentualnego „Kiedyś".
 
@@ -38,11 +38,12 @@
 | M10 Audyt / fix / cleanup | Audyt subagentami M6–M9: usunięcie `total_books` (redundantne), konsolidacja prefiksu follow → `/api/u/`, klikalne linki autor recenzji + gatunki (`ReviewCard`/`BookHeader`), sync `ARCHITECTURE.md`/`ROADMAP.md`, usunięcie martwego duplikatu `backend-django/docs/api/openapi.yml` | ✅ zmergowane do main (PR #73) |
 | M11 Discover users + cudza półka | `GET /api/users/` (lista publicznych profili: paginacja, `?search=`, `?ordering=`, filtr `profile_public`) + publiczny odczyt domyślnej półki `GET /api/u/{handle}/shelf/` (bramkowane `profile_public`); frontend `/users` + sekcja „Reading" na `/u/[handle]` + nav „People"; fix enum `ShelfEntryStatusEnum` | ✅ zmergowane do main (PR #74) |
 | M12 Social feed + reakcje | App `feed/` (`GET /api/feed/`, auth, merge w locie Rating/Review/ShelfEntry obserwowanych z `profile_public=True`, cursor `?before=`); polubienia recenzji (`ReviewLike`, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`/`is_liked`); publiczne recenzje `GET /api/u/{handle}/reviews/` (paginowane, bramkowane); `ShelfEntry.finished_at` (stabilny sort „finished", zastąpił `updated_at` po review); refactor `users/selectors.py::public_owner_or_404` (dedup gatingu shelf+reviews); frontend `/feed` + `FeedItem`, lajk na `ReviewCard` (optimistic), sekcja Reviews na `/u/[handle]` (load-more), nav „Feed"; E2E `social-feed.spec.ts` (3 scen.); OpenAPI zregenerowany | ✅ zmergowane do main (PR #75) |
-| M13 AI Character Analysis | app `characters/` (Celery+Redis, OpenRouter); sekcja postaci pod książką (karty monogram), podstrona postaci + ego-graf relacji; `POST .../generate/` async (throttle `character_generate`), publiczny odczyt; ADR-003 | ✅ na gałęzi `feat/m13-ai-characters` |
+| M13 AI Character Analysis | app `characters/` (Celery+Redis, OpenRouter); sekcja postaci pod książką (karty monogram), podstrona postaci + ego-graf relacji; `POST .../generate/` async (throttle `character_generate`), publiczny odczyt; ADR-003 | ✅ zmergowane do main (PR #77) |
+| M14 Typed character relations | Enum RelationType (~20 typów / 7 grup) zamiast free-text label, unique (from, to, type), kolorowy ego-graf z pigułkami i legendą, hardening walidacji LLM | ✅ zmergowane do main (PR #78) |
 
 ## W toku
 
-Brak aktywnego milestone. M12 zmergowane (PR #75); M13 zakończone na gałęzi `feat/m13-ai-characters` (oczekuje na PR/merge).
+Brak aktywnego milestone. M13 (PR #77) i M14 (PR #78) zmergowane do main.
 
 **Decyzja 2026-05-25:** profil publiczny/prywatny — bool `profile_public`, bez 3-state friends/private.
 
@@ -60,9 +61,9 @@ Brak aktywnego milestone. M12 zmergowane (PR #75); M13 zakończone na gałęzi `
 | ~~**M12 — Social feed + reakcje**~~ ✅ ZROBIONE (PR #75) | Feed aktywności obserwowanych `GET /api/feed/` (ocena / recenzja / skończona książka; liczony „w locie" z Rating/Review/ShelfEntry, bez modelu `Activity`; bramkowane `profile_public`), publiczne recenzje na profilu `GET /api/u/{handle}/reviews/`, polubienia recenzji (`ReviewLike` unique user+review, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`+`is_liked`); frontend `/feed` + sekcja recenzji na `/u/[handle]`. Zależała od M11. YAGNI: bez powiadomień, komentarzy, repostów. | `feat/m12-social-feed` |
 | ~~**M7 — Import książek z UI admina** (A2)~~ **ODŁOŻONE** | Panel w SvelteKit uznany za przekomplikowany (patrz „Aktualny krok"). Wróci najpewniej jako lekki przycisk w Django adminie (opcja A). Działają już CLI `import_books` i Django admin. | `—` (gałąź `feat/m7-admin-import-ui` zostawiona pusta) |
 
-Po M11–M13:
+Po M11–M14:
 
-1. **Wdrożenie produkcyjne** — odkomentowanie deploy step w `.github/workflows/ci.yml`, Caddy z Let's Encrypt, sekrety na VPS (DigitalOcean). Wymaga konfiguracji `CORS_ALLOWED_ORIGINS` i `JWT_COOKIE_DOMAIN`.
+1. **Wdrożenie produkcyjne** — odkomentowanie deploy step w `.github/workflows/ci.yml`, Caddy z Let's Encrypt, sekrety na VPS (DigitalOcean). Wymaga konfiguracji `CORS_ALLOWED_ORIGINS` i `JWT_COOKIE_DOMAIN`. Dodatkowo: ALLOWED_HOSTS z domeną prod, non-root user w Dockerfile'ach, weryfikacja /media/ i /static/ przez Caddy.
 
 ## Kiedyś (bez priorytetu)
 
@@ -72,10 +73,11 @@ Po M11–M13:
 - PWA (krok przed natywnym mobile)
 - ~~Lista userów `/users` + cudza półka~~ → awansowane do **M11** (patrz „Następne")
 - ~~Social: feed, recenzje publiczne, polubienia~~ → awansowane do **M12** (patrz „Następne")
-- Spersonalizowana strona główna `/` (Continue reading, aktywność followowanych, rekomendacje; dla gości trending + opis apki) zamiast redirectu na `/discover` — naturalny kandydat na M14 po M11–M13
+- Spersonalizowana strona główna `/` (Continue reading, aktywność followowanych, rekomendacje; dla gości trending + opis apki) zamiast redirectu na `/discover` — naturalny kandydat na kolejny milestone
 - Rozszerzenia statystyk (po M9): reading streak (dni z rzędu), yearly wrap
-- AI — analiza książek (karty postaci, graf relacji, tematy/ton; per-book LLM call + pgvector) — **poza MVP**, patrz „Czego NIE robimy"
+- AI — dalsza analiza książek (tematy/ton; pgvector, semantic search) — karty postaci i graf relacji zrobione w M13/M14
 - ML/DE do CV: semantic search + embeddingi (sentence-transformers + pgvector), pipeline analityczny w dbt, Character Knowledge Graph (NetworkX + LLM extraction)
+- Edycja bio z UI (backend PATCH /users/me/ wspiera bio; brak formularza we froncie)
 
 ## Czego NIE robimy
 
