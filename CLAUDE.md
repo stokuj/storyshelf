@@ -37,6 +37,8 @@ uv run ruff check .                                                        # lin
 uv run ruff check --fix .
 ```
 
+> Testy z hosta wymagają żywej dev-DB (`make dev-up`); `make verify` ustawia `DATABASE_URL` sam.
+
 ### Frontend (z `svelte-frontend/`)
 
 ```bash

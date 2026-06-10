@@ -6,6 +6,11 @@ ENV_FILE := $(ROOT_DIR)infra/.env
 DEV_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.dev.yml
 PROD_COMPOSE = docker compose -f $(COMPOSE_DIR)/docker-compose.prod.yml
 
+# make verify runs backend tests from the host; the dev DB listens on localhost.
+# POSTGRES_* come from infra/.env (clean KEY=VALUE lines parse fine in make).
+-include $(ENV_FILE)
+VERIFY_DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(POSTGRES_DB)
+
 dev-up:
 	$(DEV_COMPOSE) --env-file $(ENV_FILE) up -d
 	@printf '\n%s\n' 'Dev services:'
@@ -41,8 +46,8 @@ prod-logs:
 verify:
 	cd $(ROOT_DIR)backend-django && uv run ruff check .
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
-	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python -m pytest
-	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py test config.tests.test_openapi_schema --noinput
+	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev DATABASE_URL=$(VERIFY_DATABASE_URL) uv run python -m pytest
+	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev DATABASE_URL=$(VERIFY_DATABASE_URL) uv run python manage.py test config.tests.test_openapi_schema --noinput
 	cd $(ROOT_DIR)svelte-frontend && npm run check
 	cd $(ROOT_DIR)svelte-frontend && npm run lint
 
