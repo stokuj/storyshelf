@@ -5,10 +5,10 @@
 	import { Card } from '$lib/components/ui/card';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { enhance } from '$app/forms';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import type { UserMe } from '$lib/api/user';
 
-	let user: UserMe | null | undefined = $derived($page.data.user as UserMe | null | undefined);
+	let user: UserMe | null | undefined = $derived(page.data.user as UserMe | null | undefined);
 
 	// eslint-disable-next-line no-empty-pattern
 	let {} = $props();

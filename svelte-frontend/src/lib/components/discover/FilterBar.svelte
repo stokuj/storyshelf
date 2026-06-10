@@ -25,6 +25,9 @@
 	let genreOpen = $state(false);
 	let sortOpen = $state(false);
 
+	let genreEl: HTMLElement | undefined = $state();
+	let sortEl: HTMLElement | undefined = $state();
+
 	let debounceTimer: ReturnType<typeof setTimeout>;
 
 	function handleSearchInput(e: Event) {
@@ -62,7 +65,7 @@
 	</div>
 
 	<!-- Genre dropdown -->
-	<div class="relative">
+	<div class="relative" bind:this={genreEl}>
 		<button
 			class="flex h-9 w-[140px] items-center justify-between rounded-md border border-rule bg-surface px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
 			class:text-ink={genre !== ''}
@@ -102,7 +105,7 @@
 	</div>
 
 	<!-- Sort dropdown -->
-	<div class="relative">
+	<div class="relative" bind:this={sortEl}>
 		<button
 			class="flex h-9 w-[130px] items-center justify-between rounded-md border border-rule bg-surface px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
 			class:text-ink={sort !== ''}
@@ -137,8 +140,8 @@
 
 <svelte:window
 	onclick={(e: MouseEvent) => {
-		const target = e.target as HTMLElement;
-		if (!target.closest('.relative')) {
+		const target = e.target as Node;
+		if (genreEl && !genreEl.contains(target) && sortEl && !sortEl.contains(target)) {
 			genreOpen = false;
 			sortOpen = false;
 		}

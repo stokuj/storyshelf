@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
 	import UserMenu from './UserMenu.svelte';
@@ -11,7 +11,7 @@
 
 	let { children }: Props = $props();
 
-	let user: UserMe | null | undefined = $derived($page.data.user as UserMe | null | undefined);
+	let user: UserMe | null | undefined = $derived(page.data.user as UserMe | null | undefined);
 </script>
 
 <a

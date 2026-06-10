@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import { BookOpen, Library, BookMarked } from 'lucide-svelte';
@@ -82,7 +82,7 @@
 	});
 
 	$effect(() => {
-		const p = $page.url.searchParams.get('tab');
+		const p = page.url.searchParams.get('tab');
 		if (p === 'reading') activeTab = 'READING';
 		else if (p === 'read') activeTab = 'READ';
 		else if (p === 'want-to-read') activeTab = 'WANT_TO_READ';
@@ -90,7 +90,7 @@
 
 	function setTab(id: ShelfStatus) {
 		activeTab = id;
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set(
 			'tab',
 			{ WANT_TO_READ: 'want-to-read', READING: 'reading', READ: 'read' }[id]

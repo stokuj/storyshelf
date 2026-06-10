@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
 	import FilterBar from '$lib/components/discover/FilterBar.svelte';
@@ -57,7 +57,7 @@
 	}
 
 	function buildUrl(): URL {
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		if (currentQ) url.searchParams.set('q', currentQ);
 		else url.searchParams.delete('q');
 		if (currentGenre) url.searchParams.set('genre', currentGenre);
@@ -71,8 +71,9 @@
 
 	$effect(() => {
 		if (genres.length === 0) {
-			fetchGenres(fetch).then(({ data: result }) => {
+			fetchGenres(fetch).then(({ data: result, error: apiErr }) => {
 				if (result) genres = result.data;
+				else if (apiErr) toast.error('Failed to load genres', { description: apiErr.detail });
 			});
 		}
 	});
