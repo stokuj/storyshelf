@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
@@ -23,18 +24,23 @@ class GenerateCharactersView(APIView):
     @extend_schema(request=None, responses={202: _status_response})
     def post(self, request, slug):
         book = get_object_or_404(Book, slug=slug)
-        analysis, created = CharacterAnalysis.objects.get_or_create(book=book)
-        active = analysis.status in (
-            CharacterAnalysis.Status.PENDING,
-            CharacterAnalysis.Status.RUNNING,
-        )
-        # Idempotent: a pre-existing PENDING/RUNNING analysis is left alone (one job
-        # per book). Otherwise (just created, or previously done/failed) re-dispatch.
-        if created or not active:
-            analysis.status = CharacterAnalysis.Status.PENDING
-            analysis.error_message = ""
-            analysis.save(update_fields=["status", "error_message", "updated_at"])
-            generate_characters_task.delay(book.id)
+        # Lock serialises concurrent generate requests for one book; on_commit
+        # ensures the worker never sees an uncommitted analysis row.
+        with transaction.atomic():
+            analysis, created = CharacterAnalysis.objects.select_for_update().get_or_create(
+                book=book
+            )
+            active = analysis.status in (
+                CharacterAnalysis.Status.PENDING,
+                CharacterAnalysis.Status.RUNNING,
+            )
+            # Idempotent: a pre-existing PENDING/RUNNING analysis is left alone (one job
+            # per book). Otherwise (just created, or previously done/failed) re-dispatch.
+            if created or not active:
+                analysis.status = CharacterAnalysis.Status.PENDING
+                analysis.error_message = ""
+                analysis.save(update_fields=["status", "error_message", "updated_at"])
+                transaction.on_commit(lambda: generate_characters_task.delay(book.id))
         return Response({"status": analysis.status}, status=status.HTTP_202_ACCEPTED)
 
 
