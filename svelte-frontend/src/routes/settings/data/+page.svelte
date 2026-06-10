@@ -10,11 +10,17 @@
 	let {} = $props();
 
 	let showDeleteDialog = $state(false);
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (showDeleteDialog && e.key === 'Escape') showDeleteDialog = false;
+	}
 </script>
 
 <svelte:head>
 	<title>Data & Export — Storyshelf</title>
 </svelte:head>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="space-y-8">
 	<!-- Export -->
@@ -52,6 +58,7 @@
 				class="fixed inset-0 z-50 flex items-center justify-center"
 				role="dialog"
 				aria-modal="true"
+				aria-labelledby="delete-dialog-title"
 			>
 				<div
 					class="fixed inset-0 bg-ink/50"
@@ -61,7 +68,9 @@
 				<div
 					class="relative z-50 rounded-lg border border-rule bg-surface p-6 shadow-lg max-w-lg w-full mx-4"
 				>
-					<h2 class="font-sans text-base font-semibold text-danger mb-2">Delete your account?</h2>
+					<h2 id="delete-dialog-title" class="font-sans text-base font-semibold text-danger mb-2">
+						Delete your account?
+					</h2>
 					<p class="text-sm text-ink-2 mb-4">
 						This will permanently delete your account, all your data, and cannot be undone. Enter
 						your

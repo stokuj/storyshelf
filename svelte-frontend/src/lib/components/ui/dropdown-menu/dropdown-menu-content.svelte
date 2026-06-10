@@ -21,6 +21,7 @@
 			align === 'end' ? 'right-0' : 'left-0',
 			className
 		)}
+		role="menu"
 		{...restProps}
 	>
 		{@render children()}

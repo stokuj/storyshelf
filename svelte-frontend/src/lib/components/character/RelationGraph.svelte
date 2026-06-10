@@ -58,7 +58,12 @@
 {#if relations.length === 0}
 	<p class="text-sm text-muted">No relations recorded.</p>
 {:else}
-	<svg viewBox="0 0 {W} {H}" class="w-full max-w-md rounded-xl border border-rule bg-surface">
+	<svg
+		viewBox="0 0 {W} {H}"
+		role="img"
+		aria-label="Relation graph"
+		class="w-full max-w-md rounded-xl border border-rule bg-surface"
+	>
 		{#each nodes as node (node.c.to_slug)}
 			<line x1={CX} y1={CY} x2={node.x} y2={node.y} stroke="#8884" stroke-width="2" />
 		{/each}

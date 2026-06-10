@@ -10,7 +10,7 @@
 
 	let { class: className = '', children, ...restProps }: Props = $props();
 
-	const menu = getContext('dropdown-menu') as { toggle: () => void };
+	const menu = getContext('dropdown-menu') as { open: boolean; toggle: () => void };
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -25,6 +25,8 @@
 	class={cn('inline-flex items-center justify-center', className)}
 	role="button"
 	tabindex="0"
+	aria-haspopup="menu"
+	aria-expanded={menu.open}
 	onclick={() => menu.toggle()}
 	onkeydown={handleKeydown}
 	{...restProps}
