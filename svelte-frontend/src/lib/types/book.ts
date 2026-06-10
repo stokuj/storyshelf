@@ -36,4 +36,6 @@ export interface BookDetail {
 	ratings_count: number;
 	position_in_series: number | null;
 	serie: SerieInfo | null;
+	created_at: string;
+	updated_at: string;
 }
