@@ -29,7 +29,11 @@ const SORT_MAP: Record<string, string> = {
 	title: 'title'
 };
 
-export async function listBooks(fetchFn: typeof fetch, params: ListBooksParams = {}) {
+export async function listBooks(
+	fetchFn: typeof fetch,
+	params: ListBooksParams = {},
+	isServerSide = false
+) {
 	const searchParams = new URLSearchParams();
 	if (params.q) searchParams.set('search', params.q);
 	if (params.genre) searchParams.set('genre', params.genre);
@@ -44,14 +48,19 @@ export async function listBooks(fetchFn: typeof fetch, params: ListBooksParams =
 		fetchFn,
 		`/books/${qs ? '?' + qs : ''}`,
 		undefined,
-		true
+		isServerSide
 	);
 }
 
-export async function fetchGenres(fetchFn: typeof fetch) {
-	return apiFetch<PaginatedResponse<Genre>>(fetchFn, '/genres/?per_page=100', undefined, true);
+export async function fetchGenres(fetchFn: typeof fetch, isServerSide = false) {
+	return apiFetch<PaginatedResponse<Genre>>(
+		fetchFn,
+		'/genres/?per_page=100',
+		undefined,
+		isServerSide
+	);
 }
 
-export async function getBook(fetchFn: typeof fetch, idOrSlug: string) {
-	return apiFetch<BookDetail>(fetchFn, `/books/${idOrSlug}/`, undefined, true);
+export async function getBook(fetchFn: typeof fetch, idOrSlug: string, isServerSide = false) {
+	return apiFetch<BookDetail>(fetchFn, `/books/${idOrSlug}/`, undefined, isServerSide);
 }
