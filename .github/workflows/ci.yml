@@ -46,7 +46,7 @@ jobs:
           python-version: "3.13"
       - name: Run Django tests
         working-directory: backend-django
-        run: uv run python manage.py test --noinput
+        run: uv run python -m pytest
       - name: Verify OpenAPI snapshot
         working-directory: backend-django
         run: DJANGO_ENV=dev uv run python manage.py test config.tests.test_openapi_schema --noinput
@@ -69,6 +69,7 @@ jobs:
       - run: npm run build
 
   build-and-push:
+    needs: [lint, test, frontend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -86,8 +87,6 @@ jobs:
           file: backend-django/Dockerfile
           push: true
           tags: ghcr.io/stokuj/storyshelf-django:main
-      # SvelteKit build step added in phase/2.6-svelte-setup
-      
       - uses: docker/build-push-action@v6
         with:
           context: svelte-frontend
