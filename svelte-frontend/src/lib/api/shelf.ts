@@ -1,5 +1,5 @@
 import { apiFetch } from './_client';
-import type { ShelfEntry, ShelfEntryUpdate, ShelfStatus } from '$lib/types/shelf';
+import type { PublicShelfEntry, ShelfEntry, ShelfEntryUpdate, ShelfStatus } from '$lib/types/shelf';
 
 export function fetchShelfEntries(fetchFn: typeof fetch, isServerSide = false) {
 	return apiFetch<ShelfEntry[]>(fetchFn, '/shelf/entries/', undefined, isServerSide);
@@ -7,7 +7,7 @@ export function fetchShelfEntries(fetchFn: typeof fetch, isServerSide = false) {
 
 /** Another user's public default reading shelf (M11). */
 export function fetchPublicShelf(fetchFn: typeof fetch, handle: string, isServerSide = false) {
-	return apiFetch<ShelfEntry[]>(fetchFn, `/u/${handle}/shelf/`, undefined, isServerSide);
+	return apiFetch<PublicShelfEntry[]>(fetchFn, `/u/${handle}/shelf/`, undefined, isServerSide);
 }
 
 /** The current user's shelf entry for one book, or null. */

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Book } from '$lib/types';
+	import type { BookDetail } from '$lib/types';
 
 	interface Props {
-		book: Book;
+		book: BookDetail;
 	}
 	let { book }: Props = $props();
 </script>

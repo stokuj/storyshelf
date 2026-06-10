@@ -10,7 +10,7 @@
 	import { BookOpen, SearchX } from 'lucide-svelte';
 	import { listBooks, fetchGenres } from '$lib/api/books';
 	import type { Genre } from '$lib/api/books';
-	import type { Book } from '$lib/types/book';
+	import type { BookListItem } from '$lib/types/book';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -30,7 +30,7 @@
 		loadError
 	} = data;
 
-	let books = $state<Book[]>(initialBooks);
+	let books = $state<BookListItem[]>(initialBooks);
 	let currentPage = $state(initialPage);
 	let perPage = $state(initialPerPage);
 	let total = $state(initialTotal);

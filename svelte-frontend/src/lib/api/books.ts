@@ -1,5 +1,5 @@
 import { apiFetch } from './_client';
-import type { Book } from '$lib/types';
+import type { BookDetail, BookListItem } from '$lib/types';
 
 export interface PaginatedResponse<T> {
 	data: T[];
@@ -40,7 +40,7 @@ export async function listBooks(fetchFn: typeof fetch, params: ListBooksParams =
 	if (params.perPage) searchParams.set('per_page', String(params.perPage));
 
 	const qs = searchParams.toString();
-	return apiFetch<PaginatedResponse<Book>>(
+	return apiFetch<PaginatedResponse<BookListItem>>(
 		fetchFn,
 		`/books/${qs ? '?' + qs : ''}`,
 		undefined,
@@ -53,5 +53,5 @@ export async function fetchGenres(fetchFn: typeof fetch) {
 }
 
 export async function getBook(fetchFn: typeof fetch, idOrSlug: string) {
-	return apiFetch<Book>(fetchFn, `/books/${idOrSlug}/`, undefined, true);
+	return apiFetch<BookDetail>(fetchFn, `/books/${idOrSlug}/`, undefined, true);
 }

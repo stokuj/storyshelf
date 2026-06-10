@@ -20,6 +20,9 @@ export interface ShelfEntry {
 	book: ShelfBook;
 }
 
+/** GET /api/u/{handle}/shelf/ (PublicShelfEntrySerializer — no id). */
+export type PublicShelfEntry = Omit<ShelfEntry, 'id'>;
+
 /** ShelfEntry augmented (client-side) with the rating row id, for delete/un-rate. */
 export interface ShelfEntryWithRating extends ShelfEntry {
 	rating_id: number | null;
