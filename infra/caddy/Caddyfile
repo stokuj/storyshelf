@@ -17,6 +17,15 @@
 		reverse_proxy django:8000
 	}
 
+	# Django-served user uploads and collected static (admin, DRF, Swagger UI)
+	handle /media/* {
+		reverse_proxy django:8000
+	}
+
+	handle /static/* {
+		reverse_proxy django:8000
+	}
+
 	# SvelteKit SSR — everything else
 	handle {
 		reverse_proxy svelte:3000

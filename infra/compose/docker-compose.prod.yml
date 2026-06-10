@@ -10,9 +10,13 @@ services:
       DJANGO_ENV: prod
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - media:/app/media
     command: gunicorn config.wsgi -b 0.0.0.0:8000 -w 4
@@ -24,6 +28,33 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    restart: unless-stopped
+
+  celery:
+    image: ghcr.io/stokuj/storyshelf-django:main
+    container_name: storyshelf-celery
+    env_file:
+      - ../.env
+    environment:
+      DJANGO_ENV: prod
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret-key}@db:5432/${POSTGRES_DB:-booksdb}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    command: celery -A config worker --loglevel=info --concurrency=4
+
+  redis:
+    image: redis:7
+    container_name: storyshelf-redis
+    restart: unless-stopped
 
   svelte:
     image: ghcr.io/stokuj/storyshelf-svelte:main
