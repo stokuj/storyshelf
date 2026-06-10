@@ -149,31 +149,3 @@ class LogoutTest(APITestCase):
     def test_post_no_cookie_still_succeeds_200(self):
         resp = self.client.post(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-
-
-class AuthMeTest(APITestCase):
-    def setUp(self):
-        self.url = "/api/auth/me/"
-        self.user = User.objects.create_user(
-            email="me@test.com", handle="meuser", password="secret123"
-        )
-
-    def _login(self):
-        self.client.post(
-            "/api/auth/login/",
-            {"email": "me@test.com", "password": "secret123"},
-        )
-
-    def test_get_authenticated_via_cookie_returns_200_with_user_data(self):
-        self._login()
-        resp = self.client.get(self.url)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue(resp.data["authenticated"])
-        self.assertEqual(resp.data["email"], "me@test.com")
-        self.assertEqual(resp.data["handle"], "meuser")
-
-    def test_get_unauthenticated_returns_200_with_false(self):
-        resp = self.client.get(self.url)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertFalse(resp.data["authenticated"])
-        self.assertIsNone(resp.data["email"])

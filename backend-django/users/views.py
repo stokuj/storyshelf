@@ -124,29 +124,6 @@ class LogoutView(views.APIView):
         return response
 
 
-class AuthMeView(views.APIView):
-    """Zwraca stan sesji: authenticated, email, handle. Używane do inicjalizacji auth w SPA."""
-
-    permission_classes = (permissions.AllowAny,)
-
-    def get(self, request):
-        if request.user.is_authenticated:
-            return Response(
-                {
-                    "authenticated": True,
-                    "email": request.user.email,
-                    "handle": request.user.handle,
-                }
-            )
-        return Response(
-            {
-                "authenticated": False,
-                "email": None,
-                "handle": None,
-            }
-        )
-
-
 class UserMeView(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
