@@ -24,6 +24,11 @@ class RatingViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         """PUT = upsert on (user, book). 201 if created, 200 if updated."""
         book_slug = request.data.get("book_slug")
+        if not book_slug:
+            return Response(
+                {"book_slug": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             book = Book.objects.get(slug=book_slug)
         except Book.DoesNotExist:
