@@ -77,3 +77,19 @@ class FeedAPITest(APITestCase):
         resp2 = self.client.get(FEED_URL, {"before": resp.data["next_before"]})
         self.assertEqual(len(resp2.data["results"]), 5)
         self.assertIsNone(resp2.data["next_before"])
+
+    def test_invalid_before_returns_400(self):
+        self.client.force_authenticate(self.me)
+        resp = self.client.get(FEED_URL, {"before": "not-a-datetime"})
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_feed_item_shape(self):
+        Review.objects.create(user=self.pub, book=self.book, body="great")
+        self.client.force_authenticate(self.me)
+        resp = self.client.get(FEED_URL)
+        item = resp.data["results"][0]
+        self.assertEqual(item["type"], "review")
+        self.assertEqual(item["book"]["slug"], "b")
+        self.assertEqual(item["body"], "great")
+        self.assertIn("timestamp", item)
+        self.assertEqual(item["actor"]["handle"], "pub")

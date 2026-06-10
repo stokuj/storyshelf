@@ -108,3 +108,13 @@ class CharacterApiTests(APITestCase):
         res = self.client.get(f"/api/books/{self.book.slug}/characters/цири/")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.data["slug"], "цири")
+
+    def test_list_without_analysis_returns_null_status(self):
+        res = self.client.get(f"/api/books/{self.book.slug}/characters/")
+        self.assertEqual(res.status_code, 200)
+        self.assertIsNone(res.data["status"])
+        self.assertEqual(res.data["characters"], [])
+
+    def test_detail_unknown_slug_returns_404(self):
+        res = self.client.get(f"/api/books/{self.book.slug}/characters/ghost/")
+        self.assertEqual(res.status_code, 404)

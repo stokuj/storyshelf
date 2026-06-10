@@ -39,3 +39,16 @@ class GenerateTaskTests(TestCase):
         self.assertEqual(self.analysis.status, CharacterAnalysis.Status.FAILED)
         self.assertIn("boom", self.analysis.error_message)
         self.assertEqual(Character.objects.filter(book=self.book).count(), 0)
+
+    def test_task_sets_running_before_generation(self):
+        seen = []
+
+        def capture(book):
+            self.analysis.refresh_from_db()
+            seen.append(self.analysis.status)
+            return {"characters": [], "relations": []}
+
+        with patch("characters.tasks.generate_characters", side_effect=capture):
+            generate_characters_task(self.book.id)
+
+        self.assertEqual(seen, [CharacterAnalysis.Status.RUNNING])

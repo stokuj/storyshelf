@@ -96,3 +96,10 @@ class RatingAPITest(APITestCase):
         self.client.force_authenticate(self.user)
         resp = self.client.get(URL)
         self.assertEqual(len(resp.data), 0)
+
+    def test_delete_other_users_rating_returns_404(self):
+        rating = Rating.objects.create(user=self.user_b, book=self.book, rating=5)
+        self.client.force_authenticate(self.user)
+        resp = self.client.delete(f"{URL}{rating.id}/")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Rating.objects.filter(id=rating.id).exists())
