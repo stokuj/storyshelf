@@ -18,10 +18,10 @@ test.describe('Discover page', () => {
 		await page.waitForSelector('.grid h3', { timeout: 10_000 });
 	});
 
-	test('renders 3 book cards', async ({ page }) => {
+	test('renders 5 seeded book cards', async ({ page }) => {
 		// Book title h3s are inside the grid; EmptyState h3 is outside
 		const bookTitles = page.locator('.grid h3');
-		await expect(bookTitles).toHaveCount(3);
+		await expect(bookTitles).toHaveCount(5);
 		await expect(page.getByText('The Fellowship of the Ring')).toBeVisible();
 		await expect(page.getByText('Dune')).toBeVisible();
 		await expect(page.getByText('1984')).toBeVisible();
@@ -54,8 +54,8 @@ test.describe('Discover page', () => {
 		const listbox = page.getByRole('listbox');
 		await listbox.waitFor({ state: 'visible', timeout: 5_000 });
 		await listbox.getByText('fantasy').click();
-		await expect(page.locator('.grid h3')).toHaveCount(1);
-		await expect(page.getByText('The Fellowship of the Ring')).toBeVisible();
+		// Fellowship + The Hobbit + The Two Towers (all seeded as Fantasy)
+		await expect(page.locator('.grid h3')).toHaveCount(3);
 	});
 
 	test('sort by rating changes book order', async ({ page }) => {
@@ -77,7 +77,7 @@ test.describe('Discover page', () => {
 		await expect(page).toHaveURL(/\/discover\?q=Fellowship/);
 	});
 
-	test('clearing search resets to all 3 books', async ({ page }) => {
+	test('clearing search resets to all seeded books', async ({ page }) => {
 		const searchInput = page.locator('input[placeholder="Search books…"]');
 		await searchInput.click();
 		await searchInput.pressSequentially('Fellowship', { delay: 50 });
@@ -85,6 +85,6 @@ test.describe('Discover page', () => {
 		// Clear the input with triple-click + Delete
 		await searchInput.click({ clickCount: 3 });
 		await searchInput.press('Delete');
-		await expect(page.locator('.grid h3')).toHaveCount(3);
+		await expect(page.locator('.grid h3')).toHaveCount(5);
 	});
 });
