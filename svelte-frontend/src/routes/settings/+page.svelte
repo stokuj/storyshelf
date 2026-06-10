@@ -6,12 +6,17 @@
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
+	import { toast } from 'svelte-sonner';
 	import type { UserMe } from '$lib/api/user';
 
 	let user: UserMe | null | undefined = $derived(page.data.user as UserMe | null | undefined);
 
-	// eslint-disable-next-line no-empty-pattern
-	let {} = $props();
+	let { form } = $props();
+
+	$effect(() => {
+		if (form?.error) toast.error(form.error as string);
+		else if (form?.success) toast.success('Saved');
+	});
 </script>
 
 <svelte:head>
@@ -96,13 +101,6 @@
 			<div class="space-y-1.5">
 				<Label for="confirm">Confirm new password</Label>
 				<Input id="confirm" name="confirm_password" type="password" />
-			</div>
-			<!-- Simple password strength heuristic -->
-			<div>
-				<div class="w-full bg-rule rounded-full h-1.5">
-					<div class="bg-accent rounded-full h-1.5" style="width: 25%"></div>
-				</div>
-				<p class="text-xs text-muted mt-1">Password strength: Weak</p>
 			</div>
 			<div class="flex justify-end">
 				<Button size="sm" type="submit">Change password</Button>

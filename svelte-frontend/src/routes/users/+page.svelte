@@ -1,6 +1,7 @@
 <script lang="ts">
 	import UserRow from '$lib/components/UserRow.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import { toast } from 'svelte-sonner';
 	import { listUsers, type UserListItem } from '$lib/api/user';
 
 	let { data } = $props();
@@ -8,7 +9,11 @@
 	// Intentional one-time snapshot: this page self-manages search/ordering state
 	// and refetches client-side, so it does not react to later `data`.
 	// svelte-ignore state_referenced_locally
-	const { initialUsers, initialTotal, initialSearch, initialOrdering } = data;
+	const { initialUsers, initialTotal, initialSearch, initialOrdering, loadError } = data;
+
+	if (loadError) {
+		toast.error('Failed to load people', { description: loadError.detail });
+	}
 
 	let users = $state<UserListItem[]>(initialUsers);
 	let total = $state<number>(initialTotal);
