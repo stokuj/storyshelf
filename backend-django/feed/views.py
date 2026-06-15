@@ -105,15 +105,18 @@ class FeedView(APIView):
             ).values_list("following_id", flat=True)
         )
 
+        # Fetch one extra per source so we can both detect "has more" reliably
+        # and pull in any item sharing the boundary timestamp (see below).
+        fetch_size = PAGE_SIZE + 1
         ratings = (
             Rating.objects.filter(user_id__in=following_ids, updated_at__lt=before)
             .select_related("user", "book")
-            .order_by("-updated_at")[:PAGE_SIZE]
+            .order_by("-updated_at")[:fetch_size]
         )
         reviews = (
             Review.objects.filter(user_id__in=following_ids, updated_at__lt=before)
             .select_related("user", "book")
-            .order_by("-updated_at")[:PAGE_SIZE]
+            .order_by("-updated_at")[:fetch_size]
         )
         finished = (
             ShelfEntry.objects.filter(
@@ -123,7 +126,7 @@ class FeedView(APIView):
                 finished_at__lt=before,
             )
             .select_related("user", "book")
-            .order_by("-finished_at")[:PAGE_SIZE]
+            .order_by("-finished_at")[:fetch_size]
         )
 
         items = (
@@ -132,13 +135,20 @@ class FeedView(APIView):
             + [_finished_entry(e, request) for e in finished]
         )
         items.sort(key=lambda x: x["timestamp"], reverse=True)
+
         page = items[:PAGE_SIZE]
-        # Timestamp-only cursor (strict <). Two events sharing the exact same
-        # microsecond at a page boundary could be skipped — practically
-        # impossible with auto_now precision per save; acceptable at this scale.
-        next_before = (
-            page[-1]["timestamp"].isoformat() if len(page) == PAGE_SIZE else None
-        )
+        # The cursor is a strict `<` on timestamp. To avoid splitting events that
+        # share the exact same timestamp across a page boundary (which strict `<`
+        # would silently skip), extend the page to swallow the whole tie group at
+        # the boundary, then advance the cursor below it.
+        i = PAGE_SIZE
+        if page:
+            boundary = page[-1]["timestamp"]
+            while i < len(items) and items[i]["timestamp"] == boundary:
+                page.append(items[i])
+                i += 1
+        has_more = i < len(items)
+        next_before = page[-1]["timestamp"].isoformat() if has_more else None
 
         return Response(
             {

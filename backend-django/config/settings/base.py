@@ -103,7 +103,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "auth_login": os.getenv("THROTTLE_AUTH_LOGIN", "10/min"),
-        "auth_register": os.getenv("THROTTLE_AUTH_REGISTER", "5/hour"),
+        "auth_register": os.getenv("THROTTLE_AUTH_REGISTER", "100/hour"),
         "auth_refresh": os.getenv("THROTTLE_AUTH_REFRESH", "30/min"),
         "user_handle_change": "5/day",
         "user_password_change": "5/hour",

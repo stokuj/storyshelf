@@ -78,6 +78,28 @@ class FeedAPITest(APITestCase):
         self.assertEqual(len(resp2.data["results"]), 5)
         self.assertIsNone(resp2.data["next_before"])
 
+    def test_pagination_no_skip_on_tied_boundary_timestamps(self):
+        from datetime import timedelta
+
+        base = now()
+        # 21 ratings: the first 19 have strictly decreasing timestamps; the last
+        # two share one timestamp that lands exactly on the page boundary.
+        ratings = []
+        for i in range(21):
+            b = Book.objects.create(title=f"T{i}", slug=f"t{i}")
+            ratings.append(Rating.objects.create(user=self.pub, book=b, rating=5))
+        for i, r in enumerate(ratings):
+            ts = base - timedelta(seconds=min(i, 19))
+            Rating.objects.filter(pk=r.pk).update(updated_at=ts)
+
+        self.client.force_authenticate(self.me)
+        resp = self.client.get(FEED_URL)
+        # The tie group is swallowed into the first page; nothing is dropped.
+        self.assertEqual(len(resp.data["results"]), 21)
+        self.assertIsNone(resp.data["next_before"])
+        slugs = {item["book"]["slug"] for item in resp.data["results"]}
+        self.assertEqual(len(slugs), 21)
+
     def test_invalid_before_returns_400(self):
         self.client.force_authenticate(self.me)
         resp = self.client.get(FEED_URL, {"before": "not-a-datetime"})

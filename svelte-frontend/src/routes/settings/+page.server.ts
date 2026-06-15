@@ -4,7 +4,14 @@ import { serverApiBase } from '$lib/server/api';
 
 async function apiError(res: Response): Promise<string> {
 	const body = await res.json().catch(() => ({}));
-	return body.detail ?? body.message ?? `Request failed (${res.status})`;
+	if (body.detail) return body.detail;
+	if (body.message) return body.message;
+	// DRF field errors: { field: ["message", ...] }. Surface the first one.
+	for (const value of Object.values(body)) {
+		if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
+		if (typeof value === 'string') return value;
+	}
+	return `Request failed (${res.status})`;
 }
 
 export const actions: Actions = {
@@ -15,6 +22,18 @@ export const actions: Actions = {
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ display_name }),
+			credentials: 'include'
+		});
+		if (!res.ok) return fail(res.status, { error: await apiError(res) });
+		return { success: true };
+	},
+	bio: async ({ request, fetch }) => {
+		const data = await request.formData();
+		const bio = data.get('bio') as string;
+		const res = await fetch(`${serverApiBase()}/users/me/`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ bio }),
 			credentials: 'include'
 		});
 		if (!res.ok) return fail(res.status, { error: await apiError(res) });

@@ -5,7 +5,8 @@ import {
 	API_BASE_URL,
 	TEST_PASSWORD,
 	bypassRequired,
-	uniqueEmail
+	uniqueEmail,
+	uniqueHandle
 } from './fixtures';
 
 test.describe('Authentication', () => {
@@ -14,7 +15,7 @@ test.describe('Authentication', () => {
 
 		const email = uniqueEmail();
 		await page.fill('#email', email);
-		await page.fill('#display_name', 'Signup Test');
+		await page.fill('#handle', uniqueHandle());
 		await page.fill('#password', TEST_PASSWORD);
 		await page.click('button[type="submit"]');
 
@@ -31,23 +32,23 @@ test.describe('Authentication', () => {
 		await authedApi.dispose();
 	});
 
-	test('signup with empty display_name shows error', async ({ page }) => {
+	test('signup with too-short handle shows error', async ({ page }) => {
 		await page.goto('/signup');
 
 		await page.fill('#email', uniqueEmail());
-		await bypassRequired(page.locator('#display_name'));
-		await page.fill('#display_name', '');
+		// Non-empty but < 3 chars: satisfies native `required`, fails server validation.
+		await page.fill('#handle', 'ab');
 		await page.fill('#password', TEST_PASSWORD);
 		await page.click('button[type="submit"]');
 
-		await expect(page.getByText('Display name is required')).toBeVisible();
+		await expect(page.getByText('Handle must be at least 3 characters')).toBeVisible();
 	});
 
 	test('signup with short password shows error', async ({ page }) => {
 		await page.goto('/signup');
 
 		await page.fill('#email', uniqueEmail());
-		await page.fill('#display_name', 'Short PW');
+		await page.fill('#handle', uniqueHandle());
 		await page.fill('#password', '12345');
 		await page.click('button[type="submit"]');
 
@@ -57,10 +58,14 @@ test.describe('Authentication', () => {
 	test('signup with empty email shows error', async ({ page }) => {
 		await page.goto('/signup');
 
-		await bypassRequired(page.locator('#email'));
-		await page.fill('#email', '');
-		await page.fill('#display_name', 'No Email');
+		await page.fill('#handle', uniqueHandle());
 		await page.fill('#password', TEST_PASSWORD);
+		// Disable native validation at the form level so the empty email reaches the
+		// server. `noValidate` is a DOM property Svelte never re-renders, unlike the
+		// `required` attribute (removeAttribute gets restored on re-render).
+		await page
+			.locator('form:has(#email)')
+			.evaluate((f) => ((f as HTMLFormElement).noValidate = true));
 		await page.click('button[type="submit"]');
 
 		await expect(page.getByText('Email is required')).toBeVisible();

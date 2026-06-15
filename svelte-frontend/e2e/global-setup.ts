@@ -135,6 +135,23 @@ export default async function globalSetup(): Promise<void> {
 		console.log(`[e2e]   → slug: ${data.slug}`);
 	}
 
+	// 3b. Rate books as admin so avg_rating ordering is deterministic for sort
+	// tests. Test users' ratings are transient (deleted with the user on
+	// teardown), so only these admin baselines persist.
+	const RATINGS: Record<string, number> = {
+		'The Fellowship of the Ring': 5,
+		'The Two Towers': 4,
+		'The Hobbit': 4,
+		Dune: 3,
+		'1984': 2
+	};
+	for (const [title, slug] of Object.entries(slugs)) {
+		const rating = RATINGS[title];
+		if (!rating) continue;
+		const res = await api.put('/api/ratings/', { data: { book_slug: slug, rating } });
+		if (!res.ok()) console.warn(`[e2e] Failed to rate "${title}": ${res.status()}`);
+	}
+
 	// 4. Write slugs file
 	const __dirname = dirname(fileURLToPath(import.meta.url));
 	const slugsPath = resolve(__dirname, '.seed-slugs.json');

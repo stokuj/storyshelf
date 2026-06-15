@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
+	import { Search } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import UserMenu from './UserMenu.svelte';
 	import type { UserMe } from '$lib/api/user';
 
@@ -12,6 +15,14 @@
 	let { children }: Props = $props();
 
 	let user: UserMe | null | undefined = $derived(page.data.user as UserMe | null | undefined);
+
+	let searchQuery = $state('');
+
+	function submitSearch(e: SubmitEvent) {
+		e.preventDefault();
+		const q = searchQuery.trim();
+		goto(`/discover${q ? `?q=${encodeURIComponent(q)}` : ''}`);
+	}
 </script>
 
 <a
@@ -39,8 +50,20 @@
 			</nav>
 		</div>
 
-		<!-- Right: user -->
+		<!-- Right: search + user -->
 		<div class="flex items-center gap-2">
+			<form onsubmit={submitSearch} class="hidden sm:block relative">
+				<Search
+					class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted pointer-events-none"
+				/>
+				<Input
+					class="pl-8 h-9 w-40 lg:w-56"
+					type="search"
+					placeholder="Search…"
+					aria-label="Search books"
+					bind:value={searchQuery}
+				/>
+			</form>
 			<UserMenu {user} />
 		</div>
 	</div>

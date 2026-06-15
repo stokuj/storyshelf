@@ -64,6 +64,24 @@
 		</form>
 	</Card>
 
+	<!-- Bio -->
+	<Card class="p-5">
+		<h2 class="font-sans text-base font-semibold text-ink mb-4">Bio</h2>
+		<form method="POST" action="?/bio" use:enhance class="space-y-3">
+			<textarea
+				name="bio"
+				rows="3"
+				maxlength="500"
+				placeholder="A few words about yourself"
+				class="flex w-full rounded-md border border-rule bg-surface px-3 py-2 text-sm text-ink shadow-sm placeholder:text-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+				>{user?.bio ?? ''}</textarea
+			>
+			<div class="flex justify-end">
+				<Button size="sm" type="submit">Save</Button>
+			</div>
+		</form>
+	</Card>
+
 	<!-- Handle -->
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-4">Handle</h2>

@@ -1,7 +1,12 @@
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { serverApiBase } from '$lib/server/api';
 import { forwardSetCookies } from '$lib/server/cookies';
+
+export const load: PageServerLoad = async ({ parent }) => {
+	const { user } = await parent();
+	if (user) throw redirect(303, '/');
+};
 
 export const actions: Actions = {
 	default: async ({ request, fetch, cookies, url }) => {
@@ -30,7 +35,7 @@ export const actions: Actions = {
 		// Honor ?next= from auth guards, but only same-origin relative paths
 		// (a leading single slash) to avoid open-redirect.
 		const next = url.searchParams.get('next');
-		const target = next && next.startsWith('/') && !next.startsWith('//') ? next : '/discover';
+		const target = next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
 		throw redirect(303, target);
 	}
 };
