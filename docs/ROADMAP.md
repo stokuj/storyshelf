@@ -6,11 +6,22 @@
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `chore/holistic-audit` — holistyczny audyt + fixy (24 findings, raport w `docs/superpowers/specs/`).
+**Bieżący branch:** `feat/fixes-batch` — batch drobnych poprawek po ocenie projektu (audyt 24 findings zmergowany przez PR #79, M13/M14 na main).
 
-**ZADANIE:** M13 (PR #77) i M14 typed character relations (PR #78) zmergowane do main. Brak aktywnego milestone funkcyjnego — po mergu audytu następna decyzja: wdrożenie produkcyjne albo kolejny milestone (osobny `/brainstorming`).
+**ZADANIE:** Brak aktywnego milestone funkcyjnego. Trwa batch poprawek z listy „rzeczy do naprawy" (gałąź `feat/fixes-batch`):
+1. **Spersonalizowana strona główna `/`** — zalogowany: „Continue reading" + podgląd feedu; gość: redirect na `/discover` (bez zmian).
+2. **Wyszukiwarka w navbarze** → `/discover?q=` (AppShell).
+3. **Kontrolka postępu na `/books/[slug]`** — `ShelfControl` dostał input `current_page` + `ProgressBar` przy statusie READING.
+4. **Edycja bio z UI** — karta + akcja `bio` w `settings`.
+5. **Kursor feedu odporny na remis timestampów** — „połykanie" grupy o równym czasie na granicy strony (`feed/views.py`).
+6. **E2E w CI** — nowy job `e2e` w `ci.yml` (postgres + django runserver + Playwright chromium).
+7. **Zasilenie Serie w seed** — 5 serii / 6 książek (Wiedźmin, Kroniki Diuny, Władca Pierścieni, Harry Potter, Mroczne materie).
 
-**M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70), po dacie audytu który je oznaczył jako half-wired. Zweryfikowane w kodzie: `settings/data/export/+server.ts` (proxy ZIP) + przycisk; `settings/+page.svelte` avatar `onchange`→`requestSubmit` + akcja `avatar`; `ShelfBookCard.svelte` input strony + `/shelf/+page.svelte` `handleProgressChange` (optymistyczny revert). Pozostałości poza zakresem M8: brak kontrolki progresu na `/books/[slug]`, navbar Search no-op — do ewentualnego „Kiedyś".
+Świadomie **pominięte**: wdrożenie produkcyjne (osobna decyzja usera, deploy step nadal zakomentowany).
+
+Po mergu batcha następna decyzja: wdrożenie produkcyjne albo kolejny milestone (osobny `/brainstorming`).
+
+**M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70). Pozostałość „brak kontrolki progresu na `/books/[slug]`" i „navbar Search no-op" — naprawione w `feat/fixes-batch` (pkt 3 i 2 wyżej).
 
 **M7 odłożone (2026-06-04):** Osobny panel importu w SvelteKit uznany za przekomplikowany — import książek to rzadka, jednorazowa czynność robiona przez właściciela, a działają już CLI `import_books <isbn>` i Django admin (`/admin/`, staff-only). Gdy wróci, najpewniej w formie lekkiej **opcji A: przycisk/akcja „Import from Google Books" w Django adminie** (pole ISBN → reuse logiki importu), bez nowego API i tras we froncie. Pełny panel w SvelteKit tylko jeśli pojawią się nietechniczni admini bez dostępu do `/admin/`.
 
