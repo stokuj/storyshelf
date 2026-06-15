@@ -60,8 +60,12 @@ test.describe('Authentication', () => {
 
 		await page.fill('#handle', uniqueHandle());
 		await page.fill('#password', TEST_PASSWORD);
-		// Drop `required` last, so no later re-render restores it, then submit empty.
-		await bypassRequired(page.locator('#email'));
+		// Disable native validation at the form level so the empty email reaches the
+		// server. `noValidate` is a DOM property Svelte never re-renders, unlike the
+		// `required` attribute (removeAttribute gets restored on re-render).
+		await page
+			.locator('form:has(#email)')
+			.evaluate((f) => ((f as HTMLFormElement).noValidate = true));
 		await page.click('button[type="submit"]');
 
 		await expect(page.getByText('Email is required')).toBeVisible();
