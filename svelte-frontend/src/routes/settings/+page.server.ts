@@ -4,7 +4,14 @@ import { serverApiBase } from '$lib/server/api';
 
 async function apiError(res: Response): Promise<string> {
 	const body = await res.json().catch(() => ({}));
-	return body.detail ?? body.message ?? `Request failed (${res.status})`;
+	if (body.detail) return body.detail;
+	if (body.message) return body.message;
+	// DRF field errors: { field: ["message", ...] }. Surface the first one.
+	for (const value of Object.values(body)) {
+		if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
+		if (typeof value === 'string') return value;
+	}
+	return `Request failed (${res.status})`;
 }
 
 export const actions: Actions = {

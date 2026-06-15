@@ -34,7 +34,7 @@
 
 {#if user}
 	<DropdownMenu>
-		<DropdownMenuTrigger>
+		<DropdownMenuTrigger aria-label="Open user menu">
 			<Button variant="ghost" size="icon" class="rounded-full">
 				<Avatar class="size-7">
 					<AvatarImage src={user.avatar_url ?? undefined} alt={user.display_name} />

@@ -7,14 +7,15 @@
 	import { resolve } from '$app/paths';
 
 	interface Props {
-		data?: {
+		form?: {
 			email?: string;
 			handle?: string;
 			error?: string;
 			errors?: Record<string, string>;
 		};
 	}
-	let { data }: Props = $props();
+	// Action results (validation/errors) arrive via `form`, not `data`.
+	let { form }: Props = $props();
 </script>
 
 <svelte:head>
@@ -33,11 +34,11 @@
 					name="email"
 					type="email"
 					required
-					value={data?.email ?? ''}
-					class={data?.errors?.email ? 'border-danger' : ''}
+					value={form?.email ?? ''}
+					class={form?.errors?.email ? 'border-danger' : ''}
 				/>
-				{#if data?.errors?.email}
-					<p class="text-xs text-danger">{data.errors.email}</p>
+				{#if form?.errors?.email}
+					<p class="text-xs text-danger">{form.errors.email}</p>
 				{/if}
 			</div>
 
@@ -48,11 +49,11 @@
 					name="handle"
 					type="text"
 					required
-					value={data?.handle ?? ''}
-					class={data?.errors?.handle ? 'border-danger' : ''}
+					value={form?.handle ?? ''}
+					class={form?.errors?.handle ? 'border-danger' : ''}
 				/>
-				{#if data?.errors?.handle}
-					<p class="text-xs text-danger">{data.errors.handle}</p>
+				{#if form?.errors?.handle}
+					<p class="text-xs text-danger">{form.errors.handle}</p>
 				{/if}
 			</div>
 
@@ -63,15 +64,15 @@
 					name="password"
 					type="password"
 					required
-					class={data?.errors?.password ? 'border-danger' : ''}
+					class={form?.errors?.password ? 'border-danger' : ''}
 				/>
-				{#if data?.errors?.password}
-					<p class="text-xs text-danger">{data.errors.password}</p>
+				{#if form?.errors?.password}
+					<p class="text-xs text-danger">{form.errors.password}</p>
 				{/if}
 			</div>
 
-			{#if data?.error}
-				<p class="text-sm text-danger">{data.error}</p>
+			{#if form?.error}
+				<p class="text-sm text-danger">{form.error}</p>
 			{/if}
 
 			<Button type="submit" class="w-full">Create account</Button>

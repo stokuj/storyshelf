@@ -7,9 +7,10 @@
 	import { resolve } from '$app/paths';
 
 	interface Props {
-		data?: { email?: string; error?: string; missing?: string };
+		form?: { email?: string; error?: string; missing?: string };
 	}
-	let { data }: Props = $props();
+	// Action results (errors) arrive via `form`, not `data`.
+	let { form }: Props = $props();
 </script>
 
 <svelte:head>
@@ -28,8 +29,8 @@
 					name="email"
 					type="email"
 					required
-					value={data?.email ?? ''}
-					class={data?.missing === 'email' ? 'border-danger' : ''}
+					value={form?.email ?? ''}
+					class={form?.missing === 'email' ? 'border-danger' : ''}
 				/>
 			</div>
 
@@ -40,12 +41,12 @@
 					name="password"
 					type="password"
 					required
-					class={data?.missing === 'password' ? 'border-danger' : ''}
+					class={form?.missing === 'password' ? 'border-danger' : ''}
 				/>
 			</div>
 
-			{#if data?.error}
-				<p class="text-sm text-danger">{data.error}</p>
+			{#if form?.error}
+				<p class="text-sm text-danger" role="alert">{form.error}</p>
 			{/if}
 
 			<Button type="submit" class="w-full">Sign in</Button>

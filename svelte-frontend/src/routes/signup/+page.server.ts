@@ -1,7 +1,12 @@
 import { fail, redirect } from '@sveltejs/kit';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { serverApiBase } from '$lib/server/api';
 import { forwardSetCookies } from '$lib/server/cookies';
+
+export const load: PageServerLoad = async ({ parent }) => {
+	const { user } = await parent();
+	if (user) throw redirect(303, '/');
+};
 
 export const actions: Actions = {
 	default: async ({ request, fetch, cookies }) => {
@@ -38,6 +43,6 @@ export const actions: Actions = {
 
 		forwardSetCookies(res, cookies);
 
-		throw redirect(303, '/discover');
+		throw redirect(303, '/');
 	}
 };

@@ -14,6 +14,6 @@ export const actions: Actions = {
 		cookies.delete('access_token', { path: '/' });
 		cookies.delete('refresh_token', { path: '/' });
 
-		throw redirect(303, '/');
+		throw redirect(303, '/login');
 	}
 };
