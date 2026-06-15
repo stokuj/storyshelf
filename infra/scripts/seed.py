@@ -20,11 +20,13 @@ import django
 django.setup()
 
 from books.models import Book, BookAuthor
-from library.models import Author, Genre, Tag
+from library.models import Author, Genre, Serie, Tag
 
 SEED_BOOKS = [
     {
         "title": "Wiedźmin: Ostatnie życzenie",
+        "serie": "Wiedźmin",
+        "position": 1,
         "year": 1993,
         "isbn": "9788375780635",
         "description": "Zbiór opowiadań wprowadzający Geralta z Rivii — wiedźmina polującego na potwory. Mroczny świat fantasy osadzony w słowiańskiej mitologii, gdzie granica między dobrem a złem jest niewyraźna.",
@@ -37,6 +39,8 @@ SEED_BOOKS = [
     },
     {
         "title": "Dune",
+        "serie": "Kroniki Diuny",
+        "position": 1,
         "year": 1965,
         "isbn": "9780441013593",
         "description": "Epicka powieść science-fiction rozgrywająca się na pustynnej planecie Arrakis, jedynym źródle bezcennej przyprawy melanżu. Historia polityki, religii i przetrwania.",
@@ -133,6 +137,8 @@ SEED_BOOKS = [
     },
     {
         "title": "Władca Pierścieni: Drużyna Pierścienia",
+        "serie": "Władca Pierścieni",
+        "position": 1,
         "year": 1954,
         "isbn": "9780618640157",
         "description": "Frodo Baggins dziedziczy Jedyny Pierścień i wyrusza w niebezpieczną podróż, aby zniszczyć go w Górze Przeznaczenia. Pierwsza część epickiej trylogii fantasy.",
@@ -169,6 +175,8 @@ SEED_BOOKS = [
     },
     {
         "title": "Harry Potter i Kamień Filozoficzny",
+        "serie": "Harry Potter",
+        "position": 1,
         "year": 1997,
         "isbn": "9780747532699",
         "description": "Jedenastoletni Harry Potter odkrywa, że jest czarodziejem i zostaje przyjęty do Hogwartu — szkoły magii. Pierwsza część kultowej serii dla młodych dorosłych.",
@@ -205,6 +213,8 @@ SEED_BOOKS = [
     },
     {
         "title": "Diuna: Mesjasz",
+        "serie": "Kroniki Diuny",
+        "position": 2,
         "year": 1969,
         "isbn": "9780593098233",
         "description": "Paul Atreydesa — teraz cesarz znany jako Muad'Dib — mierzy się z konsekwencjami swojego panowania i jihadu, który rozpętał. Mroczna kontynuacja Diuny.",
@@ -241,6 +251,8 @@ SEED_BOOKS = [
     },
     {
         "title": "Złoty Kompas",
+        "serie": "Mroczne materie",
+        "position": 1,
         "year": 1995,
         "isbn": "9780679879244",
         "description": "Lyra Belacqua wyrusza na Daleką Północ, aby uratować porwane dzieci. Fantasy łączące światy równoległe, demony-towarzyszów i tajemniczą substancję zwaną Pyłem.",
@@ -271,11 +283,18 @@ def seed():
     authors_created = 0
     genres_created = 0
     tags_created = 0
+    series_created = 0
 
     for entry in SEED_BOOKS:
         author, a_new = Author.objects.get_or_create(name=entry["author"])
         if a_new:
             authors_created += 1
+
+        serie = None
+        if entry.get("serie"):
+            serie, s_new = Serie.objects.get_or_create(name=entry["serie"])
+            if s_new:
+                series_created += 1
 
         book, b_new = Book.objects.get_or_create(
             isbn=entry["isbn"],
@@ -286,14 +305,19 @@ def seed():
                 "page_count": entry["page_count"],
                 "avg_rating": entry["rating"],
                 "ratings_count": entry["ratings_count"],
+                "serie": serie,
+                "position_in_series": entry.get("position"),
             },
         )
         if b_new:
             books_created += 1
+        elif serie and book.serie_id != serie.id:
+            # Backfill series on books seeded before this field was populated.
+            book.serie = serie
+            book.position_in_series = entry.get("position")
+            book.save(update_fields=["serie", "position_in_series"])
 
-        BookAuthor.objects.get_or_create(
-            book=book, author=author, defaults={"role": "AUTHOR"}
-        )
+        BookAuthor.objects.get_or_create(book=book, author=author)
 
         for genre_name in entry["genres"]:
             genre, g_new = Genre.objects.get_or_create(name=genre_name)
@@ -309,11 +333,12 @@ def seed():
 
     print(
         f"Seeded {books_created} books, {authors_created} authors, "
-        f"{genres_created} genres, {tags_created} tags"
+        f"{genres_created} genres, {tags_created} tags, {series_created} series"
     )
     print(
         f"Total: {Book.objects.count()} books, {Author.objects.count()} authors, "
-        f"{Genre.objects.count()} genres, {Tag.objects.count()} tags"
+        f"{Genre.objects.count()} genres, {Tag.objects.count()} tags, "
+        f"{Serie.objects.count()} series"
     )
 
 
