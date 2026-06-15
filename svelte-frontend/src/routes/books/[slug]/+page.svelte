@@ -116,7 +116,11 @@
 					{/if}
 				</div>
 				{#if data.user}
-					<ShelfControl bookSlug={data.book.slug} initialEntry={data.shelfEntry} />
+					<ShelfControl
+						bookSlug={data.book.slug}
+						initialEntry={data.shelfEntry}
+						bookPageCount={data.book.page_count}
+					/>
 					<details class="relative w-fit" data-testid="add-to-shelf-dropdown">
 						<summary
 							class="flex items-center gap-1.5 w-fit cursor-pointer list-none rounded-md border border-rule bg-surface px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-paper-2"

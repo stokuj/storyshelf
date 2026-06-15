@@ -20,6 +20,18 @@ export const actions: Actions = {
 		if (!res.ok) return fail(res.status, { error: await apiError(res) });
 		return { success: true };
 	},
+	bio: async ({ request, fetch }) => {
+		const data = await request.formData();
+		const bio = data.get('bio') as string;
+		const res = await fetch(`${serverApiBase()}/users/me/`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ bio }),
+			credentials: 'include'
+		});
+		if (!res.ok) return fail(res.status, { error: await apiError(res) });
+		return { success: true };
+	},
 	handle: async ({ request, fetch }) => {
 		const data = await request.formData();
 		const handle = data.get('handle') as string;
