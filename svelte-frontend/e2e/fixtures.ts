@@ -27,7 +27,7 @@ function uniqueDisplayName(): string {
 	return `Test ${randomUUID().slice(0, 6)}`;
 }
 
-function uniqueHandle(): string {
+export function uniqueHandle(): string {
 	// Django requires handle to match ^[a-z]{3,30}$ (lowercase letters only).
 	const letters = (randomUUID() + randomUUID()).replace(/[^a-f]/g, '');
 	return `t${letters}`.slice(0, 30);

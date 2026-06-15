@@ -4,11 +4,12 @@ test.describe('Settings', () => {
 	test('edit display_name and see it reflected', async ({ page, authUser }) => {
 		await page.goto('/settings');
 
-		const displayNameInput = page.locator('input[name="display_name"]');
+		const profileForm = page.locator('form[action="?/profile"]');
+		const displayNameInput = profileForm.locator('input[name="display_name"]');
 		await displayNameInput.fill('Updated Name');
 		await Promise.all([
 			page.waitForResponse((r) => r.url().includes('?/profile') && r.status() === 200),
-			page.getByRole('button', { name: 'Save' }).click()
+			profileForm.getByRole('button', { name: 'Save' }).click()
 		]);
 
 		// Form action completed — input should reflect new value on the re-rendered page
@@ -18,9 +19,10 @@ test.describe('Settings', () => {
 	test('empty display_name is rejected (stays on settings)', async ({ page, authUser }) => {
 		await page.goto('/settings');
 
-		const displayNameInput = page.locator('input[name="display_name"]');
+		const profileForm = page.locator('form[action="?/profile"]');
+		const displayNameInput = profileForm.locator('input[name="display_name"]');
 		await displayNameInput.fill('');
-		await page.getByRole('button', { name: 'Save' }).click();
+		await profileForm.getByRole('button', { name: 'Save' }).click();
 		// Validation rejected — stays on /settings
 		await expect(page).toHaveURL(/\/settings/);
 	});
@@ -102,10 +104,12 @@ test.describe('Settings', () => {
 		await page.fill('#current', TEST_PASSWORD);
 		await page.fill('#new', newPassword);
 		await page.fill('#confirm', newPassword);
-		await page.getByRole('button', { name: 'Change password' }).click();
-
-		// Success: SvelteKit redirects to /settings on 200
-		await page.waitForURL(/\/settings/);
+		// Wait for the action to actually complete before verifying — waitForURL
+		// alone returns immediately (we never leave /settings) and races the change.
+		await Promise.all([
+			page.waitForResponse((r) => r.url().includes('?/password') && r.status() === 200),
+			page.getByRole('button', { name: 'Change password' }).click()
+		]);
 		await expect(page).toHaveURL(/\/settings/);
 
 		// Verify the new password actually works by logging in via API

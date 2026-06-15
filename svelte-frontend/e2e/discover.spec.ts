@@ -32,11 +32,12 @@ test.describe('Discover page', () => {
 		// pressSequentially triggers oninput events (fill() does not in SvelteKit)
 		await searchInput.click();
 		await searchInput.pressSequentially('Fellowship', { delay: 50 });
-		// expect() retries automatically (up to expect.timeout = 10s) — no waitForTimeout needed
+		// Wait for the (debounced) search to actually apply before counting — guards
+		// against typing before the input's oninput handler has hydrated.
+		await expect(page).toHaveURL(/q=Fellowship/);
 		await expect(page.locator('.grid h3')).toHaveCount(1);
-		await expect(page.getByText('The Fellowship of the Ring')).toBeVisible();
-		await expect(page.getByText('Dune')).not.toBeVisible();
-		await expect(page.getByText('1984')).not.toBeVisible();
+		// Scope to the card heading; the cover fallback also renders the title text.
+		await expect(page.locator('.grid h3', { hasText: 'The Fellowship of the Ring' })).toBeVisible();
 	});
 
 	test('search empty state shows "No books found"', async ({ page }) => {
@@ -48,11 +49,12 @@ test.describe('Discover page', () => {
 	});
 
 	test('genre filter shows only matching book', async ({ page }) => {
-		// Genres stored lowercase in DB; dropdown opens after click
-		await page.getByRole('button', { name: 'Genre' }).click();
-		// Wait for the listbox to appear with at least one option before selecting
+		// Dropdown is client-only; retry the open until hydration attaches onclick.
 		const listbox = page.getByRole('listbox');
-		await listbox.waitFor({ state: 'visible', timeout: 5_000 });
+		await expect(async () => {
+			if (!(await listbox.isVisible())) await page.getByRole('button', { name: 'Genre' }).click();
+			await expect(listbox).toBeVisible({ timeout: 500 });
+		}).toPass({ timeout: 10_000 });
 		await listbox.getByText('fantasy').click();
 		// Fellowship + The Hobbit + The Two Towers (all seeded as Fantasy)
 		await expect(page.locator('.grid h3')).toHaveCount(3);
@@ -61,10 +63,13 @@ test.describe('Discover page', () => {
 	test('sort by rating changes book order', async ({ page }) => {
 		// Default ordering is by title — "1984" first alphabetically
 		const firstBefore = await page.locator('.grid h3').first().textContent();
-		// Sort options are hardcoded (not fetched) — no wait needed before click
-		await page.getByRole('button', { name: 'Sort' }).click();
-		await page.getByRole('listbox').waitFor({ state: 'visible', timeout: 5_000 });
-		await page.getByRole('listbox').getByText('Rating').click();
+		// Dropdown is client-only; retry the open until hydration attaches onclick.
+		const listbox = page.getByRole('listbox');
+		await expect(async () => {
+			if (!(await listbox.isVisible())) await page.getByRole('button', { name: 'Sort' }).click();
+			await expect(listbox).toBeVisible({ timeout: 500 });
+		}).toPass({ timeout: 10_000 });
+		await listbox.getByText('Rating').click();
 		// Fellowship has avg_rating 4.5 (highest in seed) — should be first after sort
 		await expect(page.locator('.grid h3').first()).toHaveText('The Fellowship of the Ring');
 		expect(firstBefore).not.toBe('The Fellowship of the Ring');
