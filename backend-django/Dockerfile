@@ -17,6 +17,11 @@ ENV PATH="/app/.venv/bin:$PATH"
 # collectstatic means missing admin/DRF/Swagger assets at runtime.
 RUN uv run python manage.py collectstatic --noinput
 
+RUN useradd --create-home --uid 1000 app \
+    && mkdir -p /app/media \
+    && chown -R app:app /app/media /app/staticfiles
+USER app
+
 EXPOSE 8000
 
 CMD ["uv", "run", "gunicorn", "config.wsgi", "-b", "0.0.0.0:8000", "-w", "4"]
