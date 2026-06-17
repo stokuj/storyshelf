@@ -191,13 +191,14 @@ class AvatarUploadSerializer(serializers.Serializer):
     def validate_avatar(self, file):
         if file.size > 2 * 1024 * 1024:
             raise serializers.ValidationError("Avatar must be under 2 MB.")
-        allowed = {"image/jpeg", "image/png", "image/webp"}
-        if file.content_type not in allowed:
-            raise serializers.ValidationError("Only JPEG, PNG and WebP are allowed.")
         from PIL import Image
 
+        allowed_formats = {"JPEG", "PNG", "WEBP"}
         img = Image.open(file)
+        detected = img.format  # Pillow-detected, not the spoofable client MIME
         img.verify()
+        if detected not in allowed_formats:
+            raise serializers.ValidationError("Only JPEG, PNG and WebP are allowed.")
         file.seek(0)
         img = Image.open(file)
         if img.width > 1024 or img.height > 1024:
