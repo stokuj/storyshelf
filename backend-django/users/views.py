@@ -200,6 +200,10 @@ class EmailChangeView(views.APIView):
             )
         old_email = user.email
         new_email = serializer.validated_data["new_email"]
+        # Intentional: unlike PasswordChangeView, an email change does NOT
+        # blacklist/reissue JWTs. simplejwt tokens are keyed on user id, not
+        # email, so existing sessions stay valid; a notice goes to the old
+        # address. Keep this asymmetry deliberate.
         user.email = new_email
         user.save(update_fields=["email"])
         try:
