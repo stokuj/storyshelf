@@ -79,6 +79,7 @@
 		<input
 			type="search"
 			placeholder="Search people"
+			aria-label="Search people"
 			bind:value={search}
 			oninput={onSearchInput}
 			class="w-full sm:max-w-xs rounded-lg border border-rule bg-surface px-3 py-2 text-ink"

@@ -61,7 +61,13 @@
 		<Search
 			class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted pointer-events-none"
 		/>
-		<Input class="pl-8" placeholder="Search books…" value={query} oninput={handleSearchInput} />
+		<Input
+			class="pl-8"
+			placeholder="Search books…"
+			aria-label="Search books"
+			value={query}
+			oninput={handleSearchInput}
+		/>
 	</div>
 
 	<!-- Genre dropdown -->
