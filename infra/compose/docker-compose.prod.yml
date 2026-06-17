@@ -85,6 +85,7 @@ services:
       - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
+      - media:/srv/media:ro
     restart: unless-stopped
     depends_on:
       - svelte

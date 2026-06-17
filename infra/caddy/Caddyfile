@@ -17,11 +17,14 @@
 		reverse_proxy django:8000
 	}
 
-	# Django-served user uploads and collected static (admin, DRF, Swagger UI)
-	handle /media/* {
-		reverse_proxy django:8000
+	# User uploads served directly by Caddy from the shared media volume
+	# (handle_path strips /media so the path maps onto the volume root).
+	handle_path /media/* {
+		root * /srv/media
+		file_server
 	}
 
+	# Collected static (admin, DRF, Swagger UI) still served by Django.
 	handle /static/* {
 		reverse_proxy django:8000
 	}
