@@ -45,6 +45,28 @@
 	// but must persist across search/sort/load-more instead of being dropped.
 	let currentAuthor = $state(initialAuthor);
 
+	// Re-sync local state when a same-route navigation (e.g. the navbar search in
+	// AppShell, which calls goto('/discover?q=...')) delivers fresh server data for
+	// a DIFFERENT query than what is shown. Client-driven updates (loadBooks) set
+	// currentQ etc. BEFORE the URL changes, so data already matches and this is a
+	// no-op for them — only external navigation re-seeds.
+	$effect(() => {
+		if (
+			data.initialQ !== currentQ ||
+			data.initialGenre !== currentGenre ||
+			data.initialSort !== currentSort ||
+			data.initialAuthor !== currentAuthor
+		) {
+			books = data.initialBooks;
+			currentPage = data.initialPage;
+			total = data.initialTotal;
+			currentQ = data.initialQ;
+			currentGenre = data.initialGenre;
+			currentSort = data.initialSort;
+			currentAuthor = data.initialAuthor;
+		}
+	});
+
 	let hasFilters = $derived(
 		currentQ !== '' || currentGenre !== '' || currentSort !== '' || currentAuthor !== ''
 	);

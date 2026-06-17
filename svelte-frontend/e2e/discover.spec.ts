@@ -92,4 +92,17 @@ test.describe('Discover page', () => {
 		await searchInput.press('Delete');
 		await expect(page.locator('.grid h3')).toHaveCount(5);
 	});
+
+	test('navbar search updates results while already on /discover', async ({ page }) => {
+		await page.goto('/discover');
+		await page.waitForSelector('.grid h3');
+		await page.setViewportSize({ width: 1280, height: 800 }); // navbar search is hidden below sm
+		const navSearch = page.locator('header').getByRole('searchbox', { name: 'Search books' });
+		await navSearch.click();
+		await navSearch.pressSequentially('Dune', { delay: 50 });
+		await navSearch.press('Enter');
+		await expect(page).toHaveURL(/\/discover\?q=Dune/);
+		await expect(page.locator('.grid h3', { hasText: 'Dune' })).toBeVisible();
+		await expect(page.locator('.grid h3')).toHaveCount(1);
+	});
 });
