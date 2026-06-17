@@ -37,6 +37,7 @@ def _book(book):
 def _rating_entry(r, request):
     return {
         "type": "rating",
+        "key": ("rating", r.pk),
         "timestamp": r.updated_at,
         "actor": _actor(r.user, request),
         "book": _book(r.book),
@@ -49,6 +50,7 @@ def _rating_entry(r, request):
 def _review_entry(r, request):
     return {
         "type": "review",
+        "key": ("review", r.pk),
         "timestamp": r.updated_at,
         "actor": _actor(r.user, request),
         "book": _book(r.book),
@@ -61,6 +63,7 @@ def _review_entry(r, request):
 def _finished_entry(e, request):
     return {
         "type": "finished",
+        "key": ("finished", e.pk),
         "timestamp": e.finished_at,
         "actor": _actor(e.user, request),
         "book": _book(e.book),
@@ -137,18 +140,62 @@ class FeedView(APIView):
         items.sort(key=lambda x: x["timestamp"], reverse=True)
 
         page = items[:PAGE_SIZE]
-        # The cursor is a strict `<` on timestamp. To avoid splitting events that
-        # share the exact same timestamp across a page boundary (which strict `<`
-        # would silently skip), extend the page to swallow the whole tie group at
-        # the boundary, then advance the cursor below it.
-        i = PAGE_SIZE
+        # Strict `<` cursor: return the COMPLETE tie group at the boundary
+        # timestamp so no same-timestamp event is split across pages. The
+        # in-memory swallow covers ties within the fetched window; the
+        # supplemental query covers a tie group larger than the per-source fetch
+        # window. `next_before` then advances strictly below the boundary, gated
+        # by a direct existence check so a window saturated by the tie group does
+        # not falsely report "no more".
+        next_before = None
         if page:
             boundary = page[-1]["timestamp"]
+            i = PAGE_SIZE
             while i < len(items) and items[i]["timestamp"] == boundary:
                 page.append(items[i])
                 i += 1
-        has_more = i < len(items)
-        next_before = page[-1]["timestamp"].isoformat() if has_more else None
+            present = {it["key"] for it in page}
+            boundary_extra = (
+                [
+                    _rating_entry(r, request)
+                    for r in Rating.objects.filter(
+                        user_id__in=following_ids, updated_at=boundary
+                    ).select_related("user", "book")
+                ]
+                + [
+                    _review_entry(r, request)
+                    for r in Review.objects.filter(
+                        user_id__in=following_ids, updated_at=boundary
+                    ).select_related("user", "book")
+                ]
+                + [
+                    _finished_entry(e, request)
+                    for e in ShelfEntry.objects.filter(
+                        user_id__in=following_ids,
+                        status=ShelfEntry.Status.READ,
+                        finished_at=boundary,
+                    ).select_related("user", "book")
+                ]
+            )
+            for entry in boundary_extra:
+                if entry["key"] not in present:
+                    page.append(entry)
+                    present.add(entry["key"])
+            has_older = (
+                Rating.objects.filter(
+                    user_id__in=following_ids, updated_at__lt=boundary
+                ).exists()
+                or Review.objects.filter(
+                    user_id__in=following_ids, updated_at__lt=boundary
+                ).exists()
+                or ShelfEntry.objects.filter(
+                    user_id__in=following_ids,
+                    status=ShelfEntry.Status.READ,
+                    finished_at__isnull=False,
+                    finished_at__lt=boundary,
+                ).exists()
+            )
+            next_before = boundary.isoformat() if has_older else None
 
         return Response(
             {
