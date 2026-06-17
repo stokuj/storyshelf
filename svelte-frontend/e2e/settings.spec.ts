@@ -66,7 +66,8 @@ test.describe('Settings', () => {
 	test('export data triggers a zip download', async ({ page, authUser }) => {
 		await page.goto('/settings/data');
 		const downloadPromise = page.waitForEvent('download');
-		await page.getByRole('link', { name: 'Export all data' }).click();
+		// Export is now a POST form submit (was a GET link) — button, not link role.
+		await page.getByRole('button', { name: 'Export all data' }).click();
 		const download = await downloadPromise;
 		expect(download.suggestedFilename()).toMatch(/\.zip$/);
 	});
