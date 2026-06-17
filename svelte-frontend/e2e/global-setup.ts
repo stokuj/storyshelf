@@ -1,4 +1,5 @@
 import { request as playwrightRequest } from '@playwright/test';
+import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -157,6 +158,23 @@ export default async function globalSetup(): Promise<void> {
 	const slugsPath = resolve(__dirname, '.seed-slugs.json');
 	writeFileSync(slugsPath, JSON.stringify(slugs, null, 2), 'utf-8');
 	console.log(`[e2e] Slugs written to ${slugsPath}`);
+
+	// 5. Seed a deterministic character analysis (no live LLM) so the character
+	// E2E has data. Best-effort: needs the backend CLI + DB env (present in CI).
+	// A local run without DATABASE_URL fails the DB connect and the spec skips.
+	const fellowshipSlug = slugs['The Fellowship of the Ring'];
+	if (fellowshipSlug) {
+		try {
+			execSync(`uv run python manage.py seed_characters ${fellowshipSlug}`, {
+				cwd: resolve(__dirname, '../../backend-django'),
+				stdio: 'inherit',
+				env: { ...process.env, DJANGO_ENV: 'dev' }
+			});
+			console.log(`[e2e] Seeded characters for ${fellowshipSlug}`);
+		} catch (err) {
+			console.warn(`[e2e] Character seed skipped: ${String(err)}`);
+		}
+	}
 
 	await api.dispose();
 }

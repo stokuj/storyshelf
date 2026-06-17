@@ -61,7 +61,13 @@
 		<Search
 			class="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted pointer-events-none"
 		/>
-		<Input class="pl-8" placeholder="Search books…" value={query} oninput={handleSearchInput} />
+		<Input
+			class="pl-8"
+			placeholder="Search books…"
+			aria-label="Search books"
+			value={query}
+			oninput={handleSearchInput}
+		/>
 	</div>
 
 	<!-- Genre dropdown -->
@@ -71,6 +77,8 @@
 			class:text-ink={genre !== ''}
 			class:text-muted={genre === ''}
 			type="button"
+			aria-haspopup="listbox"
+			aria-expanded={genreOpen}
 			onclick={() => {
 				genreOpen = !genreOpen;
 				sortOpen = false;
@@ -87,6 +95,8 @@
 				<button
 					class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm text-ink outline-none hover:bg-paper-2"
 					type="button"
+					role="option"
+					aria-selected={genre === ''}
 					onclick={() => selectGenre('')}
 				>
 					All genres
@@ -95,6 +105,8 @@
 					<button
 						class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm text-ink outline-none hover:bg-paper-2"
 						type="button"
+						role="option"
+						aria-selected={genre === g.name}
 						onclick={() => selectGenre(g.name)}
 					>
 						{g.name}
@@ -111,6 +123,8 @@
 			class:text-ink={sort !== ''}
 			class:text-muted={sort === ''}
 			type="button"
+			aria-haspopup="listbox"
+			aria-expanded={sortOpen}
 			onclick={() => {
 				sortOpen = !sortOpen;
 				genreOpen = false;
@@ -128,6 +142,8 @@
 					<button
 						class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm text-ink outline-none hover:bg-paper-2"
 						type="button"
+						role="option"
+						aria-selected={sort === option.value}
 						onclick={() => selectSort(option.value)}
 					>
 						{option.label}

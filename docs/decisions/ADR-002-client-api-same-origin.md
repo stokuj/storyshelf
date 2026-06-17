@@ -18,7 +18,7 @@ The client-side path is constrained:
 
 Therefore client-side code in `svelte-frontend/src/lib/api/_client.ts` uses a hard-coded, **relative `/api`** base (not `PUBLIC_API_URL`). For this to work, *something on the frontend origin* must reverse-proxy `/api/*` to Django.
 
-In production this is Caddy (`handle_path /api/* → reverse_proxy django:8000`, everything else → the SvelteKit server). The dev environment, however, exposed the SvelteKit dev server directly on `:5174` with **no reverse proxy**, so client-side `/api` calls 404'd. This stayed latent through M1–M2 (whose authenticated writes all go through SSR form actions) and only surfaced in M3, the first feature with client-side mutations (`/shelf`): "Failed to add to shelf" was a `/api` routing 404, not an app bug.
+In production this is Caddy (`handle /api/* → reverse_proxy django:8000`, preserving the `/api` prefix — `handle_path` would strip it and Django would 404; everything else → the SvelteKit server). The dev environment, however, exposed the SvelteKit dev server directly on `:5174` with **no reverse proxy**, so client-side `/api` calls 404'd. This stayed latent through M1–M2 (whose authenticated writes all go through SSR form actions) and only surfaced in M3, the first feature with client-side mutations (`/shelf`): "Failed to add to shelf" was a `/api` routing 404, not an app bug.
 
 ## Decision
 

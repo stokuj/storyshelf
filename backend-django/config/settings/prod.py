@@ -25,6 +25,13 @@ SECURE_REFERRER_POLICY = "same-origin"
 
 CORS_ALLOWED_ORIGINS = [o for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if o]
 
+# prod.py does not set ALLOWED_HOSTS itself; fold the Caddy DOMAIN in so a
+# deployer who only edits secrets still answers on the real hostname (otherwise
+# DEBUG=False + localhost-only hosts => 400 DisallowedHost on every request).
+_domain = os.getenv("DOMAIN")
+if _domain and _domain not in ALLOWED_HOSTS:  # noqa: F405
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, _domain]  # noqa: F405
+
 # JWT cookies prod: same-origin za Caddy (front + /api z jednego origin, ADR-002).
 # SameSite=Lax wystarcza i jest jedyna ochrona CSRF dla JWTCookieAuthentication
 # (DRF nie wymusza tokenu CSRF dla tej klasy). Cross-origin (SameSite=None) tylko

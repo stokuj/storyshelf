@@ -1,6 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { serverApiBase } from '$lib/server/api';
+import { forwardSetCookies } from '$lib/server/cookies';
 
 async function apiError(res: Response): Promise<string> {
 	const body = await res.json().catch(() => ({}));
@@ -69,7 +70,7 @@ export const actions: Actions = {
 		if (!res.ok) return fail(res.status, { error: await apiError(res) });
 		return { success: true };
 	},
-	password: async ({ request, fetch }) => {
+	password: async ({ request, fetch, cookies }) => {
 		const data = await request.formData();
 		const current = data.get('current_password') as string;
 		const newPw = data.get('new_password') as string;
@@ -92,6 +93,7 @@ export const actions: Actions = {
 			credentials: 'include'
 		});
 		if (!res.ok) return fail(res.status, { error: await apiError(res) });
+		forwardSetCookies(res, cookies);
 		return { success: true };
 	},
 	avatar: async ({ request, fetch }) => {

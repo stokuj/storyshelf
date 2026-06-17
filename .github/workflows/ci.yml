@@ -44,12 +44,15 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.13"
+      - name: Django system check
+        working-directory: backend-django
+        run: uv run python manage.py check
+      - name: Check for missing migrations
+        working-directory: backend-django
+        run: uv run python manage.py makemigrations --check --dry-run
       - name: Run Django tests
         working-directory: backend-django
         run: uv run python -m pytest
-      - name: Verify OpenAPI snapshot
-        working-directory: backend-django
-        run: DJANGO_ENV=dev uv run python manage.py test config.tests.test_openapi_schema --noinput
 
   frontend:
     runs-on: ubuntu-latest

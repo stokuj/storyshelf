@@ -76,6 +76,8 @@ services:
   caddy:
     image: caddy:2-alpine
     container_name: storyshelf-caddy
+    env_file:
+      - ../.env
     ports:
       - "80:80"
       - "443:443"
@@ -83,6 +85,7 @@ services:
       - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
+      - media:/srv/media:ro
     restart: unless-stopped
     depends_on:
       - svelte
@@ -108,4 +111,9 @@ volumes:
   db-data:
   caddy-data:
   caddy-config:
+  # A fresh `media` volume inherits app:app ownership from the image (Django runs
+  # as uid 1000 and owns /app/media). A PRE-EXISTING root-owned volume (e.g. from
+  # an older root-based image) needs a one-time fix so uploads don't hit EACCES:
+  #   docker compose -f infra/compose/docker-compose.prod.yml run --rm -u root \
+  #     django chown -R app:app /app/media
   media:

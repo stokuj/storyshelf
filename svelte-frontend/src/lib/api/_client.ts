@@ -69,13 +69,11 @@ export async function apiFetch<T>(
 		options = { ...options, signal: controller.signal };
 		const result = await fetchJson<T>(fetchFn, url, options);
 		clearTimeout(timeoutId);
-
-		if (result.error?.status === 401) {
-			const refreshed = await attemptTokenRefresh(fetchFn, base);
-			if (refreshed) {
-				return fetchJson<T>(fetchFn, url, options);
-			}
-		}
+		// No SSR token refresh: the refresh cookie is path-scoped to
+		// /api/auth/refresh/ (backend users/cookie_auth.py), so it is never sent
+		// on SSR page requests — a refresh here cannot authenticate and used to
+		// fire one failing /auth/refresh/ per parallel load fetch. The browser
+		// refreshes client-side instead.
 		return result;
 	}
 

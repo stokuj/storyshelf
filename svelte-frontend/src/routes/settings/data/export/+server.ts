@@ -4,7 +4,7 @@ import { serverApiBase } from '$lib/server/api';
 // Proxies the authenticated ZIP export from the backend so the browser can
 // download it directly. Cookies are forwarded to the backend by handleFetch
 // (see src/hooks.server.ts). Backend endpoint is POST and returns application/zip.
-export const GET: RequestHandler = async ({ fetch }) => {
+export const POST: RequestHandler = async ({ fetch }) => {
 	const res = await fetch(`${serverApiBase()}/users/me/export/`, {
 		method: 'POST',
 		credentials: 'include'

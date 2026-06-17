@@ -27,10 +27,12 @@
 	<Card class="p-5">
 		<h2 class="font-sans text-base font-semibold text-ink mb-2">Export your data</h2>
 		<p class="text-sm text-ink-2 mb-4">Download your account data in a portable format.</p>
-		<Button href="/settings/data/export" variant="outline" size="sm" data-sveltekit-reload>
-			<Download class="mr-2 size-4" />
-			Export all data
-		</Button>
+		<form method="POST" action="/settings/data/export" data-sveltekit-reload>
+			<Button type="submit" variant="outline" size="sm">
+				<Download class="mr-2 size-4" />
+				Export all data
+			</Button>
+		</form>
 	</Card>
 
 	<Separator />

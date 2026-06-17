@@ -54,12 +54,15 @@ def store_characters(book, data: dict) -> None:
         target = by_name.get(_clean_str(rel.get("to")))
         raw_type = _clean_str(rel.get("type")).lower().replace("-", "_")
         relation_type = raw_type if raw_type in valid_types else RelationType.OTHER
-        key = (id(source), id(target), relation_type)
-        if source and target and source != target and key not in seen:
-            seen.add(key)
-            CharacterRelation.objects.create(
-                book=book,
-                from_character=source,
-                to_character=target,
-                relation_type=relation_type,
-            )
+        if not (source and target and source != target):
+            continue
+        key = (source.pk, target.pk, relation_type)
+        if key in seen:
+            continue
+        seen.add(key)
+        CharacterRelation.objects.create(
+            book=book,
+            from_character=source,
+            to_character=target,
+            relation_type=relation_type,
+        )

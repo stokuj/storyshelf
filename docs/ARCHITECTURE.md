@@ -59,7 +59,8 @@ Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating, r
  ├── Author (M2M through BookAuthor)
  ├── Genre (M2M through BookGenre)
  ├── Tag (M2M through BookTag)
- └── CharacterAnalysis (OneToOne) ── Character ── CharacterRelation (from/to, relation_type)
+ ├── CharacterAnalysis (OneToOne) — generation status only
+ └── Character (FK Book) ── CharacterRelation (FK Book; from/to Character, relation_type)
 ```
 
 ## API surface (M1–M14; M7 admin-import odłożone)
