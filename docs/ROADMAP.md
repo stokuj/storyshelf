@@ -1,29 +1,16 @@
 # Roadmapa StoryShelf
 
-> Stan: 2026-06-10. Aktualizowane ręcznie. Nie automatyzowane.
+> Stan: 2026-10-03. Aktualizowane ręcznie. Nie automatyzowane.
 
 ---
 
 ## Aktualny krok (next action for any Claude session)
 
-**Bieżący branch:** `feat/fixes-batch` — batch drobnych poprawek po ocenie projektu (audyt 24 findings zmergowany przez PR #79, M13/M14 na main).
+**PIVOT 2026-10-03:** StoryShelf przestaje być trackerem czytania. Staje się **prywatną wiki o książkach (OKF v0.2) pisaną przez Agenta LLM razem z Userem**. Patrz [CONTEXT.md](../CONTEXT.md), [ADR-004](decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](decisions/ADR-005-react-vite-spa.md), [ARCHITECTURE](ARCHITECTURE.md).
 
-**ZADANIE:** Brak aktywnego milestone funkcyjnego. Trwa batch poprawek z listy „rzeczy do naprawy" (gałąź `feat/fixes-batch`):
-1. **Spersonalizowana strona główna `/`** — zalogowany: „Continue reading" + podgląd feedu; gość: redirect na `/discover` (bez zmian).
-2. **Wyszukiwarka w navbarze** → `/discover?q=` (AppShell).
-3. **Kontrolka postępu na `/books/[slug]`** — `ShelfControl` dostał input `current_page` + `ProgressBar` przy statusie READING.
-4. **Edycja bio z UI** — karta + akcja `bio` w `settings`.
-5. **Kursor feedu odporny na remis timestampów** — „połykanie" grupy o równym czasie na granicy strony (`feed/views.py`).
-6. **E2E w CI** — nowy job `e2e` w `ci.yml` (postgres + django runserver + Playwright chromium).
-7. **Zasilenie Serie w seed** — 5 serii / 6 książek (Wiedźmin, Kroniki Diuny, Władca Pierścieni, Harry Potter, Mroczne materie).
+**ZADANIE:** **W0 — makiety** kluczowych ekranów (jaśniejsza wersja stylu starego frontendu). Po akceptacji makiet: `/brainstorming` → spec **W1**.
 
-Świadomie **pominięte**: wdrożenie produkcyjne (osobna decyzja usera, deploy step nadal zakomentowany).
-
-Po mergu batcha następna decyzja: wdrożenie produkcyjne albo kolejny milestone (osobny `/brainstorming`).
-
-**M8 zamknięte bez nowej pracy (2026-06-04):** Wszystkie trzy historie (eksport danych z download, upload avatara, `current_page` jako progress czytania) okazały się już w pełni podpięte na `main` — zrobione przy okazji audytu/cleanup (PR #70). Pozostałość „brak kontrolki progresu na `/books/[slug]`" i „navbar Search no-op" — naprawione w `feat/fixes-batch` (pkt 3 i 2 wyżej).
-
-**M7 odłożone (2026-06-04):** Osobny panel importu w SvelteKit uznany za przekomplikowany — import książek to rzadka, jednorazowa czynność robiona przez właściciela, a działają już CLI `import_books <isbn>` i Django admin (`/admin/`, staff-only). Gdy wróci, najpewniej w formie lekkiej **opcji A: przycisk/akcja „Import from Google Books" w Django adminie** (pole ISBN → reuse logiki importu), bez nowego API i tras we froncie. Pełny panel w SvelteKit tylko jeśli pojawią się nietechniczni admini bez dostępu do `/admin/`.
+Kod na `main` to wciąż stary tracker (M1–M14). Tabela niżej to historia sprzed pivotu.
 
 ---
 
@@ -52,55 +39,41 @@ Po mergu batcha następna decyzja: wdrożenie produkcyjne albo kolejny milestone
 | M13 AI Character Analysis | app `characters/` (Celery+Redis, OpenRouter); sekcja postaci pod książką (karty monogram), podstrona postaci + ego-graf relacji; `POST .../generate/` async (throttle `character_generate`), publiczny odczyt; ADR-003 | ✅ zmergowane do main (PR #77) |
 | M14 Typed character relations | Enum RelationType (~20 typów / 7 grup) zamiast free-text label, unique (from, to, type), kolorowy ego-graf z pigułkami i legendą, hardening walidacji LLM | ✅ zmergowane do main (PR #78) |
 
-## W toku
+## Następne (wiki — kolejność wiążąca)
 
-Brak aktywnego milestone. M13 (PR #77) i M14 (PR #78) zmergowane do main.
+> Każdy etap: `/brainstorming` → spec → plan → implementacja na własnej gałęzi → PR.
 
-**Decyzja 2026-05-25:** profil publiczny/prywatny — bool `profile_public`, bez 3-state friends/private.
+| Etap | Zakres |
+|------|--------|
+| **W0 — Makiety** | Statyczne makiety: panel Books/Characters/Places/Universes, Strona książki z Wzmiankami (badge), czat z Agentem (Kandydat), pusta Strona + „Generuj", Propozycja z diffem, Historia, Profil. Bez backendu. |
+| **W1 — Fundament wiki (backend)** | Usunięcie starych apps/modeli (books, library, ratings, shelf, reviews, feed, characters, follow); model Page / PageVersion / Proposal per User; parser + walidacja OKF (frontmatter, `type`); Szablony 4 typów; API Stron, Historii i Edycji; Profil (o mnie + Ulubione, przełącznik publiczny); eksport pakietu OKF. |
+| **W2 — Frontend React** | Usunięcie `svelte-frontend/`; nowy Vite SPA (ADR-005): auth (cookies), panel boczny, render Strony (react-markdown + badge), Edycja, Historia, Profil; E2E. |
+| **W3 — Agent: dodawanie i Generowanie** | Czat (SSE) → Kandydaci (LLM + Google Books/OpenLibrary) → Strona z Szablonu; Generowanie (Celery + OpenRouter) treści, Wzmianek oraz Stron Postaci/Miejsc per książka; Propozycje na prośbę Usera (diff, akceptuj/odrzuć). |
 
-**Decyzja 2026-06-03:** faza post-MVP = M6–M10 (Follow UI, Admin import UI, dokończenie half-wired stories, statystyki czytania, audyt/cleanup). Każdy milestone osobna specka. Wdrożenie produkcyjne dopiero po M10.
+## Później (po W3, bez kolejności)
 
-**Decyzja 2026-06-06:** M13 otworzył ograniczoną fazę AI (Celery+Redis+OpenRouter, karty postaci) — patrz ADR-003. Szerszy pipeline AI pozostaje w „Kiedyś".
-
-## Następne (priorytetyzowane)
-
-> Każdy milestone: osobny `/brainstorming` → spec w `docs/superpowers/specs/` → plan → implementacja na własnej gałęzi → PR. Kolejność wiążąca.
-
-| Milestone | Zakres | Gałąź |
-|-----------|--------|-------|
-| ~~**M11 — Discover users + cudza półka**~~ ✅ ZROBIONE (PR #74) | `GET /api/users/` (lista publicznych profili: paginacja, `?search=` po handle/display_name, `?ordering=`, filtr `profile_public`) + publiczny odczyt domyślnej półki `GET /api/u/{handle}/shelf/` (ShelfEntry, status/postęp, bramkowane `profile_public`); frontend `/users` (reuse `UserRow`/`FollowList`/`FollowButton` z M6) + sekcja „Reading" na `/u/[handle]`. Domyka M6 Follow — daje *jak* znaleźć userów. Decyzja do brainstormingu: publiczna półka = tylko domyślna `ShelfEntry` czy też custom (te już publiczne z M5). | `feat/m11-user-discovery` |
-| ~~**M12 — Social feed + reakcje**~~ ✅ ZROBIONE (PR #75) | Feed aktywności obserwowanych `GET /api/feed/` (ocena / recenzja / skończona książka; liczony „w locie" z Rating/Review/ShelfEntry, bez modelu `Activity`; bramkowane `profile_public`), publiczne recenzje na profilu `GET /api/u/{handle}/reviews/`, polubienia recenzji (`ReviewLike` unique user+review, `POST/DELETE /api/reviews/{id}/like/`, `likes_count`+`is_liked`); frontend `/feed` + sekcja recenzji na `/u/[handle]`. Zależała od M11. YAGNI: bez powiadomień, komentarzy, repostów. | `feat/m12-social-feed` |
-| ~~**M7 — Import książek z UI admina** (A2)~~ **ODŁOŻONE** | Panel w SvelteKit uznany za przekomplikowany (patrz „Aktualny krok"). Wróci najpewniej jako lekki przycisk w Django adminie (opcja A). Działają już CLI `import_books` i Django admin. | `—` (gałąź `feat/m7-admin-import-ui` zostawiona pusta) |
-
-Po M11–M14:
-
-1. **Wdrożenie produkcyjne** — odkomentowanie deploy step w `.github/workflows/ci.yml`, Caddy z Let's Encrypt, sekrety na VPS (DigitalOcean). Wymaga konfiguracji `CORS_ALLOWED_ORIGINS` i `JWT_COOKIE_DOMAIN`. Dodatkowo: ALLOWED_HOSTS z domeną prod, non-root user w Dockerfile'ach, weryfikacja /media/ i /static/ przez Caddy.
-
-## Kiedyś (bez priorytetu)
-
-- Rekomendacje (collaborative + content-based)
-- System tagowania społecznościowego (tagi user-defined poza adminem)
-- Importer książek z OpenLibrary / Goodreads (CSV z Goodreads, ISBN→OpenLibrary; Google Books — zrobione, patrz „Zrobione")
-- PWA (krok przed natywnym mobile)
-- ~~Lista userów `/users` + cudza półka~~ → awansowane do **M11** (patrz „Następne")
-- ~~Social: feed, recenzje publiczne, polubienia~~ → awansowane do **M12** (patrz „Następne")
-- Spersonalizowana strona główna `/` (Continue reading, aktywność followowanych, rekomendacje; dla gości trending + opis apki) zamiast redirectu na `/discover` — naturalny kandydat na kolejny milestone
-- Rozszerzenia statystyk (po M9): reading streak (dni z rzędu), yearly wrap
-- AI — dalsza analiza książek (tematy/ton; pgvector, semantic search) — karty postaci i graf relacji zrobione w M13/M14
-- ML/DE do CV: semantic search + embeddingi (sentence-transformers + pgvector), pipeline analityczny w dbt, Character Knowledge Graph (NetworkX + LLM extraction)
-- Edycja bio z UI (backend PATCH /users/me/ wspiera bio; brak formularza we froncie)
+- Postacie/Miejsca per **Uniwersum**: scalanie `geralt--x` + `geralt--y` → `/characters/geralt.md` (migracja A→C)
+- Strony **Autorów** (i analogicznie pod Uniwersum)
+- Propozycje jako skutek uboczny pracy nad inną Stroną (cross-page)
+- Źródła Agenta stopniowo: web search, Wikipedia, Reddit, zewnętrzne API, fragmenty książki (OKF `sources`)
+- Chatbot „w której książce było…": chunkowanie + embeddingi w **pgvector**
+- **Mapa relacji** (graf z Odnośników; Cytoscape / React Flow)
+- Udostępnianie Wiki; linki z kart Ulubionych na publicznym Profilu
+- Współdzielenie wspólnej treści między Wiki (cięcie kosztów LLM)
+- Rozbudowa Szablonów o kolejne sekcje
+- **Wdrożenie produkcyjne** (Caddy + Let's Encrypt, VPS, deploy step w `ci.yml`)
 
 ## Czego NIE robimy
 
-- **Skala >10k książek na jedną instancję** — projekt single-tenant, nie marketplace
-- **Real-time collaboration** — żadnych live cursors, presence, edytora wspólnego
-- **Native mobile (iOS/Android)** — PWA wystarczy
-- **AI/LLM w MVP** — brak Celery, RabbitMQ, Redis; NLP/AI pipeline odłożone poza M5. *(M13 post-MVP otworzył ograniczoną fazę AI: karty postaci per książka, Celery+Redis+OpenRouter — patrz [ADR-003](decisions/ADR-003-celery-redis-llm.md). Szeroki pipeline AI — pgvector, semantic search, dbt — nadal poza zakresem.)*
-- **Subskrypcje / płatności** — projekt hobbystyczny / portfoliowy
+- **Recenzje, oceny, półki, statystyki czytania, follow, feed**: usunięte przy pivocie (decyzja 2026-10-03)
+- **Wspólna, edytowana społecznie Wiki** (model Wikipedii): każdy User ma własną Wiki
+- **SSR / SEO**: Wiki i Profil są prywatne (ADR-005)
+- **Real-time collaboration**: brak live cursors i wspólnego edytora
+- **Native mobile (iOS/Android)**: PWA wystarczy
+- **Subskrypcje / płatności**: projekt hobbystyczny / portfoliowy
 
 ## Konwencja aktualizacji
 
 - Nowy etap zaczyna się od `/brainstorming` → spec w `docs/superpowers/specs/`
-- Po zakończeniu przesuwamy wpis z **W toku** do **Zrobione** + dopisujemy link do ADR (jeśli powstał)
-- "Następne" przeglądamy raz na kilka etapów — kolejność może się zmieniać
-- "Czego NIE robimy" jest **immutable jak ADR** — wykreślenie wymaga osobnego brainstormingu
+- Po zakończeniu przesuwamy etap do **Zrobione** + link do ADR (jeśli powstał)
+- „Czego NIE robimy" jest **immutable jak ADR**: zmiana wymaga osobnego brainstormingu (ostatnia: grilling pivotu 2026-10-03)
