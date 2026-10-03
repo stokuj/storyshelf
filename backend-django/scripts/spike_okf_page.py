@@ -14,7 +14,7 @@ from pathlib import Path
 
 import yaml
 
-MODEL = os.getenv("SPIKE_MODEL", "anthropic/claude-3.5-haiku")
+MODEL = os.getenv("SPIKE_MODEL", "deepseek/deepseek-v4.1-flash")
 URL = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADINGS = {
