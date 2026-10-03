@@ -36,10 +36,29 @@ Czy tani model przez OpenRouter, mając tylko prośbę Usera z tytułem, oddaje 
 ## Rekomendacja dla M3
 
 1. **Tak, ten model wystarcza do formatu.** Surowy Markdown jest OK; structured output/JSON niepotrzebny na tym etapie.
-2. **Backend stempluje `generated` (`by`, `at`) i `type`**, nie model. Model zwraca resztę; nadpisujemy te pola po parsowaniu.
+2. **Backend stempluje `generated` (`by`, `at`) i `type`**, nie model. Model zwraca resztę; nadpisujemy te pola po parsowaniu. Tak samo **slugi Ścieżek** (Odnośniki) — slugify w backendzie z nazwy, nie z odpowiedzi modelu.
 3. **Generowanie tylko async (Celery)** — 20–60 s wyklucza synchroniczne żądanie HTTP. UI potrzebuje stanu „generuję…”.
 4. **Limit Wzmianek w prompcie** (np. ≤10 Postaci, ≤6 Miejsc) i tworzenie Stron Postaci/Miejsc leniwie, nie wszystkich naraz.
 5. **Halucynacje = osobny problem do M3**: ugruntowanie w Źródłach (np. Wikipedia jako kontekst w prompcie) — wtedy wrócić do `sources`. Do czasu Weryfikacji Strona jest niezweryfikowana, co model już przewiduje.
+
+## Porównanie: `stealth/space-bunny-alpha`
+
+Ten sam prompt i walidacja (`SPIKE_MODEL=stealth/space-bunny-alpha`). Model anonimowy, darmowy (0 $), 1M kontekstu; stealth — prompty mogą być logowane przez dostawcę.
+
+| # | Prośba | Walidacja | Latencja | Tokeny in/out | Wzmianki |
+|---|---|---|---|---|---|
+| 1 | Dodaj książkę „Ostatnie życzenie” | ❌ `author: ""` | 17,5 s | 452/1140 | 0 |
+| 2 | Dodaj książkę „Lalka” | ✅ | 40,5 s | 449/2844 | 14 |
+| 3 | Dodaj książkę „Solaris” | ✅ | 40,4 s | 448/2805 | 7 |
+| 4 | Add the book “Dune” | ✅ | 37,5 s | 446/2972 | 20 |
+| 5 | Add the book “The Hobbit” | ✅ | 19,1 s | 446/1716 | 21 |
+
+- **„Ostatnie życzenie”: nie rozpoznał książki** → pusty Szablon (zgodnie z instrukcją „nie znasz — zwróć puste sekcje”). DeepSeek znał ją bez problemu.
+- **Poważna halucynacja w „Solaris”**: Harey (zmarła żona Kelvina) zamieniona w „Annę Kelvin, córkę Kelvina”; Kelvin nazwany „Krzysztof” (w książce: Kris).
+- **1/62 Odnośnik z nie-ASCII slugiem** (`krakowskie-przedmieście--lalka`) — slug trzeba generować w backendzie, nie ufać modelowi.
+- `generated.at` 5/5 skopiowany z przykładu w prompcie — ten sam problem co DeepSeek.
+
+**Wniosek:** format porównywalny, wiedza o polskiej literaturze wyraźnie słabsza niż `deepseek-v4.1-flash`. Darmowy, ale stealth (niestabilna dostępność, logowanie promptów) — nie nadaje się jako domyślny Agent. DeepSeek zostaje rekomendacją.
 
 ## Otwarte
 
