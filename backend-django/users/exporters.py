@@ -1,14 +1,7 @@
 import io
 import json
 import zipfile
-from datetime import date, datetime
-
-
-class _DatetimeEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, (date, datetime)):
-            return o.isoformat()
-        return super().default(o)
+from datetime import date
 
 
 def build_user_export_zip(user):
@@ -25,7 +18,7 @@ def build_user_export_zip(user):
             "is_active": user.is_active,
             "created_at": user.created_at.isoformat() if user.created_at else None,
         }
-        zf.writestr("user.json", json.dumps(user_data, indent=2, cls=_DatetimeEncoder))
+        zf.writestr("user.json", json.dumps(user_data, indent=2))
 
         # avatar
         if user.avatar and user.avatar.name:
