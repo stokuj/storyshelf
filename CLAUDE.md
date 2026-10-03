@@ -6,7 +6,7 @@
 
 StoryShelf — **w trakcie pivotu (2026-10-03)**: z trackera czytania na prywatną wiki o książkach (format OKF v0.2) pisaną przez Agenta LLM razem z Userem. Docelowo Django 6 + DRF + Celery/Redis/OpenRouter, a frontend od zera w React + Vite SPA ([ADR-004](docs/decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](docs/decisions/ADR-005-react-vite-spa.md)).
 
-Kod na `main` to wciąż backend starego trackera (katalog, oceny, półki, recenzje, feed, karty postaci M13/M14, 4 kontenery: db, django, celery, redis); stary frontend usunięty. Komendy i layout niżej opisują ten obecny kod. Plan migracji: GitHub milestones.
+Kod na `main` to wciąż backend starego trackera (katalog, oceny, półki, recenzje, feed, karty postaci M13/M14, 4 kontenery: db, django, celery, redis); `frontend/` to szkielet nowego SPA (#87). Komendy i layout niżej opisują ten obecny kod. Plan migracji: GitHub milestones.
 
 ## Mapa dokumentacji
 
@@ -16,7 +16,7 @@ Kod na `main` to wciąż backend starego trackera (katalog, oceny, półki, rece
 - Roadmapa: GitHub milestones
 - Decyzje (ADR): @docs/decisions/
 - Aktywny etap: @docs/superpowers/specs/ + @docs/superpowers/plans/
-- Konwencje stylu: egzekwowane przez `ruff check` (Python)
+- Konwencje stylu: egzekwowane przez `ruff check` (Python), ESLint + Prettier (frontend)
 
 ## Workflow (Spec-Driven Development z superpowers)
 
@@ -54,6 +54,18 @@ make verify          # lint + testy (CI equivalent)
 
 Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)
 
+### Frontend (z `frontend/`, Node 24)
+
+```bash
+npm ci
+npm run dev          # http://localhost:5173, proxy /api → :8000
+npm run typecheck
+npm run lint
+npm run format       # / format:check
+npm run test         # Vitest
+npm run build
+```
+
 ## Twarde reguły
 
 - **`DJANGO_ENV=dev` wymagane do testów** — bez tego settings nie ładują się poprawnie.
@@ -67,6 +79,7 @@ Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)
 
 ```
 backend-django/    Django 6 + DRF; apps: books, library, users, ratings, shelf, reviews, feed, characters, config
+frontend/          React 19 + Vite SPA; TanStack Router (src/routes/) + Query, Tailwind v4, shadcn
 infra/             compose (dev/prod), caddy, scripts/ (seed, deploy, openapi), .env(.example)
 docs/              ARCHITECTURE.md, decisions/, superpowers/
 .claude/           settings, agents/
