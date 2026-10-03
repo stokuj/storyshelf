@@ -7,7 +7,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   // tanstackRouter must come before react()
-  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
+  plugins: [tanstackRouter({ target: 'react' }), react(), tailwindcss()],
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, './src') },
   },
@@ -18,6 +18,5 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/test/setup.ts'],
   },
 })

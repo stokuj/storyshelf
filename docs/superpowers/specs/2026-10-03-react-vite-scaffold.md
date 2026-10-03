@@ -19,7 +19,7 @@ Pusty, działający frontend w `frontend/`: `npm run dev` pokazuje placeholder, 
 | Styl | Tailwind v4 przez `@tailwindcss/vite` + `shadcn init` (`components.json`, `src/lib/utils.ts` z `cn()`, zmienne CSS) | bez komponentów, dojdą przy makietach |
 | Alias | `@/` → `src/` (tsconfig + vite) | wymagany przez shadcn |
 | Lint/format | ESLint 10 flat config: `@eslint/js`, `typescript-eslint` (recommended, bez type-checked), `react-hooks`, `react-refresh`, `eslint-config-prettier`; Prettier (`semi: false`, `singleQuote`, `printWidth: 100`) | standard z szablonu Vite |
-| Testy | Vitest 5 + jsdom + Testing Library + jest-dom; jeden smoke test placeholdera | dowód, że pipeline testów działa |
+| Testy | Vitest 5 + jsdom + Testing Library; jeden smoke test placeholdera | dowód, że pipeline testów działa |
 | Dev | Vite na hoście, proxy `/api` → `http://localhost:8000` | ADR-002 same-origin; bez kontenera Node |
 | Devtools | brak | YAGNI, dodać przy pierwszych zapytaniach |
 
