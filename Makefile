@@ -47,6 +47,7 @@ verify:
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev uv run python manage.py check
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev DATABASE_URL=$(VERIFY_DATABASE_URL) uv run python -m pytest
 	cd $(ROOT_DIR)backend-django && DJANGO_ENV=dev DATABASE_URL=$(VERIFY_DATABASE_URL) uv run python manage.py test config.tests.test_openapi_schema --noinput
+	cd $(ROOT_DIR)frontend && npm run typecheck && npm run lint && npm run format:check && npm run test
 
 regenerate-openapi:
 	$(ROOT_DIR)infra/scripts/regenerate-openapi.sh
