@@ -3,11 +3,7 @@ from datetime import date
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db import IntegrityError
-from django.db.models import Count
 from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
 from rest_framework import filters, generics, permissions, serializers, status, views
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -19,13 +15,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from config.pagination import StandardPagination
 from users.cookie_auth import clear_jwt_cookies, set_jwt_cookies
-from users.models import User, UserFollow
+from users.models import User
 from users.serializers import (
     AccountDeleteSerializer,
     AvatarUploadSerializer,
     EmailChangeSerializer,
-    FollowSerializer,
-    FollowUserSerializer,
     LoginSerializer,
     PasswordChangeSerializer,
     RegisterSerializer,
@@ -34,9 +28,7 @@ from users.serializers import (
     UserMeSerializer,
     UserProfileSerializer,
     UserSettingsPatchSerializer,
-    UserStatsSerializer,
 )
-from users.stats import build_user_stats
 
 logger = logging.getLogger(__name__)
 
@@ -280,14 +272,7 @@ class UserProfileView(generics.RetrieveAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserProfileSerializer
     lookup_field = "handle"
-
-    def get_queryset(self):
-        # related_name is reversed: follower_set = people who follow this user,
-        # following_set = people this user follows. distinct=True avoids JOIN fan-out.
-        return User.objects.annotate(
-            followers_count=Count("follower_set", distinct=True),
-            following_count=Count("following_set", distinct=True),
-        )
+    queryset = User.objects.all()
 
     def get_object(self):
         user = super().get_object()
@@ -298,104 +283,13 @@ class UserProfileView(generics.RetrieveAPIView):
 
 class UserListView(generics.ListAPIView):
     """Public, paginated list of public profiles. Search by handle/display_name;
-    order by follower count (default) or recency."""
+    order by recency (default) or handle."""
 
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserListSerializer
     pagination_class = StandardPagination
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ("handle", "display_name")
-    ordering_fields = ("followers_count", "created_at")
-    ordering = ("-followers_count", "handle")
-
-    def get_queryset(self):
-        return User.objects.filter(profile_public=True).annotate(
-            followers_count=Count("follower_set", distinct=True)
-        )
-
-
-class UserFollowView(views.APIView):
-    """
-    POST: Obserwuj użytkownika o podanym handle.
-          400 jeśli próba obserwowania siebie, 409 jeśli już obserwujesz.
-    DELETE: Przestań obserwować. 404 jeśli relacja nie istnieje.
-    """
-
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request, handle):
-        target = get_object_or_404(User, handle=handle)
-        if target == request.user:
-            return Response(
-                {"detail": "You cannot follow yourself"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if UserFollow.objects.filter(follower=request.user, following=target).exists():
-            return Response(
-                {"detail": "Already following this user"},
-                status=status.HTTP_409_CONFLICT,
-            )
-        try:
-            follow = UserFollow.objects.create(follower=request.user, following=target)
-        except IntegrityError:
-            return Response(
-                {"detail": "Already following this user"},
-                status=status.HTTP_409_CONFLICT,
-            )
-        return Response(FollowSerializer(follow).data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, handle):
-        target = get_object_or_404(User, handle=handle)
-        follow = UserFollow.objects.filter(follower=request.user, following=target).first()
-        if not follow:
-            return Response(
-                {"detail": "You are not following this user"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        follow.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class FollowListView(generics.ListAPIView):
-    """
-    Płaska lista obserwujących lub obserwowanych dla użytkownika o podanym handle.
-    follower_view=True → kto obserwuje tego użytkownika; False → kogo ten użytkownik obserwuje.
-    """
-
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = FollowUserSerializer
-    pagination_class = None
-    follower_view = False
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["follower_view"] = self.follower_view
-        return context
-
-    def get_queryset(self):
-        handle = self.kwargs["handle"]
-        user = get_object_or_404(User, handle=handle)
-        if not user.profile_public and user != self.request.user:
-            raise Http404
-        if self.follower_view:
-            return (
-                UserFollow.objects.filter(following=user)
-                .select_related("follower", "following")
-                .order_by("-followed_at")
-            )
-        return (
-            UserFollow.objects.filter(follower=user)
-            .select_related("follower", "following")
-            .order_by("-followed_at")
-        )
-
-
-class MyStatsView(views.APIView):
-    """Own reading statistics. Authenticated; own data only."""
-
-    permission_classes = (permissions.IsAuthenticated,)
-
-    @extend_schema(responses=UserStatsSerializer)
-    def get(self, request):
-        data = build_user_stats(request.user)
-        return Response(UserStatsSerializer(data).data)
+    ordering_fields = ("created_at", "handle")
+    ordering = ("-created_at", "handle")
+    queryset = User.objects.filter(profile_public=True)

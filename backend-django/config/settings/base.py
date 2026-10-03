@@ -25,13 +25,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "users.apps.UsersConfig",
-    "books.apps.BooksConfig",
-    "library.apps.LibraryConfig",
-    "ratings.apps.RatingsConfig",
-    "shelf.apps.ShelfConfig",
-    "reviews.apps.ReviewsConfig",
-    "feed.apps.FeedConfig",
-    "characters.apps.CharactersConfig",
 ]
 
 MIDDLEWARE = [
@@ -110,7 +103,6 @@ REST_FRAMEWORK = {
         "user_email_change": "3/day",
         "user_data_export": "3/day",
         "user_delete": "3/hour",
-        "character_generate": os.getenv("THROTTLE_CHARACTER_GENERATE", "10/hour"),
     },
 }
 
@@ -137,9 +129,6 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "true").lower() == "true"
 
-# --- Google Books import (books/management/commands/import_books.py) ---
-GOOGLE_BOOKS_API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY", "")
-
 # --- CORS (django-cors-headers) ---
 # Cross-origin policy: explicit allowlist + credentials (wymagane dla cookies JWT).
 # Konkretne origins ustawia kazde srodowisko (dev.py / prod.py).
@@ -156,12 +145,6 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "StoryShelf API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    # Pin the shelf status enum name: once `status` appears in a second serializer
-    # (PublicShelfEntrySerializer), drf-spectacular can't derive it from one
-    # serializer and falls back to a hash-suffixed name. Keep the stable component.
-    "ENUM_NAME_OVERRIDES": {
-        "ShelfEntryStatusEnum": "shelf.models.ShelfEntry.Status",
-    },
 }
 
 # --- Celery (background tasks) ---
@@ -169,7 +152,7 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = False
 
-# --- OpenRouter (characters/ai.py) ---
+# --- OpenRouter (LLM for the Agent) ---
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-haiku")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"

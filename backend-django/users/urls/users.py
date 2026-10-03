@@ -4,7 +4,6 @@ from users.views import (
     AvatarUploadView,
     DataExportView,
     EmailChangeView,
-    MyStatsView,
     PasswordChangeView,
     UserListView,
     UserMeView,
@@ -19,5 +18,4 @@ urlpatterns = [
     path("me/avatar/", AvatarUploadView.as_view()),
     path("me/settings/", UserSettingsView.as_view()),
     path("me/export/", DataExportView.as_view()),
-    path("me/stats/", MyStatsView.as_view()),
 ]

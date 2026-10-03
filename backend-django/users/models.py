@@ -5,7 +5,6 @@ from django.contrib.auth.models import (
 )
 from django.core.validators import FileExtensionValidator
 from django.db import models
-from django.db.models import F, Q
 
 
 class UserManager(BaseUserManager):
@@ -49,24 +48,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.handle
-
-
-class UserFollow(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following_set")
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower_set")
-    followed_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["follower", "following"],
-                name="unique_follower_following",
-            ),
-            models.CheckConstraint(
-                condition=~Q(follower=F("following")),
-                name="userfollow_no_self_follow",
-            ),
-        ]
-
-    def __str__(self):
-        return f"{self.follower.handle} → {self.following.handle}"
