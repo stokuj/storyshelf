@@ -87,7 +87,7 @@ Pierwsze wypełnienie pustej Strony przez Agenta na żądanie Usera. Zapisuje si
 _Avoid_: regeneracja, uzupełnianie
 
 **Propozycja**:
-Zmiana treści istniejącej Strony przygotowana przez Agenta na prośbę Usera. Wchodzi w życie dopiero po akceptacji Usera.
+Zmiana treści istniejącej Strony przygotowana przez Agenta na prośbę Usera, na podstawie konkretnej Wersji. Wchodzi w życie dopiero po akceptacji Usera. Gdy Strona dostanie nowszą Wersję, Propozycja staje się nieaktualna i nie da się jej zaakceptować.
 _Avoid_: sugestia, draft, PR
 
 **Edycja**:

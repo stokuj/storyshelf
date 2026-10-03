@@ -39,7 +39,7 @@ User
  └── Page (wiki_owner=User, path, type — unikalne (owner, path))
       ├── content: aktualny surowy .md (frontmatter + treść)
       ├── PageVersion (content, author: human|agent, created_at)   ← Historia
-      └── Proposal (proposed content, prompt, status: open|accepted|rejected)
+      └── Proposal (proposed content, prompt, base_version → PageVersion, status: open|accepted|rejected|stale)
 AgentConversation / message — czat dodawania książki (Kandydaci)
 ```
 
@@ -62,7 +62,7 @@ Postacie i Miejsca są na razie per książka. Później zostaną scalone do Uni
 
 1. **Dodanie książki:** czat → Agent zwraca Kandydatów (tytuł, autor, rok, okładka) → User potwierdza → Strona z pustym Szablonem (`status: draft`).
 2. **Generowanie:** przycisk na pustej Stronie → task Celery → treść + Wzmianki + Strony Postaci/Miejsc → Wersja (bez akceptacji).
-3. **Propozycja:** User prosi Agenta na Stronie → Proposal z diffem → akceptacja tworzy Wersję (`verified: human:<id>`), odrzucenie niczego nie zmienia.
+3. **Propozycja:** User prosi Agenta na Stronie → Proposal z diffem, powiązany z bieżącą Wersją (`base_version`) → akceptacja tworzy Wersję i dopisuje zdarzenie `verified: [{by: human:<id>, at: <ISO8601>}]` (OKF v0.2 §5.2), odrzucenie niczego nie zmienia. Jeśli Strona dostała w międzyczasie nową Wersję (np. Edycję), Propozycja jest `stale`: akceptacja jest zablokowana, a jedyna akcja to ponowne wygenerowanie na bieżącej Wersji.
 4. **Edycja:** textarea Markdown → nowa Wersja od razu (walidacja nagłówków Szablonu).
 5. **Eksport:** cała Wiki jako pakiet OKF (`.tar` z plikami `.md` + `index.md` z `okf_version`).
 
