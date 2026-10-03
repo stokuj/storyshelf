@@ -4,11 +4,15 @@
 
 ## Co to jest
 
-StoryShelf — book-tracking app (katalog, oceny, półki, recenzje). Django 6 REST API + SvelteKit 2 SSR, Docker Compose. Od M13 AI (karty postaci): Celery + Redis + OpenRouter — 5 kontenerów (db, django, celery, redis, svelte).
+StoryShelf — **w trakcie pivotu (2026-10-03)**: z trackera czytania na prywatną wiki o książkach (format OKF v0.2) pisaną przez Agenta LLM razem z Userem. Docelowo Django 6 + DRF + Celery/Redis/OpenRouter, a frontend od zera w React + Vite SPA ([ADR-004](docs/decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](docs/decisions/ADR-005-react-vite-spa.md)).
+
+Kod na `main` to wciąż stary tracker (katalog, oceny, półki, recenzje, feed, karty postaci M13/M14, SvelteKit 2 SSR, 5 kontenerów). Komendy i layout niżej opisują ten obecny kod. Migracja: etapy W0–W3 w ROADMAP.
 
 ## Mapa dokumentacji
 
-- Architektura: @docs/ARCHITECTURE.md
+- Słownik domeny (używaj tych pojęć: Strona, Wzmianka, Propozycja…): @CONTEXT.md
+- Architektura (docelowa): @docs/ARCHITECTURE.md
+- Makiety W0: `docs/mockups/project/*.dc.html`
 - Roadmapa: @docs/ROADMAP.md
 - Decyzje (ADR): @docs/decisions/
 - Aktywny etap: @docs/superpowers/specs/ + @docs/superpowers/plans/
