@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Universe page — Wiedźmin</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FCFBF8}a{color:#A9471F}a:hover{color:#7E3415}</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #FCFBF8; font-family: 'Public Sans', system-ui, sans-serif; color: #26201B">
+  <dc-import name="Sidebar" active="wiedzmin" hint-size="260px,900px"></dc-import>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px 48px 64px; box-sizing: border-box">
+    <div style="max-width: 900px; display: flex; flex-direction: column; gap: 28px">
+      <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: #6E665E">/universes/wiedzmin.md</code>
+      <header style="display: flex; flex-direction: column; gap: 10px">
+        <span style="align-self: flex-start; padding: 3px 10px; border-radius: 999px; background: #ECE8F6; color: #3D2F73; font-size: 12px; font-weight: 600">Universe</span>
+        <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 44px; font-weight: 600">Wiedźmin</h1>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A423B; max-width: 680px">Świat Andrzeja Sapkowskiego: Północne Królestwa, Nilfgaard, wiedźmini i Starsze Krwie.</p>
+      </header>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 26px; font-weight: 600">Books in this universe</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+          <sc-for list="{{books}}" as="b" hint-placeholder-count="2">
+            <a href="{{b.href}}" style="display: flex; gap: 12px; padding: 12px; border: 1px solid #E8E3DA; border-radius: 12px; background: #FFFFFF; color: #26201B; text-decoration: none">
+              <span style="{{b.cover}}"></span>
+              <span style="display: flex; flex-direction: column; gap: 4px">
+                <span style="font-family: 'Newsreader', Georgia, serif; font-size: 18px; font-weight: 600">{{b.title}}</span>
+                <span style="font-size: 13px; color: #6E665E">{{b.meta}}</span>
+              </span>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 26px; font-weight: 600">Characters in this universe</h2>
+        <p style="margin: 0; font-size: 13px; color: #6E665E">For now characters are per book. The same person appears once per book.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{chars}}" as="c" hint-placeholder-count="5">
+            <a href="Character.dc.html" style="display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 12px; border-radius: 999px; background: #F8E9DF; color: #6B2C12; font-size: 14px; font-weight: 600; text-decoration: none">
+              {{c.name}} <span style="font-weight: 400; font-size: 12px; color: #8A4A2C">{{c.book}}</span>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 26px; font-weight: 600">Places in this universe</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{places}}" as="p" hint-placeholder-count="4">
+            <a href="Main.dc.html" style="display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 12px; border-radius: 999px; background: #E4EDF7; color: #1F4A7A; font-size: 14px; font-weight: 600; text-decoration: none">
+              {{p.name}} <span style="font-weight: 400; font-size: 12px; color: #3E6690">{{p.book}}</span>
+            </a>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cover = (bg) => 'width: 52px; height: 76px; flex: none; border-radius: 6px; background: ' + bg;
+    return {
+      books: [
+        { title: 'Ostatnie życzenie', meta: '1993 · stable', href: 'Main.dc.html', cover: cover('#2F3A33') },
+        { title: 'Krew elfów', meta: '1994 · draft, empty', href: 'Empty.dc.html', cover: cover('#5A2E2A') }
+      ],
+      chars: [
+        { name: 'Geralt', book: 'Ostatnie życzenie' },
+        { name: 'Jaskier', book: 'Ostatnie życzenie' },
+        { name: 'Yennefer', book: 'Ostatnie życzenie' },
+        { name: 'Renfri', book: 'Ostatnie życzenie' },
+        { name: 'Nenneke', book: 'Ostatnie życzenie' },
+        { name: 'Foltest', book: 'Ostatnie życzenie' }
+      ],
+      places: [
+        { name: 'Świątynia Melitele', book: 'Ostatnie życzenie' },
+        { name: 'Blaviken', book: 'Ostatnie życzenie' },
+        { name: 'Wyzima', book: 'Ostatnie życzenie' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

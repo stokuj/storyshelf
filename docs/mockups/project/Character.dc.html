@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Character page — Geralt</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FCFBF8}a{color:#A9471F}a:hover{color:#7E3415}</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #FCFBF8; font-family: 'Public Sans', system-ui, sans-serif; color: #26201B">
+  <dc-import name="Sidebar" active="geralt-oz" hint-size="260px,900px"></dc-import>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px 48px 64px; box-sizing: border-box">
+    <div style="max-width: 820px; display: flex; flex-direction: column; gap: 26px">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+        <code style="font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: #6E665E">/characters/geralt--ostatnie-zyczenie.md</code>
+        <div style="display: flex; gap: 8px">
+          <a href="Proposal.dc.html" style="display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 10px; background: #F8E9DF; color: #6B2C12; font-size: 14px; font-weight: 600; text-decoration: none">Ask Agent</a>
+          <a href="History.dc.html" style="display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #E0DAD0; background: #FFFFFF; font-size: 14px; color: #26201B; text-decoration: none">History · v2</a>
+        </div>
+      </div>
+      <header style="display: flex; align-items: center; gap: 20px">
+        <span style="width: 88px; height: 88px; border-radius: 999px; background: #F3DDD0; color: #6B2C12; display: flex; align-items: center; justify-content: center; font-family: 'Newsreader', Georgia, serif; font-size: 36px; font-weight: 600">G</span>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 40px; font-weight: 600">Geralt z Rivii</h1>
+          <p style="margin: 0; font-size: 15px; color: #4A423B">Character in <a href="Main.dc.html">Ostatnie życzenie</a> · universe <a href="Universe.dc.html">Wiedźmin</a></p>
+        </div>
+      </header>
+      <section style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 600">Opis</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.65">Wiedźmin, zawodowy zabójca potworów, zmutowany w Kaer Morhen. Biały Wilk. Deklaruje neutralność, choć w praktyce raz po raz staje po którejś stronie.</p>
+      </section>
+      <section style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 600">Rola w książce</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.65">Bohater opowieści ramowej i wszystkich wspominanych zleceń: odczarowuje strzygę, w Blaviken zabija Renfri, w Cintrze żąda Prawa Niespodzianki, a w Rinde poznaje Yennefer.</p>
+      </section>
+      <section style="display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 600">Powiązania</h2>
+        <ul style="margin: 0; padding-left: 20px; font-size: 16px; line-height: 1.8">
+          <li><a href="Character.dc.html">Jaskier</a> — przyjaciel</li>
+          <li><a href="Character.dc.html">Yennefer</a> — ukochana (od ostatniego życzenia)</li>
+          <li><a href="Character.dc.html">Nenneke</a> — opiekunka, przyjaciółka</li>
+          <li><a href="Character.dc.html">Renfri</a> — przeciwniczka w Blaviken</li>
+        </ul>
+      </section>
+      <aside style="padding: 14px 16px; border: 1px dashed #D9D1C4; border-radius: 12px; font-size: 14px; color: #4A423B">
+        Also in this universe: <a href="Universe.dc.html">Geralt — Krew elfów</a> (separate page for now, merged into one Universe character later).
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
