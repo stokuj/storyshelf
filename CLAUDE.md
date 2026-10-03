@@ -6,7 +6,7 @@
 
 StoryShelf — **w trakcie pivotu (2026-10-03)**: z trackera czytania na prywatną wiki o książkach (format OKF v0.2) pisaną przez Agenta LLM razem z Userem. Docelowo Django 6 + DRF + Celery/Redis/OpenRouter, a frontend od zera w React + Vite SPA ([ADR-004](docs/decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](docs/decisions/ADR-005-react-vite-spa.md)).
 
-Kod na `main` to wciąż backend starego trackera (katalog, oceny, półki, recenzje, feed, karty postaci M13/M14, 4 kontenery: db, django, celery, redis); `frontend/` to szkielet nowego SPA (#87). Komendy i layout niżej opisują ten obecny kod. Plan migracji: GitHub milestones.
+Kod na `dev` to na razie sam szkielet backendu (`users`: auth, konto, profil; `config`: settings, Celery), 4 kontenery: db, django, celery, redis; domena trackera usunięta; `frontend/` to szkielet nowego SPA (#87). Komendy i layout niżej opisują ten obecny kod. Plan migracji: GitHub milestones.
 
 ## Mapa dokumentacji
 
@@ -52,8 +52,6 @@ make dev-build
 make verify          # lint + testy (CI equivalent; wymaga npm ci w frontend/)
 ```
 
-Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)
-
 ### Frontend (z `frontend/`, Node 24)
 
 ```bash
@@ -78,9 +76,9 @@ npm run build
 ## Layout (skrót)
 
 ```
-backend-django/    Django 6 + DRF; apps: books, library, users, ratings, shelf, reviews, feed, characters, config
+backend-django/    Django 6 + DRF; apps: users, config
 frontend/          React 19 + Vite SPA; TanStack Router (src/routes/) + Query, Tailwind v4, shadcn
-infra/             compose (dev/prod), caddy, scripts/ (seed, deploy, openapi), .env(.example)
+infra/             compose (dev/prod), caddy, scripts/ (deploy, openapi), .env(.example)
 docs/              ARCHITECTURE.md, decisions/, superpowers/
 .claude/           settings, agents/
 ```

@@ -8,7 +8,7 @@ def backfill_display_name(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("users", "0006_userfollow_userfollow_following_idx_and_more"),
+        ("users", "0004_remove_user_role"),
     ]
 
     operations = [
