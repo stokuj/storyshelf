@@ -1,99 +1,88 @@
-# Architecture — StoryShelf (MVP)
+# Architecture — StoryShelf (wiki o książkach)
+
+> Stan docelowy po pivocie 2026-10-03 ([ADR-004](decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](decisions/ADR-005-react-vite-spa.md)).
+> Kod na `main` wciąż jest starym trackerem czytania (M1–M14). Migrację opisuje [ROADMAP](ROADMAP.md).
+> Słownik pojęć: [CONTEXT.md](../CONTEXT.md).
+
+## Idea
+
+Każdy User ma prywatną **Wiki** o przeczytanych książkach. Książki dodaje rozmową z **Agentem** (LLM). Agent pokazuje **Kandydata**, a po potwierdzeniu tworzy **Stronę** z pustego **Szablonu**. Następnie na żądanie ją **Generuje**, a późniejsze zmiany zgłasza jako **Propozycje**. Treść Stron jest zgodna z **OKF v0.2** (Markdown + frontmatter YAML).
 
 ## Tech Stack
 
 | Warstwa   | Technologia |
 |-----------|-------------|
-| Frontend  | SvelteKit 2 + Svelte 5 + Tailwind v4 + TypeScript (Node adapter) |
-| Backend   | Django 6 + Django REST Framework + Python 3.13 |
-| Auth      | JWT — access token w pamięci, refresh token w HttpOnly cookie (djangorestframework-simplejwt) |
-| Baza      | PostgreSQL 16 |
-| Infra     | Docker Compose (dev + prod), Caddy reverse proxy |
-| CI/CD     | GitHub Actions — lint, testy, docker build |
+| Frontend  | React 19 + Vite SPA (bez SSR) + TypeScript + TanStack Router/Query + Tailwind v4 + shadcn/ui + react-markdown |
+| Backend   | Django 6 + DRF + Python 3.13 |
+| Agent     | Celery + Redis, OpenRouter (ADR-003); czat przez SSE |
+| Auth      | JWT: access w pamięci, refresh w HttpOnly cookie (ADR-001) |
+| Baza      | PostgreSQL 16 (później + pgvector) |
+| Infra     | Docker Compose, Caddy (serwuje statyczny build SPA + proxy `/api`) |
 
 ## Kontenery
 
 ```
-svelte (:5174 dev, :3000 prod) → django (:8000) → db (PostgreSQL :5432)
-                                       ↕
-                              redis (:6379) ← celery worker
+caddy ──┬── statyczny build React (prod)
+        └── /api → django (:8000) → db (PostgreSQL)
+                         ↕
+                 redis ← celery worker (Agent)
 ```
 
-Od M13: `redis` (broker + result backend) i `celery` worker (ten sam obraz co django) — w dev i prod compose.
+W dev frontend to `vite dev` z proxy `/api` → django (same-origin, ADR-002). Kontener Node (svelte) znika.
 
-## Auth flow
-
-1. Login → `POST /api/auth/login/` → access token (body) + refresh token (HttpOnly cookie)
-2. Access token w singletonie w pamięci przeglądarki, nigdy w localStorage
-3. SvelteKit `handleFetch` forwarduje cookies przy SSR
-4. 401 → `POST /api/auth/refresh/` → nowy access token
-5. Logout → blacklist refresh token w PostgreSQL
-
-Patrz [ADR-001](decisions/ADR-001-jwt-httponly-cookies.md).
-
-## Django apps
-
-| App       | Odpowiedzialność |
-|-----------|------------------|
-| `users/`  | Custom User (email, handle, display_name, bio, avatar, profile_public), auth, profil, follow, data export, reading stats (`stats.py::build_user_stats`) |
-| `books/`  | Book CRUD, nested M2M (Author/Genre/Tag przez through-modele), Serie FK, slug, avg_rating; import z Google Books (`import_books` management command) |
-| `library/`| Read-only API — Author, Serie, Genre, Tag (publiczne) |
-| `ratings/`| Rating (PUT-upsert), sygnał przelicza `Book.avg_rating`/`ratings_count` |
-| `shelf/`  | ShelfEntry (status czytania, current_page) + custom półki (Shelf + ShelfMembership), publiczny odczyt bramkowany `profile_public` |
-| `reviews/`| Review (body, unique user+book, PUT-upsert, publiczna lista, owner-only delete, `author_rating`, `likes_count`/`is_liked`); polubienia (`ReviewLike`, unique user+review); publiczne recenzje usera bramkowane `profile_public` |
-| `feed/`   | Read-only feed aktywności obserwowanych (`GET /api/feed/`) — liczony „w locie" z Rating/Review/ShelfEntry(READ), bez modelu; cursor po timestamp, bramkowany `profile_public` |
-| `characters/` | Karty postaci generowane przez LLM (OpenRouter) async (Celery): `CharacterAnalysis` (status), `Character`, `CharacterRelation`; publiczny odczyt, generacja auth |
-| `config/` | Settings (dev/prod split), urls, pagination |
-
-## Model relations
+## Model danych (docelowy)
 
 ```
 User
- ├── UserFollow (follower/following)
- ├── Rating (user+book, unique)
- ├── ShelfEntry (user+book, status, current_page, finished_at)
- ├── Shelf (owner) ── ShelfMembership ── Book
- └── Review (user+book, unique)
-Book (title, slug, year, isbn, description, page_count, cover_url, avg_rating, ratings_count)
- ├── serie → FK Serie (nullable)
- ├── Author (M2M through BookAuthor)
- ├── Genre (M2M through BookGenre)
- ├── Tag (M2M through BookTag)
- ├── CharacterAnalysis (OneToOne) — generation status only
- └── Character (FK Book) ── CharacterRelation (FK Book; from/to Character, relation_type)
+ ├── Profile (about, is_public)
+ │    └── Favorite → Page (type book|character)
+ └── Page (wiki_owner=User, path, type — unikalne (owner, path))
+      ├── content: aktualny surowy .md (frontmatter + treść)
+      ├── PageVersion (content, author: human|agent, created_at)   ← Historia
+      └── Proposal (proposed content, prompt, base_version → PageVersion, status: open|accepted|rejected|stale)
+AgentConversation / message — czat dodawania książki (Kandydaci)
 ```
 
-## API surface (M1–M14; M7 admin-import odłożone)
+Pola z frontmattera potrzebne do zapytań (`type`, `title`, `book`, `universe`) są denormalizowane do kolumn przy zapisie. Źródłem prawdy pozostaje `content`.
+
+Usuwane: Book, Author, Genre, Tag, Serie, Rating, Review, ReviewLike, Shelf, ShelfMembership, ShelfEntry, UserFollow, feed, CharacterAnalysis, Character, CharacterRelation.
+
+## Ścieżki (płaskie per typ)
 
 ```
-/api/auth/            register, login, refresh, logout
-/api/users/me/        profil, settings (profile_public), email, password, avatar, export, stats
-/api/users/           lista publicznych profili (paginacja, ?search=, ?ordering=)
-/api/u/{handle}/      publiczny profil (+ followers_count/following_count/is_following)
-/api/u/{handle}/follow/        follow/unfollow (auth)
-/api/u/{handle}/followers/, /api/u/{handle}/following/   listy obserwujących/obserwowanych
-/api/u/{handle}/shelf/    publiczna domyślna półka (bramkowane profile_public)
-/api/u/{handle}/shelves/   publiczne custom półki (bramkowane profile_public)
-/api/u/{handle}/reviews/   publiczne recenzje usera (bramkowane profile_public)
-/api/authors/, /api/genres/, /api/series/, /api/tags/   (read-only)
-/api/books/           lista, szczegóły (slug), filtry/search/sort
-/api/ratings/         PUT-upsert oceny (+ /api/ratings/{id}/)
-/api/shelf/entries/   ShelfEntry (status czytania, current_page)
-/api/shelves/         custom półki (owner CRUD) + add/remove książek
-/api/reviews/, /api/reviews/me/, /api/reviews/{id}/   recenzje
-/api/reviews/{id}/like/   polubienie recenzji (POST/DELETE, auth)
-/api/feed/            feed aktywności obserwowanych (auth, liczony w locie, cursor ?before=)
-/api/books/{slug}/characters/            lista + status analizy (publiczny)
-/api/books/{slug}/characters/generate/   enqueue generacji (auth, 202)
-/api/books/{slug}/characters/{char_slug}/ postać + relacje (publiczny)
-/api/schema/, /api/docs/
+/universes/wiedzmin.md
+/books/ostatnie-zyczenie.md                    universe: /universes/wiedzmin.md (opcjonalne)
+/characters/geralt--ostatnie-zyczenie.md       book: /books/ostatnie-zyczenie.md
+/places/kaer-morhen--krew-elfow.md             book: /books/krew-elfow.md
 ```
 
-> Książki dodaje się przez Django admin, `BookWriteSerializer` (admin-only) lub `manage.py import_books <isbn>` (Google Books).
+Postacie i Miejsca są na razie per książka. Później zostaną scalone do Uniwersum (`/characters/geralt.md`).
+
+## Przepływy
+
+1. **Dodanie książki:** czat → Agent zwraca Kandydatów (tytuł, autor, rok, okładka) → User potwierdza → Strona z pustym Szablonem (`status: draft`).
+2. **Generowanie:** przycisk na pustej Stronie → task Celery → treść + Wzmianki + Strony Postaci/Miejsc → Wersja (bez akceptacji).
+3. **Propozycja:** User prosi Agenta na Stronie → Proposal z diffem, powiązany z bieżącą Wersją (`base_version`) → akceptacja tworzy Wersję i dopisuje zdarzenie `verified: [{by: human:<id>, at: <ISO8601>}]` (OKF v0.2 §5.2), odrzucenie niczego nie zmienia. Jeśli Strona dostała w międzyczasie nową Wersję (np. Edycję), Propozycja jest `stale`: akceptacja jest zablokowana, a jedyna akcja to ponowne wygenerowanie na bieżącej Wersji.
+4. **Edycja:** textarea Markdown → nowa Wersja od razu (walidacja nagłówków Szablonu).
+5. **Eksport:** cała Wiki jako pakiet OKF (`.tar` z plikami `.md` + `index.md` z `okf_version`).
+
+## API (docelowe, szkic)
+
+```
+/api/auth/                         register, login, refresh, logout
+/api/users/me/                     konto, settings
+/api/u/{handle}/                   publiczny Profil (o mnie + karty Ulubionych, bez linków)
+/api/wiki/pages/?type=             lista Stron (panel boczny)
+/api/wiki/pages/{path}             odczyt / Edycja Strony
+/api/wiki/pages/{path}/versions/   Historia
+/api/wiki/pages/{path}/generate/   Generowanie (202, async)
+/api/wiki/pages/{path}/proposals/  Propozycje (utwórz / akceptuj / odrzuć)
+/api/agent/chat/                   czat z Agentem (SSE), Kandydaci
+/api/wiki/export/                  pakiet OKF
+```
 
 ## Testy
 
-- Backend: `DJANGO_ENV=dev uv run python manage.py test` (Django TestCase + DRF APITestCase)
-- Kontrakt API: `config/tests/test_openapi_schema.py` vs `docs/api/openapi.yml` (`make regenerate-openapi` po zmianie API)
-- Frontend: `npm run check` (svelte-check), `npm run lint` (ESLint + Prettier)
-- E2E: `npx playwright test` (seed przez API w `global-setup.ts`)
+- Backend: `DJANGO_ENV=dev uv run python manage.py test`; walidacja OKF (frontmatter, `type`) jako unit testy.
+- Agent: `CELERY_TASK_ALWAYS_EAGER=True` + mock OpenRoutera.
+- Frontend: `tsc`, ESLint, Vitest; E2E Playwright.

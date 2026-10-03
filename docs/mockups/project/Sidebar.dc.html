@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sidebar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<nav aria-label="Wiki" style="width: 260px; box-sizing: border-box; min-height: 900px; padding: 20px 14px; background: #F6F3EE; border-right: 1px solid #E8E3DA; display: flex; flex-direction: column; gap: 18px; font-family: 'Public Sans', system-ui, sans-serif; color: #26201B">
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 6px">
+    <a href="Main.dc.html" style="font-family: 'Newsreader', Georgia, serif; font-size: 22px; font-weight: 600; color: #26201B; text-decoration: none">Storyshelf</a>
+  </div>
+  <a href="Agent.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border-radius: 10px; background: #B5502A; color: #FFFFFF; font-weight: 600; font-size: 14px; text-decoration: none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    Add book
+  </a>
+  <label style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; border: 1px solid #E0DAD0; border-radius: 10px; background: #FFFFFF; color: #6E665E; font-size: 14px">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+    <input type="search" placeholder="Search wiki…" aria-label="Search wiki" style="border: 0; outline: 0; background: transparent; font: inherit; color: #26201B; width: 100%">
+  </label>
+  <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="display: flex; justify-content: space-between; padding: 0 8px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6E665E">
+        <span>{{g.label}}</span><span>{{g.count}}</span>
+      </div>
+      <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+        <a href="{{it.href}}" style="{{it.style}}">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{it.title}}</span>
+          <span style="font-size: 12px; color: #6E665E; white-space: nowrap">{{it.sub}}</span>
+        </a>
+      </sc-for>
+    </div>
+  </sc-for>
+  <a href="Profile.dc.html" style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; color: #26201B; text-decoration: none; font-size: 14px">
+    <span style="width: 32px; height: 32px; border-radius: 999px; background: #F3DDD0; color: #6B2C12; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px">ST</span>
+    <span>stokuj</span>
+  </a>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"text","default":"ostatnie-zyczenie"},"$preview":{"width":260,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const active = this.props.active ?? 'ostatnie-zyczenie';
+    const base = 'display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 7px 8px; border-radius: 8px; font-size: 14px; text-decoration: none; ';
+    const mk = (id, title, sub, href) => ({
+      title, sub, href,
+      style: base + (id === active ? 'background: #FFFFFF; color: #26201B; font-weight: 600; box-shadow: 0 0 0 1px #E8E3DA' : 'color: #4A423B')
+    });
+    return {
+      groups: [
+        { label: 'Books', count: '3', items: [
+          mk('ostatnie-zyczenie', 'Ostatnie życzenie', '1993', 'Main.dc.html'),
+          mk('krew-elfow', 'Krew elfów', 'draft', 'Empty.dc.html'),
+          mk('solaris', 'Solaris', '1961', 'Main.dc.html')
+        ]},
+        { label: 'Characters', count: '7', items: [
+          mk('geralt-oz', 'Geralt', 'Ostatnie życzenie', 'Character.dc.html'),
+          mk('jaskier-oz', 'Jaskier', 'Ostatnie życzenie', 'Character.dc.html'),
+          mk('yennefer-oz', 'Yennefer', 'Ostatnie życzenie', 'Character.dc.html'),
+          mk('kelvin', 'Kris Kelvin', 'Solaris', 'Character.dc.html')
+        ]},
+        { label: 'Places', count: '4', items: [
+          mk('blaviken', 'Blaviken', 'Ostatnie życzenie', 'Main.dc.html'),
+          mk('melitele', 'Świątynia Melitele', 'Ostatnie życzenie', 'Main.dc.html')
+        ]},
+        { label: 'Universes', count: '1', items: [
+          mk('wiedzmin', 'Wiedźmin', '2 books', 'Universe.dc.html')
+        ]}
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>History — Ostatnie życzenie</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FCFBF8}a{color:#A9471F}a:hover{color:#7E3415}</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #FCFBF8; font-family: 'Public Sans', system-ui, sans-serif; color: #26201B">
+  <dc-import name="Sidebar" active="ostatnie-zyczenie" hint-size="260px,900px"></dc-import>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px 48px 64px; box-sizing: border-box">
+    <div style="max-width: 820px; display: flex; flex-direction: column; gap: 22px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <a href="Main.dc.html" style="font-size: 14px; text-decoration: none">← Ostatnie życzenie</a>
+        <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 34px; font-weight: 600">History</h1>
+      </div>
+      <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border: 1px solid #E8E3DA; border-radius: 12px; overflow: hidden; background: #FFFFFF">
+        <sc-for list="{{versions}}" as="v" hint-placeholder-count="5">
+          <li style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #EFEAE2">
+            <span style="width: 40px; font-family: ui-monospace, Menlo, monospace; font-size: 14px; font-weight: 600">{{v.n}}</span>
+            <span style="{{v.kindStyle}}">{{v.kind}}</span>
+            <span style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 15px">{{v.what}}</span>
+              <span style="font-size: 13px; color: #6E665E">{{v.who}} · {{v.when}}</span>
+            </span>
+            <button type="button" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #E0DAD0; background: #FFFFFF; font: inherit; font-size: 13px; color: #26201B">View</button>
+          </li>
+        </sc-for>
+      </ol>
+      <p style="margin: 0; font-size: 13px; color: #6E665E">Rejected proposals don’t create versions.</p>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const pill = (bg, fg) => 'width: 104px; text-align: center; padding: 3px 0; border-radius: 999px; font-size: 12px; font-weight: 600; background: ' + bg + '; color: ' + fg;
+    return {
+      versions: [
+        { n: 'v4', kind: 'Edit', kindStyle: pill('#E4EDF7', '#1F4A7A'), what: 'Poprawiono rok wydania w nagłówku', who: 'human:stokuj', when: '3 Oct 2026, 14:10' },
+        { n: 'v3', kind: 'Proposal', kindStyle: pill('#E3F1E6', '#1E5A2C'), what: 'Accepted: dopisano Nenneke do Postaci', who: 'storyshelf-agent · verified by human:stokuj', when: '3 Oct 2026, 13:52' },
+        { n: 'v2', kind: 'Generation', kindStyle: pill('#F8E9DF', '#6B2C12'), what: 'Summary, 6 characters, 5 places', who: 'storyshelf-agent', when: '3 Oct 2026, 13:40' },
+        { n: 'v1', kind: 'Created', kindStyle: pill('#EFEAE2', '#4A423B'), what: 'Empty template from Candidate', who: 'human:stokuj', when: '3 Oct 2026, 13:38' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

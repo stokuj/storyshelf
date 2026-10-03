@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Profile — stokuj</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>body{margin:0;background:#FCFBF8}a{color:#A9471F}a:hover{color:#7E3415}</style>
+</helmet>
+<div style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #FCFBF8; font-family: 'Public Sans', system-ui, sans-serif; color: #26201B">
+  <dc-import name="Sidebar" active="" hint-size="260px,900px"></dc-import>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 28px 48px 64px; box-sizing: border-box">
+    <div style="max-width: 860px; display: flex; flex-direction: column; gap: 28px">
+      <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px">
+        <span style="width: 88px; height: 88px; border-radius: 999px; background: #F3DDD0; color: #6B2C12; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 600">ST</span>
+        <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px">
+          <h1 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 36px; font-weight: 600">Stokuj</h1>
+          <span style="font-size: 14px; color: #6E665E">@stokuj</span>
+        </div>
+        <label style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+          <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: #B5502A">
+          Public profile
+        </label>
+      </header>
+
+      <section style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 600">About me</h2>
+        <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #4A423B">[YOUR BIO]</p>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 600">Favourite books</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{books}}" as="b" hint-placeholder-count="2">
+            <div style="display: flex; gap: 12px; padding: 12px; border: 1px solid #E8E3DA; border-radius: 12px; background: #FFFFFF">
+              <span style="{{b.cover}}"></span>
+              <span style="display: flex; flex-direction: column; gap: 4px">
+                <span style="font-family: 'Newsreader', Georgia, serif; font-size: 17px; font-weight: 600">{{b.title}}</span>
+                <span style="font-size: 13px; line-height: 1.4; color: #4A423B">{{b.desc}}</span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-size: 24px; font-weight: 600">Favourite characters</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{chars}}" as="c" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #E8E3DA; border-radius: 12px; background: #FFFFFF">
+              <span style="width: 44px; height: 44px; flex: none; border-radius: 999px; background: #F3DDD0; color: #6B2C12; display: flex; align-items: center; justify-content: center; font-family: 'Newsreader', Georgia, serif; font-size: 20px; font-weight: 600">{{c.initial}}</span>
+              <span style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-weight: 600">{{c.name}}</span>
+                <span style="font-size: 13px; color: #6E665E">{{c.desc}}</span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      <p style="margin: 0; font-size: 13px; color: #6E665E">Visitors see these as cards only. Your wiki pages stay private.</p>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cover = (bg) => 'width: 48px; height: 70px; flex: none; border-radius: 6px; background: ' + bg;
+    return {
+      books: [
+        { title: 'Ostatnie życzenie', desc: 'Zbiór opowiadań o wiedźminie Geralcie.', cover: cover('#2F3A33') },
+        { title: 'Solaris', desc: 'Kontakt z myślącym oceanem obcej planety.', cover: cover('#1F3550') }
+      ],
+      chars: [
+        { initial: 'J', name: 'Jaskier', desc: 'Ostatnie życzenie' },
+        { initial: 'Y', name: 'Yennefer', desc: 'Ostatnie życzenie' },
+        { initial: 'K', name: 'Kris Kelvin', desc: 'Solaris' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
