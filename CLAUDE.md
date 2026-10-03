@@ -49,7 +49,7 @@ uv run ruff check --fix .
 make dev-up          # db, django, celery, redis
 make dev-down
 make dev-build
-make verify          # lint + testy (CI equivalent)
+make verify          # lint + testy (CI equivalent; wymaga npm ci w frontend/)
 ```
 
 Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)

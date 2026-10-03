@@ -72,6 +72,7 @@ jobs:
       - run: npm run format:check
       - run: npm run test
       - run: npm run build
+      - run: git diff --exit-code src/routeTree.gen.ts
 
   build-and-push:
     needs: [lint, test]

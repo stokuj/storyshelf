@@ -11,14 +11,14 @@ Pusty, działający frontend w `frontend/`: `npm run dev` pokazuje placeholder, 
 | Temat | Decyzja | Powód |
 |---|---|---|
 | Menedżer pakietów | npm (`package-lock.json` w repo) | prosto, zgodnie z issue |
-| Node | CI: Node 24 (Active LTS); `engines.node: ">=22.12"`; `.nvmrc` = `24` | wymóg Vite 8: `^20.19 \|\| >=22.12` |
+| Node | CI: Node 24 (Active LTS); `engines.node: "^22.22.2 || >=24.15"`; `.nvmrc` = `24` | wymóg jsdom 30 |
 | TypeScript | **6.0.x (`~6.0.3`), nie 7.0** | typescript-eslint 8.71 ma peer `typescript <6.1.0`; TS 7.0 nie ma jeszcze API programowego. Upgrade, gdy typescript-eslint wspiera TS 7.1 |
 | Routing | TanStack Router, routing plikowy (`@tanstack/router-plugin/vite`) | domyślna ścieżka w docs |
 | `routeTree.gen.ts` | commitowany, wyłączony z ESLint i Prettier | `tsc` w CI działa bez wcześniejszego `vite build` |
 | Dane | TanStack Query: `QueryClientProvider` w `main.tsx` | — |
 | Styl | Tailwind v4 przez `@tailwindcss/vite` + `shadcn init` (`components.json`, `src/lib/utils.ts` z `cn()`, zmienne CSS) | bez komponentów, dojdą przy makietach |
 | Alias | `@/` → `src/` (tsconfig + vite) | wymagany przez shadcn |
-| Lint/format | ESLint 10 flat config: `@eslint/js`, `typescript-eslint` (recommended, bez type-checked), `react-hooks`, `react-refresh`, `eslint-config-prettier`; Prettier z domyślnym configiem | standard z szablonu Vite |
+| Lint/format | ESLint 10 flat config: `@eslint/js`, `typescript-eslint` (recommended, bez type-checked), `react-hooks`, `react-refresh`, `eslint-config-prettier`; Prettier (`semi: false`, `singleQuote`, `printWidth: 100`) | standard z szablonu Vite |
 | Testy | Vitest 5 + jsdom + Testing Library + jest-dom; jeden smoke test placeholdera | dowód, że pipeline testów działa |
 | Dev | Vite na hoście, proxy `/api` → `http://localhost:8000` | ADR-002 same-origin; bez kontenera Node |
 | Devtools | brak | YAGNI, dodać przy pierwszych zapytaniach |
