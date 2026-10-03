@@ -29,11 +29,6 @@
 		reverse_proxy django:8000
 	}
 
-	# SvelteKit SSR — everything else
-	handle {
-		reverse_proxy svelte:3000
-	}
-
 	encode gzip
 	header {
 		# baseline security headers — SPA is self-hosted, no third-party scripts

@@ -56,23 +56,6 @@ services:
     container_name: storyshelf-redis
     restart: unless-stopped
 
-  svelte:
-    image: ghcr.io/stokuj/storyshelf-svelte:main
-    container_name: svelte
-    expose:
-      - "3000"
-    environment:
-      PUBLIC_API_URL: https://${DOMAIN}/api
-      INTERNAL_API_URL: http://django:8000/api
-    restart: unless-stopped
-    depends_on:
-      - django
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
   caddy:
     image: caddy:2-alpine
     container_name: storyshelf-caddy
@@ -88,7 +71,6 @@ services:
       - media:/srv/media:ro
     restart: unless-stopped
     depends_on:
-      - svelte
       - django
 
   db:

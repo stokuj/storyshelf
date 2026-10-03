@@ -6,17 +6,17 @@
 
 StoryShelf — **w trakcie pivotu (2026-10-03)**: z trackera czytania na prywatną wiki o książkach (format OKF v0.2) pisaną przez Agenta LLM razem z Userem. Docelowo Django 6 + DRF + Celery/Redis/OpenRouter, a frontend od zera w React + Vite SPA ([ADR-004](docs/decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](docs/decisions/ADR-005-react-vite-spa.md)).
 
-Kod na `main` to wciąż stary tracker (katalog, oceny, półki, recenzje, feed, karty postaci M13/M14, SvelteKit 2 SSR, 5 kontenerów). Komendy i layout niżej opisują ten obecny kod. Migracja: etapy W0–W3 w ROADMAP.
+Kod na `main` to wciąż backend starego trackera (katalog, oceny, półki, recenzje, feed, karty postaci M13/M14, 4 kontenery: db, django, celery, redis); stary frontend usunięty. Komendy i layout niżej opisują ten obecny kod. Plan migracji: GitHub milestones.
 
 ## Mapa dokumentacji
 
 - Słownik domeny (używaj tych pojęć: Strona, Wzmianka, Propozycja…): @CONTEXT.md
 - Architektura (docelowa): @docs/ARCHITECTURE.md
 - Makiety W0: `docs/mockups/project/*.dc.html`
-- Roadmapa: @docs/ROADMAP.md
+- Roadmapa: GitHub milestones
 - Decyzje (ADR): @docs/decisions/
 - Aktywny etap: @docs/superpowers/specs/ + @docs/superpowers/plans/
-- Konwencje stylu: egzekwowane przez `ruff check` (Python) i `svelte-check` + `eslint`/`prettier` (frontend)
+- Konwencje stylu: egzekwowane przez `ruff check` (Python)
 
 ## Workflow (Spec-Driven Development z superpowers)
 
@@ -43,19 +43,10 @@ uv run ruff check --fix .
 
 > Testy z hosta wymagają żywej dev-DB (`make dev-up`); `make verify` ustawia `DATABASE_URL` sam.
 
-### Frontend (z `svelte-frontend/`)
-
-```bash
-npm run dev          # Vite na 5174
-npm run check        # svelte-check + TypeScript
-npm run lint         # ESLint + Prettier
-npm run build        # adapter-node build
-```
-
 ### Docker dev stack
 
 ```bash
-make dev-up          # db, django, celery, redis, svelte
+make dev-up          # db, django, celery, redis
 make dev-down
 make dev-build
 make verify          # lint + testy (CI equivalent)
@@ -76,10 +67,9 @@ Seed: `uv run python ../infra/scripts/seed.py` (z `backend-django/`)
 
 ```
 backend-django/    Django 6 + DRF; apps: books, library, users, ratings, shelf, reviews, feed, characters, config
-svelte-frontend/src/  SvelteKit 2 SSR; hooks.server.ts, lib/api/, lib/config.ts, routes/
 infra/             compose (dev/prod), caddy, scripts/ (seed, deploy, openapi), .env(.example)
-docs/              ARCHITECTURE.md, ROADMAP.md, decisions/, superpowers/
+docs/              ARCHITECTURE.md, decisions/, superpowers/
 .claude/           settings, agents/
 ```
 
-API: `http://localhost:8000/api/` · Swagger: `/api/docs/` · Admin: `/admin/` · Svelte: `:5174`
+API: `http://localhost:8000/api/` · Swagger: `/api/docs/` · Admin: `/admin/`

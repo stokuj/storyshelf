@@ -1,7 +1,7 @@
 # Architecture — StoryShelf (wiki o książkach)
 
 > Stan docelowy po pivocie 2026-10-03 ([ADR-004](decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](decisions/ADR-005-react-vite-spa.md)).
-> Kod na `main` wciąż jest starym trackerem czytania (M1–M14). Migrację opisuje [ROADMAP](ROADMAP.md).
+> Kod na `main` wciąż jest starym trackerem czytania (M1–M14). Migrację planujemy w GitHub milestones.
 > Słownik pojęć: [CONTEXT.md](../CONTEXT.md).
 
 ## Idea

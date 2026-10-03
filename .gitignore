@@ -6,8 +6,6 @@
 
 # Node / frontend
 node_modules/
-svelte-frontend/build/
-svelte-frontend/.svelte-kit/
 
 # Python
 __pycache__/
