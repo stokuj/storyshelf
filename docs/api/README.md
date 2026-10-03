@@ -16,4 +16,4 @@ Zacommittuj zmieniony `docs/api/openapi.yml` w tym samym PR-ze co zmiana backend
 
 ## Konsumpcja
 
-Plik służy wyłącznie jako snapshot kontraktu pilnowany testem `config/tests/test_openapi_schema.py`. Generacja typów TS (`openapi-typescript`) — niezaimplementowana; ewentualnie „Kiedyś" (patrz ROADMAP).
+Plik służy wyłącznie jako snapshot kontraktu pilnowany testem `config/tests/test_openapi_schema.py`. Generacja typów TS (`openapi-typescript`) — niezaimplementowana.

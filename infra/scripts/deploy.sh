@@ -2,8 +2,8 @@
 # Deploy script for storyshelf production. Run from the repo root.
 # Usage: ./infra/scripts/deploy.sh [service...]
 #   ./infra/scripts/deploy.sh                  → deploy all
-#   ./infra/scripts/deploy.sh django svelte    → deploy specific services
-# Services: django, svelte, caddy, db
+#   ./infra/scripts/deploy.sh django caddy     → deploy specific services
+# Services: django, celery, redis, caddy, db
 
 set -e
 

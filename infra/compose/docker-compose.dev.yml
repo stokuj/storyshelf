@@ -49,31 +49,6 @@ services:
     restart: unless-stopped
     command: celery -A config worker --loglevel=info --concurrency=4
 
-  svelte:
-    build:
-      context: ../../svelte-frontend
-      dockerfile: Dockerfile.dev
-    image: storyshelf-svelte:local
-    container_name: svelte
-    ports:
-      - "5174:5174"
-    environment:
-      PUBLIC_API_URL: http://localhost:8000/api
-      INTERNAL_API_URL: http://django:8000/api
-    volumes:
-      - ../../svelte-frontend:/app
-      - /app/node_modules
-      - /app/.svelte-kit
-    restart: unless-stopped
-    depends_on:
-      django:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5174/"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
   redis:
     image: redis:7
     container_name: storyshelf-redis
