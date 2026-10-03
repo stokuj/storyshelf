@@ -35,9 +35,9 @@ Czy tani model przez OpenRouter, mając tylko prośbę Usera z tytułem, oddaje 
 
 ## Rekomendacja dla M3
 
-1. **Tak, ten model wystarcza do formatu.** Surowy Markdown jest OK; structured output/JSON niepotrzebny na tym etapie.
+1. **Tak — tanie modele wystarczają do formatu.** Surowy Markdown jest OK; structured output/JSON niepotrzebny na tym etapie. Domyślny model: `openai/gpt-6-luna` (patrz [Podsumowanie 5 modeli](#podsumowanie-5-modeli)).
 2. **Backend stempluje `generated` (`by`, `at`) i `type`**, nie model. Model zwraca resztę; nadpisujemy te pola po parsowaniu. Tak samo **slugi Ścieżek** (Odnośniki) — slugify w backendzie z nazwy, nie z odpowiedzi modelu.
-3. **Generowanie tylko async (Celery)** — 20–60 s wyklucza synchroniczne żądanie HTTP. UI potrzebuje stanu „generuję…”.
+3. **Generowanie tylko async (Celery)** — 7–60 s (GLM: do 10 min) wyklucza synchroniczne żądanie HTTP. UI potrzebuje stanu „generuję…”. Task potrzebuje twardego limitu czasu całego wywołania i `max_tokens` (timeout `urlopen` dotyczy pojedynczej operacji na sockecie, nie całości).
 4. **Limit Wzmianek w prompcie** (np. ≤10 Postaci, ≤6 Miejsc) i tworzenie Stron Postaci/Miejsc leniwie, nie wszystkich naraz.
 5. **Halucynacje = osobny problem do M3**: ugruntowanie w Źródłach (np. Wikipedia jako kontekst w prompcie) — wtedy wrócić do `sources`. Do czasu Weryfikacji Strona jest niezweryfikowana, co model już przewiduje.
 
@@ -58,7 +58,35 @@ Ten sam prompt i walidacja (`SPIKE_MODEL=stealth/space-bunny-alpha`). Model anon
 - **1/62 Odnośnik z nie-ASCII slugiem** (`krakowskie-przedmieście--lalka`) — slug trzeba generować w backendzie, nie ufać modelowi.
 - `generated.at` 5/5 skopiowany z przykładu w prompcie — ten sam problem co DeepSeek.
 
-**Wniosek:** format porównywalny, wiedza o polskiej literaturze wyraźnie słabsza niż `deepseek-v4.1-flash`. Darmowy, ale stealth (niestabilna dostępność, logowanie promptów) — nie nadaje się jako domyślny Agent. DeepSeek zostaje rekomendacją.
+**Wniosek:** format porównywalny, wiedza o polskiej literaturze wyraźnie słabsza niż `deepseek-v4.1-flash`. Darmowy, ale stealth (niestabilna dostępność, logowanie promptów) — nie nadaje się jako domyślny Agent.
+
+## Porównanie: `openai/gpt-6-luna`, `z-ai/glm-5.3-flash`, `qwen/qwen3.8-27b`
+
+Ten sam prompt i walidacja. Wszystkie trzy: walidacja **5/5**.
+
+| Model | Latencja | Śr. koszt / Stronę | Wzmianki | Odnośniki | `generated.at` |
+|---|---|---|---|---|---|
+| `openai/gpt-6-luna` | 7–16 s | 0,0006 $ | 7–13 | 48/48 OK | 5/5 `2025-03-08` (data z wiedzy modelu) |
+| `z-ai/glm-5.3-flash` | 34–47 s; „Lalka” **618 s** | 0,0053 $ (bez „Lalki” 0,0013 $) | 9–29 | 92/92 wzorzec OK, ale 15× zły slug książki `ostatnie-zycenie` | 5/5 przykład z promptu |
+| `qwen/qwen3.8-27b` | 12–44 s | 0,0111 $ | 6–11 | 44/44 OK | 4 różne zmyślone daty; 1× w cudzysłowie |
+
+Fakty (sprawdzone ręcznie na „Ostatnim życzeniu” i „Solaris”):
+
+- **GPT-6 Luna — poprawne.** Kris Kelvin, Harey, Gibarian, Renfri/Blaviken, Rinde. Treść oszczędna (krótkie streszczenie, mniej Wzmianek). Drobne usterki językowe: cyrylickie „е” w „związanе”, „przybyszyni”.
+- **GLM-5.3 Flash — najbogatsze, ale niechlujne.** Najlepsze „Solaris” ze wszystkich modeli. W „Ostatnim życzeniu” „Wieczny Ogień” z „Miecza przeznaczenia” i „Dolna Posada” zamiast Ellander; literówki i wtrącenia („wiedźminasplata”, „Gerolata”, „REFLEKSJA”, ang. „witness”). „Lalka”: 42 147 tokenów wyjścia (runaway reasoning) przy stronie 8,6 KB.
+- **Qwen3.8 27B — „Solaris” całkowicie zmyślone** (Christoph Bary, Gunny, Snow, Rheinhart). „Ostatnie życzenie” ogólnikowe, z błędnym Kaedwen. Najdroższy (do 7333 tokenów wyjścia). Odpowiedź zaczyna się od pustych linii.
+
+## Podsumowanie 5 modeli
+
+| Model | Format | Fakty (PL) | Koszt / Stronę | Latencja | Werdykt |
+|---|---|---|---|---|---|
+| `openai/gpt-6-luna` | 5/5 | ✅ poprawne, oszczędne | 0,0006 $ | 7–16 s | **Rekomendacja** |
+| `deepseek/deepseek-v4.1-flash` | 5/5 | ⚠️ bogate, miesza tomy cyklu | 0,0013 $ | 22–64 s | Alternatywa (więcej treści) |
+| `z-ai/glm-5.3-flash` | 5/5 | ⚠️ bogate, literówki, zły slug | 0,0013–0,021 $ | 34–618 s | Nie — nieprzewidywalny czas/koszt |
+| `qwen/qwen3.8-27b` | 5/5 | ❌ zmyślone „Solaris” | 0,0111 $ | 12–44 s | Nie |
+| `stealth/space-bunny-alpha` | 4/5 | ❌ nie zna „Ostatniego życzenia”, zmyślone „Solaris” | 0 $ | 17–41 s | Nie |
+
+Walidacja formatu nie odróżnia modeli (4–5/5 wszędzie) — różnią je fakty, koszt i przewidywalność. Ograniczenie: 1 przebieg na tytuł, fakty sprawdzone ręcznie na 2 książkach.
 
 ## Otwarte
 
