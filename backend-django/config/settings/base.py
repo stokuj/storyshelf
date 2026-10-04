@@ -101,7 +101,6 @@ REST_FRAMEWORK = {
         "user_handle_change": "5/day",
         "user_password_change": "5/hour",
         "user_email_change": "3/day",
-        "user_data_export": "3/day",
         "user_delete": "3/hour",
     },
 }
