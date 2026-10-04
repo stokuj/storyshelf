@@ -38,7 +38,7 @@ User
  │    └── Favorite → Page (type book|character)
  └── Page (wiki_owner=User, path, type — unikalne (owner, path))
       ├── content: aktualny surowy .md (frontmatter + treść)
-      ├── PageVersion (content, author: human|agent, created_at)   ← Historia
+      ├── PageVersion (content, kind: created|generation|proposal|edit, author: human|agent, created_at)   ← Historia
       └── Proposal (proposed content, prompt, base_version → PageVersion, status: open|accepted|rejected|stale)
 AgentConversation / message — czat dodawania książki (Kandydaci)
 ```
