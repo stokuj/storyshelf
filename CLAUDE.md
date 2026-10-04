@@ -72,7 +72,6 @@ npm run build
 - **Conventional commits**: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
 - **Reset DB zamiast pisania migracji w dev**: `manage.py flush --no-input && manage.py migrate`.
 - **Nie dodawaj localStorage token storage** — JWT przez HttpOnly cookies (patrz @docs/decisions/ADR-001-jwt-httponly-cookies.md).
-- **Nie pomijaj `/writing-plans` po `/brainstorming`** — spec bez planu = chaos w implementacji. Wyjątek: User wprost każe wykonać prosto ze speki.
 
 ## Layout (skrót)
 
