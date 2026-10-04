@@ -74,7 +74,7 @@ Etykiety UI są po angielsku, tak jak w makietach.
 ## Testy
 
 1. `wiki.test.ts` na danych z `listPages()`:
-   - `groupByType`: book 3, character 7, place 3, universe 1
+   - `groupByType`: book 3, character 8, place 3, universe 1
    - `universeMembers('/universes/wiedzmin.md')`: 2 książki, 5 postaci, 2 miejsca; żadna Strona z Solaris
    - `pagePath(pageSplat(p)) === p` dla każdej Strony z fixture'ów
 2. `app.test.tsx`: render routera w pamięci (`createMemoryHistory`), klik w „Krew elfów” → `location.pathname === '/books/krew-elfow'`, a link ma `aria-current="page"`.

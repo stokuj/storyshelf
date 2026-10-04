@@ -55,7 +55,7 @@ const pages = listPages()
 test('groupByType puts every page in its type group', () => {
   const groups = groupByType(pages)
   expect(groups.book).toHaveLength(3)
-  expect(groups.character).toHaveLength(7)
+  expect(groups.character).toHaveLength(8)
   expect(groups.place).toHaveLength(3)
   expect(groups.universe).toHaveLength(1)
 })
@@ -188,7 +188,7 @@ test('sidebar lists every page grouped by type', async () => {
   renderApp('/')
   const nav = await screen.findByRole('navigation', { name: 'Wiki' })
   await within(nav).findByRole('link', { name: 'Solaris' })
-  for (const [label, count] of [['Books', 3], ['Characters', 7], ['Places', 3], ['Universes', 1]] as const) {
+  for (const [label, count] of [['Books', 3], ['Characters', 8], ['Places', 3], ['Universes', 1]] as const) {
     expect(within(section(nav, `${label} ${count}`)).getAllByRole('link')).toHaveLength(count)
   }
   // Same character in two books is told apart by the book title
