@@ -43,5 +43,6 @@ test('book and universe fields point to existing pages', () => {
 test('recorded history and proposal differ from current content', () => {
   const [v3, v2] = listVersions('/books/ostatnie-zyczenie.md')
   expect(v2.content).not.toBe(v3.content)
+  expect(v2.content).not.toContain('verified:')
   expect(listProposals('/books/ostatnie-zyczenie.md')[0].content).not.toBe(v3.content)
 })

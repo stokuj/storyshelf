@@ -146,7 +146,7 @@ Fixtures celowo pokrywają przypadki brzegowe potrzebne kolejnym ekranom:
 | pusty Szablon, `status: draft` | `characters/snaut--solaris` | #90, #91 |
 
 `records.ts`:
-- `ostatnie-zyczenie`: 3 Wersje (`created` → `generation` → `edit`) oraz 1 Propozycja `open` oparta na najnowszej Wersji (#92, #93)
+- `ostatnie-zyczenie`: 3 Wersje (`created` → `generation` → `proposal`, zaakceptowana Propozycja z wpisem `verified`) oraz 1 Propozycja `open` oparta na najnowszej Wersji (#92, #93)
 - Profil `handle: 'stokuj'` z Ulubionymi: Ostatnie życzenie, Geralt (Ostatnie życzenie), Solaris
 - 3 Kandydaci: Ostatnie życzenie (1993), Krew elfów (1994), Solaris (1961)
 

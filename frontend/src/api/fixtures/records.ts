@@ -3,7 +3,9 @@ import type { Candidate, PageVersion, Profile, Proposal } from '../types'
 import ostatnieZyczenie from './books/ostatnie-zyczenie.md?raw'
 
 const OZ = '/books/ostatnie-zyczenie.md'
-const EDITED_LINE = '- Przeznaczenie — Prawo Niespodzianki wiąże Geralta z Cintrą\n'
+// Version 3 is an accepted proposal: it added this line and the `verified` event (ARCHITECTURE flow 3)
+const ACCEPTED_LINE = '- Przeznaczenie — Prawo Niespodzianki wiąże Geralta z Cintrą\n'
+const VERIFIED = 'verified:\n  - { by: human:stokuj, at: 2026-10-02T08:30:00Z }\n'
 
 const ozTemplate = `---
 type: book
@@ -36,10 +38,10 @@ export const versions: (Omit<PageVersion, 'content'> & { content?: string })[] =
     page: OZ,
     kind: 'generation',
     author: 'agent',
-    content: ostatnieZyczenie.replace(EDITED_LINE, ''),
+    content: ostatnieZyczenie.replace(ACCEPTED_LINE, '').replace(VERIFIED, ''),
     created_at: '2026-10-01T12:00:00Z',
   },
-  { id: 3, page: OZ, kind: 'edit', author: 'human', created_at: '2026-10-02T08:30:00Z' },
+  { id: 3, page: OZ, kind: 'proposal', author: 'agent', created_at: '2026-10-02T08:30:00Z' },
 ]
 
 export const proposals: Proposal[] = [
