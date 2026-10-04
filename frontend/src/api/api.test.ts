@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createElement, type ReactNode } from 'react'
 import { usePage } from './hooks'
-import { listPages } from './store'
+import { listPages, listProposals, listVersions } from './store'
 
 const TYPE_DIRS = {
   book: '/books/',
@@ -38,4 +38,10 @@ test('book and universe fields point to existing pages', () => {
     if (page.book) expect(paths).toContain(page.book)
     if (page.universe) expect(paths).toContain(page.universe)
   }
+})
+
+test('recorded history and proposal differ from current content', () => {
+  const [v3, v2] = listVersions('/books/ostatnie-zyczenie.md')
+  expect(v2.content).not.toBe(v3.content)
+  expect(listProposals('/books/ostatnie-zyczenie.md')[0].content).not.toBe(v3.content)
 })

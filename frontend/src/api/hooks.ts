@@ -14,7 +14,8 @@ export const usePages = (type?: PageType) =>
   useQuery({ queryKey: ['pages', type ?? 'all'], queryFn: () => listPages(type) })
 
 export const usePage = (path: string) =>
-  useQuery({ queryKey: ['page', path], queryFn: () => getPage(path) })
+  // No retry: a missing page is a 404 (OKF tolerates broken links), not a transient error
+  useQuery({ queryKey: ['page', path], queryFn: () => getPage(path), retry: false })
 
 export const useVersions = (path: string) =>
   useQuery({ queryKey: ['page', path, 'versions'], queryFn: () => listVersions(path) })
