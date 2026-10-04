@@ -16,8 +16,8 @@ Rama SPA, w której siedzą wszystkie kolejne ekrany. Po lewej panel boczny ze S
 | Podtytuły w panelu | tylko przy postaci i miejscu: tytuł książki | bez nich dwa „Geralt z Rivii” wyglądają identycznie. Rok i draft pomijamy, bo `Page` nie ma tych pól |
 | Uniwersum | książki, postacie **i miejsca** | zgodnie z makietą. Miejsca liczymy tą samą logiką co postacie |
 | Przynależność do Uniwersum | książka: `universe`; postać i miejsce: `book` → książka → `universe` | postać i miejsce mają tylko pole `book` (CONTEXT: na razie per książka) |
-| `/` | pusty stan w ramie: „Wybierz Stronę z panelu” | zero logiki; #91 może tu wstawić „Add book” |
-| Brak Strony | komunikat „Nie ma takiej Strony” w `<main>` | OKF dopuszcza zepsute linki; osobna strona 404 jest zbędna |
+| `/` | pusty stan w ramie: „Pick a page from the sidebar.” | zero logiki; #91 może tu wstawić „Add book” |
+| Brak Strony | komunikat „Page not found.” w `<main>` | OKF dopuszcza zepsute linki; osobna strona 404 jest zbędna |
 | Fonty | `@fontsource-variable/newsreader`, `@fontsource-variable/public-sans` zamiast `@fontsource-variable/geist` | ten sam wzorzec co Geist ze szkieletu; bez zapytań do Google Fonts |
 | Kolory | hexy z issue przypisane do istniejących zmiennych shadcn w `:root` | komponenty shadcn dostają paletę bez zmian w ich kodzie |
 | Dark mode | blok `.dark` bez zmian | poza zakresem; makiety są tylko jasne |
@@ -41,20 +41,20 @@ Pozostałe zmienne (`--border`, `--chart-*` itd.) zostają bez zmian, dopóki ni
 ```
 frontend/src/
   index.css                 tokeny i fonty
-  wiki.ts                   czyste funkcje: pageUrl, pagePath, groupByType, universeMembers
+  wiki.ts                   czyste funkcje: pageSplat, pagePath, groupByType, universeMembers
   wiki.test.ts              testy funkcji na fixture'ach
   components/Sidebar.tsx    panel boczny
   routes/__root.tsx         grid: Sidebar + <main><Outlet/></main>
   routes/index.tsx          pusty stan
   routes/$.tsx              Strona po Ścieżce; dla universe → widok Uniwersum
-  test/home.test.tsx        aktualizacja pod nowy index
-  test/sidebar.test.tsx     klik w panelu → URL i stan aktywny
+  test/renderApp.tsx        helper: cała aplikacja na URL w pamięci
+  test/app.test.tsx         testy renderu (zastępuje home.test.tsx)
 ```
 
 ## Logika (`src/wiki.ts`)
 
 ```ts
-pageUrl(path: string): string            // '/books/x.md' → '/books/x'
+pageSplat(path: string): string          // '/books/x.md' → 'books/x' (URL '/books/x')
 pagePath(splat: string): string          // 'books/x'    → '/books/x.md'
 groupByType(pages: Page[]): Record<PageType, Page[]>
 universeMembers(pages: Page[], universe: string): { books: Page[]; characters: Page[]; places: Page[] }
@@ -66,7 +66,7 @@ universeMembers(pages: Page[], universe: string): { books: Page[]; characters: P
 ## Komponenty
 
 - **`Sidebar`**: `usePages()` → `groupByType` → 4 sekcje w kolejności Books, Characters, Places, Universes, każda z nagłówkiem i licznikiem. Element to `<Link to="/$" params={{ _splat }}>` z `activeProps` (tło i kolor accent). Przy postaci i miejscu pod tytułem drugi wiersz (muted) z tytułem książki, wyszukanym w tej samej liście po `page.book`.
-- **`routes/$.tsx`**: `usePage(pagePath(_splat))`. Ładowanie → nic. Błąd → „Nie ma takiej Strony”. `type === 'universe'` → widok Uniwersum. Pozostałe Typy → `<h1>` z tytułem i Ścieżka w muted.
+- **`routes/$.tsx`**: `usePage(pagePath(_splat))`. Ładowanie → nic. Błąd → „Page not found.”. `type === 'universe'` → widok Uniwersum. Pozostałe Typy → `<h1>` z tytułem i Ścieżka w muted.
 - **Widok Uniwersum** (w tym samym pliku): nagłówek jak wyżej i 3 sekcje „Books / Characters / Places in this universe” z listami linków. Dane: `usePages()` + `universeMembers`. Pusta sekcja jest ukrywana.
 
 Etykiety UI są po angielsku, tak jak w makietach.
@@ -76,9 +76,9 @@ Etykiety UI są po angielsku, tak jak w makietach.
 1. `wiki.test.ts` na danych z `listPages()`:
    - `groupByType`: book 3, character 7, place 3, universe 1
    - `universeMembers('/universes/wiedzmin.md')`: 2 książki, 5 postaci, 2 miejsca; żadna Strona z Solaris
-   - `pagePath(pageUrl(p)) === p` dla każdej Strony z fixture'ów
-2. `sidebar.test.tsx`: render routera w pamięci (`createMemoryHistory`), klik w „Krew elfów” → `location.pathname === '/books/krew-elfow'`, a link ma `aria-current="page"`.
-3. `home.test.tsx`: `/` pokazuje panel i tekst pustego stanu.
+   - `pagePath(pageSplat(p)) === p` dla każdej Strony z fixture'ów
+2. `app.test.tsx`: render routera w pamięci (`createMemoryHistory`), klik w „Krew elfów” → `location.pathname === '/books/krew-elfow'`, a link ma `aria-current="page"`.
+3. `app.test.tsx`: `/` pokazuje panel i tekst pustego stanu.
 
 ## Poza zakresem
 
