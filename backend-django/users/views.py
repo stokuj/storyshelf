@@ -1,10 +1,9 @@
 import logging
-from datetime import date
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.http import Http404, HttpResponse
-from rest_framework import filters, generics, permissions, serializers, status, views
+from django.http import Http404
+from rest_framework import generics, permissions, serializers, status, views
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -13,7 +12,6 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from config.pagination import StandardPagination
 from users.cookie_auth import clear_jwt_cookies, set_jwt_cookies
 from users.models import User
 from users.serializers import (
@@ -23,7 +21,6 @@ from users.serializers import (
     LoginSerializer,
     PasswordChangeSerializer,
     RegisterSerializer,
-    UserListSerializer,
     UserMePatchSerializer,
     UserMeSerializer,
     UserProfileSerializer,
@@ -249,20 +246,6 @@ class UserSettingsView(views.APIView):
         return Response({"profile_public": user.profile_public})
 
 
-class DataExportView(views.APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-    throttle_scope = "user_data_export"
-
-    def post(self, request):
-        from users.exporters import build_user_export_zip
-
-        data = build_user_export_zip(request.user)
-        filename = f"storyshelf-export-{request.user.handle}-{date.today().isoformat()}.zip"
-        response = HttpResponse(data, content_type="application/zip")
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-        return response
-
-
 class UserProfileView(generics.RetrieveAPIView):
     """
     Publiczny profil użytkownika po handle. Zwraca 404 jeśli profil jest prywatny
@@ -279,17 +262,3 @@ class UserProfileView(generics.RetrieveAPIView):
         if not user.profile_public and user != self.request.user:
             raise Http404("No User matches the given query.")
         return user
-
-
-class UserListView(generics.ListAPIView):
-    """Public, paginated list of public profiles. Search by handle/display_name;
-    order by recency (default) or handle."""
-
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = UserListSerializer
-    pagination_class = StandardPagination
-    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
-    search_fields = ("handle", "display_name")
-    ordering_fields = ("created_at", "handle")
-    ordering = ("-created_at", "handle")
-    queryset = User.objects.filter(profile_public=True)

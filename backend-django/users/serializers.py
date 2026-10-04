@@ -124,21 +124,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return None
 
 
-class UserListSerializer(serializers.ModelSerializer):
-    avatar_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ("handle", "display_name", "avatar_url")
-
-    @extend_schema_field(serializers.URLField(allow_null=True))
-    def get_avatar_url(self, obj):
-        if obj.avatar:
-            request = self.context.get("request")
-            return request.build_absolute_uri(obj.avatar.url) if request else obj.avatar.url
-        return None
-
-
 class UserSettingsPatchSerializer(serializers.Serializer):
     profile_public = serializers.BooleanField(required=False)
 

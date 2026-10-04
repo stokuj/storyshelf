@@ -91,49 +91,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProfile'
           description: ''
-  /api/users/:
-    get:
-      operationId: users_list
-      description: |-
-        Public, paginated list of public profiles. Search by handle/display_name;
-        order by recency (default) or handle.
-      parameters:
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
-        schema:
-          type: string
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: per_page
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      - name: search
-        required: false
-        in: query
-        description: A search term.
-        schema:
-          type: string
-      tags:
-      - users
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedUserListList'
-          description: ''
   /api/users/me/:
     get:
       operationId: users_me_retrieve
@@ -182,16 +139,6 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/users/me/export/:
-    post:
-      operationId: users_me_export_create
-      tags:
-      - users
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          description: No response body
   /api/users/me/password/:
     patch:
       operationId: users_me_password_partial_update
@@ -223,27 +170,6 @@ paths:
           description: No response body
 components:
   schemas:
-    PaginatedUserListList:
-      type: object
-      required:
-      - data
-      - page
-      - per_page
-      - total
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/UserList'
-        page:
-          type: integer
-          example: 1
-        per_page:
-          type: integer
-          example: 20
-        total:
-          type: integer
-          example: 100
     Register:
       type: object
       properties:
@@ -267,23 +193,6 @@ components:
       - email
       - handle
       - password
-    UserList:
-      type: object
-      properties:
-        handle:
-          type: string
-          maxLength: 30
-        display_name:
-          type: string
-          maxLength: 80
-        avatar_url:
-          type: string
-          format: uri
-          nullable: true
-          readOnly: true
-      required:
-      - avatar_url
-      - handle
     UserProfile:
       type: object
       properties:
