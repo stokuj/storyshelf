@@ -17,6 +17,7 @@ Kod na `dev` to na razie sam szkielet backendu (`users`: auth, konto, profil; `c
 - Decyzje (ADR): @docs/decisions/
 - Aktywny etap: @docs/superpowers/specs/ + @docs/superpowers/plans/
 - Konwencje stylu: egzekwowane przez `ruff check` (Python), ESLint + Prettier (frontend)
+- Pułapki środowiska dev i guarda worktree: @docs/GOTCHAS.md
 
 ## Workflow (Spec-Driven Development z superpowers)
 
@@ -71,7 +72,7 @@ npm run build
 - **Conventional commits**: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
 - **Reset DB zamiast pisania migracji w dev**: `manage.py flush --no-input && manage.py migrate`.
 - **Nie dodawaj localStorage token storage** — JWT przez HttpOnly cookies (patrz @docs/decisions/ADR-001-jwt-httponly-cookies.md).
-- **Nie pomijaj `/writing-plans` po `/brainstorming`** — spec bez planu = chaos w implementacji.
+- **Nie pomijaj `/writing-plans` po `/brainstorming`** — spec bez planu = chaos w implementacji. Wyjątek: User wprost każe wykonać prosto ze speki.
 
 ## Layout (skrót)
 
