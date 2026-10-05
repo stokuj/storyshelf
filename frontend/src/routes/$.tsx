@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { usePage, usePages } from '@/api/hooks'
 import type { Page } from '@/api/types'
+import { PageView } from '@/components/PageView'
 import { pagePath, pageSplat, universeMembers } from '@/wiki'
 
 export const Route = createFileRoute('/$')({
@@ -13,12 +14,11 @@ function PageRoute() {
   if (isError) return <p className="text-muted-foreground">Page not found.</p>
   if (!page) return null
 
-  // ponytail: title + Path only; #90 renders the body below
   return (
     <article>
-      <p className="font-mono text-xs text-muted-foreground">{page.path}</p>
-      <h1 className="mt-1 font-heading text-4xl">{page.title}</h1>
-      {page.type === 'universe' && <UniverseMembers universe={page.path} />}
+      <PageView page={page}>
+        {page.type === 'universe' && <UniverseMembers universe={page.path} />}
+      </PageView>
     </article>
   )
 }

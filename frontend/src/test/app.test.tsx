@@ -52,3 +52,33 @@ test('unknown path shows not found inside the frame', async () => {
   await screen.findByText('Page not found.')
   screen.getByRole('navigation', { name: 'Wiki' })
 })
+
+test.each([
+  ['/books/ostatnie-zyczenie', 'Ostatnie życzenie'],
+  ['/characters/renfri--ostatnie-zyczenie', 'Renfri'],
+  ['/places/blaviken--ostatnie-zyczenie', 'Blaviken'],
+  ['/universes/wiedzmin', 'Wiedźmin'],
+])('%s renders header and body', async (url, title) => {
+  renderApp(url)
+  const main = await screen.findByRole('main')
+  await within(main).findByRole('heading', { level: 1, name: title })
+  expect(within(main).getAllByRole('heading', { level: 2 }).length).toBeGreaterThan(0)
+})
+
+test('book footer shows sources and verification', async () => {
+  renderApp('/books/ostatnie-zyczenie')
+  const footer = await screen.findByRole('contentinfo')
+  const source = within(footer).getByRole('link', { name: 'Ostatnie życzenie — Wikipedia' })
+  expect(source.getAttribute('target')).toBe('_blank')
+  expect(source.getAttribute('rel')).toBe('noopener noreferrer')
+  within(footer).getByText(/human:stokuj/)
+  expect(within(screen.getByRole('main')).queryByText('draft')).toBeNull()
+})
+
+test('draft page shows its status and no footer', async () => {
+  renderApp('/characters/snaut--solaris')
+  const main = await screen.findByRole('main')
+  await within(main).findByRole('heading', { level: 1, name: 'Snaut' })
+  within(main).getByText('draft')
+  expect(within(main).queryByRole('contentinfo')).toBeNull()
+})
