@@ -44,3 +44,42 @@ test('cancel discards unsaved text', async () => {
   expect(screen.queryByText('Niezapisane.')).toBeNull()
   within(screen.getByRole('main')).getByRole('heading', { level: 1, name: 'Krew elfów' })
 })
+
+const versionRows = async () =>
+  within(await screen.findByRole('list', { name: 'Versions' })).getAllByRole('listitem')
+
+test('an edit appears on top of history', async () => {
+  renderApp('/books/krew-elfow?view=edit')
+  edit(await source(), (v) =>
+    v.replace('## Wątki i motywy', '## Wątki i motywy\n\nDopisek z edycji.'),
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await screen.findByText('Dopisek z edycji.')
+  fireEvent.click(screen.getByRole('link', { name: 'History' }))
+  const rows = await versionRows()
+  expect(rows).toHaveLength(2)
+  within(rows[0]).getByText('v2')
+  within(rows[0]).getByText('Edit')
+  within(rows[1]).getByText('Generation')
+})
+
+test('viewing an old version shows it read-only', async () => {
+  renderApp('/books/ostatnie-zyczenie?view=history')
+  const rows = await versionRows()
+  expect(rows.map((r) => within(r).getByText(/^v\d+$/).textContent)).toEqual(['v3', 'v2', 'v1'])
+  fireEvent.click(within(rows[2]).getByRole('link', { name: 'View' }))
+  await screen.findByText(/Viewing v1 · Created/)
+  screen.getByRole('heading', { level: 2, name: 'Streszczenie' })
+  expect(screen.queryByText(/Ranny Geralt/)).toBeNull()
+  expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
+})
+
+test('an unknown version id shows not found', async () => {
+  renderApp('/books/ostatnie-zyczenie?view=history&v=999')
+  await screen.findByText('Version not found.')
+})
+
+test('an unknown view falls back to the page', async () => {
+  renderApp('/books/ostatnie-zyczenie?view=bogus')
+  await screen.findByRole('link', { name: 'Edit' })
+})

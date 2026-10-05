@@ -2,6 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { usePage, usePages } from '@/api/hooks'
 import type { Page } from '@/api/types'
 import { PageEditor } from '@/components/PageEditor'
+import { PageHistory } from '@/components/PageHistory'
 import { PageView } from '@/components/PageView'
 import { pagePath, pageSplat, universeMembers } from '@/wiki'
 
@@ -20,12 +21,13 @@ export const Route = createFileRoute('/$')({
 
 function PageRoute() {
   const { _splat = '' } = Route.useParams()
-  const { view } = Route.useSearch()
+  const { view, v } = Route.useSearch()
   const { data: page, isError } = usePage(pagePath(_splat))
   if (isError) return <p className="text-muted-foreground">Page not found.</p>
   if (!page) return null
 
   if (view === 'edit') return <PageEditor key={page.path} page={page} />
+  if (view === 'history') return <PageHistory page={page} versionId={v} />
 
   return (
     <article>
