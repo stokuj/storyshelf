@@ -112,7 +112,11 @@ function Diff({ before, after }: { before: string; after: string }) {
         <div
           key={i}
           className={
-            l.added ? 'bg-green-50 text-green-900' : l.removed ? 'bg-red-50 text-red-900' : undefined
+            l.added
+              ? 'bg-green-50 text-green-900'
+              : l.removed
+                ? 'bg-red-50 text-red-900'
+                : undefined
           }
         >
           {l.added ? '+ ' : l.removed ? '− ' : '  '}

@@ -30,9 +30,7 @@ test('removing a template heading blocks save and keeps the text', async () => {
   edit(textarea, (v) => v.replace('## Postacie\n', ''))
   const typed = textarea.value
   fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-  expect((await screen.findByRole('alert')).textContent).toBe(
-    'Missing template headings: Postacie',
-  )
+  expect((await screen.findByRole('alert')).textContent).toBe('Missing template headings: Postacie')
   expect(textarea.value).toBe(typed)
 })
 

@@ -151,11 +151,7 @@ function setStatus(id: number, status: Proposal['status']) {
 
 export function acceptProposal(id: number): Page {
   const proposal = openProposal(id)
-  const content = addVerified(
-    proposal.content,
-    `human:${profile.handle}`,
-    new Date().toISOString(),
-  )
+  const content = addVerified(proposal.content, `human:${profile.handle}`, new Date().toISOString())
   const page = writePage(proposal.page, content, 'proposal', 'agent')
   setStatus(id, 'accepted')
   return page
