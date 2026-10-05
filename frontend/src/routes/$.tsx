@@ -1,9 +1,10 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { usePage, usePages } from '@/api/hooks'
+import { usePage, usePages, useProposals } from '@/api/hooks'
 import type { Page } from '@/api/types'
 import { PageEditor } from '@/components/PageEditor'
 import { PageHistory } from '@/components/PageHistory'
 import { PageView } from '@/components/PageView'
+import { ProposalView } from '@/components/ProposalView'
 import { pagePath, pageSplat, universeMembers } from '@/wiki'
 
 const VIEWS = ['edit', 'history', 'proposal'] as const
@@ -21,17 +22,19 @@ export const Route = createFileRoute('/$')({
 
 function PageRoute() {
   const { _splat = '' } = Route.useParams()
-  const { view, v } = Route.useSearch()
+  const { view, v, p } = Route.useSearch()
   const { data: page, isError } = usePage(pagePath(_splat))
   if (isError) return <p className="text-muted-foreground">Page not found.</p>
   if (!page) return null
 
   if (view === 'edit') return <PageEditor key={page.path} page={page} />
   if (view === 'history') return <PageHistory page={page} versionId={v} />
+  if (view === 'proposal' && p !== undefined) return <ProposalView page={page} proposalId={p} />
 
   return (
     <article>
       <PageActions page={page} />
+      <OpenProposals page={page} />
       <PageView page={page}>
         {page.type === 'universe' && <UniverseMembers universe={page.path} />}
       </PageView>
@@ -50,6 +53,29 @@ function PageActions({ page }: { page: Page }) {
         History
       </Link>
     </nav>
+  )
+}
+
+function OpenProposals({ page }: { page: Page }) {
+  const { data: proposals = [] } = useProposals(page.path)
+  const pending = proposals.filter((p) => p.status === 'open' || p.status === 'stale')
+  if (pending.length === 0) return null
+  return (
+    <ul className="mb-6 space-y-2">
+      {pending.map((p) => (
+        <li key={p.id} className="rounded-md border bg-muted px-4 py-2 text-sm">
+          Proposal: {p.prompt}{' '}
+          <Link
+            to="/$"
+            params={{ _splat: pageSplat(page.path) }}
+            search={{ view: 'proposal', p: p.id }}
+            className="font-semibold text-primary"
+          >
+            Review
+          </Link>
+        </li>
+      ))}
+    </ul>
   )
 }
 
