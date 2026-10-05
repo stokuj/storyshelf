@@ -25,7 +25,7 @@ User poprawia Stronę ręcznie i widzi każdą zmianę w Historii. Propozycje Ag
 | Karty Ulubionych | tytuł + `description`, podział na książki i Postacie po prefiksie Ścieżki | CONTEXT: karta = tytuł i opis; makieta pokazuje pod Postacią tytuł książki, ale słownik wygrywa |
 | Link do Profilu | `@handle` na dole panelu bocznego → `/profile` | panel nie ma jeszcze bloku usera |
 | Mutacje w store | obiekty podmieniane (nowa referencja), nie modyfikowane w miejscu | React Query porównuje dane strukturalnie; ta sama zmutowana referencja nie wywoła re-renderu |
-| Stan store w testach | testy mutujące w osobnych plikach | store trzyma stan w module, a Vitest izoluje moduły per plik |
+| Stan store w testach | `resetStore()` po każdym teście (`src/test/setup.ts`) | store trzyma stan w module; testy Propozycji zmieniają tę samą Propozycję, więc bez resetu psułyby się nawzajem |
 
 ## Pliki
 
@@ -43,6 +43,9 @@ frontend/
   src/components/ProposalView.tsx    prompt, diff, Accept/Reject, stale
   src/components/Sidebar.tsx         + link @handle → /profile
   src/routeTree.gen.ts               regenerowany (trasa /profile)
+  src/test/setup.ts                  afterEach(resetStore)
+  vite.config.ts                     + test.setupFiles
+  src/api/api.test.ts                + testy zapisu, Propozycji, Profilu w store
   src/test/edit.test.tsx             Edycja + Historia
   src/test/proposal.test.tsx         accept, reject, stale
   src/test/profile.test.tsx          Profil
@@ -99,7 +102,7 @@ Hooki to `useMutation`. Po sukcesie robią `invalidateQueries`:
 - `useSavePage(path)`, `useAcceptProposal(path)`, `useRejectProposal(path)`: `['pages']` i `['page', path]` (prefiks obejmuje Wersje i Propozycje).
 - `useSetProfilePublic()`: `['profile']`.
 
-Nowy hook do odczytu: `useProposal(id)`.
+Widok Propozycji czyta istniejące `useProposals(path)`; osobny hook do jednej Propozycji jest zbędny.
 
 ## Widoki
 
