@@ -82,3 +82,45 @@ test('draft page shows its status and no footer', async () => {
   within(main).getByText('draft')
   expect(within(main).queryByRole('contentinfo')).toBeNull()
 })
+
+const pageBody = async (heading: string) =>
+  (await screen.findByRole('heading', { level: 2, name: heading })).closest(
+    '.page-body',
+  ) as HTMLElement
+
+test('mentions render as badges by page type', async () => {
+  renderApp('/books/ostatnie-zyczenie')
+  const body = await pageBody('Postacie')
+  for (const name of ['Geralt z Rivii', 'Jaskier', 'Yennefer z Vengerbergu', 'Renfri']) {
+    expect(within(body).getByRole('link', { name }).className).toContain('bg-character')
+  }
+  expect(within(body).getByRole('link', { name: 'Blaviken' }).className).toContain('bg-place')
+})
+
+test('clicking a badge opens that page', async () => {
+  const router = renderApp('/books/ostatnie-zyczenie')
+  const main = await screen.findByRole('main')
+  fireEvent.click(await within(main).findByRole('link', { name: 'Renfri' }))
+  await waitFor(() =>
+    expect(router.state.location.pathname).toBe('/characters/renfri--ostatnie-zyczenie'),
+  )
+  await within(main).findByRole('heading', { level: 1, name: 'Renfri' })
+})
+
+test('link to a missing page renders as plain text', async () => {
+  renderApp('/books/ostatnie-zyczenie')
+  const main = await screen.findByRole('main')
+  await within(main).findByText('Nenneke')
+  expect(within(main).queryByRole('link', { name: 'Nenneke' })).toBeNull()
+})
+
+test('book and external links in the body are plain links', async () => {
+  renderApp('/universes/wiedzmin')
+  const body = await pageBody('Opis')
+  const book = within(body).getByRole('link', { name: 'Ostatniego życzenia' })
+  expect(book.getAttribute('href')).toBe('/books/ostatnie-zyczenie')
+  expect(book.className).not.toContain('bg-')
+  const external = within(body).getByRole('link', { name: 'Wikipedii' })
+  expect(external.getAttribute('target')).toBe('_blank')
+  expect(external.getAttribute('rel')).toBe('noopener noreferrer')
+})

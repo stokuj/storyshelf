@@ -1,8 +1,10 @@
 // One wiki Page: frontmatter header, Markdown body, sources/verification footer
-import type { ReactNode } from 'react'
-import Markdown from 'react-markdown'
+import { Link } from '@tanstack/react-router'
+import type { ComponentProps, ReactNode } from 'react'
+import Markdown, { type ExtraProps } from 'react-markdown'
+import { usePages } from '@/api/hooks'
 import type { Page } from '@/api/types'
-import { parsePage } from '@/wiki'
+import { pageSplat, parsePage } from '@/wiki'
 
 export function PageView({ page, children }: { page: Page; children?: ReactNode }) {
   const { frontmatter: fm, body } = parsePage(page.content)
@@ -27,7 +29,7 @@ export function PageView({ page, children }: { page: Page; children?: ReactNode 
       </header>
 
       <div className="page-body mt-6">
-        <Markdown>{body}</Markdown>
+        <Markdown components={{ a: WikiLink }}>{body}</Markdown>
       </div>
 
       {children}
@@ -66,3 +68,67 @@ export function PageView({ page, children }: { page: Page; children?: ReactNode 
     </>
   )
 }
+
+const badge = 'inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-sm font-semibold'
+
+// Odnośnik: character/place → badge, other wiki Path → link, missing Path → text (OKF tolerates broken links)
+function WikiLink({ href = '', children }: ComponentProps<'a'> & ExtraProps) {
+  const { data: pages = [] } = usePages()
+
+  if (!href.startsWith('/')) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+        {children}
+      </a>
+    )
+  }
+  // ponytail: linear scan per link, fine for one user's wiki; build a Set in a hook if pages grow large
+  if (!pages.some((p) => p.path === href)) return <span>{children}</span>
+
+  const params = { _splat: pageSplat(href) }
+  if (href.startsWith('/characters/')) {
+    return (
+      <Link to="/$" params={params} className={`${badge} bg-character text-character-foreground`}>
+        <PersonIcon />
+        {children}
+      </Link>
+    )
+  }
+  if (href.startsWith('/places/')) {
+    return (
+      <Link to="/$" params={params} className={`${badge} bg-place text-place-foreground`}>
+        <PinIcon />
+        {children}
+      </Link>
+    )
+  }
+  return (
+    <Link to="/$" params={params} className="text-primary underline">
+      {children}
+    </Link>
+  )
+}
+
+const iconProps = {
+  width: 13,
+  height: 13,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  'aria-hidden': true,
+} as const
+
+const PersonIcon = () => (
+  <svg {...iconProps}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+  </svg>
+)
+
+const PinIcon = () => (
+  <svg {...iconProps}>
+    <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>
+)
