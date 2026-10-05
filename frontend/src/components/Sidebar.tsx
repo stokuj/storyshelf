@@ -22,7 +22,7 @@ export function Sidebar() {
         activeOptions={{ exact: true }}
         className="px-2 font-heading text-xl font-semibold"
       >
-        Storyshelf
+        StoryShelf
       </Link>
       {SECTIONS.map(([type, label]) => (
         <section key={type}>
