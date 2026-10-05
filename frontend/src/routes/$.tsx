@@ -1,25 +1,53 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { usePage, usePages } from '@/api/hooks'
 import type { Page } from '@/api/types'
+import { PageEditor } from '@/components/PageEditor'
 import { PageView } from '@/components/PageView'
 import { pagePath, pageSplat, universeMembers } from '@/wiki'
 
+const VIEWS = ['edit', 'history', 'proposal'] as const
+type PageSearch = { view?: (typeof VIEWS)[number]; v?: number; p?: number }
+
 export const Route = createFileRoute('/$')({
+  // Unknown values are dropped, so a bad ?view= falls back to the page itself
+  validateSearch: (s: Record<string, unknown>): PageSearch => ({
+    view: VIEWS.find((x) => x === s.view),
+    v: typeof s.v === 'number' ? s.v : undefined,
+    p: typeof s.p === 'number' ? s.p : undefined,
+  }),
   component: PageRoute,
 })
 
 function PageRoute() {
   const { _splat = '' } = Route.useParams()
+  const { view } = Route.useSearch()
   const { data: page, isError } = usePage(pagePath(_splat))
   if (isError) return <p className="text-muted-foreground">Page not found.</p>
   if (!page) return null
 
+  if (view === 'edit') return <PageEditor key={page.path} page={page} />
+
   return (
     <article>
+      <PageActions page={page} />
       <PageView page={page}>
         {page.type === 'universe' && <UniverseMembers universe={page.path} />}
       </PageView>
     </article>
+  )
+}
+
+function PageActions({ page }: { page: Page }) {
+  const params = { _splat: pageSplat(page.path) }
+  return (
+    <nav aria-label="Page actions" className="mb-6 flex gap-4 text-sm">
+      <Link to="/$" params={params} search={{ view: 'edit' }} className="hover:text-primary">
+        Edit
+      </Link>
+      <Link to="/$" params={params} search={{ view: 'history' }} className="hover:text-primary">
+        History
+      </Link>
+    </nav>
   )
 }
 
