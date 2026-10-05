@@ -1,6 +1,6 @@
 // In-memory fake of the wiki API, seeded from OKF fixtures. M2 replaces it with fetch('/api/...').
-import { parse } from 'yaml'
 import { candidates, profile, proposals, versions as recordedVersions } from './fixtures/records'
+import { parsePage } from '@/wiki'
 import type { Candidate, Page, PageType, PageVersion, Profile, Proposal } from './types'
 
 const files = import.meta.glob<string>('./fixtures/**/*.md', {
@@ -9,26 +9,12 @@ const files = import.meta.glob<string>('./fixtures/**/*.md', {
   eager: true,
 })
 
-interface Frontmatter {
-  type: PageType
-  title?: string
-  status?: string
-  book?: string
-  universe?: string
-}
-
-function parseFrontmatter(content: string): Frontmatter {
-  const match = /^---\n([\s\S]*?)\n---/.exec(content)
-  if (!match) throw new Error('Missing frontmatter')
-  return parse(match[1]) as Frontmatter
-}
-
 const pages = new Map<string, Page>()
 const versions: PageVersion[] = []
 
 for (const [file, content] of Object.entries(files)) {
   const path = file.replace('./fixtures', '') // OKF: file path = concept identity
-  const fm = parseFrontmatter(content)
+  const fm = parsePage(content).frontmatter
   pages.set(path, {
     path,
     type: fm.type,

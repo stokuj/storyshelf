@@ -1,5 +1,5 @@
-import { listPages } from '@/api/store'
-import { groupByType, pagePath, pageSplat, universeMembers } from '@/wiki'
+import { getPage, listPages } from '@/api/store'
+import { groupByType, pagePath, pageSplat, parsePage, universeMembers } from '@/wiki'
 
 const pages = listPages()
 
@@ -26,4 +26,15 @@ test('universeMembers resolves characters and places through their book', () => 
 test('pagePath reverses pageSplat', () => {
   expect(pageSplat('/books/krew-elfow.md')).toBe('books/krew-elfow')
   for (const p of pages) expect(pagePath(pageSplat(p.path))).toBe(p.path)
+})
+
+test('parsePage splits frontmatter from body', () => {
+  const { frontmatter, body } = parsePage(getPage('/books/ostatnie-zyczenie.md').content)
+  expect(frontmatter.type).toBe('book')
+  expect(frontmatter.verified?.[0].by).toBe('human:stokuj')
+  expect(body.startsWith('## Streszczenie')).toBe(true)
+})
+
+test('parsePage rejects content without frontmatter', () => {
+  expect(() => parsePage('## Just a body')).toThrow('Missing frontmatter')
 })
