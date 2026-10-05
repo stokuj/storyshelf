@@ -1,7 +1,7 @@
 // One wiki Page: frontmatter header, Markdown body, sources/verification footer
 import { Link } from '@tanstack/react-router'
 import type { ComponentProps, ReactNode } from 'react'
-import Markdown, { type ExtraProps } from 'react-markdown'
+import Markdown, { defaultUrlTransform, type ExtraProps } from 'react-markdown'
 import { usePages } from '@/api/hooks'
 import type { Page } from '@/api/types'
 import { pageSplat, parsePage } from '@/wiki'
@@ -45,9 +45,10 @@ export function PageView({ page, children }: { page: Page; children?: ReactNode 
               {fm.sources.map((s, i) => (
                 <span key={s.id}>
                   {i > 0 && ', '}
-                  {s.resource ? (
+                  {/* Agent-written frontmatter: same URL sanitising as body links */}
+                  {s.resource && defaultUrlTransform(s.resource) ? (
                     <a
-                      href={s.resource}
+                      href={defaultUrlTransform(s.resource)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline"
