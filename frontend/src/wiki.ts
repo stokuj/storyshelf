@@ -79,6 +79,7 @@ export function addVerified(content: string, by: string, at: string): string {
   const match = FRONTMATTER.exec(content)
   if (!match) throw new Error('Missing frontmatter')
   const doc = parseDocument(match[1] ?? '')
+  if (doc.errors.length) throw new Error(`Invalid frontmatter: ${doc.errors[0].message}`)
   const event = { by, at }
   const list = doc.get('verified')
   if (isSeq(list)) list.add(doc.createNode(event))

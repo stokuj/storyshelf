@@ -99,6 +99,12 @@ test('addVerified appends to an existing verified list and keeps the body', () =
   expect(parsePage(out).body).toBe(parsePage(OZ).body)
 })
 
+test('addVerified reports broken YAML like validateEdit does', () => {
+  expect(() => addVerified('---\ntype: [book\n---\n## Opis\n', 'human:x', 't')).toThrow(
+    /^Invalid frontmatter: /,
+  )
+})
+
 test('addVerified creates the verified list when missing', () => {
   const out = addVerified('---\ntype: universe\n---\n## Opis\n', 'human:x', 't')
   expect(parsePage(out)).toEqual({
