@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { usePages } from '@/api/hooks'
+import { usePages, useProfile } from '@/api/hooks'
 import type { PageType } from '@/api/types'
 import { groupByType, pageSplat } from '@/wiki'
 
@@ -12,6 +12,7 @@ const SECTIONS: [PageType, string][] = [
 
 export function Sidebar() {
   const { data: pages = [] } = usePages()
+  const { data: profile } = useProfile()
   const groups = groupByType(pages)
   const titles = new Map(pages.map((p) => [p.path, p.title]))
 
@@ -50,6 +51,15 @@ export function Sidebar() {
           </ul>
         </section>
       ))}
+      {profile && (
+        <Link
+          to="/profile"
+          className="mt-auto rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-background"
+          activeProps={{ className: 'bg-background font-medium text-primary' }}
+        >
+          @{profile.handle}
+        </Link>
+      )}
     </nav>
   )
 }
