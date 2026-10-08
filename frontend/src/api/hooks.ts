@@ -3,6 +3,7 @@ import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tansta
 import {
   acceptProposal,
   createBook,
+  generatePage,
   getPage,
   getProfile,
   listPages,
@@ -63,6 +64,17 @@ export function useCreateBook() {
   return useMutation({
     mutationFn: async (c: Candidate) => createBook(c),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pages'] }),
+  })
+}
+
+export function useGeneratePage(path: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      await agentDelay()
+      return generatePage(path)
+    },
+    onSuccess: () => refreshPage(qc, path),
   })
 }
 

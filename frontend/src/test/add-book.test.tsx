@@ -54,3 +54,22 @@ test('a blank message cannot be sent', async () => {
   fireEvent.change(input, { target: { value: '   ' } })
   expect((screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(true)
 })
+
+test('Generate fills an empty book page', async () => {
+  renderApp('/add')
+  await ask('Lalka')
+  const card = await screen.findByRole('article', { name: 'Lalka' })
+  fireEvent.click(within(card).getByRole('button', { name: 'Yes, add' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Generate with Agent' }))
+  await screen.findByRole('button', { name: 'Generating…' })
+  await screen.findByText(/streszczenie wygenerowane przez Agenta/)
+  const main = screen.getByRole('main')
+  expect(within(main).queryByRole('heading', { name: 'This page is empty' })).toBeNull()
+  expect(within(main).queryByText('draft')).toBeNull()
+})
+
+test('a draft that is not a book has no Generate button', async () => {
+  renderApp('/characters/snaut--solaris')
+  await screen.findByRole('heading', { level: 1, name: 'Snaut' })
+  expect(screen.queryByRole('button', { name: 'Generate with Agent' })).toBeNull()
+})
