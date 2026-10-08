@@ -1,10 +1,12 @@
 import { getPage, listPages } from '@/api/store'
 import {
   addVerified,
+  bookPath,
   groupByType,
   pagePath,
   pageSplat,
   parsePage,
+  slugify,
   universeMembers,
   validateEdit,
 } from '@/wiki'
@@ -111,4 +113,15 @@ test('addVerified creates the verified list when missing', () => {
     frontmatter: { type: 'universe', verified: [{ by: 'human:x', at: 't' }] },
     body: '## Opis\n',
   })
+})
+
+test('slugify makes ASCII path slugs', () => {
+  expect(slugify('Krew elfów')).toBe('krew-elfow')
+  expect(slugify('Ostatnie życzenie')).toBe('ostatnie-zyczenie')
+  expect(slugify('Łódź, Ślęża!')).toBe('lodz-sleza')
+  expect(slugify('  Diuna: Mesjasz  ')).toBe('diuna-mesjasz')
+})
+
+test('bookPath matches every fixture book', () => {
+  for (const p of listPages('book')) expect(bookPath(p.title)).toBe(p.path)
 })
