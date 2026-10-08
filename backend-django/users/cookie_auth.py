@@ -4,7 +4,8 @@ from rest_framework_simplejwt.exceptions import InvalidToken
 
 ACCESS_COOKIE = "access_token"
 REFRESH_COOKIE = "refresh_token"
-REFRESH_COOKIE_PATH = "/api/auth/refresh/"
+# Covers refresh/ and logout/ (logout must read it to blacklist the token).
+REFRESH_COOKIE_PATH = "/api/auth/"
 
 
 class JWTCookieAuthentication(JWTAuthentication):

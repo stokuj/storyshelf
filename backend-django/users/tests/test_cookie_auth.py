@@ -85,6 +85,11 @@ class SetJWTCookiesTest(TestCase):
         else:
             self.fail("Refresh cookie not set")
 
+    def test_refresh_cookie_path_covers_refresh_and_logout(self):
+        # Browsers send the cookie only under its path; logout must see it to blacklist.
+        for url in ("/api/auth/refresh/", "/api/auth/logout/"):
+            self.assertTrue(url.startswith(REFRESH_COOKIE_PATH), url)
+
     def test_respects_overridden_samesite_and_secure(self):
         from django.test import override_settings
 
