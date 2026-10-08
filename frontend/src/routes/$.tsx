@@ -65,8 +65,8 @@ function GenerateCard({ page }: { page: Page }) {
     <section className="mb-6 rounded-md border bg-muted p-4">
       <h2 className="font-heading text-xl">This page is empty</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        The Agent writes the summary, characters and places. The first generation is saved
-        directly; later changes come as proposals.
+        The Agent writes the summary, characters and places. The first generation is saved directly;
+        later changes come as proposals.
       </p>
       <button
         type="button"

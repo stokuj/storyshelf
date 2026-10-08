@@ -123,8 +123,7 @@ function CandidateCard({ candidate: c }: { candidate: Candidate }) {
           disabled={create.isPending}
           onClick={() =>
             create.mutate(c, {
-              onSuccess: (page) =>
-                navigate({ to: '/$', params: { _splat: pageSplat(page.path) } }),
+              onSuccess: (page) => navigate({ to: '/$', params: { _splat: pageSplat(page.path) } }),
             })
           }
           className={`${button} bg-primary text-primary-foreground`}
