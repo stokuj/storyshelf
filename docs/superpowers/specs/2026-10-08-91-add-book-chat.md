@@ -53,7 +53,7 @@ frontend/src/
 export function slugify(title: string): string            // 'Krew elfów' → 'krew-elfow'
 
 // store.ts
-export function searchCandidates(prompt: string): Candidate[]
+export function searchCandidates(prompt: string): { matched: boolean; candidates: Candidate[] }  // matched → odpowiedź Agenta
 export function createBook(c: Candidate): Page             // throws if path exists
 export function generatePage(path: string): Page           // throws if not a draft book
 
