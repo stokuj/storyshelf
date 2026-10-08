@@ -82,8 +82,12 @@ export const profile: Profile = {
   ],
 }
 
+// The first three already have Pages (duplicate case); the rest are new books
 export const candidates: Candidate[] = [
   { title: 'Ostatnie życzenie', author: 'Andrzej Sapkowski', year: 1993, cover_url: null },
   { title: 'Krew elfów', author: 'Andrzej Sapkowski', year: 1994, cover_url: null },
   { title: 'Solaris', author: 'Stanisław Lem', year: 1961, cover_url: null },
+  { title: 'Miecz przeznaczenia', author: 'Andrzej Sapkowski', year: 1992, cover_url: null },
+  { title: 'Lalka', author: 'Bolesław Prus', year: 1890, cover_url: null },
+  { title: 'Niezwyciężony', author: 'Stanisław Lem', year: 1964, cover_url: null },
 ]

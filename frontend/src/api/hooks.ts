@@ -2,6 +2,8 @@
 import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   acceptProposal,
+  createBook,
+  generatePage,
   getPage,
   getProfile,
   listPages,
@@ -12,7 +14,7 @@ import {
   searchCandidates,
   setProfilePublic,
 } from './store'
-import type { PageType } from './types'
+import type { Candidate, PageType } from './types'
 
 export const usePages = (type?: PageType) =>
   useQuery({ queryKey: ['pages', type ?? 'all'], queryFn: () => listPages(type) })
@@ -29,11 +31,17 @@ export const useProposals = (path: string) =>
 
 export const useProfile = () => useQuery({ queryKey: ['profile'], queryFn: getProfile })
 
-export const useCandidates = (query: string) =>
-  useQuery({
-    queryKey: ['candidates', query],
-    queryFn: () => searchCandidates(query),
-    enabled: query !== '',
+// Fake Agent latency (spike #94: real calls take 7–60 s); short in tests so pending states show
+const FAKE_AGENT_MS = import.meta.env.MODE === 'test' ? 50 : 1500
+const agentDelay = () => new Promise((resolve) => setTimeout(resolve, FAKE_AGENT_MS))
+
+// One chat turn; the real Agent (M3) streams over SSE
+export const useSuggestCandidates = () =>
+  useMutation({
+    mutationFn: async (prompt: string) => {
+      await agentDelay()
+      return searchCandidates(prompt)
+    },
   })
 
 // A Page write touches the sidebar list and everything under ['page', path]
@@ -47,6 +55,25 @@ export function useSavePage(path: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (content: string) => savePage(path, content),
+    onSuccess: () => refreshPage(qc, path),
+  })
+}
+
+export function useCreateBook() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (c: Candidate) => createBook(c),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['pages'] }),
+  })
+}
+
+export function useGeneratePage(path: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      await agentDelay()
+      return generatePage(path)
+    },
     onSuccess: () => refreshPage(qc, path),
   })
 }

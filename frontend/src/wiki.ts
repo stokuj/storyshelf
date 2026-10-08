@@ -6,6 +6,19 @@ import type { Page, PageType } from './api/types'
 export const pageSplat = (path: string) => path.slice(1).replace(/\.md$/, '')
 export const pagePath = (splat: string) => `/${splat}.md`
 
+// ASCII slug for Paths (spike #94: the app slugs names, not the model); 'Krew elfów' → 'krew-elfow'
+export const slugify = (text: string) =>
+  text
+    .replace(/ł/g, 'l')
+    .replace(/Ł/g, 'L')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+
+export const bookPath = (title: string) => `/books/${slugify(title)}.md`
+
 export function groupByType(pages: Page[]): Record<PageType, Page[]> {
   const groups: Record<PageType, Page[]> = { book: [], character: [], place: [], universe: [] }
   for (const p of pages) groups[p.type].push(p)

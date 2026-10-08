@@ -1,11 +1,11 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { usePage, usePages, useProposals } from '@/api/hooks'
+import { useGeneratePage, usePage, usePages, useProposals } from '@/api/hooks'
 import type { Page } from '@/api/types'
 import { PageEditor } from '@/components/PageEditor'
 import { PageHistory } from '@/components/PageHistory'
 import { PageView } from '@/components/PageView'
 import { ProposalView } from '@/components/ProposalView'
-import { pagePath, pageSplat, universeMembers } from '@/wiki'
+import { pagePath, pageSplat, parsePage, universeMembers } from '@/wiki'
 
 const VIEWS = ['edit', 'history', 'proposal'] as const
 type PageSearch = { view?: (typeof VIEWS)[number]; v?: number; p?: number }
@@ -34,6 +34,7 @@ function PageRoute() {
   return (
     <article>
       <PageActions page={page} />
+      <GenerateCard key={page.path} page={page} />
       <OpenProposals page={page} />
       <PageView page={page}>
         {page.type === 'universe' && <UniverseMembers universe={page.path} />}
@@ -53,6 +54,34 @@ function PageActions({ page }: { page: Page }) {
         History
       </Link>
     </nav>
+  )
+}
+
+// Generowanie: the Agent fills an empty (draft) book once; later changes come as Proposals
+function GenerateCard({ page }: { page: Page }) {
+  const generate = useGeneratePage(page.path)
+  if (page.type !== 'book' || parsePage(page.content).frontmatter.status !== 'draft') return null
+  return (
+    <section className="mb-6 rounded-md border bg-muted p-4">
+      <h2 className="font-heading text-xl">This page is empty</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        The Agent writes the summary, characters and places. The first generation is saved directly;
+        later changes come as proposals.
+      </p>
+      <button
+        type="button"
+        disabled={generate.isPending}
+        onClick={() => generate.mutate()}
+        className="mt-3 rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+      >
+        {generate.isPending ? 'Generating…' : 'Generate with Agent'}
+      </button>
+      {generate.error && (
+        <p role="alert" className="mt-2 text-sm text-destructive">
+          {generate.error.message}
+        </p>
+      )}
+    </section>
   )
 }
 

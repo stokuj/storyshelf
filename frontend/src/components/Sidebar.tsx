@@ -25,6 +25,13 @@ export function Sidebar() {
       >
         StoryShelf
       </Link>
+      <Link
+        to="/add"
+        className="rounded-md border px-2 py-1 text-center text-sm font-semibold hover:bg-background"
+        activeProps={{ className: 'bg-background text-primary' }}
+      >
+        Add book
+      </Link>
       {SECTIONS.map(([type, label]) => (
         <section key={type}>
           <h2 className="mb-1 flex justify-between px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">

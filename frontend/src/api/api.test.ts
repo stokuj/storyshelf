@@ -2,9 +2,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createElement, type ReactNode } from 'react'
 import { usePage } from './hooks'
-import { parsePage } from '@/wiki'
+import { parsePage, validateEdit } from '@/wiki'
 import {
   acceptProposal,
+  createBook,
+  generatePage,
   getPage,
   getProfile,
   listPages,
@@ -13,6 +15,7 @@ import {
   rejectProposal,
   resetStore,
   savePage,
+  searchCandidates,
   setProfilePublic,
 } from './store'
 
@@ -125,4 +128,70 @@ test('setProfilePublic replaces the profile object', () => {
   const before = getProfile()
   expect(setProfilePublic(false).is_public).toBe(false)
   expect(getProfile()).not.toBe(before)
+})
+
+const titles = (prompt: string) => searchCandidates(prompt).candidates.map((c) => c.title)
+
+test('searchCandidates matches title or author words, ignoring case and diacritics', () => {
+  expect(titles('lalka')).toEqual(['Lalka'])
+  expect(titles('Dodaj LEM').sort()).toEqual(['Niezwyciężony', 'Solaris'])
+  expect(titles('krew elfow')).toEqual(['Krew elfów'])
+  expect(searchCandidates('sapkowski').matched).toBe(true)
+})
+
+test('searchCandidates falls back to books not yet in the wiki', () => {
+  const result = searchCandidates('Dodaj wiedźmina tom 1')
+  expect(result.matched).toBe(false)
+  expect(result.candidates.map((c) => c.title)).toEqual([
+    'Miecz przeznaczenia',
+    'Lalka',
+    'Niezwyciężony',
+  ])
+})
+
+test('searchCandidates matches whole words only', () => {
+  expect(searchCandidates('Nie pamiętam tytułu').matched).toBe(false)
+  expect(searchCandidates('witcher and sorceress').matched).toBe(false)
+})
+
+test('searchCandidates fallback is never empty', () => {
+  for (const c of searchCandidates('xyz').candidates) createBook(c)
+  expect(searchCandidates('Dodaj wiedźmina tom 1').candidates).toHaveLength(3)
+})
+
+const lalka = { title: 'Lalka', author: 'Bolesław Prus', year: 1890, cover_url: null }
+
+test('createBook adds an empty template page with a created version', () => {
+  const page = createBook({ ...lalka, title: 'Diuna: Mesjasz' })
+  expect(page.path).toBe('/books/diuna-mesjasz.md')
+  expect(page.title).toBe('Diuna: Mesjasz')
+  expect(validateEdit(page.content, 'book')).toBeNull()
+  expect(parsePage(page.content).frontmatter.status).toBe('draft')
+  expect(parsePage(page.content).body).toBe(
+    '## Streszczenie\n\n## Postacie\n\n## Miejsca\n\n## Wątki i motywy\n',
+  )
+  expect(listPages('book').map((p) => p.path)).toContain(page.path)
+  expect(listVersions(page.path).map((v) => [v.kind, v.author])).toEqual([['created', 'human']])
+})
+
+test('createBook refuses a path that already exists', () => {
+  expect(() => createBook({ ...lalka, title: 'Solaris' })).toThrow(
+    'Page already exists: /books/solaris.md',
+  )
+})
+
+test('generatePage fills a draft book exactly once', () => {
+  const { path } = createBook(lalka)
+  const page = generatePage(path)
+  const fm = parsePage(page.content).frontmatter
+  expect(fm.status).toBeUndefined()
+  expect(fm.generated?.by).toBe('agent:fake')
+  expect(fm.description).toBeTruthy()
+  expect(validateEdit(page.content, 'book')).toBeNull()
+  expect(page.content).toContain('(/characters/bohater--lalka.md)')
+  expect(listVersions(path)[0]).toMatchObject({ kind: 'generation', author: 'agent' })
+  expect(() => generatePage(path)).toThrow('Only an empty book page can be generated')
+  expect(() => generatePage('/characters/snaut--solaris.md')).toThrow(
+    'Only an empty book page can be generated',
+  )
 })
