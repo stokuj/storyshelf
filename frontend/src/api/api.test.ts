@@ -149,6 +149,16 @@ test('searchCandidates falls back to books not yet in the wiki', () => {
   ])
 })
 
+test('searchCandidates matches whole words only', () => {
+  expect(searchCandidates('Nie pamiętam tytułu').matched).toBe(false)
+  expect(searchCandidates('witcher and sorceress').matched).toBe(false)
+})
+
+test('searchCandidates fallback is never empty', () => {
+  for (const c of searchCandidates('xyz').candidates) createBook(c)
+  expect(searchCandidates('Dodaj wiedźmina tom 1').candidates).toHaveLength(3)
+})
+
 const lalka = { title: 'Lalka', author: 'Bolesław Prus', year: 1890, cover_url: null }
 
 test('createBook adds an empty template page with a created version', () => {

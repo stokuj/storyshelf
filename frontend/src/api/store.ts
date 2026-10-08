@@ -172,17 +172,19 @@ export function setProfilePublic(value: boolean): Profile {
   return profile
 }
 
-// Fake Agent: prompt words (≥3 letters) found in a title or author; none → books not yet in the Wiki
+// Fake Agent: prompt words (≥3 letters) equal to a title or author word; none → books not yet
+// in the Wiki, or any books once all are added (a reply always has cards)
 export function searchCandidates(prompt: string): { matched: boolean; candidates: Candidate[] } {
   const words = slugify(prompt)
     .split('-')
     .filter((w) => w.length >= 3)
-  const found = candidates.filter((c) =>
-    words.some((w) => slugify(`${c.title} ${c.author}`).includes(w)),
-  )
+  const found = candidates.filter((c) => {
+    const known = slugify(`${c.title} ${c.author}`).split('-')
+    return words.some((w) => known.includes(w))
+  })
   if (found.length) return { matched: true, candidates: found }
   const fresh = candidates.filter((c) => !pages.has(bookPath(c.title)))
-  return { matched: false, candidates: fresh.slice(0, 3) }
+  return { matched: false, candidates: (fresh.length ? fresh : candidates).slice(0, 3) }
 }
 
 // Kandydat confirmed → Page with an empty Szablon (ARCHITECTURE flow 1)
