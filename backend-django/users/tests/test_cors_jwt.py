@@ -21,14 +21,14 @@ class CorsPreflightTest(TestCase):
     def test_options_preflight_returns_cors_headers(self):
         response = self.client.options(
             "/api/auth/login/",
-            HTTP_ORIGIN="http://localhost:5174",
+            HTTP_ORIGIN="http://localhost:5173",
             HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
             HTTP_ACCESS_CONTROL_REQUEST_HEADERS="content-type",
         )
         # corsheaders middleware odpowiada 200 (a nie 405) na preflight
         self.assertIn(response.status_code, (status.HTTP_200_OK, status.HTTP_204_NO_CONTENT))
         self.assertEqual(
-            response.get("Access-Control-Allow-Origin"), "http://localhost:5174"
+            response.get("Access-Control-Allow-Origin"), "http://localhost:5173"
         )
         self.assertEqual(response.get("Access-Control-Allow-Credentials"), "true")
 
