@@ -1,12 +1,13 @@
 // In-memory fake of the wiki API, seeded from OKF fixtures. M2 replaces it with fetch('/api/...').
 // Writes replace objects instead of mutating them, so React Query sees new data.
+import { stringify } from 'yaml'
 import {
   candidates,
   profile as seedProfile,
   proposals as seedProposals,
   versions as recordedVersions,
 } from './fixtures/records'
-import { addVerified, parsePage, validateEdit } from '@/wiki'
+import { addVerified, bookPath, parsePage, slugify, TEMPLATES, validateEdit } from '@/wiki'
 import type {
   Candidate,
   Page,
@@ -171,7 +172,49 @@ export function setProfilePublic(value: boolean): Profile {
   return profile
 }
 
-export function searchCandidates(query: string): Candidate[] {
-  const q = query.toLowerCase()
-  return candidates.filter((c) => c.title.toLowerCase().includes(q))
+// Fake Agent: prompt words (≥3 letters) found in a title or author; none → books not yet in the Wiki
+export function searchCandidates(prompt: string): { matched: boolean; candidates: Candidate[] } {
+  const words = slugify(prompt)
+    .split('-')
+    .filter((w) => w.length >= 3)
+  const found = candidates.filter((c) =>
+    words.some((w) => slugify(`${c.title} ${c.author}`).includes(w)),
+  )
+  if (found.length) return { matched: true, candidates: found }
+  const fresh = candidates.filter((c) => !pages.has(bookPath(c.title)))
+  return { matched: false, candidates: fresh.slice(0, 3) }
+}
+
+// Kandydat confirmed → Page with an empty Szablon (ARCHITECTURE flow 1)
+export function createBook(c: Candidate): Page {
+  const path = bookPath(c.title)
+  if (pages.has(path)) throw new Error(`Page already exists: ${path}`)
+  const meta = { type: 'book', title: c.title, author: c.author, year: c.year, status: 'draft' }
+  const body = TEMPLATES.book.map((h) => `## ${h}\n`).join('\n')
+  const content = `---\n${stringify(meta)}---\n\n${body}`
+  pages.set(path, toPage(path, content))
+  return writePage(path, content, 'created', 'human')
+}
+
+// Generowanie (fake): fills an empty book once; the app, not the model, stamps `generated` (spike #94)
+export function generatePage(path: string): Page {
+  const page = getPage(path)
+  const fm = parsePage(page.content).frontmatter
+  if (page.type !== 'book' || fm.status !== 'draft') {
+    throw new Error('Only an empty book page can be generated')
+  }
+  const slug = path.slice('/books/'.length, -'.md'.length)
+  const meta = {
+    ...fm,
+    description: 'Strona wygenerowana przez fake Agenta.',
+    generated: { by: 'agent:fake', at: new Date().toISOString() },
+  }
+  delete meta.status
+  const body = [
+    `## Streszczenie\n\n„${page.title}” (${fm.author}) — streszczenie wygenerowane przez Agenta (fake, M1).`,
+    `## Postacie\n\n- [Bohater](/characters/bohater--${slug}.md) — główna postać`,
+    `## Miejsca\n\n- [Miasto](/places/miasto--${slug}.md) — miejsce akcji`,
+    '## Wątki i motywy\n\n- Motyw przewodni — do opisania',
+  ].join('\n\n')
+  return writePage(path, `---\n${stringify(meta)}---\n\n${body}\n`, 'generation', 'agent')
 }

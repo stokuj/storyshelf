@@ -9,7 +9,6 @@ import {
   listVersions,
   rejectProposal,
   savePage,
-  searchCandidates,
   setProfilePublic,
 } from './store'
 import type { PageType } from './types'
@@ -28,13 +27,6 @@ export const useProposals = (path: string) =>
   useQuery({ queryKey: ['page', path, 'proposals'], queryFn: () => listProposals(path) })
 
 export const useProfile = () => useQuery({ queryKey: ['profile'], queryFn: getProfile })
-
-export const useCandidates = (query: string) =>
-  useQuery({
-    queryKey: ['candidates', query],
-    queryFn: () => searchCandidates(query),
-    enabled: query !== '',
-  })
 
 // A Page write touches the sidebar list and everything under ['page', path]
 const refreshPage = (qc: QueryClient, path: string) =>
