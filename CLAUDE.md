@@ -72,6 +72,7 @@ npm run build
 - **Conventional commits**: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
 - **Reset DB zamiast pisania migracji w dev**: `manage.py flush --no-input && manage.py migrate`.
 - **Nie dodawaj localStorage token storage** — JWT przez HttpOnly cookies (patrz @docs/decisions/ADR-001-jwt-httponly-cookies.md).
+- **W worktree: jedna prosta komenda git na wywołanie** — bez heredoc w łańcuchu `&&`/`;`, bez `git -C`, bez pętli ze zmiennymi; guard je odrzuca (szczegóły: @docs/GOTCHAS.md).
 
 ## Layout (skrót)
 
