@@ -114,10 +114,16 @@ class ClearJWTCookiesTest(TestCase):
     def test_deletes_both_cookies(self):
         response = MagicMock()
         clear_jwt_cookies(response)
-        self.assertEqual(response.delete_cookie.call_count, 2)
+        self.assertEqual(response.delete_cookie.call_count, 3)
         calls = [c.args[0] for c in response.delete_cookie.call_args_list]
         self.assertIn(ACCESS_COOKIE, calls)
-        self.assertIn(REFRESH_COOKIE, calls)
+        refresh_paths = {
+            c.kwargs["path"]
+            for c in response.delete_cookie.call_args_list
+            if c.args[0] == REFRESH_COOKIE
+        }
+        # Current path plus the pre-#107 one, so older sessions are cleared too
+        self.assertEqual(refresh_paths, {"/api/auth/", "/api/auth/refresh/"})
 
     def test_passes_cookie_domain_when_set(self):
         from django.test import override_settings

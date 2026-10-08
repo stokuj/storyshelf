@@ -6,6 +6,8 @@ ACCESS_COOKIE = "access_token"
 REFRESH_COOKIE = "refresh_token"
 # Covers refresh/ and logout/ (logout must read it to blacklist the token).
 REFRESH_COOKIE_PATH = "/api/auth/"
+# Path used before #107; logout still expires it so pre-existing sessions end too.
+LEGACY_REFRESH_COOKIE_PATH = "/api/auth/refresh/"
 
 
 class JWTCookieAuthentication(JWTAuthentication):
@@ -75,6 +77,5 @@ def clear_jwt_cookies(response):
     domain = flags.get("domain")
     samesite = flags["samesite"]
     response.delete_cookie(ACCESS_COOKIE, domain=domain, samesite=samesite)
-    response.delete_cookie(
-        REFRESH_COOKIE, path=REFRESH_COOKIE_PATH, domain=domain, samesite=samesite
-    )
+    for path in (REFRESH_COOKIE_PATH, LEGACY_REFRESH_COOKIE_PATH):
+        response.delete_cookie(REFRESH_COOKIE, path=path, domain=domain, samesite=samesite)
