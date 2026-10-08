@@ -1,6 +1,8 @@
 # ADR-003 — Celery + Redis i zewnętrzny provider LLM (OpenRouter)
 
 > Status: Accepted · Data: 2026-06-06 · Kontekst: M13 AI Character Analysis
+>
+> Uwaga (2026-10-08): M13 i `import_books` usunięte w M1. Celery + Redis + OpenRouter obowiązują dla Agenta wiki (ARCHITECTURE.md).
 
 ## Kontekst
 

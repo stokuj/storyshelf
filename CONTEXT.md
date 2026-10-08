@@ -95,7 +95,7 @@ Ręczna zmiana treści Strony przez Usera, bez Agenta. Tworzy nową Wersję od r
 _Avoid_: poprawka, korekta
 
 **Wersja**:
-Utrwalony stan Strony po każdej zmianie: Generowaniu, zaakceptowanej Propozycji albo ręcznej Edycji. Wersje tworzą Historię Strony.
+Utrwalony stan Strony po każdej zmianie: utworzeniu z Szablonu, Generowaniu, zaakceptowanej Propozycji albo ręcznej Edycji. Wersje tworzą Historię Strony.
 _Avoid_: rewizja, snapshot
 
 ## Relationships

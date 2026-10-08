@@ -1,7 +1,7 @@
 # Architecture — StoryShelf (wiki o książkach)
 
 > Stan docelowy po pivocie 2026-10-03 ([ADR-004](decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](decisions/ADR-005-react-vite-spa.md)).
-> Kod na `main` wciąż jest starym trackerem czytania (M1–M14). Migrację planujemy w GitHub milestones.
+> Kod na `dev` po M1: szkielet backendu (`users`, `config`) i SPA na fake danych. Reszta (Strony, Agent, deploy SPA) w GitHub milestones.
 > Słownik pojęć: [CONTEXT.md](../CONTEXT.md).
 
 ## Idea
@@ -15,9 +15,9 @@ Każdy User ma prywatną **Wiki** o przeczytanych książkach. Książki dodaje 
 | Frontend  | React 19 + Vite SPA (bez SSR) + TypeScript + TanStack Router/Query + Tailwind v4 + shadcn/ui + react-markdown |
 | Backend   | Django 6 + DRF + Python 3.13 |
 | Agent     | Celery + Redis, OpenRouter (ADR-003); czat przez SSE |
-| Auth      | JWT: access w pamięci, refresh w HttpOnly cookie (ADR-001) |
+| Auth      | JWT: access i refresh w HttpOnly cookies (ADR-001) |
 | Baza      | PostgreSQL 16 (później + pgvector) |
-| Infra     | Docker Compose, Caddy (serwuje statyczny build SPA + proxy `/api`) |
+| Infra     | Docker Compose, Caddy (proxy `/api`; serwowanie statycznego buildu SPA jeszcze nie skonfigurowane) |
 
 ## Kontenery
 
@@ -28,7 +28,7 @@ caddy ──┬── statyczny build React (prod)
                  redis ← celery worker (Agent)
 ```
 
-W dev frontend to `vite dev` z proxy `/api` → django (same-origin, ADR-002). Kontener Node (svelte) znika.
+W dev frontend to `vite dev` z proxy `/api` → django (same-origin, ADR-002).
 
 ## Model danych (docelowy)
 
@@ -47,7 +47,7 @@ Pola z frontmattera potrzebne do zapytań (`type`, `title`, `book`, `universe`) 
 
 Profil (`about`, `is_public`) to na razie pola `User.bio` i `User.profile_public` — bez osobnego modelu, dopóki nie dojdą Ulubione (#86).
 
-Usuwane: Book, Author, Genre, Tag, Serie, Rating, Review, ReviewLike, Shelf, ShelfMembership, ShelfEntry, UserFollow, feed, CharacterAnalysis, Character, CharacterRelation.
+Usunięte w M1: Book, Author, Genre, Tag, Serie, Rating, Review, ReviewLike, Shelf, ShelfMembership, ShelfEntry, UserFollow, feed, CharacterAnalysis, Character, CharacterRelation.
 
 ## Ścieżki (płaskie per typ)
 

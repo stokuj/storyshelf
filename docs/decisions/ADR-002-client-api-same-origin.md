@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-05-30
 - **Related:** [ADR-001](ADR-001-jwt-httponly-cookies.md) (JWT HttpOnly cookies)
+- **Note (2026-10-08):** partly superseded by [ADR-005](ADR-005-react-vite-spa.md). SvelteKit, SSR, `INTERNAL_API_URL`, the `svelte` container, `:5174` and the `/shelf` E2E are gone. The rule still holds: browser calls use relative `/api`, proxied to Django by Vite (`frontend/vite.config.ts`, dev) and Caddy (prod).
 
 ## Context
 

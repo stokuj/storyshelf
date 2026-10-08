@@ -9,7 +9,7 @@ Sesja odizolowana w worktree (`.claude/worktrees/…`) ma guard, który odrzuca 
 
 | Odrzucane | Działa |
 |---|---|
-| `export OPENROUTER_API_KEY=...` | `uv run --env-file /home/dv6/GitHub/storyshelf/infra/.env ...` |
+| `export OPENROUTER_API_KEY=...` | `uv run --env-file ../../../infra/.env ...` (ścieżka względna do głównego checkoutu; z podkatalogu dodaj `../`), `make verify ENV_FILE=../../../infra/.env` |
 | `gh pr create --body "$(cat <<EOF ...)"` | treść do pliku tymczasowego, potem `--body-file` |
 | `cat > plik <<'EOF' ... EOF` w łańcuchu z `&&` | zapis pliku narzędziem Write, potem osobne polecenie |
 | `git -C ..` / `git -C <inny worktree>` | zwykłe polecenie uruchomione z katalogu worktree |
