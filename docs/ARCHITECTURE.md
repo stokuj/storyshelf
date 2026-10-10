@@ -45,6 +45,8 @@ AgentConversation / message — czat dodawania książki (Kandydaci)
 
 Pola z frontmattera potrzebne do zapytań (`type`, `title`, `book`, `universe`) są denormalizowane do kolumn przy zapisie. Źródłem prawdy pozostaje `content`.
 
+Aktualna Wersja Strony to jej najnowszy `PageVersion` (bez osobnego wskaźnika). API zwraca jej id jako `version`, a Edycja odsyła je jako `base_version`; nieaktualne → 409.
+
 Profil (`about`, `is_public`) to na razie pola `User.bio` i `User.profile_public` — bez osobnego modelu, dopóki nie dojdą Ulubione (#86).
 
 Usunięte w M1: Book, Author, Genre, Tag, Serie, Rating, Review, ReviewLike, Shelf, ShelfMembership, ShelfEntry, UserFollow, feed, CharacterAnalysis, Character, CharacterRelation.

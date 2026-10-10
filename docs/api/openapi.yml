@@ -168,8 +168,292 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/wiki/pages/:
+    get:
+      operationId: wiki_pages_list
+      parameters:
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - book
+          - character
+          - place
+          - universe
+      tags:
+      - wiki
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageList'
+          description: ''
+    post:
+      operationId: wiki_pages_create
+      tags:
+      - wiki
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+          description: ''
+        '400':
+          description: Invalid input or OKF content
+        '409':
+          description: Path taken
+  /api/wiki/pages/{path}:
+    get:
+      operationId: wiki_pages_retrieve
+      parameters:
+      - in: path
+        name: path
+        schema:
+          type: string
+          pattern: ^(?:books|characters|places|universes)/[a-z0-9-]+\.md$
+        required: true
+      tags:
+      - wiki
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+          description: ''
+    put:
+      operationId: wiki_pages_update
+      parameters:
+      - in: path
+        name: path
+        schema:
+          type: string
+          pattern: ^(?:books|characters|places|universes)/[a-z0-9-]+\.md$
+        required: true
+      tags:
+      - wiki
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageEdit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageEdit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageEdit'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page'
+          description: ''
+        '400':
+          description: Invalid input or OKF content
+        '409':
+          description: Stale base_version
+  /api/wiki/pages/{path}/versions/:
+    get:
+      operationId: wiki_pages_versions_list
+      description: Historia, newest first, paginated.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: path
+        name: path
+        schema:
+          type: string
+          pattern: ^(?:books|characters|places|universes)/[a-z0-9-]+\.md$
+        required: true
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - wiki
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPageVersionList'
+          description: ''
 components:
   schemas:
+    AuthorEnum:
+      enum:
+      - human
+      - agent
+      type: string
+      description: |-
+        * `human` - Human
+        * `agent` - Agent
+    KindEnum:
+      enum:
+      - created
+      - generation
+      - proposal
+      - edit
+      type: string
+      description: |-
+        * `created` - Created
+        * `generation` - Generation
+        * `proposal` - Proposal
+        * `edit` - Edit
+    Page:
+      type: object
+      properties:
+        path:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        title:
+          type: string
+        book:
+          type: string
+          nullable: true
+        universe:
+          type: string
+          nullable: true
+        content:
+          type: string
+        version:
+          type: integer
+          readOnly: true
+      required:
+      - content
+      - path
+      - title
+      - type
+      - version
+    PageCreate:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        title:
+          type: string
+          maxLength: 200
+        author:
+          type: string
+          maxLength: 200
+        year:
+          type: integer
+        book:
+          type: string
+        universe:
+          type: string
+      required:
+      - title
+      - type
+    PageEdit:
+      type: object
+      properties:
+        content:
+          type: string
+        base_version:
+          type: integer
+      required:
+      - base_version
+      - content
+    PageList:
+      type: object
+      properties:
+        path:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        title:
+          type: string
+        book:
+          type: string
+          nullable: true
+        universe:
+          type: string
+          nullable: true
+      required:
+      - path
+      - title
+      - type
+    PageVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        author:
+          $ref: '#/components/schemas/AuthorEnum'
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - author
+      - content
+      - created_at
+      - id
+      - kind
+    PaginatedPageVersionList:
+      type: object
+      required:
+      - data
+      - page
+      - per_page
+      - total
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageVersion'
+        page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 100
     Register:
       type: object
       properties:
@@ -193,6 +477,18 @@ components:
       - email
       - handle
       - password
+    TypeEnum:
+      enum:
+      - book
+      - character
+      - place
+      - universe
+      type: string
+      description: |-
+        * `book` - Book
+        * `character` - Character
+        * `place` - Place
+        * `universe` - Universe
     UserProfile:
       type: object
       properties:
