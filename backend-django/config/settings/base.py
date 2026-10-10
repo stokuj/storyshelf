@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "users.apps.UsersConfig",
+    "wiki.apps.WikiConfig",
 ]
 
 MIDDLEWARE = [

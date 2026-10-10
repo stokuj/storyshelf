@@ -621,6 +621,7 @@ dependencies = [
     { name = "gunicorn" },
     { name = "pillow" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "pyyaml" },
     { name = "redis" },
 ]
 
@@ -644,6 +645,7 @@ requires-dist = [
     { name = "gunicorn", specifier = ">=26.0" },
     { name = "pillow", specifier = ">=11.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "redis", specifier = ">=5.2" },
 ]
 
