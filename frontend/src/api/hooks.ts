@@ -1,7 +1,7 @@
 // Read hooks + writes: Pages go to /api/wiki/..., the rest still uses the fake store
 import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from './client'
-import { createBook, getPage, listPages, listVersions, savePage } from './wiki'
+import { createPage, getPage, listPages, listVersions, savePage } from './wiki'
 import {
   acceptProposal,
   getProfile,
@@ -10,7 +10,7 @@ import {
   searchCandidates,
   setProfilePublic,
 } from './store'
-import type { Candidate, PageType } from './types'
+import type { NewPage, PageType } from './types'
 
 export const usePages = (type?: PageType) =>
   useQuery({ queryKey: ['pages', type ?? 'all'], queryFn: () => listPages(type) })
@@ -64,10 +64,10 @@ export function useSavePage(path: string) {
   })
 }
 
-export function useCreateBook() {
+export function useCreatePage() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (c: Candidate) => createBook(c),
+    mutationFn: (input: NewPage) => createPage(input),
     onSuccess: (page) => refreshPage(qc, page.path),
   })
 }
