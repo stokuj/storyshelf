@@ -35,3 +35,32 @@ test('unknown page is 404', async () => {
   const err = await api('/wiki/pages/books/nope.md').catch((e: unknown) => e)
   expect((err as ApiError).status).toBe(404)
 })
+
+const create = (body: unknown) =>
+  api<{ path: string; content: string }>('/wiki/pages/', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+
+test('POST builds the backend Path and Template for a character', async () => {
+  const page = await create({ type: 'character', title: 'Ciri', book: '/books/krew-elfow.md' })
+  expect(page.path).toBe('/characters/ciri--krew-elfow.md')
+  expect(page.content).toContain('book: "/books/krew-elfow.md"')
+  expect(page.content).toContain('status: draft')
+  expect(page.content).toContain('## Rola w książce')
+})
+
+test('POST of a universe has only the Template heading Opis', async () => {
+  const page = await create({ type: 'universe', title: 'Ziemiomorze' })
+  expect(page.path).toBe('/universes/ziemiomorze.md')
+  expect(page.content).toContain('## Opis')
+  expect(page.content).not.toContain('## Streszczenie')
+})
+
+test('POST on a taken Path is 409, a character without a book is 400', async () => {
+  const taken = await create({ type: 'book', title: 'Solaris' }).catch((e: unknown) => e)
+  expect((taken as ApiError).status).toBe(409)
+  const noBook = await create({ type: 'place', title: 'Ithaka' }).catch((e: unknown) => e)
+  expect((noBook as ApiError).status).toBe(400)
+  expect((noBook as ApiError).body).toEqual({ book: ['This field is required.'] })
+})

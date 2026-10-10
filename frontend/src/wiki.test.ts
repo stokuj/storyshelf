@@ -6,6 +6,7 @@ import {
   pagePath,
   pageSplat,
   parsePage,
+  previewPath,
   slugify,
   universeMembers,
 } from '@/wiki'
@@ -107,3 +108,19 @@ test.each(['books/solaris', 'books/solaris/', 'books/solaris.md', 'books/solaris
   'pagePath normalises %s',
   (splat) => expect(pagePath(splat)).toBe('/books/solaris.md'),
 )
+
+test.each([
+  ['book', 'Krew elfów', '', '/books/krew-elfow.md'],
+  ['universe', 'Wiedźmin', '', '/universes/wiedzmin.md'],
+  [
+    'character',
+    'Geralt',
+    '/books/ostatnie-zyczenie.md',
+    '/characters/geralt--ostatnie-zyczenie.md',
+  ],
+  ['place', 'Kaer Morhen', '/books/krew-elfow.md', '/places/kaer-morhen--krew-elfow.md'],
+  ['character', 'Geralt', '', null],
+  ['book', '  !!  ', '', null],
+] as const)('previewPath %s %j %j', (type, title, book, expected) => {
+  expect(previewPath(type, title, book)).toBe(expected)
+})

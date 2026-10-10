@@ -21,6 +21,21 @@ export const slugify = (text: string) =>
 
 export const bookPath = (title: string) => `/books/${slugify(title)}.md`
 
+const DIRS: Record<PageType, string> = {
+  book: 'books',
+  character: 'characters',
+  place: 'places',
+  universe: 'universes',
+}
+
+// Path the backend will build for a new Page (okf.page_path); null while unknown
+export function previewPath(type: PageType, title: string, book: string): string | null {
+  const slug = slugify(title)
+  if (!slug) return null
+  if (type !== 'character' && type !== 'place') return `/${DIRS[type]}/${slug}.md`
+  return book ? `/${DIRS[type]}/${slug}--${pageSplat(book).replace(/^books\//, '')}.md` : null
+}
+
 export function groupByType(pages: PageSummary[]): Record<PageType, PageSummary[]> {
   const groups: Record<PageType, PageSummary[]> = {
     book: [],

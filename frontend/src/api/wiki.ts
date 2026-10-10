@@ -1,6 +1,6 @@
 // /api/wiki/pages/ calls; a Page path is '/books/x.md' and goes into the URL as-is
 import { ApiError, api } from './client'
-import type { Candidate, Page, PageSummary, PageType, PageVersion, Paginated } from './types'
+import type { NewPage, Page, PageSummary, PageType, PageVersion, Paginated } from './types'
 
 const PAGE_PATH = /^\/(books|characters|places|universes)\/[a-z0-9-]+\.md$/
 
@@ -25,8 +25,5 @@ export const savePage = async (path: string, content: string, baseVersion: numbe
     body: JSON.stringify({ content, base_version: baseVersion }),
   })
 
-export const createBook = (c: Candidate) =>
-  api<Page>('/wiki/pages/', {
-    method: 'POST',
-    body: JSON.stringify({ type: 'book', title: c.title, author: c.author, year: c.year }),
-  })
+export const createPage = (input: NewPage) =>
+  api<Page>('/wiki/pages/', { method: 'POST', body: JSON.stringify(input) })

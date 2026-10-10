@@ -57,3 +57,13 @@ export interface Candidate {
   year: number
   cover_url: string | null
 }
+
+// POST /api/wiki/pages/ body; the server picks the Path and the Template
+export interface NewPage {
+  type: PageType
+  title: string
+  author?: string
+  year?: number
+  book?: string // Path of the book, required for character and place
+  universe?: string // Path of the universe, book only
+}

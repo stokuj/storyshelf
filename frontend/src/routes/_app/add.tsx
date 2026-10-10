@@ -2,7 +2,7 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
 import { apiErrorMessage } from '@/api/client'
-import { useCreateBook, usePages, useFindCandidates } from '@/api/hooks'
+import { useCreatePage, usePages, useFindCandidates } from '@/api/hooks'
 import type { Candidate } from '@/api/types'
 import { bookPath, pageSplat } from '@/wiki'
 
@@ -97,7 +97,7 @@ function AddBookPage() {
 
 function CandidateCard({ candidate: c }: { candidate: Candidate }) {
   const { data: pages = [] } = usePages()
-  const create = useCreateBook()
+  const create = useCreatePage()
   const navigate = useNavigate()
   // isPending updates after re-render, so a fast double click would start a second create
   const started = useRef(false)
@@ -132,10 +132,14 @@ function CandidateCard({ candidate: c }: { candidate: Candidate }) {
           onClick={() => {
             if (started.current) return
             started.current = true
-            create.mutate(c, {
-              onSuccess: (page) => navigate({ to: '/$', params: { _splat: pageSplat(page.path) } }),
-              onError: () => (started.current = false),
-            })
+            create.mutate(
+              { type: 'book', title: c.title, author: c.author, year: c.year },
+              {
+                onSuccess: (page) =>
+                  navigate({ to: '/$', params: { _splat: pageSplat(page.path) } }),
+                onError: () => (started.current = false),
+              },
+            )
           }}
           className={`${button} bg-primary text-primary-foreground`}
         >
