@@ -73,7 +73,7 @@ function NewPageForm() {
             {TYPES.map(([value, label]) => (
               <label
                 key={value}
-                className="rounded-md py-1.5 text-center text-sm has-checked:bg-background has-checked:font-semibold has-checked:text-primary"
+                className="rounded-md py-1.5 text-center text-sm has-checked:bg-background has-checked:font-semibold has-checked:text-primary has-focus-visible:ring-2 has-focus-visible:ring-ring"
               >
                 <input
                   type="radio"
