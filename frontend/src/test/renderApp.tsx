@@ -5,12 +5,14 @@ import { routeTree } from '@/routeTree.gen'
 
 // Full app (all file routes) on an in-memory URL
 export function renderApp(url = '/') {
+  const queryClient = new QueryClient()
   const router = createRouter({
     routeTree,
+    context: { queryClient },
     history: createMemoryHistory({ initialEntries: [url] }),
   })
   render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>,
   )

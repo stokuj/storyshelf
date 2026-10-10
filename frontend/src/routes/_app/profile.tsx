@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useProfile, useSetProfilePublic } from '@/api/hooks'
 import type { Profile } from '@/api/types'
 
-export const Route = createFileRoute('/profile')({
+export const Route = createFileRoute('/_app/profile')({
   component: ProfilePage,
 })
 
