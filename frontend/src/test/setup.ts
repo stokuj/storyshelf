@@ -1,7 +1,7 @@
 import { resetStore } from '@/api/store'
-import { mockFetch } from './mockFetch'
+import { mockWikiApi } from './mockWikiApi'
 
-// The fake store is module state: every test starts from the fixtures
+// The fake store is module state: every test starts from the seed
 afterEach(resetStore)
-// Every test starts logged in; auth tests override routes with mockFetch({...})
-beforeEach(() => mockFetch())
+// Every test starts logged in with the backend fixtures served; override with mockWikiApi({...}) or mockFetch({...})
+beforeEach(() => mockWikiApi())

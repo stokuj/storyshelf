@@ -2,6 +2,23 @@
 
 export type PageType = 'book' | 'character' | 'place' | 'universe'
 
+// GET /api/wiki/pages/ item (no content)
+export interface PageSummary {
+  path: string
+  type: PageType
+  title: string
+  book: string | null
+  universe: string | null
+}
+
+// DRF page-number pagination (config/pagination.py)
+export interface Paginated<T> {
+  data: T[]
+  page: number
+  per_page: number
+  total: number
+}
+
 export interface Page {
   path: string // '/books/ostatnie-zyczenie.md' — identity
   type: PageType
