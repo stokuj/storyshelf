@@ -120,8 +120,9 @@ function writePage(
   content: string,
   kind: VersionKind,
   author: PageVersion['author'],
+  type: PageType = getPage(path).type,
 ): Page {
-  const error = validateEdit(content, getPage(path).type)
+  const error = validateEdit(content, type)
   if (error) throw new Error(error)
   const page = toPage(path, content)
   pages.set(path, page)
@@ -194,8 +195,7 @@ export function createBook(c: Candidate): Page {
   const meta = { type: 'book', title: c.title, author: c.author, year: c.year, status: 'draft' }
   const body = TEMPLATES.book.map((h) => `## ${h}\n`).join('\n')
   const content = `---\n${stringify(meta)}---\n\n${body}`
-  pages.set(path, toPage(path, content))
-  return writePage(path, content, 'created', 'human')
+  return writePage(path, content, 'created', 'human', 'book')
 }
 
 // Generowanie (fake): fills an empty book once; the app, not the model, stamps `generated` (spike #94)
@@ -213,7 +213,7 @@ export function generatePage(path: string): Page {
   }
   delete meta.status
   const body = [
-    `## Streszczenie\n\n„${page.title}” (${fm.author}) — streszczenie wygenerowane przez Agenta (fake, M1).`,
+    `## Streszczenie\n\n„${page.title}”${fm.author ? ` (${fm.author})` : ''} — streszczenie wygenerowane przez Agenta (fake, M1).`,
     `## Postacie\n\n- [Bohater](/characters/bohater--${slug}.md) — główna postać`,
     `## Miejsca\n\n- [Miasto](/places/miasto--${slug}.md) — miejsce akcji`,
     '## Wątki i motywy\n\n- Motyw przewodni — do opisania',

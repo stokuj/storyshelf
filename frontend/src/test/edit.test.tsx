@@ -32,6 +32,8 @@ test('removing a template heading blocks save and keeps the text', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Save' }))
   expect((await screen.findByRole('alert')).textContent).toBe('Missing template headings: Postacie')
   expect(textarea.value).toBe(typed)
+  edit(textarea, (v) => v + '\n')
+  expect(screen.queryByRole('alert')).toBeNull()
 })
 
 test('cancel discards unsaved text', async () => {
@@ -72,9 +74,10 @@ test('viewing an old version shows it read-only', async () => {
   expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
 })
 
-test('an unknown version id shows not found', async () => {
-  renderApp('/books/ostatnie-zyczenie?view=history&v=999')
-  await screen.findByText('Version not found.')
+test.each(['999', 'abc'])('version id %s shows not found with a way back', async (v) => {
+  renderApp(`/books/ostatnie-zyczenie?view=history&v=${v}`)
+  await screen.findByText(/^Version not found\./)
+  screen.getByRole('link', { name: 'History' })
 })
 
 test('an unknown view falls back to the page', async () => {

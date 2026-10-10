@@ -24,7 +24,16 @@ export function PageHistory({ page, versionId }: { page: Page; versionId?: numbe
 
   if (versionId !== undefined) {
     const i = versions.findIndex((v) => v.id === versionId)
-    if (i === -1) return <p className="text-muted-foreground">Version not found.</p>
+    if (i === -1) {
+      return (
+        <p className="text-muted-foreground">
+          Version not found.{' '}
+          <Link to="/$" params={params} search={{ view: 'history' }} className="text-primary">
+            History
+          </Link>
+        </p>
+      )
+    }
     const version = versions[i]
     const title = parsePage(version.content).frontmatter.title ?? page.title
     return (

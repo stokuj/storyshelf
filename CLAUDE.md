@@ -69,7 +69,7 @@ npm run build
 
 - **`DJANGO_ENV=dev` wymagane do testów** — bez tego settings nie ładują się poprawnie.
 - **Nie commituj bezpośrednio do `main`** — feature branch lub worktree.
-- **Conventional commits**: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
+- **Conventional commits**: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `style:`.
 - **Reset DB zamiast pisania migracji w dev**: `manage.py flush --no-input && manage.py migrate`.
 - **Nie dodawaj localStorage token storage** — JWT przez HttpOnly cookies (patrz @docs/decisions/ADR-001-jwt-httponly-cookies.md).
 - **W worktree: jedna prosta komenda git na wywołanie** — bez heredoc w łańcuchu `&&`/`;`, bez `git -C`, bez pętli ze zmiennymi; guard je odrzuca (szczegóły: @docs/GOTCHAS.md).
@@ -81,7 +81,7 @@ backend-django/    Django 6 + DRF; apps: users, config
 frontend/          React 19 + Vite SPA; TanStack Router (src/routes/) + Query, Tailwind v4, shadcn
 infra/             compose (dev/prod), caddy, scripts/ (deploy, openapi), .env(.example)
 docs/              ARCHITECTURE.md, decisions/, superpowers/
-.claude/           settings, agents/
+.claude/           settings
 ```
 
 API: `http://localhost:8000/api/` · Swagger: `/api/docs/` · Admin: `/admin/`

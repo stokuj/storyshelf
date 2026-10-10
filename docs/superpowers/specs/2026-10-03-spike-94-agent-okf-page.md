@@ -1,6 +1,6 @@
 # Spike #94 — Agent: tytuł → Strona OKF
 
-> Spike (throwaway). Skrypt: `backend-django/scripts/spike_okf_page.py` — do wyrzucenia przed M3.
+> Spike (throwaway). Skrypt: `backend-django/scripts/spike_okf_page.py` — usunięty w #107.
 
 ## Pytanie
 

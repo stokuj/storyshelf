@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { useGeneratePage, usePage, usePages, useProposals } from '@/api/hooks'
 import type { Page } from '@/api/types'
 import { PageEditor } from '@/components/PageEditor'
@@ -10,12 +11,15 @@ import { pagePath, pageSplat, parsePage, universeMembers } from '@/wiki'
 const VIEWS = ['edit', 'history', 'proposal'] as const
 type PageSearch = { view?: (typeof VIEWS)[number]; v?: number; p?: number }
 
+// A present but non-numeric id (?v=abc) maps to an id that never exists → "not found"
+const searchId = (x: unknown) => (x === undefined ? undefined : typeof x === 'number' ? x : -1)
+
 export const Route = createFileRoute('/$')({
   // Unknown values are dropped, so a bad ?view= falls back to the page itself
   validateSearch: (s: Record<string, unknown>): PageSearch => ({
     view: VIEWS.find((x) => x === s.view),
-    v: typeof s.v === 'number' ? s.v : undefined,
-    p: typeof s.p === 'number' ? s.p : undefined,
+    v: searchId(s.v),
+    p: searchId(s.p),
   }),
   component: PageRoute,
 })
@@ -24,7 +28,22 @@ function PageRoute() {
   const { _splat = '' } = Route.useParams()
   const { view, v, p } = Route.useSearch()
   const { data: page, isError } = usePage(pagePath(_splat))
-  if (isError) return <p className="text-muted-foreground">Page not found.</p>
+  useEffect(() => {
+    document.title = page ? `${page.title} · StoryShelf` : 'StoryShelf'
+    return () => {
+      document.title = 'StoryShelf'
+    }
+  }, [page])
+  if (isError) {
+    return (
+      <p className="text-muted-foreground">
+        Page not found.{' '}
+        <Link to="/" className="text-primary">
+          Home
+        </Link>
+      </p>
+    )
+  }
   if (!page) return null
 
   if (view === 'edit') return <PageEditor key={page.path} page={page} />

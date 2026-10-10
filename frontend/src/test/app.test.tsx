@@ -49,8 +49,9 @@ test('universe page lists its books, characters and places', async () => {
 
 test('unknown path shows not found inside the frame', async () => {
   renderApp('/books/nope')
-  await screen.findByText('Page not found.')
+  await screen.findByText(/^Page not found\./)
   screen.getByRole('navigation', { name: 'Wiki' })
+  expect(screen.getByRole('link', { name: 'Home' }).getAttribute('href')).toBe('/')
 })
 
 test.each([
@@ -67,7 +68,7 @@ test.each([
 
 test('book footer shows sources and verification', async () => {
   renderApp('/books/ostatnie-zyczenie')
-  const footer = await screen.findByRole('contentinfo')
+  const footer = (await screen.findByText(/^Sources:/)).closest('footer') as HTMLElement
   const source = within(footer).getByRole('link', { name: 'Ostatnie życzenie — Wikipedia' })
   expect(source.getAttribute('target')).toBe('_blank')
   expect(source.getAttribute('rel')).toBe('noopener noreferrer')
@@ -80,7 +81,7 @@ test('draft page shows its status and no footer', async () => {
   const main = await screen.findByRole('main')
   await within(main).findByRole('heading', { level: 1, name: 'Snaut' })
   within(main).getByText('draft')
-  expect(within(main).queryByRole('contentinfo')).toBeNull()
+  expect(main.querySelector('footer')).toBeNull()
 })
 
 const pageBody = async (heading: string) =>

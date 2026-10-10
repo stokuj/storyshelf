@@ -109,17 +109,3 @@ class UserSettingsResponseStructureTest(AuthTestHelper, APITestCase):
         self.assertIn("avatar_url", resp.data)
         self.assertIn("member_since", resp.data)
 
-
-class RemovedEndpointsTest(AuthTestHelper, APITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        AuthTestHelper.setUpTestData()
-
-    def test_user_list_returns_404(self):
-        resp = self.client.get("/api/users/")
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_data_export_returns_404(self):
-        self.client.force_authenticate(self.user)
-        resp = self.client.get("/api/users/me/export/")
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

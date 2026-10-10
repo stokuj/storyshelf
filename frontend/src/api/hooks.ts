@@ -36,7 +36,7 @@ const FAKE_AGENT_MS = import.meta.env.MODE === 'test' ? 50 : 1500
 const agentDelay = () => new Promise((resolve) => setTimeout(resolve, FAKE_AGENT_MS))
 
 // One chat turn; the real Agent (M3) streams over SSE
-export const useSuggestCandidates = () =>
+export const useFindCandidates = () =>
   useMutation({
     mutationFn: async (prompt: string) => {
       await agentDelay()
@@ -63,7 +63,7 @@ export function useCreateBook() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (c: Candidate) => createBook(c),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['pages'] }),
+    onSuccess: (page) => refreshPage(qc, page.path),
   })
 }
 
