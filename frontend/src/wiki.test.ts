@@ -153,3 +153,8 @@ test('slugify makes ASCII path slugs', () => {
 test('bookPath matches every fixture book', () => {
   for (const p of listPages('book')) expect(bookPath(p.title)).toBe(p.path)
 })
+
+test.each(['books/solaris', 'books/solaris/', 'books/solaris.md', 'books/solaris.md/'])(
+  'pagePath normalises %s',
+  (splat) => expect(pagePath(splat)).toBe('/books/solaris.md'),
+)

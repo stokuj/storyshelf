@@ -4,7 +4,9 @@ import type { Page, PageType } from './api/types'
 
 // Path '/books/x.md' ↔ splat 'books/x' (URL '/books/x')
 export const pageSplat = (path: string) => path.slice(1).replace(/\.md$/, '')
-export const pagePath = (splat: string) => `/${splat}.md`
+// Tolerates a trailing '/' and a missing or present '.md': 'books/x/' → '/books/x.md'
+export const pagePath = (splat: string) =>
+  `/${splat.replace(/\/+$/, '').replace(/(\.md)?$/, '.md')}`
 
 // ASCII slug for Paths (spike #94: the app slugs names, not the model); 'Krew elfów' → 'krew-elfow'
 export const slugify = (text: string) =>

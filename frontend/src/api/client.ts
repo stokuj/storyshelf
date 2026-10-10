@@ -38,3 +38,14 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!res.ok) throw new ApiError(res.status, body)
   return body as T
 }
+
+const GENERIC_ERROR = 'Something went wrong. Try again.'
+
+// One string for the UI: DRF 400 `{field: [msg]}` → first message, `{detail}` → detail, else generic
+export function apiErrorMessage(e: unknown): string {
+  if (!(e instanceof ApiError) || !e.body || typeof e.body !== 'object') return GENERIC_ERROR
+  const { detail } = e.body as { detail?: unknown }
+  if (typeof detail === 'string') return detail
+  const first: unknown = Object.values(e.body)[0]
+  return Array.isArray(first) && typeof first[0] === 'string' ? first[0] : GENERIC_ERROR
+}
