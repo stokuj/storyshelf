@@ -5,7 +5,7 @@ import { useCreateBook, usePages, useFindCandidates } from '@/api/hooks'
 import type { Candidate } from '@/api/types'
 import { bookPath, pageSplat } from '@/wiki'
 
-export const Route = createFileRoute('/add')({
+export const Route = createFileRoute('/_app/add')({
   component: AddBookPage,
 })
 

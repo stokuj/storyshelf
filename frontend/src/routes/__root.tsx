@@ -1,17 +1,7 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { Sidebar } from '@/components/Sidebar'
+import type { QueryClient } from '@tanstack/react-query'
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 
-export const Route = createRootRoute({
-  component: RootLayout,
+// queryClient in the context lets beforeLoad guards read cached queries
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  component: Outlet,
 })
-
-function RootLayout() {
-  return (
-    <div className="grid h-svh grid-cols-[16rem_1fr]">
-      <Sidebar />
-      <main className="overflow-y-auto px-12 py-10">
-        <Outlet />
-      </main>
-    </div>
-  )
-}

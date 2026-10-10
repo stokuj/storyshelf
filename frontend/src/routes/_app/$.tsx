@@ -14,7 +14,7 @@ type PageSearch = { view?: (typeof VIEWS)[number]; v?: number; p?: number }
 // A present but non-numeric id (?v=abc) maps to an id that never exists → "not found"
 const searchId = (x: unknown) => (x === undefined ? undefined : typeof x === 'number' ? x : -1)
 
-export const Route = createFileRoute('/$')({
+export const Route = createFileRoute('/_app/$')({
   // Unknown values are dropped, so a bad ?view= falls back to the page itself
   validateSearch: (s: Record<string, unknown>): PageSearch => ({
     view: VIEWS.find((x) => x === s.view),
