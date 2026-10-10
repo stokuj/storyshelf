@@ -88,3 +88,26 @@ test('a failed Yes, add shows the backend detail and can be retried', async () =
   )
   expect(add.disabled).toBe(false)
 })
+
+test('a refetch that moved the page on does not let Save overwrite it', async () => {
+  const { write } = mockWikiApi()
+  const router = renderApp('/books/krew-elfow?view=edit')
+  const textarea = await source()
+  write(KE, FIXTURES[KE] + '\nZmiana obca.\n')
+  await router.options.context.queryClient.refetchQueries({ queryKey: ['page', KE] })
+  append(textarea, '\nMoja zmiana.\n')
+  save()
+  expect((await screen.findByRole('alert')).textContent).toBe(STALE)
+})
+
+test('a failed refetch keeps the editor and its text', async () => {
+  const overrides: Parameters<typeof mockWikiApi>[0] = {}
+  mockWikiApi(overrides)
+  const router = renderApp('/books/krew-elfow?view=edit')
+  const textarea = await source()
+  append(textarea, '\nMoja zmiana.\n')
+  overrides[`GET /api/wiki/pages${KE}`] = () => json(500, null)
+  await router.options.context.queryClient.refetchQueries({ queryKey: ['page', KE] })
+  expect(screen.queryByText(/Could not load this page/)).toBeNull()
+  expect(textarea.value).toContain('Moja zmiana.')
+})

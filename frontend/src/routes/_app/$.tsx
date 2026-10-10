@@ -33,7 +33,8 @@ function PageRoute() {
       document.title = 'StoryShelf'
     }
   }, [page])
-  if (error) {
+  // A failed background refetch keeps the old data; only a page that never loaded is an error
+  if (!page && error) {
     const missing = error instanceof ApiError && error.status === 404
     return (
       <p className="text-muted-foreground">

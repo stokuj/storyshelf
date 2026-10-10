@@ -8,6 +8,8 @@ import { pageSplat } from '@/wiki'
 
 export function PageEditor({ page }: { page: Page }) {
   const [content, setContent] = useState(page.content)
+  // Version the text was started from; only Reload moves it, so a newer save elsewhere gives a 409
+  const [baseVersion, setBaseVersion] = useState(page.version)
   const save = useSavePage(page.path)
   const { refetch } = usePage(page.path)
   const stale = save.error instanceof ApiError && save.error.status === 409
@@ -16,6 +18,7 @@ export function PageEditor({ page }: { page: Page }) {
     refetch().then(({ data }) => {
       if (data) {
         setContent(data.content)
+        setBaseVersion(data.version)
         save.reset()
       }
     })
@@ -27,7 +30,7 @@ export function PageEditor({ page }: { page: Page }) {
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        save.mutate({ content, baseVersion: page.version }, { onSuccess: back })
+        save.mutate({ content, baseVersion }, { onSuccess: back })
       }}
     >
       <Link
