@@ -148,3 +148,21 @@
 .page-body ul {
   @apply mb-4 list-disc space-y-2 pl-5;
 }
+.page-body h3 {
+  @apply mt-6 mb-2 font-heading text-xl font-semibold;
+}
+.page-body ol {
+  @apply mb-4 list-decimal space-y-2 pl-5;
+}
+.page-body blockquote {
+  @apply mb-4 border-l-4 pl-4 text-muted-foreground italic;
+}
+.page-body code {
+  @apply rounded-sm bg-muted px-1 font-mono text-sm;
+}
+.page-body pre {
+  @apply mb-4 overflow-x-auto rounded-md bg-muted p-3;
+}
+.page-body pre code {
+  @apply bg-transparent p-0;
+}
