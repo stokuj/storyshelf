@@ -1,4 +1,4 @@
-// Edycja: the raw .md in a textarea; the store validates it and records a Version
+// Edycja: the raw .md in a textarea; the API validates it and records a Version
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ApiError, apiErrorMessage } from '@/api/client'
@@ -15,10 +15,11 @@ export function PageEditor({ page }: { page: Page }) {
   const stale = save.error instanceof ApiError && save.error.status === 409
   // Pull the newest text from the server and start editing from it
   const reload = () =>
-    refetch().then(({ data }) => {
-      if (data) {
-        setContent(data.content)
-        setBaseVersion(data.version)
+    refetch().then((r) => {
+      // A failed refetch still carries the old cached data, so act on success only
+      if (r.isSuccess) {
+        setContent(r.data.content)
+        setBaseVersion(r.data.version)
         save.reset()
       }
     })

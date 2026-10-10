@@ -47,6 +47,25 @@ test('409 asks to reload, and Reload loads the newer text', async () => {
   expect(screen.queryByRole('textbox', { name: 'Page source' })).toBeNull()
 })
 
+test('Reload during an outage keeps the text and the stale message', async () => {
+  const overrides: Record<string, () => Response> = {}
+  const { write } = mockWikiApi(overrides)
+  renderApp('/books/krew-elfow?view=edit')
+  const textarea = await source()
+  write(KE, FIXTURES[KE] + '\nZmiana obca.\n')
+  append(textarea, '\nMoja zmiana.\n')
+  const typed = textarea.value
+  save()
+  expect((await screen.findByRole('alert')).textContent).toBe(STALE)
+
+  overrides[`GET /api/wiki/pages${KE}`] = () => json(500, null)
+  fireEvent.click(screen.getByRole('button', { name: 'Reload' }))
+  // The failed refetch is retried once (1 s) before it settles
+  await new Promise((r) => setTimeout(r, 1500))
+  expect(textarea.value).toBe(typed)
+  expect(screen.getByRole('alert').textContent).toBe(STALE)
+})
+
 test('a missing page says not found and is not retried', async () => {
   renderApp('/books/nope')
   await screen.findByText(/^Page not found\./)

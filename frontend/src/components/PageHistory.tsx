@@ -1,4 +1,4 @@
-// Historia: every Version newest first; a picked Version renders read-only
+// Historia: the newest 20 Versions (first page); a picked Version renders read-only
 import { Link } from '@tanstack/react-router'
 import { useVersions } from '@/api/hooks'
 import type { Page, VersionKind } from '@/api/types'

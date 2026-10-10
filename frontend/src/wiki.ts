@@ -67,6 +67,7 @@ export function parsePage(content: string): { frontmatter: Frontmatter; body: st
   }
 }
 
+// Kept for the M3 Proposal flow (only tests use it now)
 // Appends a Weryfikacja event (OKF v0.2 §5.2) without reformatting the rest of the frontmatter
 export function addVerified(content: string, by: string, at: string): string {
   const match = FRONTMATTER.exec(content)
