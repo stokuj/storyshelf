@@ -89,22 +89,27 @@ export function validateEdit(content: string, type: PageType): string | null {
   return missing.length ? `Missing template headings: ${missing.join(', ')}` : null
 }
 
-const isText = (v: unknown) => v === undefined || typeof v === 'string'
-const isTextObject = (v: unknown) =>
-  typeof v === 'object' && v !== null && !Array.isArray(v) && Object.values(v).every(isText)
+// Empty YAML values (`key:`) parse to null and count as absent
+const isText = (v: unknown) => v == null || typeof v === 'string'
+const isScalarObject = (v: unknown) =>
+  typeof v === 'object' &&
+  v !== null &&
+  !Array.isArray(v) &&
+  Object.values(v).every((x) => typeof x !== 'object' || x === null)
+const isListOf = (v: unknown, ok: (x: unknown) => boolean) =>
+  v == null || (Array.isArray(v) && v.every(ok))
 
 // Fields the UI renders as text or lists; a wrong shape would crash the sidebar or PageView
 function checkShape(fm: Record<string, unknown>): string | null {
   for (const key of ['title', 'description', 'author', 'status', 'book', 'universe']) {
-    if (!isText(fm[key])) return `${key} must be text`
+    if (!isText(fm[key])) return `${key} must be text (quote numbers, e.g. "1984")`
   }
-  for (const key of ['sources', 'verified']) {
-    const v = fm[key]
-    if (v !== undefined && !(Array.isArray(v) && v.every(isTextObject))) {
-      return `${key} must be a list of objects`
-    }
-  }
-  if (fm.generated !== undefined && !isTextObject(fm.generated)) {
+  // resource goes through the URL sanitiser, which needs a string
+  const isSource = (x: unknown) =>
+    isScalarObject(x) && isText((x as Record<string, unknown>).resource)
+  if (!isListOf(fm.sources, isSource)) return 'sources must be a list of objects'
+  if (!isListOf(fm.verified, isScalarObject)) return 'verified must be a list of objects'
+  if (fm.generated != null && !isScalarObject(fm.generated)) {
     return 'generated must be an object'
   }
   return null

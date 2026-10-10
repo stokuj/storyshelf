@@ -95,8 +95,11 @@ test('validateEdit lists missing template headings', () => {
 test('validateEdit rejects fields the UI cannot render', () => {
   const page = (fm: string) => `---\ntype: universe\n${fm}\n---\n## Opis\n`
   expect(validateEdit(page('title: 2024'), 'universe')).toBe(
-    'Invalid frontmatter: title must be text',
+    'Invalid frontmatter: title must be text (quote numbers, e.g. "1984")',
   )
+  expect(
+    validateEdit(page('title: "1984"\ndescription:\nsources:\n  - id: 1'), 'universe'),
+  ).toBeNull()
   expect(validateEdit(page('verified: x'), 'universe')).toBe(
     'Invalid frontmatter: verified must be a list of objects',
   )
