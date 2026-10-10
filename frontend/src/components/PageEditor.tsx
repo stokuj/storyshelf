@@ -1,13 +1,24 @@
 // Edycja: the raw .md in a textarea; the store validates it and records a Version
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useSavePage } from '@/api/hooks'
+import { ApiError, apiErrorMessage } from '@/api/client'
+import { usePage, useSavePage } from '@/api/hooks'
 import type { Page } from '@/api/types'
 import { pageSplat } from '@/wiki'
 
 export function PageEditor({ page }: { page: Page }) {
   const [content, setContent] = useState(page.content)
   const save = useSavePage(page.path)
+  const { refetch } = usePage(page.path)
+  const stale = save.error instanceof ApiError && save.error.status === 409
+  // Pull the newest text from the server and start editing from it
+  const reload = () =>
+    refetch().then(({ data }) => {
+      if (data) {
+        setContent(data.content)
+        save.reset()
+      }
+    })
   const navigate = useNavigate()
   const params = { _splat: pageSplat(page.path) }
   const back = () => navigate({ to: '/$', params, search: {} })
@@ -40,9 +51,18 @@ export function PageEditor({ page }: { page: Page }) {
         className="mt-4 w-full rounded-md border bg-background p-3 font-mono text-sm"
       />
       {save.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          {save.error.message}
-        </p>
+        <div className="mt-2 flex items-center gap-3 text-sm">
+          <p role="alert" className="text-destructive">
+            {stale
+              ? 'This page changed since you opened it. Reload to get the latest version.'
+              : apiErrorMessage(save.error)}
+          </p>
+          {stale && (
+            <button type="button" onClick={reload} className="rounded-md border px-3 py-1">
+              Reload
+            </button>
+          )}
+        </div>
       )}
       <div className="mt-4 flex gap-2">
         <button

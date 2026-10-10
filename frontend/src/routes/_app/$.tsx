@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { ApiError } from '@/api/client'
 import { usePage, usePages } from '@/api/hooks'
 import type { Page, PageSummary } from '@/api/types'
 import { PageEditor } from '@/components/PageEditor'
@@ -25,17 +26,18 @@ export const Route = createFileRoute('/_app/$')({
 function PageRoute() {
   const { _splat = '' } = Route.useParams()
   const { view, v } = Route.useSearch()
-  const { data: page, isError } = usePage(pagePath(_splat))
+  const { data: page, error } = usePage(pagePath(_splat))
   useEffect(() => {
     document.title = page ? `${page.title} · StoryShelf` : 'StoryShelf'
     return () => {
       document.title = 'StoryShelf'
     }
   }, [page])
-  if (isError) {
+  if (error) {
+    const missing = error instanceof ApiError && error.status === 404
     return (
       <p className="text-muted-foreground">
-        Page not found.{' '}
+        {missing ? 'Page not found.' : 'Could not load this page.'}{' '}
         <Link to="/" className="text-primary">
           Home
         </Link>

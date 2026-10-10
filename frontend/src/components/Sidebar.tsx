@@ -12,7 +12,7 @@ const SECTIONS: [PageType, string][] = [
 ]
 
 export function Sidebar() {
-  const { data: pages = [] } = usePages()
+  const { data: pages = [], isError } = usePages()
   const { data: me } = useMe()
   const logout = useLogout()
   const groups = groupByType(pages)
@@ -34,6 +34,11 @@ export function Sidebar() {
       >
         Add book
       </Link>
+      {isError && (
+        <p role="alert" className="px-2 text-sm text-destructive">
+          Could not load pages.
+        </p>
+      )}
       {SECTIONS.map(([type, label]) => (
         <section key={type}>
           <h2 className="mb-1 flex justify-between px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">

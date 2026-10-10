@@ -1,5 +1,6 @@
 // Read hooks + writes: Pages go to /api/wiki/..., the rest still uses the fake store
 import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ApiError } from './client'
 import { createBook, getPage, listPages, listVersions, savePage } from './wiki'
 import {
   acceptProposal,
@@ -15,8 +16,12 @@ export const usePages = (type?: PageType) =>
   useQuery({ queryKey: ['pages', type ?? 'all'], queryFn: () => listPages(type) })
 
 export const usePage = (path: string) =>
-  // No retry: a missing page is a 404 (OKF tolerates broken links), not a transient error
-  useQuery({ queryKey: ['page', path], queryFn: () => getPage(path), retry: false })
+  useQuery({
+    queryKey: ['page', path],
+    queryFn: () => getPage(path),
+    // A missing page is a 404 (OKF tolerates broken links), not transient; anything else gets one retry
+    retry: (count, e) => count < 1 && !(e instanceof ApiError && e.status === 404),
+  })
 
 export const useVersions = (path: string) =>
   useQuery({ queryKey: ['page', path, 'versions'], queryFn: () => listVersions(path) })
