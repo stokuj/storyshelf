@@ -15,6 +15,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSplatRouteImport } from './routes/_app/$'
 import { Route as AppAddRouteImport } from './routes/_app/add'
+import { Route as AppNewRouteImport } from './routes/_app/new'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
 
 const AppRoute = AppRouteImport.update({
@@ -46,6 +47,11 @@ const AppAddRoute = AppAddRouteImport.update({
   path: '/add',
   getParentRoute: () => AppRoute,
 } as any)
+const AppNewRoute = AppNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/$': typeof AppSplatRoute
   '/add': typeof AppAddRoute
+  '/new': typeof AppNewRoute
   '/profile': typeof AppProfileRoute
 }
 export interface FileRoutesByTo {
@@ -65,6 +72,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/$': typeof AppSplatRoute
   '/add': typeof AppAddRoute
+  '/new': typeof AppNewRoute
   '/profile': typeof AppProfileRoute
   '/': typeof AppIndexRoute
 }
@@ -75,14 +83,15 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/_app/$': typeof AppSplatRoute
   '/_app/add': typeof AppAddRoute
+  '/_app/new': typeof AppNewRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register' | '/$' | '/add' | '/profile'
+  fullPaths: '/' | '/login' | '/register' | '/$' | '/add' | '/new' | '/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/register' | '/$' | '/add' | '/profile' | '/'
+  to: '/login' | '/register' | '/$' | '/add' | '/new' | '/profile' | '/'
   id:
     | '__root__'
     | '/_app'
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/_app/$'
     | '/_app/add'
+    | '/_app/new'
     | '/_app/profile'
     | '/_app/'
   fileRoutesById: FileRoutesById
@@ -144,6 +154,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAddRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/new': {
+      id: '/_app/new'
+      path: '/new'
+      fullPath: '/new'
+      preLoaderRoute: typeof AppNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/profile': {
       id: '/_app/profile'
       path: '/profile'
@@ -157,6 +174,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppSplatRoute: typeof AppSplatRoute
   AppAddRoute: typeof AppAddRoute
+  AppNewRoute: typeof AppNewRoute
   AppProfileRoute: typeof AppProfileRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -164,6 +182,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppSplatRoute: AppSplatRoute,
   AppAddRoute: AppAddRoute,
+  AppNewRoute: AppNewRoute,
   AppProfileRoute: AppProfileRoute,
   AppIndexRoute: AppIndexRoute,
 }

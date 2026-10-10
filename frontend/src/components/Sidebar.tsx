@@ -34,6 +34,13 @@ export function Sidebar() {
       >
         Add book
       </Link>
+      <Link
+        to="/new"
+        className="rounded-md border px-2 py-1 text-center text-sm hover:bg-background"
+        activeProps={{ className: 'bg-background text-primary' }}
+      >
+        New page
+      </Link>
       {isError && (
         <p role="alert" className="px-2 text-sm text-destructive">
           Could not load pages.
