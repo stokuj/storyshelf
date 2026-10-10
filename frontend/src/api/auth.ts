@@ -1,5 +1,6 @@
 // Session = HttpOnly cookies (ADR-001); the SPA only knows who is logged in via /users/me/
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { ApiError, api } from './client'
 
 // GET /api/users/me/ (UserMeSerializer)
@@ -63,3 +64,16 @@ export function formErrors(error: unknown): Record<string, string> {
 // The backend sets the session cookies on register too
 export const useRegister = () =>
   useSessionMutation<Credentials & { handle: string }>('/auth/register/')
+
+export function useLogout() {
+  const qc = useQueryClient()
+  const navigate = useNavigate()
+  return useMutation({
+    mutationFn: () => api('/auth/logout/', { method: 'POST' }),
+    // Leave the wiki first so no mounted query refetches as a logged-out user
+    onSuccess: async () => {
+      await navigate({ to: '/login' })
+      qc.clear()
+    },
+  })
+}

@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
-import { usePages, useProfile } from '@/api/hooks'
+import { useLogout, useMe } from '@/api/auth'
+import { usePages } from '@/api/hooks'
 import type { PageType } from '@/api/types'
 import { groupByType, pageSplat } from '@/wiki'
 
@@ -12,7 +13,8 @@ const SECTIONS: [PageType, string][] = [
 
 export function Sidebar() {
   const { data: pages = [] } = usePages()
-  const { data: profile } = useProfile()
+  const { data: me } = useMe()
+  const logout = useLogout()
   const groups = groupByType(pages)
   const titles = new Map(pages.map((p) => [p.path, p.title]))
 
@@ -58,14 +60,24 @@ export function Sidebar() {
           </ul>
         </section>
       ))}
-      {profile && (
-        <Link
-          to="/profile"
-          className="mt-auto rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-background"
-          activeProps={{ className: 'bg-background font-medium text-primary' }}
-        >
-          @{profile.handle}
-        </Link>
+      {me && (
+        <div className="mt-auto flex items-center justify-between gap-2">
+          <Link
+            to="/profile"
+            className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-background"
+            activeProps={{ className: 'bg-background font-medium text-primary' }}
+          >
+            @{me.handle}
+          </Link>
+          <button
+            type="button"
+            onClick={() => logout.mutate()}
+            disabled={logout.isPending}
+            className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-background disabled:opacity-50"
+          >
+            Log out
+          </button>
+        </div>
       )}
     </nav>
   )

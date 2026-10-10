@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { safeRedirect } from '@/api/auth'
 import { ME, json, mockFetch } from './mockFetch'
 import { renderApp } from './renderApp'
@@ -139,5 +139,31 @@ test('login and register link to each other', async () => {
   fireEvent.click(await screen.findByRole('link', { name: 'No account? Create one' }))
   await waitFor(() => expect(router.state.location.pathname).toBe('/register'))
   fireEvent.click(await screen.findByRole('link', { name: 'Have an account? Log in' }))
+  await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+})
+
+test('sidebar shows the handle from /users/me/', async () => {
+  mockFetch({ 'GET /api/users/me/': () => json(200, { ...ME, handle: 'realuser' }) })
+  renderApp('/')
+  const nav = await screen.findByRole('navigation', { name: 'Wiki' })
+  await within(nav).findByRole('link', { name: '@realuser' })
+})
+
+test('log out ends the session and returns to login', async () => {
+  let loggedIn = true
+  const f = mockFetch({
+    ...loggedOut,
+    'GET /api/users/me/': () => (loggedIn ? json(200, ME) : json(401, { detail: 'no' })),
+    'POST /api/auth/logout/': () => {
+      loggedIn = false
+      return json(200, { message: 'Logged out successfully' })
+    },
+  })
+  const router = renderApp('/')
+  fireEvent.click(await screen.findByRole('button', { name: 'Log out' }))
+  await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
+  expect(f).toHaveBeenCalledWith('/api/auth/logout/', expect.objectContaining({ method: 'POST' }))
+  // Back to the wiki: the old 'me' is gone from the cache, so the guard asks again
+  router.history.push('/')
   await waitFor(() => expect(router.state.location.pathname).toBe('/login'))
 })
