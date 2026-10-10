@@ -70,14 +70,14 @@ docs/ARCHITECTURE.md                     + linia: aktualna Wersja = najnowszy Pa
 ### `wiki/okf.py`
 
 ```python
-class OKFError(ValueError): ...           # message = komunikat dla Usera
+class OKFError(ValueError): ...           # message = komunikat dla Usera; .field = klucz błędu (domyślnie "content")
 
 TEMPLATES: dict[str, list[str]]           # jak wiki.ts:64
 def parse(content: str) -> tuple[dict, str]           # regex frontmattera z wiki.ts, yaml.safe_load
-def validate(content: str, type: str) -> dict         # zwraca frontmatter albo rzuca OKFError
+def validate(content: str, page_type: str) -> dict    # zwraca frontmatter albo rzuca OKFError
 def slugify(text: str) -> str
-def page_path(type: str, title: str, book: str | None = None) -> str
-def render_template(type: str, meta: dict) -> str     # frontmatter + status: draft + puste nagłówki
+def page_path(page_type: str, title: str, book: str | None = None) -> str   # pusty slug → OKFError(field="title")
+def render_template(page_type: str, meta: dict) -> str   # frontmatter + status: draft + puste nagłówki
 ```
 
 Kolejność sprawdzeń w `validate` (pierwszy błąd przerywa):
@@ -94,11 +94,13 @@ Kolejność sprawdzeń w `validate` (pierwszy błąd przerywa):
 class PathTaken(Exception): ...
 class StaleVersion(Exception): ...
 
-def create_page(owner, type, title, *, author=None, year=None, book=None, universe=None) -> Page
+def insert_page(owner, path, page_type, content) -> Page
+def create_page(owner, page_type, title, *, author=None, year=None, book=None, universe=None) -> Page
 def edit_page(page, content, base_version: int, *, kind="edit", author="human") -> Page
 ```
 
-- `create_page`: sprawdza `book`/`universe` (`OKFError`), liczy Ścieżkę, zajęta → `PathTaken`, składa Szablon, `validate`, potem w `transaction.atomic` zapisuje `Page` i `PageVersion(kind="created", author="human")`. `IntegrityError` z constraintu przy wyścigu → `PathTaken`.
+- `insert_page`: `validate`, potem w `transaction.atomic` zapisuje `Page` (z polami denormalizowanymi) i `PageVersion(kind="created", author="human")`. `IntegrityError` z constraintu `(owner, path)` → `PathTaken("Page already exists: <path>")`. Używają go `create_page` i seed.
+- `create_page`: sprawdza `book`/`universe` (`OKFError` z `field="book"`/`"universe"`), liczy Ścieżkę, składa Szablon, woła `insert_page`.
 - `edit_page`: w `transaction.atomic` blokuje Stronę (`select_for_update`); najnowsza Wersja ≠ `base_version` → `StaleVersion`, nic się nie zapisuje. Inaczej `validate`, aktualizacja `content` i pól denormalizowanych, nowa `PageVersion`. `kind`/`author` istnieją dla Agenta w M3; endpoint zawsze wysyła `edit`/`human`.
 
 ### HTTP
@@ -111,11 +113,11 @@ def edit_page(page, content, base_version: int, *, kind="edit", author="human") 
 | `PUT /api/wiki/pages/{path}` | `{content, base_version}` | `200` Strona z nowym `version` | `400 {"content": [msg]}`, `404`, `409` nieaktualna Wersja |
 | `GET /api/wiki/pages/{path}/versions/` | | `200` paginowane `{id, kind, author, content, created_at}` od najnowszej | `404` |
 
-`{path}` w URL to Ścieżka bez wiodącego `/`, dopasowana regexem `(?P<path>(books|characters|places|universes)/[a-z0-9-]+\.md)`. Widoki mapują `OKFError` → 400 `{"content": [msg]}`, `PathTaken`/`StaleVersion` → 409 `{"detail": msg}`; `@extend_schema` opisuje 400 i 409 w OpenAPI.
+`{path}` w URL to Ścieżka bez wiodącego `/`, dopasowana regexem `(?P<path>(books|characters|places|universes)/[a-z0-9-]+\.md)`. Widoki mapują `OKFError` → 400 `{<field>: [msg]}` (`content`, `title`, `book` albo `universe`), `PathTaken`/`StaleVersion` → 409 `{"detail": msg}`; `@extend_schema` opisuje 400 i 409 w OpenAPI.
 
 ### Seed
 
-`manage.py seed <email>`: brak Usera → `CommandError`. Kolejność typów: universe, book, character, place. Każdy plik: `okf.validate`, Ścieżka z położenia pliku (`/books/solaris.md`), istniejąca → pominięta, inaczej `Page` + `PageVersion(created, human)`. Wypisuje `created N, skipped M`. Seed nie sprawdza `book`/`universe` (to robi tylko `create_page`). Fixture, który nie przejdzie walidacji, poprawiamy w kopii backendowej.
+`manage.py seed <email>`: brak Usera → `CommandError`. Każdy plik: Ścieżka z położenia pliku (`/books/solaris.md`), `insert_page`; `PathTaken` → pominięta, `OKFError` → `CommandError` z Ścieżką. Wypisuje `created N, skipped M`. Seed nie sprawdza `book`/`universe` (to robi tylko `create_page`). Fixture, który nie przejdzie walidacji, poprawiamy w kopii backendowej.
 
 ## Testy
 
