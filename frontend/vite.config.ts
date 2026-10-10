@@ -15,7 +15,7 @@ export default defineConfig({
     // Same-origin API in dev (ADR-002)
     proxy: { '/api': 'http://localhost:8000' },
     // Tests import the backend fixtures (src/test/mockWikiApi.ts)
-    fs: { allow: ['..'] },
+    fs: { allow: ['.', '../backend-django/wiki/fixtures'] },
   },
   test: {
     environment: 'jsdom',
