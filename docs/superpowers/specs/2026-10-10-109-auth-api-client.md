@@ -16,7 +16,7 @@ User rejestruje się albo loguje w SPA na prawdziwym backendzie i ląduje na Wik
 | 401 | dla ścieżek spoza `/auth/`: jeden `POST /api/auth/refresh/`, potem jedna ponowna próba; refresh nieudany → `ApiError(401)` | Done when 2; `/auth/*` bez refresh, żeby nie zapętlić |
 | Równoległe 401 | single-flight: jedna wspólna obietnica refresh, zerowana po zakończeniu | backend ma `ROTATE_REFRESH_TOKENS=True` + blacklist; dwa równoległe refresh = drugi z unieważnionym tokenem = wylogowanie |
 | Bieżący User | `meQuery = queryOptions({ queryKey: ['me'], queryFn: GET /users/me/, retry: false, staleTime: Infinity })` + `useMe()` | Done when 1; sesja to cookie, `me` zmienia się tylko przy login/logout |
-| Login / rejestracja | mutacje `useLogin`, `useRegister`; po sukcesie `invalidateQueries(['me'])`, potem nawigacja na `redirect` albo `/` | backend przy rejestracji od razu ustawia cookies, więc po rejestracji User jest zalogowany |
+| Login / rejestracja | mutacje `useLogin`, `useRegister`; po sukcesie `removeQueries(['me'])`, potem nawigacja na `redirect` albo `/` | backend przy rejestracji od razu ustawia cookies, więc po rejestracji User jest zalogowany |
 | Wylogowanie | `useLogout`: `POST /auth/logout/`, `queryClient.clear()`, nawigacja na `/login` | czyści cache poprzedniego Usera |
 | Guard | pathless layout `_app.tsx`: `beforeLoad` → `context.queryClient.ensureQueryData(meQuery)`; `ApiError` 401 → `throw redirect({ to: '/login', search: { redirect: location.href } })`; inne błędy przepuszcza | wzorzec TanStack; brak mignięcia Wiki przed przekierowaniem |
 | Kontekst routera | `__root.tsx` → `createRootRouteWithContext<{ queryClient: QueryClient }>()`, sam `<Outlet/>`; `main.tsx` przekazuje `context: { queryClient }` | `beforeLoad` potrzebuje QueryClient |
