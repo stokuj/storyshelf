@@ -16,7 +16,15 @@ const when = (iso: string) =>
   new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
 
 export function PageHistory({ page, versionId }: { page: Page; versionId?: number }) {
-  const { data } = useVersions(page.path)
+  const { data, isError } = useVersions(page.path)
+  // A failed background refetch keeps the loaded list
+  if (!data && isError) {
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        Could not load history.
+      </p>
+    )
+  }
   if (!data) return null
   const versions = data.data
   const params = { _splat: pageSplat(page.path) }

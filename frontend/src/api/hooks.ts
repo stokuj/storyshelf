@@ -24,7 +24,11 @@ export const usePage = (path: string) =>
   })
 
 export const useVersions = (path: string) =>
-  useQuery({ queryKey: ['page', path, 'versions'], queryFn: () => listVersions(path) })
+  useQuery({
+    queryKey: ['page', path, 'versions'],
+    queryFn: () => listVersions(path),
+    retry: (count, e) => count < 1 && !(e instanceof ApiError && e.status === 404),
+  })
 
 export const useProposals = (path: string) =>
   useQuery({ queryKey: ['page', path, 'proposals'], queryFn: () => listProposals(path) })

@@ -29,7 +29,7 @@ export function summary(path: string, content: string): PageSummary {
   }
 }
 
-type Version = Omit<PageVersion, 'page'>
+type Version = PageVersion
 type Route = (init?: RequestInit) => Response
 const PREFIX = '/api/wiki/pages/'
 

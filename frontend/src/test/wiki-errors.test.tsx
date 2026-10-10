@@ -83,6 +83,14 @@ test('a server error on a page is not "not found"', async () => {
   expect(screen.queryByText(/^Page not found\./)).toBeNull()
 })
 
+test('a failed History shows an alert instead of a blank view', async () => {
+  mockWikiApi({ [`GET /api/wiki/pages${KE}/versions/`]: () => json(500, null) })
+  renderApp('/books/krew-elfow?view=history')
+  // One retry (1 s) before the error shows
+  const alert = await screen.findByRole('alert', {}, { timeout: 3000 })
+  expect(alert.textContent).toBe('Could not load history.')
+})
+
 test('a failed page list shows an alert in the sidebar', async () => {
   mockWikiApi({ 'GET /api/wiki/pages/': () => json(500, null) })
   renderApp('/')
