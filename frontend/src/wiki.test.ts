@@ -92,6 +92,31 @@ test('validateEdit lists missing template headings', () => {
   expect(validateEdit(content, 'book')).toBe('Missing template headings: Postacie, Miejsca')
 })
 
+test('validateEdit rejects fields the UI cannot render', () => {
+  const page = (fm: string) => `---\ntype: universe\n${fm}\n---\n## Opis\n`
+  expect(validateEdit(page('title: 2024'), 'universe')).toBe(
+    'Invalid frontmatter: title must be text',
+  )
+  expect(validateEdit(page('verified: x'), 'universe')).toBe(
+    'Invalid frontmatter: verified must be a list of objects',
+  )
+  expect(validateEdit(page('sources:\n  - id: 1\n    resource: 2'), 'universe')).toBe(
+    'Invalid frontmatter: sources must be a list of objects',
+  )
+  expect(validateEdit(page('generated: agent'), 'universe')).toBe(
+    'Invalid frontmatter: generated must be an object',
+  )
+})
+
+test('parsePage accepts a UTF-8 BOM', () => {
+  expect(parsePage('﻿---\ntype: universe\n---\n## Opis\n').frontmatter.type).toBe('universe')
+})
+
+test('addVerified keeps CRLF line endings', () => {
+  const out = addVerified(OZ.replaceAll('\n', '\r\n'), 'human:x', 't')
+  expect(out.replaceAll('\r\n', '')).not.toContain('\n')
+})
+
 test('addVerified appends to an existing verified list and keeps the body', () => {
   const out = addVerified(OZ, 'human:stokuj', '2026-10-05T10:00:00.000Z')
   expect(parsePage(out).frontmatter.verified).toEqual([

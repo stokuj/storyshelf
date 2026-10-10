@@ -1,7 +1,7 @@
 // Add a book: chat with the Agent → Candidate cards → Page with an empty Szablon
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { useCreateBook, usePages, useSuggestCandidates } from '@/api/hooks'
+import { useRef, useState } from 'react'
+import { useCreateBook, usePages, useFindCandidates } from '@/api/hooks'
 import type { Candidate } from '@/api/types'
 import { bookPath, pageSplat } from '@/wiki'
 
@@ -23,7 +23,8 @@ const bubble = 'ml-auto w-fit rounded-md bg-muted px-3 py-2'
 function AddBookPage() {
   const [turns, setTurns] = useState<Turn[]>([])
   const [draft, setDraft] = useState('')
-  const suggest = useSuggestCandidates()
+  const find = useFindCandidates()
+  const input = useRef<HTMLInputElement>(null)
   const dismiss = (i: number) =>
     setTurns((ts) => ts.map((t, j) => (j === i ? { ...t, dismissed: true } : t)))
 
@@ -34,7 +35,7 @@ function AddBookPage() {
         Type a title, or just what you remember from the story.
       </p>
 
-      <ol aria-label="Chat" className="mt-6 space-y-6">
+      <ol aria-label="Chat" aria-live="polite" className="mt-6 space-y-6">
         {turns.map((t, i) => (
           <li key={i} className="space-y-3">
             <p className={bubble}>{t.prompt}</p>
@@ -53,9 +54,9 @@ function AddBookPage() {
             )}
           </li>
         ))}
-        {suggest.isPending && (
+        {find.isPending && (
           <li className="space-y-3">
-            <p className={bubble}>{suggest.variables}</p>
+            <p className={bubble}>{find.variables}</p>
             <p className="text-muted-foreground">Thinking…</p>
           </li>
         )}
@@ -66,13 +67,16 @@ function AddBookPage() {
         onSubmit={(e) => {
           e.preventDefault()
           const prompt = draft.trim()
-          suggest.mutate(prompt, {
+          if (!prompt || find.isPending) return
+          find.mutate(prompt, {
             onSuccess: (r) => setTurns((ts) => [...ts, { prompt, ...r, dismissed: false }]),
           })
           setDraft('')
+          input.current?.focus()
         }}
       >
         <input
+          ref={input}
           aria-label="Message to Agent"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -80,7 +84,7 @@ function AddBookPage() {
         />
         <button
           type="submit"
-          disabled={!draft.trim() || suggest.isPending}
+          disabled={!draft.trim() || find.isPending}
           className={`${button} bg-primary text-primary-foreground`}
         >
           Send
@@ -94,6 +98,8 @@ function CandidateCard({ candidate: c }: { candidate: Candidate }) {
   const { data: pages = [] } = usePages()
   const create = useCreateBook()
   const navigate = useNavigate()
+  // isPending updates after re-render, so a fast double click would start a second create
+  const started = useRef(false)
   const path = bookPath(c.title)
   const exists = pages.some((p) => p.path === path)
 
@@ -121,11 +127,15 @@ function CandidateCard({ candidate: c }: { candidate: Candidate }) {
         <button
           type="button"
           disabled={create.isPending}
-          onClick={() =>
+          aria-label={`Yes, add ${c.title}`}
+          onClick={() => {
+            if (started.current) return
+            started.current = true
             create.mutate(c, {
               onSuccess: (page) => navigate({ to: '/$', params: { _splat: pageSplat(page.path) } }),
+              onError: () => (started.current = false),
             })
-          }
+          }}
           className={`${button} bg-primary text-primary-foreground`}
         >
           Yes, add

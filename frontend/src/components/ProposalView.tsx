@@ -16,9 +16,18 @@ export function ProposalView({ page, proposalId }: { page: Page; proposalId: num
   if (!proposals || !versions) return null
 
   const proposal = proposals.find((p) => p.id === proposalId)
-  if (!proposal) return <p className="text-muted-foreground">Proposal not found.</p>
-  const base = versions.find((v) => v.id === proposal.base_version)
   const params = { _splat: pageSplat(page.path) }
+  if (!proposal) {
+    return (
+      <p className="text-muted-foreground">
+        Proposal not found.{' '}
+        <Link to="/$" params={params} search={{}} className="text-primary">
+          Back to page
+        </Link>
+      </p>
+    )
+  }
+  const base = versions.find((v) => v.id === proposal.base_version)
   const back = () => navigate({ to: '/$', params, search: {} })
   const error = accept.error ?? reject.error
 

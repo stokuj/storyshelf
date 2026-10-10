@@ -31,7 +31,10 @@ export function PageEditor({ page }: { page: Page }) {
       <textarea
         aria-label="Page source"
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => {
+          setContent(e.target.value)
+          if (save.error) save.reset() // the alert describes the old text
+        }}
         rows={30}
         spellCheck={false}
         className="mt-4 w-full rounded-md border bg-background p-3 font-mono text-sm"

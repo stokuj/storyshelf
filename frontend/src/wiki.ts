@@ -48,8 +48,8 @@ export interface Frontmatter {
   verified?: { by: string; at: string }[]
 }
 
-// Opening `---`, optional YAML block, closing `---`; LF or CRLF
-const FRONTMATTER = /^---\r?\n(?:([\s\S]*?)\r?\n)?---(?:\r?\n|$)/
+// Optional BOM, opening `---`, optional YAML block, closing `---`; LF or CRLF
+const FRONTMATTER = /^\uFEFF?---\r?\n(?:([\s\S]*?)\r?\n)?---(?:\r?\n|$)/
 
 export function parsePage(content: string): { frontmatter: Frontmatter; body: string } {
   const match = FRONTMATTER.exec(content)
@@ -82,9 +82,32 @@ export function validateEdit(content: string, type: PageType): string | null {
   }
   // type picks the Path directory, so changing it would break the Page identity
   if (parsed.frontmatter.type !== type) return "Page type can't change"
+  const shapeError = checkShape(fm as Record<string, unknown>)
+  if (shapeError) return `Invalid frontmatter: ${shapeError}`
   const lines = new Set(parsed.body.split('\n').map((l) => l.trim()))
   const missing = TEMPLATES[type].filter((h) => !lines.has(`## ${h}`))
   return missing.length ? `Missing template headings: ${missing.join(', ')}` : null
+}
+
+const isText = (v: unknown) => v === undefined || typeof v === 'string'
+const isTextObject = (v: unknown) =>
+  typeof v === 'object' && v !== null && !Array.isArray(v) && Object.values(v).every(isText)
+
+// Fields the UI renders as text or lists; a wrong shape would crash the sidebar or PageView
+function checkShape(fm: Record<string, unknown>): string | null {
+  for (const key of ['title', 'description', 'author', 'status', 'book', 'universe']) {
+    if (!isText(fm[key])) return `${key} must be text`
+  }
+  for (const key of ['sources', 'verified']) {
+    const v = fm[key]
+    if (v !== undefined && !(Array.isArray(v) && v.every(isTextObject))) {
+      return `${key} must be a list of objects`
+    }
+  }
+  if (fm.generated !== undefined && !isTextObject(fm.generated)) {
+    return 'generated must be an object'
+  }
+  return null
 }
 
 // Appends a Weryfikacja event (OKF v0.2 §5.2) without reformatting the rest of the frontmatter
@@ -97,5 +120,7 @@ export function addVerified(content: string, by: string, at: string): string {
   const list = doc.get('verified')
   if (isSeq(list)) list.add(doc.createNode(event))
   else doc.set('verified', doc.createNode([event]))
-  return `---\n${String(doc)}---\n${content.slice(match[0].length)}`
+  const eol = match[0].includes('\r\n') ? '\r\n' : '\n'
+  const yaml = String(doc).replaceAll('\n', eol)
+  return `---${eol}${yaml}---${eol}${content.slice(match[0].length)}`
 }
