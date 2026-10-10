@@ -4,6 +4,7 @@
 **Data:** 2026-05-14
 **Supersedes:** brak
 **Uwaga (2026-10-08):** frontend to teraz React SPA (ADR-005); sekcje o Vue/SvelteKit są historyczne. Decyzja o cookies obowiązuje.
+**Zmieniono (2026-10-08, #107):** `path` refresh cookie `/api/auth/refresh/` → `/api/auth/`. Logout musi odczytać token, żeby go zblacklistować; przy starej ścieżce przeglądarka go nie wysyłała i logout nic nie blacklistował. Refresh cookie trafia teraz do wszystkich `/api/auth/*` (login, register, refresh, logout); logout wygasza też cookie pod starą ścieżką.
 
 ## Kontekst
 
