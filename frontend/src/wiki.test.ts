@@ -1,4 +1,4 @@
-import { getPage, listPages } from '@/api/store'
+import { FIXTURES, summary } from '@/test/mockWikiApi'
 import {
   addVerified,
   bookPath,
@@ -11,7 +11,7 @@ import {
   validateEdit,
 } from '@/wiki'
 
-const pages = listPages()
+const pages = Object.entries(FIXTURES).map(([path, content]) => summary(path, content))
 
 test('groupByType puts every page in its type group', () => {
   const groups = groupByType(pages)
@@ -39,7 +39,7 @@ test('pagePath reverses pageSplat', () => {
 })
 
 test('parsePage splits frontmatter from body', () => {
-  const { frontmatter, body } = parsePage(getPage('/books/ostatnie-zyczenie.md').content)
+  const { frontmatter, body } = parsePage(FIXTURES['/books/ostatnie-zyczenie.md'])
   expect(frontmatter.type).toBe('book')
   expect(frontmatter.verified?.[0].by).toBe('human:stokuj')
   expect(body.startsWith('## Streszczenie')).toBe(true)
@@ -49,7 +49,7 @@ test('parsePage rejects content without frontmatter', () => {
   expect(() => parsePage('## Just a body')).toThrow('Missing frontmatter')
 })
 
-const OZ = getPage('/books/ostatnie-zyczenie.md').content
+const OZ = FIXTURES['/books/ostatnie-zyczenie.md']
 
 test('parsePage accepts CRLF line endings', () => {
   const crlf = parsePage(OZ.replaceAll('\n', '\r\n'))
@@ -62,7 +62,7 @@ test('parsePage treats an empty frontmatter block as {}', () => {
 })
 
 test('every fixture page passes validateEdit', () => {
-  for (const p of pages) expect(validateEdit(p.content, p.type), p.path).toBeNull()
+  for (const p of pages) expect(validateEdit(FIXTURES[p.path], p.type), p.path).toBeNull()
 })
 
 test('validateEdit accepts CRLF content', () => {
@@ -151,7 +151,7 @@ test('slugify makes ASCII path slugs', () => {
 })
 
 test('bookPath matches every fixture book', () => {
-  for (const p of listPages('book')) expect(bookPath(p.title)).toBe(p.path)
+  for (const p of pages.filter((p) => p.type === 'book')) expect(bookPath(p.title)).toBe(p.path)
 })
 
 test.each(['books/solaris', 'books/solaris/', 'books/solaris.md', 'books/solaris.md/'])(

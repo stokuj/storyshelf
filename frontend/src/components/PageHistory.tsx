@@ -16,11 +16,12 @@ const when = (iso: string) =>
   new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
 
 export function PageHistory({ page, versionId }: { page: Page; versionId?: number }) {
-  const { data: versions } = useVersions(page.path)
-  if (!versions) return null
+  const { data } = useVersions(page.path)
+  if (!data) return null
+  const versions = data.data
   const params = { _splat: pageSplat(page.path) }
-  // Oldest is v1; ids are not contiguous, so number by position
-  const label = (i: number) => `v${versions.length - i}`
+  // Oldest is v1; only the newest 20 are loaded, so number from the server total
+  const label = (i: number) => `v${data.total - i}`
 
   if (versionId !== undefined) {
     const i = versions.findIndex((v) => v.id === versionId)

@@ -1,4 +1,4 @@
-// Domain types mirroring the planned /api/wiki/... responses (docs/ARCHITECTURE.md)
+// Domain types mirroring the /api/wiki/... responses (docs/ARCHITECTURE.md)
 
 export type PageType = 'book' | 'character' | 'place' | 'universe'
 
@@ -19,20 +19,15 @@ export interface Paginated<T> {
   total: number
 }
 
-export interface Page {
-  path: string // '/books/ostatnie-zyczenie.md' — identity
-  type: PageType
-  title: string
-  book: string | null // character/place → book path
-  universe: string | null // book → universe path
+export interface Page extends PageSummary {
   content: string // raw .md: frontmatter + body (source of truth)
+  version: number // id of the newest PageVersion; sent back as base_version on Edycja
 }
 
 export type VersionKind = 'created' | 'generation' | 'proposal' | 'edit'
 
 export interface PageVersion {
   id: number
-  page: string // page path
   kind: VersionKind
   author: 'human' | 'agent'
   content: string

@@ -1,6 +1,6 @@
 // Pure helpers over wiki Pages: URL ↔ Path, grouping, universe membership, OKF parsing
 import { isSeq, parse, parseDocument } from 'yaml'
-import type { Page, PageType } from './api/types'
+import type { PageSummary, PageType } from './api/types'
 
 // Path '/books/x.md' ↔ splat 'books/x' (URL '/books/x')
 export const pageSplat = (path: string) => path.slice(1).replace(/\.md$/, '')
@@ -21,14 +21,19 @@ export const slugify = (text: string) =>
 
 export const bookPath = (title: string) => `/books/${slugify(title)}.md`
 
-export function groupByType(pages: Page[]): Record<PageType, Page[]> {
-  const groups: Record<PageType, Page[]> = { book: [], character: [], place: [], universe: [] }
+export function groupByType(pages: PageSummary[]): Record<PageType, PageSummary[]> {
+  const groups: Record<PageType, PageSummary[]> = {
+    book: [],
+    character: [],
+    place: [],
+    universe: [],
+  }
   for (const p of pages) groups[p.type].push(p)
   return groups
 }
 
 // Characters and places belong to a universe through their book (CONTEXT: per book for now)
-export function universeMembers(pages: Page[], universe: string) {
+export function universeMembers(pages: PageSummary[], universe: string) {
   const books = pages.filter((p) => p.type === 'book' && p.universe === universe)
   const bookPaths = new Set(books.map((b) => b.path))
   const inBooks = (type: PageType) =>

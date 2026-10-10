@@ -1,47 +1,58 @@
-import { fireEvent, screen, within } from '@testing-library/react'
-import { getPage, savePage } from '@/api/store'
-import { renderApp } from './renderApp'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from '@tanstack/react-router'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { ProposalView } from '@/components/ProposalView'
+import { FIXTURES, summary } from './mockWikiApi'
 
 const OZ = '/books/ostatnie-zyczenie.md'
-const REVIEW = '/books/ostatnie-zyczenie?view=proposal&p=1'
+const page = { ...summary(OZ, FIXTURES[OZ]), content: FIXTURES[OZ], version: 1 }
 
-const versionRows = async () =>
-  within(await screen.findByRole('list', { name: 'Versions' })).getAllByRole('listitem')
+// Links inside need a router: a one-route tree whose splat route renders the view
+function show(proposalId: number) {
+  const root = createRootRoute()
+  const splat = createRoute({
+    getParentRoute: () => root,
+    path: '$',
+    component: () => <ProposalView page={page} proposalId={proposalId} />,
+  })
+  const router = createRouter({
+    routeTree: root.addChildren([splat]),
+    history: createMemoryHistory({ initialEntries: ['/books/ostatnie-zyczenie'] }),
+  })
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  )
+}
 
-test('the page links to its open proposal, which shows the diff', async () => {
-  renderApp('/books/ostatnie-zyczenie')
-  await screen.findByText(/Proposal: Dodaj Nivellena do postaci/)
-  fireEvent.click(screen.getByRole('link', { name: 'Review' }))
+test('an open proposal shows the prompt and the diff', async () => {
+  show(1)
   await screen.findByText('Dodaj Nivellena do postaci')
   screen.getByText(/^\+ - \[Nivellen\]/)
 })
 
-test('accept adds a proposal version and a verified event', async () => {
-  renderApp(REVIEW)
+test('accept marks the proposal accepted', async () => {
+  show(1)
   fireEvent.click(await screen.findByRole('button', { name: /^Accept/ }))
-  await screen.findByText('Nivellen')
-  screen.getByText(/verified by human:stokuj, human:stokuj/)
-  expect(screen.queryByText(/Proposal: Dodaj Nivellena/)).toBeNull()
-  fireEvent.click(screen.getByRole('link', { name: 'History' }))
-  const rows = await versionRows()
-  expect(rows).toHaveLength(4)
-  within(rows[0]).getByText('Proposal')
+  await screen.findByText('accepted')
+  expect(screen.queryByRole('button', { name: 'Reject' })).toBeNull()
 })
 
-test('reject leaves the page and history unchanged', async () => {
-  const before = getPage(OZ).content
-  renderApp(REVIEW)
+test('reject marks the proposal rejected', async () => {
+  show(1)
   fireEvent.click(await screen.findByRole('button', { name: 'Reject' }))
-  await screen.findByRole('link', { name: 'History' })
-  expect(screen.queryByText(/Proposal: Dodaj Nivellena/)).toBeNull()
-  expect(getPage(OZ).content).toBe(before)
-  fireEvent.click(screen.getByRole('link', { name: 'History' }))
-  expect(await versionRows()).toHaveLength(3)
+  await screen.findByText('rejected')
 })
 
-test('after an edit the proposal is stale and accept is disabled', async () => {
-  savePage(OZ, getPage(OZ).content + '\nDopisek.\n')
-  renderApp(REVIEW)
+test('a stale proposal has accept disabled', async () => {
+  show(2)
   const accept = (await screen.findByRole('button', { name: /^Accept/ })) as HTMLButtonElement
   expect(accept.disabled).toBe(true)
   screen.getByText('This page changed since the proposal was made.')

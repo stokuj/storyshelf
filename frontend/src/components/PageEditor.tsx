@@ -16,7 +16,7 @@ export function PageEditor({ page }: { page: Page }) {
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        save.mutate(content, { onSuccess: back })
+        save.mutate({ content, baseVersion: page.version }, { onSuccess: back })
       }}
     >
       <Link

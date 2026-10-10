@@ -27,7 +27,7 @@ export function ProposalView({ page, proposalId }: { page: Page; proposalId: num
       </p>
     )
   }
-  const base = versions.find((v) => v.id === proposal.base_version)
+  const base = versions.data.find((v) => v.id === proposal.base_version)
   const back = () => navigate({ to: '/$', params, search: {} })
   const error = accept.error ?? reject.error
 
@@ -65,7 +65,7 @@ export function ProposalView({ page, proposalId }: { page: Page; proposalId: num
             onClick={() => accept.mutate(proposal.id, { onSuccess: back })}
             className={`${button} bg-primary text-primary-foreground`}
           >
-            Accept → new version v{versions.length + 1}
+            Accept → new version v{versions.total + 1}
           </button>
           <button
             type="button"
@@ -87,7 +87,7 @@ export function ProposalView({ page, proposalId }: { page: Page; proposalId: num
               disabled
               className={`${button} bg-primary text-primary-foreground`}
             >
-              Accept → new version v{versions.length + 1}
+              Accept → new version v{versions.total + 1}
             </button>
             <button type="button" disabled className={`${button} border`}>
               Regenerate
