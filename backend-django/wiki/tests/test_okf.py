@@ -51,6 +51,21 @@ class ValidateTest(SimpleTestCase):
     def test_blank_title(self):
         self.assert_error(BOOK.replace("title: Solaris", "title: ' '"), "book", "Missing title")
 
+    def test_fields_the_ui_cannot_render_are_rejected(self):
+        cases = {
+            "description: 2024": 'description must be text (quote numbers, e.g. "1984")',
+            "verified: x": "verified must be a list of objects",
+            "sources:\n  - id: 1\n    resource: 2": "sources must be a list of objects",
+            "generated: agent": "generated must be an object",
+        }
+        for yaml_line, message in cases.items():
+            with self.subTest(yaml_line):
+                content = BOOK.replace("title: Solaris\n", f"title: Solaris\n{yaml_line}\n")
+                self.assert_error(content, "book", f"Invalid frontmatter: {message}")
+
+    def test_empty_optional_values_are_valid(self):
+        okf.validate(BOOK.replace("title: Solaris\n", "title: Solaris\ndescription:\n"), "book")
+
     def test_missing_template_headings_are_listed_in_template_order(self):
         content = BOOK.replace("## Postacie\n", "").replace("## Miejsca\n", "")
         self.assert_error(content, "book", "Missing template headings: Postacie, Miejsca")

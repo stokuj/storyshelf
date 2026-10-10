@@ -8,7 +8,6 @@ import {
   parsePage,
   slugify,
   universeMembers,
-  validateEdit,
 } from '@/wiki'
 
 const pages = Object.entries(FIXTURES).map(([path, content]) => summary(path, content))
@@ -61,56 +60,6 @@ test('parsePage treats an empty frontmatter block as {}', () => {
   expect(parsePage('---\n---\n## Opis\n')).toEqual({ frontmatter: {}, body: '## Opis\n' })
 })
 
-test('every fixture page passes validateEdit', () => {
-  for (const p of pages) expect(validateEdit(FIXTURES[p.path], p.type), p.path).toBeNull()
-})
-
-test('validateEdit accepts CRLF content', () => {
-  expect(validateEdit(OZ.replaceAll('\n', '\r\n'), 'book')).toBeNull()
-})
-
-test('validateEdit rejects broken YAML', () => {
-  expect(validateEdit(OZ.replace('type: book', 'type: [book'), 'book')).toMatch(
-    /^Invalid frontmatter: /,
-  )
-})
-
-test('validateEdit rejects a frontmatter that is not a mapping', () => {
-  expect(validateEdit('---\njust text\n---\n## Opis\n', 'universe')).toBe(
-    'Invalid frontmatter: not a mapping',
-  )
-})
-
-test('validateEdit rejects a type change', () => {
-  expect(validateEdit(OZ.replace('type: book', 'type: universe'), 'book')).toBe(
-    "Page type can't change",
-  )
-})
-
-test('validateEdit lists missing template headings', () => {
-  const content = OZ.replace('## Postacie\n', '').replace('## Miejsca\n', '')
-  expect(validateEdit(content, 'book')).toBe('Missing template headings: Postacie, Miejsca')
-})
-
-test('validateEdit rejects fields the UI cannot render', () => {
-  const page = (fm: string) => `---\ntype: universe\n${fm}\n---\n## Opis\n`
-  expect(validateEdit(page('title: 2024'), 'universe')).toBe(
-    'Invalid frontmatter: title must be text (quote numbers, e.g. "1984")',
-  )
-  expect(
-    validateEdit(page('title: "1984"\ndescription:\nsources:\n  - id: 1'), 'universe'),
-  ).toBeNull()
-  expect(validateEdit(page('verified: x'), 'universe')).toBe(
-    'Invalid frontmatter: verified must be a list of objects',
-  )
-  expect(validateEdit(page('sources:\n  - id: 1\n    resource: 2'), 'universe')).toBe(
-    'Invalid frontmatter: sources must be a list of objects',
-  )
-  expect(validateEdit(page('generated: agent'), 'universe')).toBe(
-    'Invalid frontmatter: generated must be an object',
-  )
-})
-
 test('parsePage accepts a UTF-8 BOM', () => {
   expect(parsePage('﻿---\ntype: universe\n---\n## Opis\n').frontmatter.type).toBe('universe')
 })
@@ -129,7 +78,7 @@ test('addVerified appends to an existing verified list and keeps the body', () =
   expect(parsePage(out).body).toBe(parsePage(OZ).body)
 })
 
-test('addVerified reports broken YAML like validateEdit does', () => {
+test('addVerified reports broken YAML', () => {
   expect(() => addVerified('---\ntype: [book\n---\n## Opis\n', 'human:x', 't')).toThrow(
     /^Invalid frontmatter: /,
   )

@@ -67,61 +67,6 @@ export function parsePage(content: string): { frontmatter: Frontmatter; body: st
   }
 }
 
-// Szablon: `##` headings every Page of a type must keep
-export const TEMPLATES: Record<PageType, string[]> = {
-  book: ['Streszczenie', 'Postacie', 'Miejsca', 'Wątki i motywy'],
-  character: ['Opis', 'Rola w książce', 'Powiązania'],
-  place: ['Opis', 'Rola w książce'],
-  universe: ['Opis'],
-}
-
-// First problem that blocks saving an Edycja, or null
-export function validateEdit(content: string, type: PageType): string | null {
-  let parsed
-  try {
-    parsed = parsePage(content)
-  } catch (e) {
-    return `Invalid frontmatter: ${(e as Error).message}`
-  }
-  const fm: unknown = parsed.frontmatter
-  if (typeof fm !== 'object' || fm === null || Array.isArray(fm)) {
-    return 'Invalid frontmatter: not a mapping'
-  }
-  // type picks the Path directory, so changing it would break the Page identity
-  if (parsed.frontmatter.type !== type) return "Page type can't change"
-  const shapeError = checkShape(fm as Record<string, unknown>)
-  if (shapeError) return `Invalid frontmatter: ${shapeError}`
-  const lines = new Set(parsed.body.split('\n').map((l) => l.trim()))
-  const missing = TEMPLATES[type].filter((h) => !lines.has(`## ${h}`))
-  return missing.length ? `Missing template headings: ${missing.join(', ')}` : null
-}
-
-// Empty YAML values (`key:`) parse to null and count as absent
-const isText = (v: unknown) => v == null || typeof v === 'string'
-const isScalarObject = (v: unknown) =>
-  typeof v === 'object' &&
-  v !== null &&
-  !Array.isArray(v) &&
-  Object.values(v).every((x) => typeof x !== 'object' || x === null)
-const isListOf = (v: unknown, ok: (x: unknown) => boolean) =>
-  v == null || (Array.isArray(v) && v.every(ok))
-
-// Fields the UI renders as text or lists; a wrong shape would crash the sidebar or PageView
-function checkShape(fm: Record<string, unknown>): string | null {
-  for (const key of ['title', 'description', 'author', 'status', 'book', 'universe']) {
-    if (!isText(fm[key])) return `${key} must be text (quote numbers, e.g. "1984")`
-  }
-  // resource goes through the URL sanitiser, which needs a string
-  const isSource = (x: unknown) =>
-    isScalarObject(x) && isText((x as Record<string, unknown>).resource)
-  if (!isListOf(fm.sources, isSource)) return 'sources must be a list of objects'
-  if (!isListOf(fm.verified, isScalarObject)) return 'verified must be a list of objects'
-  if (fm.generated != null && !isScalarObject(fm.generated)) {
-    return 'generated must be an object'
-  }
-  return null
-}
-
 // Appends a Weryfikacja event (OKF v0.2 §5.2) without reformatting the rest of the frontmatter
 export function addVerified(content: string, by: string, at: string): string {
   const match = FRONTMATTER.exec(content)

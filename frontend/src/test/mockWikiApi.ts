@@ -1,8 +1,11 @@
 // In-memory /api/wiki/pages/ on top of mockFetch, seeded from the backend fixtures
 // (the same files `manage.py seed` loads)
 import type { PageSummary, PageVersion, VersionKind } from '@/api/types'
-import { TEMPLATES, bookPath, parsePage } from '@/wiki'
+import { bookPath, parsePage } from '@/wiki'
 import { json, mockFetch } from './mockFetch'
+
+// copy of okf.TEMPLATES['book']
+const BOOK_HEADINGS = ['Streszczenie', 'Postacie', 'Miejsca', 'Wątki i motywy']
 
 const files = import.meta.glob<string>('../../../backend-django/wiki/fixtures/**/*.md', {
   query: '?raw',
@@ -74,7 +77,7 @@ export function mockWikiApi(overrides: Record<string, Route> = {}) {
         const path = bookPath(title)
         if (db.has(path)) return json(409, { detail: `Page already exists: ${path}` })
         const head = `---\ntype: book\ntitle: ${JSON.stringify(title)}\nstatus: draft\n---\n\n`
-        write(path, head + TEMPLATES.book.map((h) => `## ${h}\n`).join('\n'), 'created')
+        write(path, head + BOOK_HEADINGS.map((h) => `## ${h}\n`).join('\n'), 'created')
         return json(201, detail(path))
       }
 
