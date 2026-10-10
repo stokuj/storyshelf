@@ -1,5 +1,8 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { FIXTURES, mockWikiApi } from './mockWikiApi'
 import { renderApp } from './renderApp'
+
+const KE = '/books/krew-elfow.md'
 
 const source = async () =>
   (await screen.findByRole('textbox', { name: 'Page source' })) as HTMLTextAreaElement
@@ -22,18 +25,6 @@ test('saving an edit shows the new content', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Save' }))
   await screen.findByText('Dopisek z edycji.')
   expect(screen.queryByRole('textbox', { name: 'Page source' })).toBeNull()
-})
-
-test('removing a template heading blocks save and keeps the text', async () => {
-  renderApp('/books/solaris?view=edit')
-  const textarea = await source()
-  edit(textarea, (v) => v.replace('## Postacie\n', ''))
-  const typed = textarea.value
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-  expect((await screen.findByRole('alert')).textContent).toBe('Missing template headings: Postacie')
-  expect(textarea.value).toBe(typed)
-  edit(textarea, (v) => v + '\n')
-  expect(screen.queryByRole('alert')).toBeNull()
 })
 
 test('cancel discards unsaved text', async () => {
@@ -64,13 +55,14 @@ test('an edit appears on top of history', async () => {
 })
 
 test('viewing an old version shows it read-only', async () => {
-  renderApp('/books/ostatnie-zyczenie?view=history')
+  mockWikiApi().write(KE, FIXTURES[KE] + '\nDopisek.\n')
+  renderApp('/books/krew-elfow?view=history')
   const rows = await versionRows()
-  expect(rows.map((r) => within(r).getByText(/^v\d+$/).textContent)).toEqual(['v3', 'v2', 'v1'])
-  fireEvent.click(within(rows[2]).getByRole('link', { name: 'View' }))
-  await screen.findByText(/Viewing v1 · Created/)
+  expect(rows.map((r) => within(r).getByText(/^v\d+$/).textContent)).toEqual(['v2', 'v1'])
+  fireEvent.click(within(rows[1]).getByRole('link', { name: 'View' }))
+  await screen.findByText(/Viewing v1 · Generation/)
   screen.getByRole('heading', { level: 2, name: 'Streszczenie' })
-  expect(screen.queryByText(/Ranny Geralt/)).toBeNull()
+  expect(screen.queryByText('Dopisek.')).toBeNull()
   expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
 })
 
@@ -83,4 +75,24 @@ test.each(['999', 'abc'])('version id %s shows not found with a way back', async
 test('an unknown view falls back to the page', async () => {
   renderApp('/books/ostatnie-zyczenie?view=bogus')
   await screen.findByRole('link', { name: 'Edit' })
+})
+
+test('save sends the page version as base_version', async () => {
+  renderApp('/books/krew-elfow?view=edit')
+  edit(await source(), (v) => v + '\nDopisek.\n')
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  // The mock answers 409 to a wrong base_version, so the new text proves it was right
+  await screen.findByText('Dopisek.')
+  const put = vi.mocked(fetch).mock.calls.find(([, init]) => init?.method === 'PUT')!
+  expect(JSON.parse(put[1]!.body as string)).toEqual({
+    content: expect.stringContaining('Dopisek.'),
+    base_version: expect.any(Number),
+  })
+})
+
+test('?view=proposal falls back to the page', async () => {
+  renderApp('/books/ostatnie-zyczenie?view=proposal&p=1')
+  await screen.findByRole('link', { name: 'Edit' })
+  expect(screen.queryByRole('link', { name: 'Review' })).toBeNull()
+  expect(screen.queryByText(/^Proposal:/)).toBeNull()
 })

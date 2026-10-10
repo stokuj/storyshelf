@@ -1,6 +1,7 @@
 // Add a book: chat with the Agent → Candidate cards → Page with an empty Szablon
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
+import { apiErrorMessage } from '@/api/client'
 import { useCreateBook, usePages, useFindCandidates } from '@/api/hooks'
 import type { Candidate } from '@/api/types'
 import { bookPath, pageSplat } from '@/wiki'
@@ -111,7 +112,7 @@ function CandidateCard({ candidate: c }: { candidate: Candidate }) {
         <p className="text-sm text-muted-foreground">{`${c.author} · ${c.year}`}</p>
         {create.error && (
           <p role="alert" className="mt-1 text-sm text-destructive">
-            {create.error.message}
+            {apiErrorMessage(create.error)}
           </p>
         )}
       </div>

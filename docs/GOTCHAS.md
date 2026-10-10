@@ -22,6 +22,7 @@ Operacje git na innym worktree lub na głównym checkoucie (pull, sprzątanie): 
 - **Prettier tylko w `frontend/`.** `npx prettier --write` na pliku z `docs/` przeformatuje tabele Markdown (wyrównanie kolumn) i zaśmieci diff. Formatuj ścieżki pod `frontend/` albo `npm run format`.
 - **TypeScript przypięty do `~6.0`.** typescript-eslint ma peer `typescript <6.1.0`, a TS 7 nie ma jeszcze API programowego. Pozostałe paczki instalujemy `@latest`. Upgrade, gdy typescript-eslint wspiera TS 7.1. Node 24 (`frontend/.nvmrc`).
 - **`routeTree.gen.ts` jest commitowany.** CI po buildzie sprawdza `git diff --exit-code src/routeTree.gen.ts` — po dodaniu trasy zacommituj wygenerowany plik.
+- **Vite `server.fs.allow` ogranicza się do `.` i `../backend-django/wiki/fixtures`.** Testy czytają fixtures backendu przez `import.meta.glob`; import innej ścieżki spoza `frontend/` kończy się „outside of Vite serving allow list”. Dopisz ten katalog do listy, nigdy `..` (dev server wystawiłby `infra/.env`).
 
 ## Backend
 

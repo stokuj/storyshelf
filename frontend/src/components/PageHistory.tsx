@@ -1,4 +1,4 @@
-// Historia: every Version newest first; a picked Version renders read-only
+// Historia: the newest 20 Versions (first page); a picked Version renders read-only
 import { Link } from '@tanstack/react-router'
 import { useVersions } from '@/api/hooks'
 import type { Page, VersionKind } from '@/api/types'
@@ -16,11 +16,20 @@ const when = (iso: string) =>
   new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
 
 export function PageHistory({ page, versionId }: { page: Page; versionId?: number }) {
-  const { data: versions } = useVersions(page.path)
-  if (!versions) return null
+  const { data, isError } = useVersions(page.path)
+  // A failed background refetch keeps the loaded list
+  if (!data && isError) {
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        Could not load history.
+      </p>
+    )
+  }
+  if (!data) return null
+  const versions = data.data
   const params = { _splat: pageSplat(page.path) }
-  // Oldest is v1; ids are not contiguous, so number by position
-  const label = (i: number) => `v${versions.length - i}`
+  // Oldest is v1; only the newest 20 are loaded, so number from the server total
+  const label = (i: number) => `v${data.total - i}`
 
   if (versionId !== undefined) {
     const i = versions.findIndex((v) => v.id === versionId)

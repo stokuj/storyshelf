@@ -6,7 +6,7 @@
 
 StoryShelf — **w trakcie pivotu (2026-10-03)**: z trackera czytania na prywatną wiki o książkach (format OKF v0.2) pisaną przez Agenta LLM razem z Userem. Docelowo Django 6 + DRF + Celery/Redis/OpenRouter, a frontend od zera w React + Vite SPA ([ADR-004](docs/decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](docs/decisions/ADR-005-react-vite-spa.md)).
 
-Kod na `dev` to na razie sam szkielet backendu (`users`: auth, konto, profil; `config`: settings, Celery), 4 kontenery: db, django, celery, redis; domena trackera usunięta; `frontend/` to szkielet nowego SPA (#87). Komendy i layout niżej opisują ten obecny kod. Plan migracji: GitHub milestones.
+Kod na `dev`: backend `users` (auth, konto, profil), `wiki` (API Stron z walidacją OKF i Wersjami, #108) i `config` (settings, Celery); 4 kontenery: db, django, celery, redis; domena trackera usunięta. `frontend/` to SPA z logowaniem (#109), które czyta i zapisuje Strony przez API (#110); na fake store zostają tylko Kandydaci, Profil i Propozycje (do M3/#112). Komendy i layout niżej opisują ten obecny kod. Plan migracji: GitHub milestones.
 
 ## Mapa dokumentacji
 
@@ -77,7 +77,7 @@ npm run build
 ## Layout (skrót)
 
 ```
-backend-django/    Django 6 + DRF; apps: users, config
+backend-django/    Django 6 + DRF; apps: users, wiki, config
 frontend/          React 19 + Vite SPA; TanStack Router (src/routes/) + Query, Tailwind v4, shadcn
 infra/             compose (dev/prod), caddy, scripts/ (deploy, openapi), .env(.example)
 docs/              ARCHITECTURE.md, decisions/, superpowers/

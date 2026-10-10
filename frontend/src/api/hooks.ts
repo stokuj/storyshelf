@@ -1,16 +1,12 @@
-// Read hooks + writes; queryFn/mutationFn swap to the real /api/wiki/... endpoints in M2
+// Read hooks + writes: Pages go to /api/wiki/..., the rest still uses the fake store
 import { type QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ApiError } from './client'
+import { createBook, getPage, listPages, listVersions, savePage } from './wiki'
 import {
   acceptProposal,
-  createBook,
-  generatePage,
-  getPage,
   getProfile,
-  listPages,
   listProposals,
-  listVersions,
   rejectProposal,
-  savePage,
   searchCandidates,
   setProfilePublic,
 } from './store'
@@ -20,11 +16,19 @@ export const usePages = (type?: PageType) =>
   useQuery({ queryKey: ['pages', type ?? 'all'], queryFn: () => listPages(type) })
 
 export const usePage = (path: string) =>
-  // No retry: a missing page is a 404 (OKF tolerates broken links), not a transient error
-  useQuery({ queryKey: ['page', path], queryFn: () => getPage(path), retry: false })
+  useQuery({
+    queryKey: ['page', path],
+    queryFn: () => getPage(path),
+    // A missing page is a 404 (OKF tolerates broken links), not transient; anything else gets one retry
+    retry: (count, e) => count < 1 && !(e instanceof ApiError && e.status === 404),
+  })
 
 export const useVersions = (path: string) =>
-  useQuery({ queryKey: ['page', path, 'versions'], queryFn: () => listVersions(path) })
+  useQuery({
+    queryKey: ['page', path, 'versions'],
+    queryFn: () => listVersions(path),
+    retry: (count, e) => count < 1 && !(e instanceof ApiError && e.status === 404),
+  })
 
 export const useProposals = (path: string) =>
   useQuery({ queryKey: ['page', path, 'proposals'], queryFn: () => listProposals(path) })
@@ -54,7 +58,8 @@ const refreshPage = (qc: QueryClient, path: string) =>
 export function useSavePage(path: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (content: string) => savePage(path, content),
+    mutationFn: ({ content, baseVersion }: { content: string; baseVersion: number }) =>
+      savePage(path, content, baseVersion),
     onSuccess: () => refreshPage(qc, path),
   })
 }
@@ -64,17 +69,6 @@ export function useCreateBook() {
   return useMutation({
     mutationFn: async (c: Candidate) => createBook(c),
     onSuccess: (page) => refreshPage(qc, page.path),
-  })
-}
-
-export function useGeneratePage(path: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      await agentDelay()
-      return generatePage(path)
-    },
-    onSuccess: () => refreshPage(qc, path),
   })
 }
 

@@ -7,7 +7,7 @@ import yaml
 
 DIRS = {"book": "books", "character": "characters", "place": "places", "universe": "universes"}
 
-# Szablon: `##` headings every Page of a type must keep (same as frontend/src/wiki.ts)
+# Szablon: `##` headings every Page of a type must keep
 TEMPLATES = {
     "book": ["Streszczenie", "Postacie", "Miejsca", "Wątki i motywy"],
     "character": ["Opis", "Rola w książce", "Powiązania"],
@@ -44,6 +44,37 @@ def parse(content):
     return frontmatter, content[match.end():].lstrip()
 
 
+def _is_text(v):
+    # Empty YAML values (`key:`) parse to None and count as absent
+    return v is None or isinstance(v, str)
+
+
+def _is_scalar_dict(v):
+    return isinstance(v, dict) and all(not isinstance(x, (dict, list)) for x in v.values())
+
+
+def _is_list_of(v, ok):
+    return v is None or (isinstance(v, list) and all(ok(x) for x in v))
+
+
+def _check_shape(fm):
+    """Fields the UI renders as text or lists; a wrong shape would crash the SPA."""
+    for key in ("title", "description", "author", "status", "book", "universe"):
+        if not _is_text(fm.get(key)):
+            return f'{key} must be text (quote numbers, e.g. "1984")'
+    # resource goes through the SPA's URL sanitiser, which needs a string
+    def is_source(x):
+        return _is_scalar_dict(x) and _is_text(x.get("resource"))
+
+    if not _is_list_of(fm.get("sources"), is_source):
+        return "sources must be a list of objects"
+    if not _is_list_of(fm.get("verified"), _is_scalar_dict):
+        return "verified must be a list of objects"
+    if fm.get("generated") is not None and not _is_scalar_dict(fm["generated"]):
+        return "generated must be an object"
+    return None
+
+
 def validate(content, page_type):
     """Frontmatter of a valid Page, or OKFError with the first problem."""
     frontmatter, body = parse(content)
@@ -55,6 +86,8 @@ def validate(content, page_type):
     title = frontmatter.get("title")
     if not isinstance(title, str) or not title.strip():
         raise OKFError("Missing title")
+    if error := _check_shape(frontmatter):
+        raise OKFError(f"Invalid frontmatter: {error}")
     lines = {line.strip() for line in body.splitlines()}
     missing = [h for h in TEMPLATES[page_type] if f"## {h}" not in lines]
     if missing:

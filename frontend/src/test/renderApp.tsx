@@ -5,7 +5,7 @@ import { routeTree } from '@/routeTree.gen'
 
 // Full app (all file routes) on an in-memory URL
 export function renderApp(url = '/') {
-  const queryClient = new QueryClient()
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const router = createRouter({
     routeTree,
     context: { queryClient },

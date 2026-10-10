@@ -1,4 +1,4 @@
-import { ApiError, api } from './client'
+import { ApiError, api, apiErrorMessage } from './client'
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
@@ -66,4 +66,21 @@ test('error body is parsed into ApiError.body', async () => {
   )) as ApiError
   expect(err.status).toBe(400)
   expect(err.body).toEqual({ email: ['Enter a valid email address.'] })
+})
+
+test.each([
+  [
+    400,
+    { content: ['Missing template headings: Postacie'] },
+    'Missing template headings: Postacie',
+  ],
+  [409, { detail: 'Page already exists.' }, 'Page already exists.'],
+  [500, null, 'Something went wrong. Try again.'],
+  [400, { content: [] }, 'Something went wrong. Try again.'],
+])('apiErrorMessage %#', (status, body, message) => {
+  expect(apiErrorMessage(new ApiError(status, body))).toBe(message)
+})
+
+test('apiErrorMessage of a non-API error is generic', () => {
+  expect(apiErrorMessage(new TypeError('Failed to fetch'))).toBe('Something went wrong. Try again.')
 })
