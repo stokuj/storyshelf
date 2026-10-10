@@ -15,6 +15,10 @@ class ValidateTest(SimpleTestCase):
         self.assertEqual(str(ctx.exception), message)
         self.assertEqual(ctx.exception.field, field)
 
+    def test_deeply_nested_frontmatter_is_rejected(self):
+        content = "---\nx: " + "[" * 20000 + "]" * 20000 + "\n---\n\n# Body\n"
+        self.assert_error(content, "book", "Invalid frontmatter: too deeply nested")
+
     def test_valid_book_returns_frontmatter(self):
         self.assertEqual(okf.validate(BOOK, "book"), {"type": "book", "title": "Solaris"})
 

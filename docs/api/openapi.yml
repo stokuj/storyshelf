@@ -222,7 +222,7 @@ paths:
         '400':
           description: Invalid input or OKF content
         '409':
-          description: Path taken or stale base_version
+          description: Path taken
   /api/wiki/pages/{path}:
     get:
       operationId: wiki_pages_retrieve
@@ -279,7 +279,7 @@ paths:
         '400':
           description: Invalid input or OKF content
         '409':
-          description: Path taken or stale base_version
+          description: Stale base_version
   /api/wiki/pages/{path}/versions/:
     get:
       operationId: wiki_pages_versions_list

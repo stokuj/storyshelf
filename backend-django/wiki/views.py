@@ -14,7 +14,8 @@ from wiki.serializers import (
 )
 
 INVALID = OpenApiResponse(description="Invalid input or OKF content")
-CONFLICT = OpenApiResponse(description="Path taken or stale base_version")
+PATH_TAKEN = OpenApiResponse(description="Path taken")
+STALE = OpenApiResponse(description="Stale base_version")
 
 
 def get_own_page(request, path):
@@ -37,7 +38,7 @@ class PageListCreateView(views.APIView):
 
     @extend_schema(
         request=PageCreateSerializer,
-        responses={201: PageSerializer, 400: INVALID, 409: CONFLICT},
+        responses={201: PageSerializer, 400: INVALID, 409: PATH_TAKEN},
     )
     def post(self, request):
         serializer = PageCreateSerializer(data=request.data)
@@ -61,7 +62,7 @@ class PageDetailView(views.APIView):
 
     @extend_schema(
         request=PageEditSerializer,
-        responses={200: PageSerializer, 400: INVALID, 409: CONFLICT},
+        responses={200: PageSerializer, 400: INVALID, 409: STALE},
     )
     def put(self, request, path):
         page = get_own_page(request, path)

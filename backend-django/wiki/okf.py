@@ -35,6 +35,8 @@ def parse(content):
         frontmatter = yaml.safe_load(match[1] or "")
     except yaml.YAMLError as e:
         raise OKFError(f"Invalid frontmatter: {getattr(e, 'problem', None) or e}") from e
+    except RecursionError as e:
+        raise OKFError("Invalid frontmatter: too deeply nested") from e
     if frontmatter is None:
         frontmatter = {}
     if not isinstance(frontmatter, dict):
