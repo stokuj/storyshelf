@@ -1,11 +1,22 @@
 // In-memory /api/wiki/pages/ on top of mockFetch, seeded from the backend fixtures
 // (the same files `manage.py seed` loads)
-import type { PageSummary, PageVersion, VersionKind } from '@/api/types'
-import { bookPath, parsePage } from '@/wiki'
+import type { PageSummary, PageType, PageVersion, VersionKind } from '@/api/types'
+import { parsePage, slugify } from '@/wiki'
 import { json, mockFetch } from './mockFetch'
 
-// copy of okf.TEMPLATES['book']
-const BOOK_HEADINGS = ['Streszczenie', 'Postacie', 'Miejsca', 'Wątki i motywy']
+// copies of okf.TEMPLATES / okf.DIRS (kept literal so the mock is an independent oracle)
+const TEMPLATES: Record<PageType, string[]> = {
+  book: ['Streszczenie', 'Postacie', 'Miejsca', 'Wątki i motywy'],
+  character: ['Opis', 'Rola w książce', 'Powiązania'],
+  place: ['Opis', 'Rola w książce'],
+  universe: ['Opis'],
+}
+const DIRS: Record<PageType, string> = {
+  book: 'books',
+  character: 'characters',
+  place: 'places',
+  universe: 'universes',
+}
 
 const files = import.meta.glob<string>('../../../backend-django/wiki/fixtures/**/*.md', {
   query: '?raw',
@@ -73,11 +84,29 @@ export function mockWikiApi(overrides: Record<string, Route> = {}) {
             [...db.keys()].sort().map((p) => summary(p, db.get(p)![0].content)),
           )
         }
-        const title = body().title as string
-        const path = bookPath(title)
+        const { type, title, author, year, book, universe } = body() as {
+          type: PageType
+          title: string
+          author?: string
+          year?: number
+          book?: string
+          universe?: string
+        }
+        const slug = slugify(title)
+        if (!slug) return json(400, { title: ['Title needs at least one letter or digit'] })
+        const perBook = type === 'character' || type === 'place'
+        if (perBook && !book) return json(400, { book: ['This field is required.'] })
+        if (perBook && !db.has(book!)) return json(400, { book: [`No book page at ${book}`] })
+        const suffix = perBook ? `--${book!.slice('/books/'.length, -'.md'.length)}` : ''
+        const path = `/${DIRS[type]}/${slug}${suffix}.md`
         if (db.has(path)) return json(409, { detail: `Page already exists: ${path}` })
-        const head = `---\ntype: book\ntitle: ${JSON.stringify(title)}\nstatus: draft\n---\n\n`
-        write(path, head + BOOK_HEADINGS.map((h) => `## ${h}\n`).join('\n'), 'created')
+        const meta = perBook ? { book } : type === 'book' ? { author, year, universe } : {}
+        const yaml = Object.entries({ title, ...meta })
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+        const headings = TEMPLATES[type].map((h) => `## ${h}\n`).join('\n')
+        const head = [`type: ${type}`, ...yaml, 'status: draft'].join('\n')
+        write(path, `---\n${head}\n---\n\n${headings}`, 'created')
         return json(201, detail(path))
       }
 
