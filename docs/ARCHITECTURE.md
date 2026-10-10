@@ -1,7 +1,7 @@
 # Architecture — StoryShelf (wiki o książkach)
 
 > Stan docelowy po pivocie 2026-10-03 ([ADR-004](decisions/ADR-004-wiki-okf-pages-in-postgres.md), [ADR-005](decisions/ADR-005-react-vite-spa.md)).
-> Kod na `dev` po M1: szkielet backendu (`users`, `config`) i SPA na fake danych. Reszta (Strony, Agent, deploy SPA) w GitHub milestones.
+> Kod na `dev`: backend `users`, `config`, `wiki` (API Stron, #108); SPA czyta i zapisuje Strony przez API (#110). Na fake store zostają tylko Kandydaci (czat), Profil i Propozycje (ukryte do M3). Generowanie i Propozycje poniżej to stan docelowy. Reszta (Agent, deploy SPA) w GitHub milestones.
 > Słownik pojęć: [CONTEXT.md](../CONTEXT.md).
 
 ## Idea
